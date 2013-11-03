@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <script src="../js/flyingon.js"></script>
+
+
+    <script type="text/javascript">
+
+
+        var text = '<text line-height=" 12 " 中国="d中国">';
+        var regex_attr = /[\w-.:\u0370-\uffff]+|(?=\")[^\"]+(?=\")|\"\"|(?=\')[^\']+(?=\')|\'\'/g;
+
+        var match = text.match(regex_attr);
+        
+        var $ = flyingon;
+
+        var data = 'dddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddd< br / >dddd<text line-height="12">text</text>ddddddddddddddddddddddd<br/>dddd<text line-height="12" >text</text>ddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddd';//.replace(//g, "<></");
+
+
+        var date = new Date();
+
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var t = $.Xml.parse(data);
+        }
+
+
+        alert(new Date() - date);
+
+
+    </script>
+
+
+
+</body>
+</html>

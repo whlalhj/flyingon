@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+    <div></div>
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <script src="../js/flyingon.js"></script>
+    <script>
+
+
+        // Define a regular polygon with n sides, centered at (x,y)
+        // with radius r. The vertices are equally spaced along the
+        // circumference of a circle. Put the first vertex straight
+        // up or at the specified angle. Rotate clockwise, unless
+        // the last argument is true.
+        function polygon(c, n, x, y, r, angle, counterclockwise) {
+
+            angle = angle || 0;
+            counterclockwise = counterclockwise || false;
+
+            // Compute vertex position and begin a subpath there
+            c.moveTo(x + r * Math.sin(angle),
+            y - r * Math.cos(angle));
+
+            var delta = 2 * Math.PI / n; // Angle between vertices
+            for (var i = 1; i < n; i++)
+            { // For remaining vertices
+                // Compute angle of this vertex
+                angle += counterclockwise ? -delta : delta;
+                // Compute position of vertex and add a line to it
+                c.lineTo(x + r * Math.sin(angle),
+                y - r * Math.cos(angle));
+            }
+
+            c.closePath(); // Connect last vertex back to the first
+        }
+
+        // Start a new path and add polygon subpaths
+        var c = canvas.getContext("2d");
+
+        c.beginPath();
+        polygon(c, 3, 50, 70, 50); // Triangle
+        polygon(c, 4, 150, 60, 50, Math.PI / 4); // Square
+        polygon(c, 5, 255, 55, 50); // Pentagon
+        polygon(c, 6, 365, 53, 50, Math.PI / 6); // Hexagon
+        // Add a small counterclockwise square inside the hexagon
+        //polygon(c, 4, 365, 53, 20, Math.PI / 4, true);
+
+
+        //c.moveTo(365, 53);
+        c.starPolygon(6, 365, 53, 40, 20, 30, true);
+
+        //c.moveTo(365, 53);
+        c.roundRect(365, 53, 30, 30, 5, false);
+
+        //c.moveTo(365, 53);
+        c.rectTo(365, 53, 20, 20, true);
+
+
+
+        // Set properties that control how the graphics will look
+        c.fillStyle = "rgba(0,0,0,0.5)"; // Light-gray interiors
+        c.strokeStyle = "#008"; // outlined with dark-blue lines
+        c.lineWidth = 1; // five pixels wide.
+        // Now draw all the polygons (each in its own subpath)
+        c.fill(); // Fill the shapes
+        c.stroke(); // And stroke their outlines
+
+
+    </script>
+
+</body>
+</html>

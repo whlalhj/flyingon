@@ -1,0 +1,5 @@
+﻿flyingon.Language = {
+
+    DefineClassParameterError: 'DefineClassParameterError'
+
+};

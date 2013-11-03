@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <div style="">
+        <input type="button" value="new Object" onclick="createNewObject()" />
+        <input type="button" value="json Object" onclick="createJsonObject()" />
+        <input type="button" value="id Property" onclick="idProperty()" />
+        <input type="button" value="name Property" onclick="nameProperty()" />
+        <span id="message"></span>
+    </div>
+    <div id="host" style="width: 100%; height: 600px">
+    </div>
+
+
+    <script type="text/javascript">
+
+
+
+        function createNewObject() {
+
+            var Button = function (a, b) {
+
+                this.a = a;
+                this.b = b;
+            };
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var a = new Button(1, 2);
+            }
+
+            alert(new Date() - date);
+        }
+
+
+        function createJsonObject() {
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var a = {
+                    a: 1,
+                    b: 2
+                }
+            }
+
+            alert(new Date() - date);
+        }
+
+
+
+        function idProperty() {
+
+            var obj = {};
+
+            for (var i = 0; i < 10000; i++)
+            {
+                obj["name" + i] = i;
+            }
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var value = obj.name9999;
+            }
+
+            alert(new Date() - date);
+        }
+
+        function nameProperty() {
+
+            var obj = {};
+
+            for (var i = 0; i < 10000; i++)
+            {
+                obj["name." + i] = i;
+            }
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var value = obj["name.9999"];
+            }
+
+            alert(new Date() - date);
+        }
+
+
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+        #Text1 {
+            height: 9px;
+            width: 216px;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <input type="button" value="create" onclick="create()" />
+        <input type="button" value="update" onclick="update()" />
+        <input type="button" value="indexOf" onclick="indexOf()" />
+        <input id="text1" type="text" value="createdddd" />
+        <span id="message"></span>
+    </div>
+
+    <div id="host" style="width: 100%; height: 600px">
+    </div>
+
+    <!--    <input id="Text1" type="text" style="position: absolute; opacity: 0.5; top: 42px; left: 14px;border:0;padding:0" />-->
+
+
+    <script src="../js/flyingon.js"></script>
+
+
+
+    <script type="text/javascript">
+
+
+
+        var $ = flyingon;
+
+
+
+        var w = new $.Window(host);
+
+
+        function create() {
+
+            //w.beginInit();
+            var date = new Date();
+
+            w.layout = "rows";
+
+            for (var i = 0; i < 50; i++)
+            {
+                var panel = new $.Panel();
+
+                panel.width = 400;
+
+                panel.height = 400;
+                //panel.layout = "columns"
+                panel["border"] = [10, 10, 10, 10];
+
+                for (var j = 0; j < 100; j++)
+                {
+                    var text = new $.ComboBox();
+
+                    text.width = 190;
+                    text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
+
+                    panel.children.append(text);
+                }
+
+                w.children.append(panel);
+            }
+
+
+            //w.endInit();
+            w.update();
+
+            alert(new Date() - date);
+
+            //w.onclick = function (event) {
+
+            //    alert(event.target.id);
+            //};
+
+            w.onmousedown = function (event) {
+
+
+
+
+                var p = event.target.offsetToControl(event.offsetX, event.offsetY);
+
+                event.target.controlToOffset(p.x, p.y);
+            };
+
+            w.onmousemove = function (event) {
+
+                var offset = event.target.controlToOffset(event.controlX, event.controlY);
+                message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
+            };
+        };
+
+
+        function update() {
+
+
+            var date = new Date();
+
+            w.update();
+
+            alert(new Date() - date);
+        };
+
+        function indexOf() {
+
+            var font = w.font;
+
+            var text = font.measureText("abc if 中国!");
+
+            var index = text.getSegmentAt(80);
+        };
+
+
+    </script>
+
+</body>
+</html>

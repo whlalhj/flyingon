@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="no-cache" />
+    <title></title>
+</head>
+<body style="background-color: yellow;">
+
+    <span id="message"></span>
+    <div id="host" style="width: 100%; height: 600px; border: 1px solid blue;">
+    </div>
+
+    <script src="../js/flyingon.js"></script>
+
+    <script type="text/javascript">
+
+        var fn = function (a, b) {
+
+            "{a}";
+            "{b}";
+            return a + b;
+        };
+
+        var fn1 = flyingon["fn:template:to"](fn, { a: function () { a = 1; }, b: "b = 2" });
+
+        var date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var expr = new flyingon.Expression();
+            expr.data = "@v +'d' + @t + 'cdsd\\\\\\'+@t'";
+        }
+
+
+        alert(new Date() - date);
+
+        var w = new flyingon.Window(host);
+
+        var source = new flyingon.DataObject();
+        source.data = { text: "12" };
+        source.setData("text", "t1");
+
+        w.setBinding("text", { source: source, expression: "text" });
+
+        source.text = "t2";
+        w.text = "text";
+        w.layoutSpaceX = 10;
+        w.layoutSpaceY = 10;
+
+
+
+
+        var button = new flyingon.Button();
+
+        button.onclick = function () {
+
+            var form = new flyingon.ChildWindow();
+
+            //form.padding = [10, 10, 10, 10];
+            form.layoutSpaceX = 10;
+            form.layoutSpaceY = 10;
+
+            for (var j = 0; j < 100; j++)
+            {
+                var text = new flyingon.ComboBox();
+
+                text.width = 190;
+                text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
+
+                form.children.append(text);
+            }
+
+
+
+            form.onclick = function (event) {
+
+                event.target.invalidate();
+            };
+
+            form.onmouseout = function (event) {
+
+                if (event.target instanceof flyingon.ScrollBase)
+                {
+                    event.target.invalidate();
+                }
+
+                message.innerHTML = "id:" + event.target.id + " background:" + event.target.background;
+
+                //var offset = event.target.controlToOffset(event.controlX, event.controlY);
+                //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
+            };
+
+
+            form.show(w);
+        };
+
+
+
+
+        //w.onmousemove = function (event) {
+
+        //    message.innerHTML = "id:" + event.target.id + " background:" + event.target.background;
+        //    //var offset = event.target.controlToOffset(event.controlX, event.controlY);
+        //    //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
+        //};
+
+        w.children.append(button);
+
+
+        var writer = new flyingon.JsonSerializeWriter();
+        var data = writer.serialize(w);
+
+        data = '{"className":"Panel","text":"text","layoutSpaceX":10,"layoutSpaceY":10,"d:children":[{"className":"Button"}]}';
+
+
+        var date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            //flyingon.parseJson(data);
+            var reader = new flyingon.JsonSerializeReader();
+            var obj = reader.deserialize(data);
+        }
+
+
+        alert(new Date() - date);
+
+        w.update();
+        var o = { className: "Window", "text": "text", "layoutSpaceX": 10, "layoutSpaceY": 10, "bindings": { "text": { "source": { className: "DataObject", "data": { "text": "text", "d:original": { "text": "12" } }, "schema": { "text": { "defaultValue": null } } }, "expression": "text", "d:binding": false } } }
+
+    </script>
+
+</body>
+</html>

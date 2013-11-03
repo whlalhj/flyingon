@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+</head>
+<body>
+    
+    <input id="text" type="text" value="ddddddddddddddd" />
+    <input type="button" onclick="btn_Onclick('a');" />
+
+    <script type="text/javascript">
+
+
+        //text.onkeydown = function (e) {
+
+        //    alert("onkeydown");
+        //};
+
+        text.oncopy = function (event) {
+
+            alert("oncopy");
+        };
+
+
+        function btn_Onclick(letter) {
+
+
+            //var evt = document.createEvent("KeyboardEvent");
+            //evt.initKeyEvent("keypress", true, true, window,
+            //                  0, 0, 0, 0,
+            //                  0, "e".charCodeAt(0))
+            //var canceled = !text.dispatchEvent(evt);
+            //if (canceled)
+            //{
+            //    // A handler called preventDefault
+            //    alert("canceled");
+            //} else
+            //{
+            //    // None of the handlers called preventDefault
+            //    alert("not canceled");
+            //}
+
+
+
+
+            var keyboardEvent = document.createEvent("KeyboardEvent");
+            var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+
+
+            keyboardEvent[initMethod](
+                               "keydown", // event type : keydown, keyup, keypress
+                                true, // bubbles
+                                true, // cancelable
+                                window, // viewArg: should be window
+                                true, // ctrlKeyArg
+                                false, // altKeyArg
+                                false, // shiftKeyArg
+                                false, // metaKeyArg
+                                "c".charCodeAt(), // keyCodeArg : unsigned long the virtual key code, else 0
+                                0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+            );
+
+            text.dispatchEvent(keyboardEvent);
+
+            keyboardEvent[initMethod](
+                   "keypress", // event type : keydown, keyup, keypress
+                    true, // bubbles
+                    true, // cancelable
+                    window, // viewArg: should be window
+                    true, // ctrlKeyArg
+                    false, // altKeyArg
+                    false, // shiftKeyArg
+                    false, // metaKeyArg
+                    "c".charCodeAt(), // keyCodeArg : unsigned long the virtual key code, else 0
+                    0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+);
+
+            text.dispatchEvent(keyboardEvent);
+
+            keyboardEvent[initMethod](
+                   "keydown", // event type : keydown, keyup, keypress
+                    true, // bubbles
+                    true, // cancelable
+                    window, // viewArg: should be window
+                    true, // ctrlKeyArg
+                    false, // altKeyArg
+                    false, // shiftKeyArg
+                    false, // metaKeyArg
+                    "c".charCodeAt(), // keyCodeArg : unsigned long the virtual key code, else 0
+                    0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+);
+
+            text.dispatchEvent(keyboardEvent);
+
+
+
+
+            //var event = document.createEvent("KeyboardEvent");
+            //event.initKeyboardEvent("keydown", true, true, document.defaultView, letter, 0, "Shift", false, "");
+
+            //text.dispatchEvent(event);
+        }
+
+    </script>
+
+    <script type='text/javascript'>
+        var xPos;
+        var yPos;
+        window.document.onmousemove = function (evt) {
+            evt = evt || window.event;
+            if (evt.pageX)
+            {
+                xPos = evt.pageX;
+                yPos = evt.pageY;
+            } else
+            {
+                xPos = evt.clientX + document.body.scrollLeft - document.body.clientLeft;
+                yPos = evt.clientY + document.body.scrollTop - document.body.clientTop;
+            }
+        };
+        function initMouseEventDM() {
+            var eo = document.getElementById("imevt");
+            if (window.outerWidth == undefined)
+            {
+                eo.fireEvent("onclick");
+            }
+            else
+            {
+                var vo = document.createEvent("MouseEvent");
+                vo.initMouseEvent("click", true, true, window, 0, 0, 0, 11, 22, true, false, false, false, 0, null);
+                eo.dispatchEvent(vo);
+            }
+        }
+</script>
+
+<a href='javascript:initMouseEventDM()'>点这里模拟onclick事件</a> / / 
+<span id='imevt' onclick='alert( xPos +" / "+ yPos +" / "+ event.ctrlKey)'>点我也可以的说</span>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body style="background-color: silver; margin: 0">
+
+
+    <script src="../js/flyingon.js"></script>
+
+    <script type="text/javascript">
+
+       
+        var $ = flyingon;
+
+
+        var date = new Date();
+
+        var data = '<root a="1" b="2">\
+\
+     <file>js\Controls\Base\Core.js</file>\
+     <file>js\Controls\Base\Xml.js</file>\
+     <file>js\Controls\Base\Ajax.js</file>\
+     <file>js\Controls\Base\DelayExecutor.js</file>\
+     <file>js\Controls\Base\Enum.js</file>\
+     <file>js\Controls\Base\Font.js</file>\
+     <file>js\Controls\Base\Fonts.js</file>\
+     <file>js\Controls\Base\Colors.js</file>\
+     <file>js\Controls\Base\Cursors.js</file>\
+     <file>js\Controls\Base\Geometry.js</file>\
+     <file>js\Controls\Base\Style.js</file>\
+     <file>js\Controls\Base\Canvas2D.js</file>\
+     <file>js\Controls\Base\LayoutTable.js</file>\
+     <file>js\Controls\Base\Event.js</file>\
+     <file>js\Controls\Base\EventManager.js</file>\
+     <file>js\Controls\Base\Dragdrop.js</file>\
+     <file>js\Controls\Base\BoxModel.js</file>\
+     <file>js\Controls\Base\RenderTimer.js</file>\
+     <file>js\Controls\Base\ControlCollection.js</file>\
+\
+ </root>';
+
+        data = "<text>dddddddddd<b>ddd</b>dddd</text>";
+        for (var i = 0; i < 100; i++)
+        {
+            var xml = new $.Xml(data);
+        }
+
+
+
+        alert(new Date() - date);
+
+
+
+    </script>
+
+
+</body>
+</html>

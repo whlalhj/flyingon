@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+
+    <script src="../js/starwind.js"></script>
+
+
+</head>
+<body>
+
+    <canvas id="canvas1" width="400" height="400" style="background-color: yellow;">dddddddddddd
+    </canvas>
+    <canvas id="canvas2" width="400" height="400" style="background-color: yellow;">dddddddddddd
+    </canvas>
+
+    <script type="text/javascript">
+
+        var $ = flyingon;
+
+        var g1 = canvas1.getContext("2d");
+
+        //g1.translate(10, 10);
+        //g1.rotate(30);
+        g1.setTransform(0.5, 0.1, 0.1, 0.5, 10, 10);
+        g1.rotate(30 * Math.PI / 180);
+
+  
+        var o = g1.createLinearGradient(0, 0, 200, 100);
+        o.addColorStop(0, "#FF0000");
+        o.addColorStop(0.5, "#FFFF00");
+        o.addColorStop(1, "#FFFFFF");
+
+        g1.fillStyle = o;
+        g1.fillRect(10, 10, 50, 50);
+
+
+
+        var g2 = canvas2.getContext("2d");
+
+        var m = new $.Matrix();
+        //m.translate(10, 10);
+        //m.rotate(30);
+        m.append(1, 0.1, 0.1, 1, 10, 10);
+        //m.rotate(30);
+
+        g2.transform(m.a, m.b, m.c, m.d, m.e, m.f);
+
+        g2.fillStyle = o;
+        g2.fillRect(10, 10, 50, 50);
+
+
+
+    </script>
+
+</body>
+</html>

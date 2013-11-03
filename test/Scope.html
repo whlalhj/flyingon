@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+</head>
+<body>
+
+    <script type="text/javascript">
+
+
+        var scope = (function () {
+
+            var v = 1;
+
+            this.fn = Function;
+
+            this.test = function () {
+
+                alert(v);
+            };
+
+
+            this.children = [];
+
+            this.push = function () {
+
+                this.children.push(new Function("return v"));
+            };
+
+
+            this.create = function (code) {
+
+                return eval(code);
+            };
+
+            return this;
+
+        })();
+
+
+       
+        scope.push();
+
+        var item = scope.children[0];
+
+        var fn = scope.create("(function(){return v;})");
+
+        var v = fn();
+       
+
+
+    </script>
+
+
+
+
+</body>
+</html>
