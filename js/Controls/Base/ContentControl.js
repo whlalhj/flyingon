@@ -1,5 +1,5 @@
 ﻿//内容控件
-$.class("ContentControl", $.Control, function ($) {
+$.class("ContentControl", $.Control, function (Class, $) {
 
 
 
@@ -17,7 +17,7 @@ $.class("ContentControl", $.Control, function ($) {
 
             if (oldValue != value)
             {
-                if (this["x:global"].initializing)
+                if ($["x:initializing"])
                 {
                     this["x:content"] = value;
                 }
@@ -25,31 +25,38 @@ $.class("ContentControl", $.Control, function ($) {
                 {
                     if (oldValue)
                     {
-                        oldValue["fn:parent"](null);
+                        oldValue["y:parent"](null);
                     }
 
                     if (value)
                     {
-                        value["fn:parent"](this);
+                        value["y:parent"](this);
                     }
 
                     this["x:content"] = value;
 
-                    this.dispatchEvent({
-
-                        type: "change",
-                        name: "content",
-                        value: parent,
-                        oldValue: oldValue
-                    });
+                    this.dispatchChangeEvent("content", parent, oldValue);
                 }
             }
         }
 
-
     });
 
 
+
+    this.serialize = function (writer) {
+
+        $.ContentControl.super.serialize.call(this, writer);
+
+        writer.object("content", this["x:content"]);
+    };
+
+    this.deserialize = function (reader, data) {
+
+        $.ContentControl.super.deserialize.call(this, reader, data);
+
+        reader.object(this, "x:content", data["content"]);
+    };
 
 
 });

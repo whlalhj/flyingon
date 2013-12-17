@@ -5,10 +5,10 @@
 
 
     //事件类型基类
-    $.class("Event", function ($) {
+    $.class("Event", function (Class, $) {
 
 
-        this.create = function (type, target) {
+        Class.create = function (type, target) {
 
             this.type = type;
             this.target = target;
@@ -42,10 +42,10 @@
 
 
     //鼠标事件类型
-    $.class("MouseEvent", $.Event, function ($) {
+    $.class("MouseEvent", $.Event, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             this.originalEvent = originalEvent;
         };
@@ -213,10 +213,10 @@
 
 
     //拖拉事件类型
-    $.class("DragEvent", $.MouseEvent, function ($) {
+    $.class("DragEvent", $.MouseEvent, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             //拖动目标
             this.dragTargets = [target];
@@ -233,10 +233,10 @@
 
 
     //键盘事件类型
-    $.class("KeyEvent", $.Event, function ($) {
+    $.class("KeyEvent", $.Event, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             this.originalEvent = originalEvent || {};
         };
@@ -287,9 +287,9 @@
 
 
     //属性值变更事件类型
-    $.class("PropertyChangedEvent", $.Event, function ($) {
+    $.class("ChangeEvent", $.Event, function (Class, $) {
 
-        this.create = function (type, target, name, value, oldValue) {
+        Class.create = function (type, target, name, value, oldValue) {
 
             this.name = name;
             this.value = value;

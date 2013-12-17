@@ -1,20 +1,19 @@
 ﻿//窗口基类
-$.class("WindowBase", $.Layer, function ($) {
+$.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
     var host,                       //主容器
         dragging = false,           //是否处理拖动
-        mouseDown = false,          //鼠标是否按下
-        global = $.global;          //全局对象
+        mouseDown = false;          //鼠标是否按下
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //默认设置为初始化状态,在第一次渲染窗口后终止
-        global.initializing = true;
+        $["x:initializing"] = true;
 
 
 
@@ -90,22 +89,20 @@ $.class("WindowBase", $.Layer, function ($) {
     //所属窗口
     this.defineProperty("ownerWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
     //图层
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
 
 
@@ -116,22 +113,6 @@ $.class("WindowBase", $.Layer, function ($) {
     //窗口切换为非活动窗口事件
     this.defineEvent("deactivate");
 
-
-
-
-    //开始初始化
-    this.beginInit = function () {
-
-        global.initializing = true;
-        return this;
-    };
-
-    //结束初始化
-    this.endInit = function () {
-
-        global.initializing = false;
-        return this;
-    };
 
 
 
@@ -147,11 +128,11 @@ $.class("WindowBase", $.Layer, function ($) {
         {
             if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
             {
-                activateWindow["fn:deactivate"]();
+                activateWindow["y:deactivate"]();
             }
 
             parentWindow["x:activateWindow"] = this;
-            this["fn:activate"]();
+            this["y:activate"]();
         }
     };
 
@@ -172,13 +153,13 @@ $.class("WindowBase", $.Layer, function ($) {
     };
 
 
-    this["fn:activate"] = function () {
+    this["y:activate"] = function () {
 
         this.domWindow.style.zIndex = 9991;
         this.dispatchEvent("activate");
     };
 
-    this["fn:deactivate"] = function () {
+    this["y:deactivate"] = function () {
 
         this.domWindow.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
@@ -307,12 +288,12 @@ $.class("WindowBase", $.Layer, function ($) {
     function captureControl(domMouseEvent) {
 
 
-        var source = global.mouseControl,
+        var source = $["x:mouseControl"],
             target = this.getControlAt(domMouseEvent["x:offsetX"], domMouseEvent["x:offsetY"]) || this;
 
         if (target != source)
         {
-            global.mouseControl = target;
+            $["x:mouseControl"] = target;
 
             if (source)
             {
@@ -322,7 +303,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
             if (target && target["x:storage"].enabled)
             {
-                this.domWindow.style.cursor = target["fn:cursor"](domMouseEvent);
+                this.domWindow.style.cursor = target["y:cursor"](domMouseEvent);
 
                 target.switchState("hover-states", "hover");
 
@@ -353,7 +334,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:captureControl"] || global.mouseControl;
+        var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
         if (target && target["x:storage"].enabled)
         {
@@ -380,12 +361,12 @@ $.class("WindowBase", $.Layer, function ($) {
 
                     if (focusControl && focusControl != target && (validate = focusControl.validate()))
                     {
-                        focusControl["fn:blur"]();
+                        focusControl["y:blur"]();
                     }
 
                     if (validate)
                     {
-                        target["fn:focus"](event);
+                        target["y:focus"](event);
                     }
                 }
             }
@@ -426,9 +407,9 @@ $.class("WindowBase", $.Layer, function ($) {
                 ownerWindow["x:captureDelay"].registry([domMouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = global.mouseControl)
+        else if (target = $["x:mouseControl"])
         {
-            global.mouseControl = null;
+            $["x:mouseControl"] = null;
             target.switchState("hover-states", "leave-animate");
 
             dispatchEvent("mouseout", target, domMouseEvent);
@@ -443,7 +424,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:captureControl"] || global.mouseControl;
+            var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
             if (target && target["x:storage"].enabled)
             {
@@ -478,7 +459,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute(),
-            target = ownerWindow["x:captureControl"] || global.mouseControl;
+            target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
 
         if (target && target["x:storage"].enabled)
@@ -530,23 +511,23 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
 
-    this["fn:fill"] = function (storage) {
+    this["y:fill"] = function (storage) {
 
-        global.initializing = false;
+        $["x:initializing"] = false;
 
         var domHost = this.domWindow.parentNode;
 
         if (domHost)
         {
-            var rect = domHost.getBoundingClientRect();
+            var r = domHost.getBoundingClientRect();
 
             if (storage)
             {
-                this["x:storage"].width = rect.width;
-                this["x:storage"].height = rect.height;
+                this["x:storage"].width = r.width;
+                this["x:storage"].height = r.height;
             }
 
-            return rect;
+            return r;
         }
 
         return { width: 0, height: 0 };
@@ -637,16 +618,16 @@ $.class("WindowBase", $.Layer, function ($) {
             //处理不完全显示
             if (box)
             {
-                var rect = box.innerRect,
+                var r = box.innerRect,
                     value;
 
-                if ((value = rect.windowY - y) > 0)
+                if ((value = r.windowY - y) > 0)
                 {
                     y += value;
                     height -= value
                 }
 
-                if ((value = y + height - rect.windowY - rect.height) > 0)
+                if ((value = y + height - r.windowY - r.height) > 0)
                 {
                     height -= value;
                 }
@@ -671,7 +652,7 @@ $.class("WindowBase", $.Layer, function ($) {
             }
 
 
-            var rect = boxModel.innerRect,
+            var r = boxModel.innerRect,
                 x = textMetrics.caretEnd.x;
 
 
@@ -682,14 +663,14 @@ $.class("WindowBase", $.Layer, function ($) {
             }
             else
             {
-                var right = boxModel.scrollLeft + rect.width;
+                var right = boxModel.scrollLeft + r.width;
 
                 if (x > right)
                 {
-                    boxModel.scrollLeft = x - rect.width;
+                    boxModel.scrollLeft = x - r.width;
                     x = right;
                 }
-                else if (right <= rect.width)
+                else if (right <= r.width)
                 {
                     boxModel.scrollLeft = 0;
                 }
@@ -697,7 +678,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
             //显示插入符
-            point = boxModel.targetToOffset(rect.spaceX + x - boxModel.scrollLeft, rect.spaceY);
+            point = boxModel.targetToOffset(r.spaceX + x - boxModel.scrollLeft, r.spaceY);
             if (x > 0)
             {
                 point.x -= 1;
@@ -856,7 +837,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //变更插入符位置
-        this["fn:caret"] = function (changedX, changedY) {
+        this["y:caret"] = function (changedX, changedY) {
 
             if (boxModel)
             {
@@ -869,7 +850,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //打开输入助手
-        this["fn:open:input"] = function (ownerControl, readOnly) {
+        this["y:open:input"] = function (ownerControl, readOnly) {
 
             target = ownerControl;
             boxModel = ownerControl["x:boxModel"];
@@ -880,7 +861,7 @@ $.class("WindowBase", $.Layer, function ($) {
         };
 
         //重置输入助手
-        var reset = this["fn:input"] = function () {
+        var reset = this["y:input"] = function () {
 
             input.focus();
             input.value = textMetrics.selectedText;
@@ -890,7 +871,7 @@ $.class("WindowBase", $.Layer, function ($) {
         };
 
         //关闭输入助手
-        this["fn:close:input"] = function () {
+        this["y:close:input"] = function () {
 
             if (timer)
             {

@@ -2,7 +2,7 @@
 椭圆
 
 */
-$.class("Ellipse", $.Shape, function ($) {
+$.class("Ellipse", $.Shape, function (Class, $) {
 
 
 

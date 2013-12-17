@@ -1,6 +1,6 @@
 ﻿
 //滚动条控件
-$.class("ScrollBar", $.ScrollBase, function ($) {
+$.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
 
     this.setDefaultValue("maxStep", 200);
@@ -107,11 +107,11 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
             var length = boxModel.length = height - (thickness << 1);
             var slider = boxModel.slider = computeSliderLenth(storage, length);
 
-            var rect1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var rect2 = boxModel.sliderRect = [x, y + thickness + computeSliderStart(storage, length, slider), thickness, slider];
-            var rect3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
+            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
+            var r_2 = boxModel.sliderRect = [x, y + thickness + computeSliderStart(storage, length, slider), thickness, slider];
+            var r_3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
 
-            boxModel.segments = [rect1[1] + thickness, rect2[1], rect2[1] + slider, rect3[1]]; //位置段坐标
+            boxModel.segments = [r_1[1] + thickness, r_2[1], r_2[1] + slider, r_3[1]]; //位置段坐标
         }
         else
         {
@@ -119,11 +119,11 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
             var length = boxModel.length = width - (thickness << 1);
             var slider = boxModel.slider = computeSliderLenth(storage, length);
 
-            var rect1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var rect2 = boxModel.sliderRect = [x + thickness + computeSliderStart(storage, length, slider), y, slider, thickness];
-            var rect3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
+            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
+            var r_2 = boxModel.sliderRect = [x + thickness + computeSliderStart(storage, length, slider), y, slider, thickness];
+            var r_3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
 
-            boxModel.segments = [rect1[0] + thickness, rect2[0], rect2[0] + slider, rect3[0]]; //位置段坐标
+            boxModel.segments = [r_1[0] + thickness, r_2[0], r_2[0] + slider, r_3[0]]; //位置段坐标
         }
     };
 
@@ -157,7 +157,7 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
 
 
 
-$.class("ScrollCorner", $.Control, function ($) {
+$.class("ScrollCorner", $.Control, function (Class, $) {
 
 
 

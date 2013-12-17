@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("TextBox", $.TextBoxBase, function ($) {
+$.class("TextBox", $.TextBoxBase, function (Class, $) {
 
 
 

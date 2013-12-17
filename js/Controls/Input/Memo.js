@@ -5,11 +5,11 @@
 /*
 
 */
-$.class("Memo", $.ScrollableControl, function ($) {
+$.class("Memo", $.ScrollableControl, function (Class, $) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);

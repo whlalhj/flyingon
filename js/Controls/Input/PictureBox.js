@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("PictureBox", $.Control, function ($) {
+$.class("PictureBox", $.Control, function (Class, $) {
 
 
 
@@ -30,8 +30,8 @@ $.class("PictureBox", $.Control, function ($) {
                 return;
             }
 
-            var rect = context.boxModel.innerRect;
-            context.drawImage(image, rect.windowX, rect.windowY);
+            var r = context.boxModel.innerRect;
+            context.drawImage(image, r.windowX, r.windowY);
         }
     };
 

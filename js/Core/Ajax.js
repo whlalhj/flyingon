@@ -96,19 +96,19 @@
                 switch (options.dataType || defaults.dataType)
                 {
                     case "json":
-                        options.response = $.parseJson(response.responseText);
+                        options.response = $.parseJson(target.responseText);
                         break;
 
                     case "script":
-                        options.response = eval(response.responseText);
+                        options.response = eval(target.responseText);
                         break;
 
                     case "xml":
-                        options.response = response.responseXML;
+                        options.response = target.responseXML;
                         break;
 
                     default:
-                        options.response = response.responseText;
+                        options.response = target.responseText;
                         break;
                 }
 

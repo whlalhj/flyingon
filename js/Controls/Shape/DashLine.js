@@ -2,7 +2,7 @@
 线条
 
 */
-$.class("DashLine", $.Shape, function ($) {
+$.class("DashLine", $.Shape, function (Class, $) {
 
 
     //虚线规则

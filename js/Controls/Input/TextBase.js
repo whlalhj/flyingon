@@ -59,12 +59,11 @@ var TextBase = function (multiline) {
 
     this.defineProperty("selectedText", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:textMetrics"].selectedText;
         }
-    });
+    }, true);
 
 
 
@@ -72,7 +71,7 @@ var TextBase = function (multiline) {
 
 
 
-    this["fn:focus"] = function (event) {
+    this["y:focus"] = function (event) {
 
         if (this.focus())
         {
@@ -89,15 +88,15 @@ var TextBase = function (multiline) {
 
 
             //开启输入助手
-            ownerWindow["fn:open:input"](this, this["x:storage"].readOnly);
+            ownerWindow["y:open:input"](this, this["x:storage"].readOnly);
         }
     };
 
-    this["fn:blur"] = function () {
+    this["y:blur"] = function () {
 
         if (this.blur())
         {
-            this.ownerWindow["fn:close:input"]();
+            this.ownerWindow["y:close:input"]();
         }
     };
 
@@ -131,7 +130,7 @@ var TextBase = function (multiline) {
             }
 
 
-            this.ownerWindow["fn:input"]();
+            this.ownerWindow["y:input"]();
         }
     };
 
@@ -143,7 +142,7 @@ var TextBase = function (multiline) {
         {
             if (ownerWindow["x:focusControl"] == this)
             {
-                ownerWindow["fn:input"]();
+                ownerWindow["y:input"]();
             }
 
             //释放鼠标
@@ -169,12 +168,12 @@ var TextBase = function (multiline) {
         if (textMetrics.selectionEnd > textMetrics.selectionStart)
         {
             var boxModel = context.boxModel,
-                rect = boxModel.innerRect,
+                r = boxModel.innerRect,
                 start = textMetrics.caretMin,
                 end = textMetrics.caretMax;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(rect.windowX + start.x - boxModel.scrollLeft, rect.windowY, end.x - start.x, 16);
+            context.fillRect(r.windowX + start.x - boxModel.scrollLeft, r.windowY, end.x - start.x, 16);
         }
     };
 

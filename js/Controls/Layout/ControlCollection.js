@@ -14,8 +14,7 @@
 
     var p = $.ControlCollection.prototype = [],
         push = p.push,
-        splice = p.splice,
-        global = $.global;
+        splice = p.splice;
 
 
     //隐藏标准属性
@@ -29,13 +28,13 @@
 
     p.append = function (item) {
 
-        if (global.initializing)
+        if ($["x:initializing"])
         {
             item["x:parent"] = this.ownerControl;
         }
         else
         {
-            item["fn:parent"](this.ownerControl);
+            item["y:parent"](this.ownerControl);
         }
 
         push.call(this, item);
@@ -46,7 +45,7 @@
 
         var i = 0,
             length = items.length,
-            initializing = global.initializing;
+            initializing = $["x:initializing"];
 
         while (i < length)
         {
@@ -58,7 +57,7 @@
             }
             else
             {
-                item["fn:parent"](this.ownerControl);
+                item["y:parent"](this.ownerControl);
             }
 
             push.call(this, item);
@@ -69,13 +68,13 @@
 
     p.insert = function (index, item) {
 
-        if (global.initializing)
+        if ($["x:initializing"])
         {
             item["x:parent"] = this.ownerControl;
         }
         else
         {
-            item["fn:parent"](this.ownerControl);
+            item["y:parent"](this.ownerControl);
         }
 
         splice.call(this, index, 0, item);
@@ -86,7 +85,7 @@
 
         var i = 0,
             length = items.length,
-            initializing = global.initializing;
+            initializing = $["x:initializing"];
 
         while (i < length)
         {
@@ -98,7 +97,7 @@
             }
             else
             {
-                item["fn:parent"](this.ownerControl);
+                item["y:parent"](this.ownerControl);
             }
 
             splice.call(this, index, 0, item);
@@ -116,7 +115,7 @@
 
         if (index >= 0)
         {
-            item["fn:parent"](null);
+            item["y:parent"](null);
             splice.call(this, index, 1);
         }
 
@@ -127,7 +126,7 @@
 
         if (this.length > index)
         {
-            this[index]["fn:parent"](null);
+            this[index]["y:parent"](null);
             splice.call(this, index, 1);
         }
 
@@ -141,7 +140,7 @@
 
         while (i < length)
         {
-            this[index]["fn:parent"](null);
+            this[index]["y:parent"](null);
         }
 
         this.length = 0;

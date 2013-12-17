@@ -1,11 +1,11 @@
-﻿$.class("ScrollEvent", $.Event, function ($) {
+﻿$.class("ScrollEvent", $.Event, function (Class, $) {
 
 
 });
 
 
 //滚动条控件
-$.class("ScrollBase", $.Control, function ($) {
+$.class("ScrollBase", $.Control, function (Class, $) {
 
 
 
@@ -15,7 +15,7 @@ $.class("ScrollBase", $.Control, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);

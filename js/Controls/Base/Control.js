@@ -2,18 +2,48 @@
 
 
 //控件基类
-$.class("Control", $.SerializableObject, function ($) {
+$.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //盒模型
         this["x:boxModel"] = new $.BoxModel(this);
+    };
+
+
+
+    //初始化类方法
+    Class.initialize = function ($) {
+
+
+        var className = this.className,
+            styles = $.styles,
+            style = styles[className] || (styles[className] = {}),
+            templates = $.templates,
+            template = templates[className] || (templates[className] = {});
+
+
+        className = this["superClass"].className;
+
+        //复制上级样式
+        if (styles.hasOwnProperty(className))
+        {
+            $["y:simple:copy"](styles[className], style, true);
+        }
+
+
+        //复制上级模板
+        if (templates.hasOwnProperty(className))
+        {
+            $["y:simple:copy"](templates[className], template, true);
+        }
 
     };
+
 
 
 
@@ -49,7 +79,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //触发父控件变更
-    this["fn:parent"] = function (parent) {
+    this["y:parent"] = function (parent) {
 
         var box = this["x:boxModel"];
 
@@ -67,18 +97,8 @@ $.class("Control", $.SerializableObject, function ($) {
             parent["x:boxModel"]["x:measure"] = true;
         }
 
-
-        var oldValue = this["x:parent"];
-
         this["x:parent"] = parent;
-
-        this.dispatchEvent({
-
-            type: "change",
-            name: "parent",
-            value: parent,
-            oldValue: this["x:parent"]
-        });
+        this.dispatchChangeEvent("parent", parent, this["x:parent"]);
     };
 
 
@@ -89,35 +109,32 @@ $.class("Control", $.SerializableObject, function ($) {
     //主窗口
     this.defineProperty("mainWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var result = this.ownerWindow;
             return result && (result.mainWindow || result);
         }
-    });
+    }, true);
 
     //所属窗口
     this.defineProperty("ownerWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var parent = this["x:parent"];
-            return parent && (parent["x:ownerWindow"] || (parent["x:ownerWindow"] = parent.ownerWindow));
+            return parent && parent.ownerWindow;
         }
-    });
+    }, true);
 
     //所属图层
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var parent = this["x:parent"];
-            return parent && (parent["x:ownerLayer"] || (parent["x:ownerLayer"] = parent.ownerLayer));
+            return parent && parent.ownerLayer;
         }
-    });
+    }, true);
 
 
     //当前控件是否指定控件的父控件
@@ -184,7 +201,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
 
-    this["fn:define:getter"] = function (name, options) {
+    this["y:define:getter"] = function (name, options) {
 
         var body;
 
@@ -200,12 +217,12 @@ $.class("Control", $.SerializableObject, function ($) {
         return new Function(body);
     };
 
-    this["fn:define:setter"] = function (name, attributes) {
+    this["y:define:setter"] = function (name, attributes) {
 
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + this["fn:define:setter:initialize"]
+            + this["y:define:setter:initialize"]
 
 
             + (attributes.style ? "var oldValue = this.getStyleValue(name);" : "var oldValue = storage[name];")
@@ -216,7 +233,7 @@ $.class("Control", $.SerializableObject, function ($) {
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + this["fn:define:setter:change"]
+            + this["y:define:setter:change"]
 
             + "storage[name] = value;\n";
 
@@ -255,7 +272,7 @@ $.class("Control", $.SerializableObject, function ($) {
         }
 
 
-        body += this["fn:define:setter:bindingTo"] //处理绑定源
+        body += this["y:define:setter:bindingTo"] //处理绑定源
 
             //处理绑定目标
             + "if ((cache = this['x:bindings']) && (cache = cache[name]) && cache.setter !== null && cache['x:binding'] != true)\n"
@@ -322,23 +339,6 @@ $.class("Control", $.SerializableObject, function ($) {
     };
 
 
-    //复制样式(复制基类的样式至子类以便加速访问)
-    function copyStyle(styles, style, superClass) {
-
-        var className = superClass.className,
-            parent = styles[className] || (styles[className] = {});
-
-        if (!parent["x:cache"])
-        {
-            copyStyle(styles, parent, superClass.superClass);
-        }
-
-        $["fn:simple:copy"](parent, style, true);
-
-
-        style["x:cache"] = true;
-    };
-
     function getStyleValue(style, name) {
 
         var storage = this["x:storage"],
@@ -392,13 +392,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
         styleKey = this["x:class"].className;
-        style = (styles[styleKey] || (styles[styleKey] = {}));
-
-        if (!style["x:cache"])
-        {
-            copyStyle(styles, style, this["x:class"].superClass);
-        }
-
+        style = styles[styleKey];
 
         if ((result = getStyleValue.call(this, style, name)) != undefined)
         {
@@ -416,12 +410,11 @@ $.class("Control", $.SerializableObject, function ($) {
     //盒式模型
     this.defineProperty("boxModel", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"];
         }
-    });
+    }, true);
 
 
 
@@ -430,11 +423,11 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //
-    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.PropertyChangedEvent('locationchanged', this, name, value, oldValue));");
+    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('locationchanged', this, name, value, oldValue));");
 
 
     //
-    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.PropertyChangedEvent('resize', this, name, value, oldValue));");
+    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('resize', this, name, value, oldValue));");
 
 
 
@@ -467,22 +460,20 @@ $.class("Control", $.SerializableObject, function ($) {
     //
     this.defineProperty("outerRect", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"]["outerRect"];
         }
-    });
+    }, true);
 
     //
     this.defineProperty("innerRect", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"]["innerRect"];
         }
-    });
+    }, true);
 
 
 
@@ -556,7 +547,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
     this.defineProperty("cursor", null);
 
-    this["fn:cursor"] = function (event) {
+    this["y:cursor"] = function (event) {
 
         var cursor = this.getStyleValue("cursor") || "default";
         return $.cursors[cursor] || cursor;
@@ -591,23 +582,21 @@ $.class("Control", $.SerializableObject, function ($) {
     //是否为焦点控件
     this.defineProperty("focused", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
         }
-    });
+    }, true);
 
     //是否为焦点控件或包含焦点控件
     this.defineProperty("containsFocused", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
             return focusControl && (focusControl == this || this.isParent(focusControl));
         }
-    });
+    }, true);
 
 
 
@@ -618,12 +607,12 @@ $.class("Control", $.SerializableObject, function ($) {
         return this.dispatchEvent("validate");
     };
 
-    this["fn:focus"] = function (event) {
+    this["y:focus"] = function (event) {
 
         return this.focus();
     };
 
-    this["fn:blur"] = function () {
+    this["y:blur"] = function () {
 
         return this.blur();
     };
@@ -677,76 +666,35 @@ $.class("Control", $.SerializableObject, function ($) {
     ////数据绑定主体
     //this.dataContext = null;
 
-    //binding = { source: object, expression: "name" || function () {}, formatter: function () {}, setter: function() {} }
-    this.setBinding = function (propertyName, binding) {
+    //binding = { source: object, expression: "name", setter: "", formatter: "" }
+    this.setBinding = function (name, binding) {
 
-        if (propertyName && binding)
+        if (binding)
         {
-            var source = binding.source,
-                expression = binding.expression;
+            binding.target = this;
 
-            if (source && expression)
+            if (!(binding instanceof $.DataBinding))
             {
-                var bindings = source["x:bindings:source"] || (source["x:bindings:source"] = {}),
-                    id = this.id;
-
-
-                //执行绑定
-                binding["x:binding"] = true;
-                this[propertyName] = typeof expression == "function" ? expression.call(source) : source[expression];
-                binding["x:binding"] = false;
-
-
-                //设置绑定
-                if (typeof expression == "function")
-                {
-                    var properties = binding.properties = expression.toString().match(/this\.[\w\$]+/g);
-
-                    for (var i = 0; i < properties.length; i++)
-                    {
-                        expression = properties[i] = properties[i++].substring(5);
-                        (bindings[expression] || (bindings[expression] = {}))[id] = propertyName;
-                    }
-
-                    if (binding.setter === undefined)
-                    {
-                        binding.setter = null;
-                    }
-                }
-                else //字段
-                {
-                    (bindings[expression] || (bindings[expression] = {}))[id] = propertyName;
-                }
-
-                (this["x:bindings"] || (this["x:bindings"] = {}))[propertyName] = binding;
+                binding = new $.DataBinding(binding);
             }
+
+            binding["y:initialize"](this, name);
+            binding.pull();
         }
+
+        return binding;
     };
 
-    this.removeBinding = function (propertyName) {
+    this.clearBinding = function (propertyName) {
 
-        var bindings = this["x:bindings"];
-
-        if (bindings && bindings.hasOwnProperty(propertyName))
+        if (propertyName)
         {
-            var target_binding = bindings[propertyName],
-                source_binding = target_binding.source["x:bindings:source"],
-                properties = target_binding.properties,
-                id = this.id;
+            var bindings = this["x:bindings"];
 
-            if (properties)
+            if (bindings && (bindings = bindings[propertyName]))
             {
-                for (var i = 0; i < properties.length; i++)
-                {
-                    delete source_binding[properties[i]][id];
-                }
+                bindings.clear();
             }
-            else
-            {
-                delete source_binding[target_binding.expression][id];
-            }
-
-            delete bindings[propertyName];
         }
     };
 
@@ -898,11 +846,31 @@ $.class("Control", $.SerializableObject, function ($) {
 
     this.hitTest = function (x, y) {
 
-        var rect = this["x:boxModel"].outerRect;
-        return x >= rect.x && y >= rect.y && x <= rect.right && y <= rect.bottom;
+        var r = this["x:boxModel"].outerRect;
+        return x >= r.x && y >= r.y && x <= r.right && y <= r.bottom;
     };
 
 
+
+    //模板
+    this.defineProperty("template", null, {
+
+        getter: function () {
+
+        }
+    });
+
+    //创建模板控件
+    this.createTemplateControl = function () {
+
+
+    };
+
+    //设置模板控件
+    this.applyTemplateControl = function (control) {
+
+
+    };
 
 
 
@@ -941,7 +909,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //测量文字方法
-    this["fn:measure:text"] = function () {
+    this["y:measure:text"] = function () {
 
         if (!this["x:textMetrics"])
         {
@@ -967,20 +935,20 @@ $.class("Control", $.SerializableObject, function ($) {
 
             if (boxModel.borderRadius > 0)
             {
-                var rect = boxModel.borderRect,
+                var r = boxModel.borderRect,
                     lineWidth = border[0],
                     offset = lineWidth / 2;
 
                 context.lineWidth = lineWidth;
                 context.set_strokeStyle(color);
-                context.strokeRoundRect(rect.windowX + offset, rect.windowY + offset, rect.width - lineWidth, rect.height - lineWidth, boxModel.borderRadius);
+                context.strokeRoundRect(r.windowX + offset, r.windowY + offset, r.width - lineWidth, r.height - lineWidth, boxModel.borderRadius);
             }
             else
             {
-                var rect = boxModel.outerRect;
+                var r = boxModel.outerRect;
 
                 context.set_fillStyle(color);
-                context.drawBorder(rect.windowX, rect.windowY, rect.width, rect.height, border);
+                context.drawBorder(r.windowX, r.windowY, r.width, r.height, border);
             }
         }
 
@@ -995,18 +963,18 @@ $.class("Control", $.SerializableObject, function ($) {
 
         if (background)
         {
-            var rect = boxModel.borderRect;
+            var r = boxModel.borderRect;
 
             context.beginPath();
             context.set_fillStyle(background);
 
             if (boxModel.borderRadius > 0) //圆角矩形
             {
-                context.roundRect(rect.windowX, rect.windowY, rect.width, rect.height, boxModel.borderRadius);
+                context.roundRect(r.windowX, r.windowY, r.width, r.height, boxModel.borderRadius);
             }
             else
             {
-                context.rect(rect.windowX, rect.windowY, rect.width, rect.height);
+                context.rect(r.windowX, r.windowY, r.width, r.height);
             }
 
             context.fill();
@@ -1031,7 +999,7 @@ $.class("Control", $.SerializableObject, function ($) {
         if (textMetrics)
         {
             var boxModel = context.boxModel,
-                rect = boxModel.innerRect,
+                r = boxModel.innerRect,
                 font = textMetrics.font;
 
 
@@ -1043,7 +1011,7 @@ $.class("Control", $.SerializableObject, function ($) {
             if (cliped)
             {
                 context.beginPath();
-                context.rect(rect.windowX, rect.windowY, rect.width, rect.height);
+                context.rect(r.windowX, r.windowY, r.width, r.height);
                 context.clip();
             }
 
@@ -1058,8 +1026,8 @@ $.class("Control", $.SerializableObject, function ($) {
             context.set_font(font);
 
 
-            var x = rect.windowX - boxModel.scrollLeft,
-                y = rect.windowY + textMetrics[0].height,
+            var x = r.windowX - boxModel.scrollLeft,
+                y = r.windowY + textMetrics[0].height,
 
                 i = 0,
                 length = textMetrics.length;
@@ -1086,18 +1054,6 @@ $.class("Control", $.SerializableObject, function ($) {
         }
     };
 
-
-
-
-    this.serialize = function (writer) {
-
-        var bindings = this["x:bindings"];
-
-        if (bindings && bindings["x:serialize"])
-        {
-            writer.write("d:bindings", bindings);
-        }
-    };
 
 
 });

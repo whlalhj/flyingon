@@ -1,10 +1,10 @@
 ﻿
 
 //窗口标题栏
-$.class("WindowTitleBar", $.Panel, function ($) {
+$.class("WindowTitleBar", $.Panel, function (Class, $) {
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         this["button:icon"] = button.call(this, "left", "window-icon");
@@ -128,12 +128,12 @@ $.class("WindowTitleBar", $.Panel, function ($) {
 
 
 //子窗口
-$.class("ChildWindow", $.WindowBase, function ($) {
+$.class("ChildWindow", $.WindowBase, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         this.onlocationchange = function (event) {
@@ -242,18 +242,18 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
 
 
-    this["fn:activate"] = function () {
+    this["y:activate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["fn:activate"].call(this);
+        $.ChildWindow.super["y:activate"].call(this);
     };
 
-    this["fn:deactivate"] = function () {
+    this["y:deactivate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["fn:deactivate"].call(this);
+        $.ChildWindow.super["y:deactivate"].call(this);
     };
 
 
@@ -295,7 +295,7 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
 
 
-    this["fn:before:measure"] = function (boxModel) {
+    this["y:before:measure"] = function (boxModel) {
 
 
         var storage = this["x:storage"],
@@ -311,10 +311,10 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
         if (center)
         {
-            var rect = this["fn:fill"](storage.fullMode);
+            var r = this["y:fill"](storage.fullMode);
 
-            storage.left = Math.round((rect.width - width) / 2);
-            storage.top = Math.round((rect.height - height) / 2);
+            storage.left = Math.round((r.width - width) / 2);
+            storage.top = Math.round((r.height - height) / 2);
 
             center = false;
         }

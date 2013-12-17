@@ -2,7 +2,7 @@
 矩形
 
 */
-$.class("RoundRectangle", $.Shape, function ($) {
+$.class("RoundRectangle", $.Shape, function (Class, $) {
 
 
 

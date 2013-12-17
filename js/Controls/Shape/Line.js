@@ -2,7 +2,7 @@
 线条
 
 */
-$.class("Line", $.Shape, function ($) {
+$.class("Line", $.Shape, function (Class, $) {
 
 
     this.buildPath = function (context, x, y, width, height) {

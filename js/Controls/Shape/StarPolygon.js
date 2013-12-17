@@ -2,7 +2,7 @@
 椭圆
 
 */
-$.class("StarPolygon", $.Shape, function ($) {
+$.class("StarPolygon", $.Shape, function (Class, $) {
 
 
 

@@ -1,8 +1,8 @@
 ﻿//Html控件基类
-$.class("HtmlControl", $.Control, function ($) {
+$.class("HtmlControl", $.Control, function (Class, $) {
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.dom = $(this.render.apply(this, arguments));
     };
@@ -16,7 +16,7 @@ $.class("HtmlControl", $.Control, function ($) {
 
 
 
-$.class("HtmlFrame", $.HtmlControl, function ($) {
+$.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
     var fn;
     //if ($.Browser.IE) {

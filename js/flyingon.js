@@ -28,9 +28,6 @@ var flyingon = this.flyingon = this.flyingon || {};
     //语言
     $.language = "zh-CHS";
 
-    //全局变量
-    $.global = {};
-
     //系统设置 记录当前用户样式语言等信息
     $.setting = $.setting || {};
 
@@ -373,7 +370,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //增加模板函数支持 以当前函数为模板动态创建新函数
-    $["fn:template:to"] = function (fn, values) {
+    $["y:template:to"] = function (fn, values, names) {
 
         var body = fn.toString().replace(/"\{\w+\}"/g, function (value) {
 
@@ -397,13 +394,13 @@ var flyingon = this.flyingon = this.flyingon || {};
             return value;
         });
 
-        return new Function("return (" + body + ")")()
+        return new Function(names, "return (" + body + ")")()
     };
 
 
     //浅复制源对象属性至目标属性(对象直接复制引用)
     //ignoreExists: 是否忽略已存在的属性
-    $["fn:simple:copy"] = function (source, target, ignoreExists) {
+    $["y:simple:copy"] = function (source, target, ignoreExists) {
 
 
         var names = Object.getOwnPropertyNames(source),
@@ -422,7 +419,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
                 if (cache != null && typeof cache == "object")
                 {
-                    $["fn:simple:copy"](value, cache, ignoreExists);
+                    $["y:simple:copy"](value, cache, ignoreExists);
                     continue;
                 }
             }
@@ -439,7 +436,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
     //深度复制源对象属性至目标属性(创建新对象)
     //ignoreExists: 是否忽略已存在的属性
-    $["fn:deep:copy"] = function (source, target, ignoreExists) {
+    $["y:deep:copy"] = function (source, target, ignoreExists) {
 
 
         var names = Object.getOwnPropertyNames(source),
@@ -459,7 +456,7 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if ((cache === undefined && (cache = target[name] = {})) ||
                     (cache !== null && typeof cache == "object"))
                 {
-                    $["fn:deep:copy"](value, cache, ignoreExists);
+                    $["y:deep:copy"](value, cache, ignoreExists);
                 }
             }
             else if (!ignoreExists || !target.hasOwnProperty(name))
@@ -477,6 +474,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
         return (new Function("return " + data))();
     };
+
 
 
 
@@ -522,6 +520,24 @@ var flyingon = this.flyingon = this.flyingon || {};
             }
         }
     };
+
+
+
+
+    //开始初始化
+    $.beginInit = function () {
+
+        $["x:initializing"] = true;
+        return this;
+    };
+
+    //结束初始化
+    $.endInit = function () {
+
+        $["x:initializing"] = false;
+        return this;
+    };
+
 
 
 })(flyingon);
@@ -621,14 +637,6 @@ var flyingon = this.flyingon = this.flyingon || {};
     };
 
 
-    ////定义默认值
-    //$.RootObject["x:defaults"] = {};
-
-    //定义构造链
-    $.RootObject["x:constructorChain"] = [];
-
-
-
 
 
     $["x:registryList"] = { "flyingon.RootObject": $.RootObject };
@@ -671,14 +679,14 @@ var flyingon = this.flyingon = this.flyingon || {};
             extension = superClass;
             superClass = $.RootObject;
         }
-        else if (!superClass || !superClass["x:constructorChain"]) //限制继承:没有构造链不能作为基类
+        else if (!superClass) //没有指定基类
         {
-            throw new Error(errorMsg);
+            superClass = $.RootObject;
         }
 
-        if (!extension)
+        if (typeof extension != "function") //扩展不是函数
         {
-            extension = function () { };
+            throw new Error(errorMsg);
         }
 
 
@@ -693,11 +701,13 @@ var flyingon = this.flyingon = this.flyingon || {};
         //定义类模板 create为构造函数
         function Class() {
 
-            var values = Class["x:constructorChain"];
+            var chain = Class["x:constructor:chain"],
+                i = 0,
+                length = chain.length;
 
-            for (var i = 0; i < values.length; i++)
+            while (i < length)
             {
-                values[i].apply(this, arguments);
+                chain[i++].apply(this, arguments);
             }
         };
 
@@ -734,33 +744,45 @@ var flyingon = this.flyingon = this.flyingon || {};
         $.defineVariable(p, "superClass", superClass, false, true);              //父类
 
         p["x:class"] = Class;
-        p["x:global"] = $.global; //全局变量
 
 
 
         //扩展
-        if (typeof extension === "function")
-        {
-            extension.call(p, $);
-        }
-        else if (extension) //兼容json写法扩展 不建议使用 性能较差且无法使用高级功能
-        {
-            for (var name in extension)
-            {
-                p[name] = extension[name];
-            }
-        }
-
+        extension.call(p, Class, $);
 
 
 
         //构造链
-        Class["x:constructorChain"] = superClass["x:constructorChain"].slice(0);
+        var chain = superClass["x:constructor:chain"],
+            fn;
 
-        if (p.hasOwnProperty("create"))
+        chain = Class["x:constructor:chain"] = chain ? chain.slice(0) : [];
+        if (fn = Class["create"]) //构造函数
         {
-            Class["x:constructorChain"].push(p.create);
+            chain.push(fn);
         }
+
+
+
+        //初始化链
+        chain = superClass["x:initialize:chain"];
+        fn = Class["initialize"];
+
+        if (chain || fn)
+        {
+            chain = Class["x:initialize:chain"] = chain ? chain.slice(0) : [];
+
+            if (fn)
+            {
+                chain.push(fn);
+            }
+
+            for (var i = 0; i < chain.length; i++) //执行初始化类方法(从基类开始执行)
+            {
+                chain[i].call(Class, $);
+            }
+        }
+
 
 
         return Class;
@@ -774,11 +796,303 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
+﻿/// <reference path="Core.js" />
+
+
+/*
+
+Xml解析实现
+
+
+
+XHTML中的js操作dom原属差不多,不过没有getElementById,只有getElementsByTagName
+
+xmlDoc.documentElement.childNodes(0).nodeName,可以得到这个节点的名称
+xmlDoc.documentElement.childNodes(0).nodeValue,可以得到这个节点的值
+xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
+
+可通过使用getElementsByTagName(xPath)的方法对节点进行访问
+
+*/
+(function ($) {
+
+
+
+
+    $.Xml = function (data) {
+
+        if (data)
+        {
+            this.parse(data);
+        }
+    };
+
+
+
+
+    var p = $.Xml.prototype;
+
+
+
+
+    //如果支持W3C DOM 则使用此方式创建
+    if (document.implementation && document.implementation.createDocument)
+    {
+        p.parse = function (data) {
+
+            this.dom = new DOMParser().parseFromString(data, "text/xml");
+            this.root = this.dom.documentElement;
+
+            return this;
+        };
+
+        p.load = function (file) {
+
+            this.dom = document.implementation.createDocument('', '', null);
+            this.dom.load(file);
+            this.root = this.dom.documentElement;
+
+            return this;
+        };
+
+        p.serialize = function () {
+
+            return new XMLSerializer().serializeToString(this.dom);
+        };
+    }
+    else if (window.ActiveXObject) //IE使用ActiveX方式创建
+    {
+        p.parse = function (data) {
+
+            this.dom = new ActiveXObject("Microsoft.XMLDOM");
+            this.dom.async = "false";
+            this.dom.loadXML(data);
+            this.root = this.dom.documentElement;
+
+            return this.dom;
+        };
+
+        p.load = function (file) {
+
+            this.dom = new ActiveXObject('Microsoft.XMLDOM');
+            this.dom.async = false;
+            this.dom.load(file);
+            this.root = this.dom.documentElement;
+
+            return this.dom;
+        };
+
+        p.serialize = function () {
+
+            return this.dom.xml;
+        };
+    }
+    else
+    {
+        throw "you browse does not support w3c xml api!";
+    }
+
+
+
+
+
+    /**************************扩展Xml解析方法****************************/
+
+
+    var encode_keys = {
+
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&apos;",
+        " ": "&nbsp;",
+        "&": "&amp;"
+    },
+
+    decode_keys = {
+
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": "\"",
+        "&apos;": "'",
+        "&nbsp;": " ",
+        "&amp;": "&"
+    };
+
+
+    //编码
+    $.encodeXml = function (data) {
+
+        return data.replace(/[\<\>\"\' \&]/g, function (key) {
+
+            return encode_keys[key];
+        });
+    };
+
+    //解码
+    $.decodeXml = function (data) {
+
+        return data.replace(/&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/g, function (key) {
+
+            return decode_keys[key];
+        });
+    };
+
+
+
+
+
+
+    //解析Xml数据为Json对象 根节点的名称忽略
+    $.parseXml = function (data) {
+
+
+        if (!data)
+        {
+            return null;
+        }
+
+
+        //处理空格
+        data = data.replace(/^[^\<]+|[^>]+$/, "").replace(/\>\s+\</g, "><");
+
+
+        var decodeXml = $.decodeXml,              //解码方法
+            segments = data.match(/[^<>]+|\<\/?[^<>]+\/?>/g),
+            escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/.test(data),   //是否存在需解码的字符
+
+            node,
+            name,
+            type,
+            value,
+
+            nodes = [],
+            types = [];
+
+
+        for (var i = 0, length = segments.length; i < length; i++)
+        {
+            var segment = segments[i];
+
+            if (segment[0] == "<") //如果是标签
+            {
+                if (!(name = segment.match(/[\w\.\:_\-\u0370-\uffff]+/)))
+                {
+                    throw new Error("xml tag error!");
+                }
+
+                name = name[0];
+
+                if (segment[1] != "/") //开始标签
+                {
+                    if (type = segment.match(/type\s*=\s*[\"\']/))
+                    {
+                        var index = type.index + type[0].length,
+                            type = segment.substring(index, segment.indexOf(segment[index - 1], index));
+                    }
+                    else if (length > i + 1) //未指定类型时有子项则为对象否则为字符串
+                    {
+                        var text = segments[i + 1];
+                        type = text[0] == "<" && text[1] != "/" ? "object" : "string";
+                    }
+                    else
+                    {
+                        type = "string";
+                    }
+
+                    switch (type)
+                    {
+                        case "null":
+                        case "boolean":
+                        case "number":
+                        case "string":
+                        case "function":
+                            break;
+
+                        case "array":
+                            nodes.push(node = []);
+                            break;
+
+                        case "object":
+                            nodes.push(node = {});
+                            break;
+
+                        default:
+                            nodes.push(node = {});
+                            node.className = type;
+                            break;
+                    }
+
+                    types.push(type);
+                }
+                else //结束标签
+                {
+                    switch (types.pop())
+                    {
+                        case "null":
+                            value = null;
+                            break;
+
+                        case "boolean":
+                            value = !!value;
+                            break;
+
+                        case "number":
+                            value = parseFloat(value);
+                            break;
+
+                        case "string":
+                            break;
+
+                        case "function":
+                            value = new Function(value);
+                            break;
+
+                        default: //对象或数组
+                            value = nodes.pop();
+
+                            //根节点时返回(不处理根节点名称)
+                            if (nodes.length == 0)
+                            {
+                                return value;
+                            }
+
+                            node = nodes[nodes.length - 1];
+                            break;
+                    }
+
+                    if (node.constructor == Array)
+                    {
+                        node.push(value);
+                    }
+                    else
+                    {
+                        node[name] = value;
+                    }
+                }
+            }
+            else //否则是文本内容
+            {
+                value = escape && segment.charAt("&") >= 0 ? decodeXml(segment) : segment;
+            }
+        }
+
+
+        return node;
+    };
+
+
+
+
+})(flyingon);
+
+
+
 ﻿//可序列化类
 (function ($) {
 
 
-    $.class("SerializableObject", function ($) {
+    $.class("SerializableObject", function (Class, $) {
 
 
 
@@ -789,7 +1103,7 @@ var flyingon = this.flyingon = this.flyingon || {};
         $["x:objects"] = {};
 
 
-        this.create = function () {
+        Class.create = function () {
 
 
             //客户端唯一id
@@ -815,21 +1129,21 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-        this["fn:define:getter"] = function (name, attributes) {
+        this["y:define:getter"] = function (name, attributes) {
 
             var body = "return this['x:storage']['" + name + "'];";
             return new Function(body);
         };
 
-        this["fn:define:setter:initialize"] = "if (this['x:global'].initializing)\n"
+        this["y:define:setter:initialize"] = "if (flyingon['x:initializing'])\n"
             + "{\n"
             + "storage[name] = value;\n"
             + "return this;\n"
             + "}\n";
 
-        this["fn:define:setter:change"] = "if ((cache = this['x:events'][name]) && cache.length > 0)\n"
+        this["y:define:setter:change"] = "if ((cache = this['x:events'][name]) && cache.length > 0)\n"
             + "{\n"
-            + "var event = { type: 'change', name: name, value: value, oldValue: oldValue };\n"
+            + "var event = new flyingon.ChangeEvent('change', name, value, oldValue);\n"
             + "if (!this.dispatchEvent(event))\n"
             + "{\n"
             + "return this;\n"
@@ -837,16 +1151,16 @@ var flyingon = this.flyingon = this.flyingon || {};
             + "value = event.value;\n"
             + "}\n";
 
-        this["fn:define:setter:bindingTo"] = "if ((cache = this['x:bindings:source']) && cache.hasOwnProperty(name))\n" //处理绑定源
+        this["y:define:setter:bindingTo"] = "if ((cache = this['x:bindings:source']) && cache.hasOwnProperty(name))\n" //处理绑定源
             + "{\n"
             + "flyingon.bindingTo(this, name);\n"
             + "}\n";
 
-        this["fn:define:setter"] = function (name, attributes) {
+        this["y:define:setter"] = function (name, attributes) {
 
             var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-                + this["fn:define:setter:initialize"]
+                + this["y:define:setter:initialize"]
                 + "var oldValue = storage[name];\n"
 
                 + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -854,13 +1168,13 @@ var flyingon = this.flyingon = this.flyingon || {};
                 + "if (oldValue !== value)\n"
                 + "{\n"
 
-                + this["fn:define:setter:change"]
+                + this["y:define:setter:change"]
 
                 + "storage[name] = value;\n"
 
                 + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-                + this["fn:define:setter:bindingTo"]
+                + this["y:define:setter:bindingTo"]
 
                 + "}\n"
 
@@ -870,7 +1184,7 @@ var flyingon = this.flyingon = this.flyingon || {};
         };
 
 
-        this["fn:parse:attributes"] = function (attributes) {
+        this["y:parse:attributes"] = function (attributes) {
 
             if (attributes)
             {
@@ -901,26 +1215,26 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
         //定义属性及set_XXX方法
-        this.defineProperty = function (name, defaultValue, attributes) {
+        this.defineProperty = function (name, defaultValue, attributes, readOnly) {
 
             if (defaultValue !== undefined)
             {
                 this["x:class"]["x:defaults"][name] = defaultValue;
             }
 
-            attributes = this["fn:parse:attributes"](attributes);
+            attributes = this["y:parse:attributes"](attributes);
 
             $.defineProperty(this, name,
-                attributes.getter || this["fn:define:getter"](name, attributes),
-                !attributes.readOnly ? (attributes.setter || this["fn:define:setter"](name, attributes)) : null);
+                attributes.getter || this["y:define:getter"](name, attributes),
+                !readOnly ? (attributes.setter || this["y:define:setter"](name, attributes)) : null);
         };
 
         //定义多个属性及set_XXX方法
-        this.defineProperties = function (names, defaultValue, attributes) {
+        this.defineProperties = function (names, defaultValue, attributes, readOnly) {
 
             for (var i = 0; i < names.length; i++)
             {
-                this.defineProperty(names[i], defaultValue, attributes);
+                this.defineProperty(names[i], defaultValue, attributes, readOnly);
             }
         };
 
@@ -1050,6 +1364,12 @@ var flyingon = this.flyingon = this.flyingon || {};
             return result;
         };
 
+        //分发值变更事件
+        this.dispatchChangeEvent = function (name, value, oldValue) {
+
+            this.dispatchEvent(new $.ChangeEvent('change', this, name, value, oldValue));
+        };
+
         //是否绑定了指定名称(不带on)的事件
         this.hasEvent = function (type, bubbleEvent) {
 
@@ -1098,16 +1418,32 @@ var flyingon = this.flyingon = this.flyingon || {};
             }
         };
 
-        //获取存储值
-        this.getStoreValue = function (name) {
+        //获取值
+        this.getValue = function (name) {
 
             return this["x:storage"][name];
         };
 
-        //设置存储值
-        this.setStoreValue = function (name, value) {
+        //设置值
+        this.setValue = function (name, value) {
 
             this["x:storage"][name] = value;
+        };
+
+
+
+        //自定义序列化
+        this.serialize = function (writer) {
+
+            writer.object("storage", this["x:storage"]);
+            writer.object("bindings", this["x:bindings"]);
+        };
+
+        //自定义反序列化
+        this.deserialize = function (reader, data) {
+
+            reader.object(this, "x:storage", data["storage"]);
+            reader.object(this, "x:bindings", data["bindings"]);
         };
 
 
@@ -1116,7 +1452,12 @@ var flyingon = this.flyingon = this.flyingon || {};
         //销毁
         this.dispose = function () {
 
-            delete $["x:objects"][this.id];
+            var id = this.id;
+
+            delete $["x:bindings"][id];
+            delete $["x:objects"][id];
+
+            $.clearBindings(this);
         };
 
 
@@ -1130,16 +1471,183 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-﻿
-(function ($) {
+﻿(function ($) {
 
 
-    $.XmlSerializeReader = function () {
-
-    };
+    $.class("SerializeReader", function (Class, $) {
 
 
-    var p = $.XmlSerializeReader.prototype;
+
+        var registryList = $["x:registryList"];
+
+
+
+
+        this.deserialize = function (data) {
+
+            if (data)
+            {
+                if (data.constructor == String)
+                {
+                    data = this.parse(data);
+                }
+
+                return this[data.constructor == Array ? "array" : "object"](null, null, data);
+            }
+
+            return null;
+        };
+
+
+        this.parse = $.parseJson;
+
+
+        this.boolean = function (target, name, value) {
+
+            if (value !== undefined)
+            {
+                return target[name] = !!value;
+            }
+        };
+
+        this.number = function (target, name, value) {
+
+            if (value !== undefined)
+            {
+                return target[name] = parseFloat("" + value);
+            }
+        };
+
+        this.string = function (target, name, value) {
+
+            if (value !== undefined)
+            {
+                return target[name] = value == null ? null : "" + value;
+            }
+        };
+
+
+        this.object = function (target, name, value) {
+
+            if (value != null)
+            {
+                var result;
+
+                if (!target || !(result = target[name]))
+                {
+                    result = value.className && (result = registryList[value.className]) ? new result() : {};
+
+                    if (target)
+                    {
+                        target[name] = result;
+                    }
+                }
+
+
+                if (result.deserialize)
+                {
+                    result.deserialize(this, value);
+                }
+                else
+                {
+                    var names = Object.getOwnPropertyNames(value);
+
+                    for (var i = 0, length = names.length; i < length; i++)
+                    {
+                        var name = names[i],
+                            value = value[name];
+
+                        if (value != null)
+                        {
+                            switch (typeof value)
+                            {
+                                case "object":
+                                    value = this[value.constructor == Array ? "array" : "object"](value);
+                                    break;
+
+                                case "function":
+                                    value = value ? new Function("" + value) : null;
+                                    break;
+                            }
+                        }
+
+                        result[name] = value;
+                    }
+                }
+
+                return result;
+            }
+
+            return null;
+        };
+
+
+        this.array = function (target, name, value) {
+
+            if (value != null)
+            {
+                var result;
+
+                if (target)
+                {
+                    if (result = target[name])
+                    {
+                        result = target[name] = [];
+                    }
+                }
+                else
+                {
+                    result = [];
+                }
+
+
+                for (var i = 0, length = value.length; i < length; i++)
+                {
+                    var value = value[i];
+
+                    if (value != null)
+                    {
+                        switch (typeof value)
+                        {
+                            case "object":
+                                value = this[value.constructor == Array ? "array" : "object"](value);
+                                break;
+
+                            case "function":
+                                value = value ? new Function("" + value) : null;
+                                break;
+                        }
+                    }
+
+                    result.push(value);
+                }
+
+                return result;
+            }
+
+            return null;
+        };
+
+        this.function = function (target, name, value) {
+
+            if (value !== undefined)
+            {
+                return target[name] = value ? new Function("" + value) : null;
+            }
+        };
+
+    });
+
+
+
+
+
+    $.class("XmlSerializeReader", $.SerializeReader, function (Class, $) {
+
+
+        this.parse = $.parseXml;
+
+    });
 
 
 
@@ -1148,270 +1656,393 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-
-(function ($) {
-
-
-    $.JsonSerializeReader = function () {
-
-    };
+﻿(function ($) {
 
 
-    var p = $.JsonSerializeReader.prototype,
-        registryList = $["x:registryList"];
+    $.class("SerializeWriter", function (Class, $) {
 
 
 
-    p.deserialize = function (data) {
+        Class.create = function () {
 
-        if (data)
-        {
-            var value = $.parseJson(data);
-            return this[value.constructor == Array ? "readArray" : "readObject"](value);
-        }
-
-        return null;
-    };
+            this["x:data"] = [];
+        };
 
 
-    p.readObject = function (data) {
 
-        var result,
-            names = Object.getOwnPropertyNames(data),
-            length = names.length;
+        this.serialize = function (target) {
+
+            this[target.constructor == Array ? "array" : "object"](null, target);
+            return this.toString();
+        };
 
 
-        if (data.className && (result = registryList[data.className]))
-        {
-            result = new result();
-        }
-        else
-        {
-            result = {};
-        }
 
-        for (var i = 0; i < length; i++)
-        {
-            var name = names[i],
-                value = data[name];
+        this["y:value"] = function (name, value) {
 
-            if (value == null)
+            switch (typeof value)
             {
-                result[name] = null;
+                case "boolean":
+                    this.boolean(name, value);
+                    break;
+
+                case "number":
+                    this.number(name, value);
+                    break;
+
+                case "string":
+                    this.string(name, value);
+                    break;
+
+                case "object":
+                    if (value == null)
+                    {
+                        this.null(name);
+                    }
+                    else
+                    {
+                        var cache = value.constructor;
+
+                        if (cache == String)
+                        {
+                            this.string(name, value);
+                        }
+                        else if (cache == Array) //数组
+                        {
+                            this.array(name, value);
+                        }
+                        else //对象
+                        {
+                            this.object(name, value);
+                        }
+                    }
+                    break;
+
+                case "function":
+                    this.function(name, value);
+                    break;
             }
-            else if (typeof value != "object") //普通数据
+        };
+
+
+
+
+
+
+        var key = function (data, name) {
+
+            if (data[data.length - 1] != "{")
             {
-                result[name] = value;
+                data.push(",");
             }
-            else if (name.length > 0 && name[0] != "d" && name[1] != ":") //数组或对象
+
+            data.push("\"" + name + "\":");
+        };
+
+
+
+
+        this.null = function (name) {
+
+            var data = this["x:data"];
+
+            if (name)
             {
-                result[name] = this[value.constructor == Array ? "readArray" : "readObject"](value);
+                key(data, name);
             }
-        }
 
+            data.push("null");
+        };
 
-        if (result.deserialize)
-        {
-            result.deserialize(data);
-        }
+        this.boolean = function (name, value) {
 
-        return result;
-    };
-
-
-    p.readArray = function (data) {
-
-        var result = [],
-            length = data.length;
-
-
-        for (var i = 0; i < length; i++)
-        {
-            var value = data[i];
-
-            if (value == null)
+            if (value !== undefined)
             {
-                result[i] = null;
+                var data = this["x:data"];
+
+                if (name)
+                {
+                    key(data, name);
+                }
+
+                data.push(!!value);
             }
-            else if (typeof value != "object") //普通数据
+        };
+
+        this.number = function (name, value) {
+
+            if (value !== undefined)
             {
-                result[i] = value;
+                var data = this["x:data"];
+
+                if (name)
+                {
+                    key(data, name);
+                }
+
+                data.push(value || 0);
+            }
+        };
+
+        this.string = function (name, value) {
+
+            if (value !== undefined)
+            {
+                var data = this["x:data"];
+
+                if (name)
+                {
+                    key(data, name);
+                }
+
+                data.push(value != null ? "\"" + value.replace("\"", "\\\"") + "\"" : "null");
+            }
+        };
+
+        this.object = function (name, value) {
+
+            if (value != null)
+            {
+                var data = this["x:data"];
+
+                if (name)
+                {
+                    key(data, name);
+                }
+
+                if (value != null)
+                {
+                    data.push("{");
+
+                    if (name = value.className)
+                    {
+                        data.push("\"className\":\"" + name + "\"");
+                    }
+
+
+                    if ("serialize" in value)
+                    {
+                        value.serialize(this);
+                    }
+                    else
+                    {
+                        var names = Object.getOwnPropertyNames(value);
+
+                        for (var i = 0, length = names.length; i < length; i++)
+                        {
+                            if (i > 0 || name)
+                            {
+                                data.push(",");
+                            }
+
+                            data.push("\"" + (name = names[i]) + "\":");
+                            this["y:value"](null, value[name]);
+                        }
+                    }
+
+
+                    data.push("}");
+                }
+                else
+                {
+                    data.push("null");
+                }
+            }
+        };
+
+        this.array = function (name, value) {
+
+            if (value != null)
+            {
+                var data = this["x:data"];
+
+                if (name)
+                {
+                    key(data, name);
+                }
+
+                if (value != null)
+                {
+                    data.push("[");
+
+                    for (var i = 0, length = value.length; i < length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            data.push(",");
+                        }
+
+                        this["y:value"](null, value[i]);
+                    }
+
+                    data.push("]");
+                }
+                else
+                {
+                    data.push("null");
+                }
+            }
+        };
+
+        this.function = function (name, value) {
+
+            if (value !== undefined)
+            {
+                this.string(name, value ? value.toString() : null);
+            }
+        };
+
+
+        this.toString = this.toLocaleString = function () {
+
+            return this["x:data"].join("");
+        };
+
+    });
+
+
+
+
+
+
+
+
+    //t 0:null 1:boolean 2:number 3:string 4:object 5:array 9:function
+    $.class("XmlSerializeWriter", $.SerializeWriter, function (Class, $) {
+
+
+        this.serialize = function (target) {
+
+            this[target.constructor == Array ? "array" : "object"]("data", target);
+            return this.toString();
+        };
+
+
+        this.null = function (name) {
+
+            this["x:data"].push("<" + name + " type=\"null\"/>");
+        };
+
+        this.boolean = function (name, value) {
+
+            if (value !== undefined)
+            {
+                this["x:data"].push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
+            }
+        };
+
+        this.number = function (name, value) {
+
+            if (value !== undefined)
+            {
+                this["x:data"].push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
+            }
+        };
+
+        this.string = function (name, value) {
+
+            if (value !== undefined)
+            {
+                if (value != null)
+                {
+                    if (value.indexOf("&") >= 0)
+                    {
+                        value = $.decodeXml(value);
+                    }
+
+                    this["x:data"].push("<" + name + " type=\"string\">" + value + "</" + name + ">");
+                }
+                else
+                {
+                    data.push("<" + name + " type=\"null\"/>");
+                }
+            }
+        };
+
+        this.object = function (name, value) {
+
+            if (value === undefined)
+            {
+                return;
+            }
+
+
+            var data = this["x:data"];
+
+            if (data != null)
+            {
+                data.push("<" + name + " type=\"" + (value.className || "object") + "\">");
+
+                if ("serialize" in value)
+                {
+                    value.serialize(this);
+                }
+                else
+                {
+                    var names = Object.getOwnPropertyNames(value);
+
+                    for (var i = 0, length = names.length; i < length; i++)
+                    {
+                        var key = names[i];
+                        this["y:value"](key, value[key]);
+                    }
+                }
+
+                data.push("</" + name + ">");
             }
             else
             {
-                result[i] = this[value.constructor == Array ? "readArray" : "readObject"](value);
+                data.push("<" + name + " type=\"null\"/>");
             }
-        }
+        };
 
-        return result;
-    };
+        this.array = function (name, value) {
 
-
-})(flyingon);
-
-
-
-﻿
-(function ($) {
-
-
-    $.XmlSerializeWriter = function () {
-
-        this["x:data"] = [];
-        this["x:objects"] = [];
-    };
-
-
-    var p = $.XmlSerializeWriter.prototype;
-
-
-    p.beginObject = function (value) {
-
-        var name = value.className || "object";
-
-        this["x:objects"].push(name);
-        this["x:data"].push("<" + name + ">");
-    };
-
-    p.endObject = function () {
-
-        this["x:data"].push("</" + this["x:objects"].pop() + ">");
-    };
-
-    p.beginArray = function (values) {
-
-        this["x:data"].push("<items>");
-    };
-
-    p.endArray = function () {
-
-        this["x:data"].push("</items>");
-    };
-
-    p.write = function (name, value) {
-
-        this["x:data"].push("<" + name + ">" + value + "</" + name + ">");
-    };
-
-    p.toString = function () {
-
-        return this.data.join();
-    };
-
-
-})(flyingon);
-
-
-
-
-
-(function ($) {
-
-
-    $.JsonSerializeWriter = function () {
-
-        this["x:data"] = [];
-    };
-
-
-    var p = $.JsonSerializeWriter.prototype;
-
-
-
-    p.serialize = function (target) {
-
-        this.writeValue(target);
-        return writer.toString();
-    };
-
-    p.write = function (name, target) {
-
-        var data = this["x:data"];
-
-        if (data[data.length - 1] != "{")
-        {
-            data.push(",");
-        }
-
-        data.push("\"" + name + "\":");
-        this.writeValue(target);
-    };
-
-
-    p.writeValue = function (value) {
-
-
-        var data = this["x:data"],
-            length,
-            names,
-            name;
-
-
-        if (value == null)
-        {
-            data.push("null");
-        }
-        else if (typeof value != "object") //普通数据类型
-        {
-            data.push(value.constructor == String ? "\"" + value + "\"" : value);
-        }
-        else if (!value.hasOwnProperty("length") || !(value instanceof Array)) //对象
-        {
-            data.push("{");
-
-            if (name = value.className)
+            if (value === undefined)
             {
-                data.push("\"className\":\"" + name + "\"");
+                return;
             }
 
-            var target = value["x:storage"] || value;
 
-            names = Object.getOwnPropertyNames(target);
-            length = names.length;
+            var data = this["x:data"];
 
-            for (var i = 0; i < length; i++)
+            if (value != null)
             {
-                if (i > 0 || name)
+                data.push("<" + name + " type=\"array\"");
+
+                for (var i = 0, length = value.length; i < length; i++)
                 {
-                    data.push(",");
+                    this["y:value"]("item", value[i]);
                 }
 
-                data.push("\"" + (name = names[i]) + "\":");
-                this.writeValue(target[name]);
+                data.push("</" + name + ">");
             }
-
-            if (value.serialize)
+            else
             {
-                value.serialize(this);
+                data.push("<" + name + " type=\"null\"/>");
             }
+        };
 
-            data.push("}");
-        }
-        else //数组
-        {
-            data.push("[");
+        this.function = function (name, value) {
 
-            length = value.length;
-
-            for (var i = 0; i < length; i++)
+            if (value !== undefined)
             {
-                if (i > 0)
+                if (value)
                 {
-                    data.push(",");
+                    value = value.toString();
+
+                    if (value.indexOf("&") >= 0)
+                    {
+                        value = $.decodeXml(value);
+                    }
                 }
 
-                this.writeValue(value[i]);
+                this.string(name, value);
             }
-
-            data.push("]");
-        }
-    };
+        };
 
 
-    p.toString = p.toLocaleString = function () {
-
-        return this["x:data"].join("");
-    };
+    });
 
 
 })(flyingon);
@@ -1422,8 +2053,12 @@ var flyingon = this.flyingon = this.flyingon || {};
 (function ($) {
 
 
-    $.Expression = function () {
+    $.Expression = function (expression) {
 
+        if (expression)
+        {
+            this.expression = expression;
+        }
     };
 
 
@@ -1431,21 +2066,16 @@ var flyingon = this.flyingon = this.flyingon || {};
     var p = $.Expression.prototype;
 
 
-    var parse = $.Expression.parse = function (data, variables) {
+    var parse = function (expression, variables) {
 
 
-        if (!variables)
-        {
-            variables = [];
-        }
-
-        if (!data)
+        if (!expression)
         {
             return null;
         }
 
 
-        var values = data.match(/['"\\]|@\w+|[^'"\\@]+/g),
+        var values = expression.match(/['"\\]|@\w+|[^'"\\@]+/g),
             i = 0,
             length = values.length,
             value,
@@ -1516,25 +2146,50 @@ var flyingon = this.flyingon = this.flyingon || {};
     };
 
 
+    p["x:expression"] = "";
+
+
 
     //表达式内容
-    $.defineProperty(p, "data",
+    $.defineProperty(p, "expression",
 
         function () {
 
-            return this["x:data"];
+            return this["x:expression"];
         },
 
         function (value) {
 
-            this["x:data"] = "" + value;
+            this["x:expression"] = "" + value;
             this.variables = [];
-            this.fn = parse(this["x:data"], this.variables);
+            this["x:fn"] = parse(this["x:expression"], this.variables);
         });
 
 
-    //函数 由表达式自动生成(请勿修改)
-    p.fn = null;
+    //计算
+    p.eval = function (thisArg) {
+
+        var fn = this["x:fn"];
+
+        if (fn)
+        {
+            fn.call(thisArg);
+        }
+    };
+
+
+
+    p.serialize = function (writer) {
+
+        writer.string("expression", this["x:expression"]);
+    };
+
+    p.deserialize = function (reader, data) {
+
+        reader.string(this, "expression", data.expression);
+    };
+
+
 
 
 
@@ -1549,90 +2204,261 @@ var flyingon = this.flyingon = this.flyingon || {};
 (function ($) {
 
 
-    $.class("DataBinding", $.SerializableObject, function () {
+
+    $.clearBindings = function (source) {
+
+        if (source = source["x:bindings:source"])
+        {
+            var names = Object.getOwnPropertyNames(source),
+                name,
+                binding,
+                target;
 
 
-        this.defineProperty("source", null, "resource");
-
-        this.defineProperty("name", null);
-
-        this.defineProperty("getter", null);
-
-        this.defineProperty("setter", null);
-
-        this.defineProperty("formatter", null);
-
-
-
-        //绑定源
-        this["x:source"] = null;
-
-        //绑定目标
-        this["x:target"] = null;
-
-        //是否正在处理绑定
-        this["x:binding"] = false;
-
-        //获取值变量列表
-        this["x:getter:variables"] = null;
-
-        //设置值变量列表
-        this["x:setter:variables"] = null;
-
-        //获取值函数
-        this["fn:getter"] = null;
-
-        //设置值函数
-        this["fn:setter"] = null;
-
-
-
-        this.initialize = function (source, target) {
-
-            if (source && target)
+            for (var i = 0, length = names.length; i < length; i++)
             {
-
-            }
-        };
-
-        this.getValue = function (source) {
-
-            var storage = this["x:storage"],
-                cache,
-                result;
-
-            if (storage.getter)
-            {
-                if (!(cache = this["fn:getter"]))
+                if ((name = names[i]) && (binding = source[name]))
                 {
-                    cache = this["x:getter:variables"] = [];
-                    cache = this["fn:getter"] = $.Expression.parse(storage.getter, cache);
+                    delete source[name];
+
+                    if (target = binding["x:target"])
+                    {
+                        delete target[binding.propertyName];
+                    }
                 }
-
-                result = cache.call(source);
             }
-            else
+        }
+    };
+
+
+
+
+    $.DataBinding = function (source, expression, formatter, setter) {
+
+        if (arguments.length > 0)
+        {
+            if (expression == null)
             {
-                result = source[storage.name];
+                expression = source.expression;
+                formatter = source.formatter;
+                setter = source.setter;
+                source = source.source;
             }
 
-            return (cache = storage.formatter) ? cache.format(result) : result;
-        };
 
-        this.setValue = function (value) {
+            this["x:source"] = source;
+            this["x:expression"] = "" + expression;
 
-        };
+            if (formatter != null)
+            {
+                this["x:formatter"] = "" + formatter;
+            }
+
+            if (setter != null)
+            {
+                this["x:setter"] = "" + setter;
+            }
+        }
+    };
 
 
-        this.dispose = function () {
+    var p = $.DataBinding.prototype;
 
-            this["x:source"] = null;
-            this["x:target"] = null;
-            this["fn:getter"] = null;
-            this["fn:setter"] = null;
-        };
 
-    });
+    var defineProperty = function (name) {
+
+        $.defineProperty(p, name, function () {
+
+            return this["x:" + name];
+        });
+    };
+
+
+
+    //绑定目标
+    defineProperty("target");
+
+    //绑定目标属性名
+    defineProperty("name");
+
+    //绑定源
+    defineProperty("source");
+
+    //绑定表达式
+    defineProperty("expression");
+
+    //格式化
+    defineProperty("formatter");
+
+    //更新表达式
+    defineProperty("setter");
+
+
+
+
+    //是否正在处理绑定
+    p["x:binding"] = false;
+
+    //获取值函数
+    p["y:getter"] = null;
+
+    //设置值函数
+    p["y:setter"] = null;
+
+
+
+    //初始化绑定关系
+    p["y:initialize"] = function (target, name) {
+
+        var source = this["x:source"],
+            expression = this["x:expression"],
+            bindings = source["x:bindings:source"] || (source["x:bindings:source"] = {}),
+            cache;
+
+
+        this["x:target"] = target;
+        this["x:name"] = name;
+
+
+        //缓存目标
+        if (cache = target["x:bindings"])
+        {
+            //一个目标属性只能绑定一个
+            if (cache[name])
+            {
+                cache[name].clear();
+            }
+
+            cache[name] = this;
+        }
+        else
+        {
+            (target["x:bindings"] = {})[name] = this;
+        }
+
+
+
+        //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
+        if (expression.match(/^\d|[^\w]/))
+        {
+            cache = (this["y:getter"] = new $.Expression(expression)).variables;
+
+            for (var i = 0, length = cache.length; i < length; i++)
+            {
+                bindings[cache[i]] = this;
+            }
+        }
+        else
+        {
+            this["y:getter"] = null;
+            bindings[expression] = this;
+        }
+
+
+        //处理更新
+        if (cache = this["x:setter"])
+        {
+            this["y:setter"] = new $.Expression(cache);
+        }
+    };
+
+
+    //从数据源同步数据至目标属性
+    p.pull = function () {
+
+        var cache,
+            result = (cache = this["y:getter"]) ? cache.eval(this["x:source"]) : this["x:source"][this["x:expression"]];
+
+        this["x:binding"] = true;
+        this["x:target"][this.name] = (cache = this["x:formatter"]) ? cache.format(result) : result;
+        this["x:binding"] = false;
+    };
+
+
+    //从目标属性同步数据至源
+    p.push = function () {
+
+        var cache = this["x:expression"];
+
+        if (cache)
+        {
+            this["x:binding"] = true;
+
+            if (!this["y:getter"]) //直接绑定字段
+            {
+                this["x:source"][cache] = this["x:target"][this["x:name"]];
+            }
+            else if (cache = this["y:setter"]) //表达式需要自定义setter方法
+            {
+                cache.call(this["x:target"]);
+            }
+
+            this["x:binding"] = false;
+        }
+    };
+
+
+    //清除绑定关系
+    p.clear = function () {
+
+        var source = this["x:source"],
+            target = this["x:target"],
+            bindings,
+            cache;
+
+        if (source && target && (bindings = source["x:bindings:source"]))
+        {
+            if (cache = this["x:getter"])
+            {
+                var variables = cache.variables;
+
+                for (var i = 0, length = variables.length; i < length; i++)
+                {
+                    if (cache = bindings[variables[i]])
+                    {
+                        delete cache[target.id];
+                    }
+                }
+            }
+            else if ((cache = this["x:expression"]) && (cache = bindings[cache]))
+            {
+                delete cache[target.id];
+            }
+
+
+            delete target["x:bindings"][this["x:name"]];
+        }
+    };
+
+
+    p.serialize = function (writer) {
+
+        writer.string("name", this["x:name"]);
+
+        //this["x:source"] = source;
+        writer.string("expression", this["x:expression"]);
+        writer.string("formatter", this["x:formatter"]);
+        writer.string("setter", this["x:setter"]);
+    };
+
+    p.deserialize = function (reader, data) {
+
+        reader.string(this, "x:name", data["name"]);
+
+        //this["x:source"] = source;
+        reader.string(this, "x:expression", data["expression"]);
+        reader.string(this, "x:formatter", data["formatter"]);
+        reader.string(this, "x:setter", data["setter"]);
+    };
+
+
+    p.dispose = function () {
+
+        this["x:source"] = null;
+        this["x:target"] = null;
+        this["y:getter"] = null;
+        this["y:setter"] = null;
+    };
 
 
 
@@ -1653,7 +2479,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //
-    $.class("DataObject", $.SerializableObject, function ($) {
+    $.class("DataObject", $.SerializableObject, function (Class, $) {
 
 
         function getter(name, attributes) {
@@ -1669,7 +2495,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
             var body = "var storage = this['x:storage']['data'], cache, name = '" + name + "';\n"
 
-                + this["fn:define:setter:initialize"]
+                + this["y:define:setter:initialize"]
                 + "var oldValue = storage[name];\n"
 
                 + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -1677,7 +2503,7 @@ var flyingon = this.flyingon = this.flyingon || {};
                 + "if (oldValue !== value)\n"
                 + "{\n"
 
-                + this["fn:define:setter:change"]
+                + this["y:define:setter:change"]
 
                 + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
                 + "if (!original.hasOwnProperty(name))\n"
@@ -1689,7 +2515,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
                 + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-                + this["fn:define:setter:bindingTo"]
+                + this["y:define:setter:bindingTo"]
 
                 + "}\n"
 
@@ -1709,7 +2535,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
             var storage = this["x:storage"];
 
-            attributes = (storage.schema || (storage.schema = {}))[name] = this["fn:parse:attributes"](attributes);
+            attributes = (storage.schema || (storage.schema = {}))[name] = this["y:parse:attributes"](attributes);
             attributes.defaultValue = defaultValue;
 
             $.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
@@ -1782,7 +2608,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //
-    $.class("DataArray", $.DataObject, function ($) {
+    $.class("DataArray", $.DataObject, function (Class, $) {
 
 
 
@@ -1818,227 +2644,6 @@ var flyingon = this.flyingon = this.flyingon || {};
         };
 
     });
-
-
-
-})(flyingon);
-
-
-
-﻿/// <reference path="Core.js" />
-
-
-/*
-
-Xml解析实现
-
-
-
-XHTML中的js操作dom原属差不多,不过没有getElementById,只有getElementsByTagName
-
-xmlDoc.documentElement.childNodes(0).nodeName,可以得到这个节点的名称
-xmlDoc.documentElement.childNodes(0).nodeValue,可以得到这个节点的值
-xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
-
-可通过使用getElementsByTagName(xPath)的方法对节点进行访问
-
-*/
-(function ($) {
-
-
-
-
-    $.Xml = function (xml) {
-
-        if (xml)
-        {
-            this.parse(xml);
-        }
-    };
-
-
-
-
-    var p = $.Xml.prototype;
-
-
-
-
-    //如果支持W3C DOM 则使用此方式创建
-    if (document.implementation && document.implementation.createDocument)
-    {
-        p.parse = function (xml) {
-
-            this.dom = new DOMParser().parseFromString(xml, "text/xml");
-            this.root = this.dom.documentElement;
-
-            return this;
-        };
-
-        p.load = function (file) {
-
-            this.dom = document.implementation.createDocument('', '', null);
-            this.dom.load(file);
-            this.root = this.dom.documentElement;
-
-            return this;
-        };
-
-        p.serialize = function () {
-
-            return new XMLSerializer().serializeToString(this.dom);
-        };
-    }
-        //else if (window.ActiveXObject) //IE使用ActiveX方式创建
-        //{
-        //    p.parse = function (xml) {
-
-        //        this.dom = new ActiveXObject("Microsoft.XMLDOM");
-        //        this.dom.async = "false";
-        //        this.dom.loadXML(xml);
-        //        this.root = this.dom.documentElement;
-
-        //        return this.dom;
-        //    };
-
-        //    p.load = function (file) {
-
-        //        this.dom = new ActiveXObject('Microsoft.XMLDOM');
-        //        this.dom.async = false;
-        //        this.dom.load(file);
-        //        this.root = this.dom.documentElement;
-
-        //        return this.dom;
-        //    };
-
-        //    p.serialize = function () {
-
-        //        return this.dom.xml;
-        //    };
-        //}
-    else
-    {
-        throw "you browse does not support w3c xml api!";
-    }
-
-
-
-
-
-    /*********************以上内置的Xml解析方法性能太差,以下扩展正则表达式自定义解析支持****************************/
-
-
-    var regex_split = /[^<>]+|\<\/?[^<>]+\/?>/g,    //分隔标签
-        regex_tag1 = /\<\s+\/\s+|\<\/\s+/g,         //替换标签空格如"< / " || "</ "
-        regex_tag2 = /\<\s+/g,                      //替换标签空格如"< "
-        regex_tag3 = /\s+\/\s+\>|\/\s+\>/g,         //替换标签空格如" / >" || "/ >"
-        regex_tag4 = /\s+\>/g,                      //替换标签空格如" >" 
-        regex_attr = /\"[^\"]*\"|[\w-_.:\u0370-\uffff]+|\'[^\']*\'/g,   //分隔属性 \u4e00-\u9fa5:汉字 参考unicode表 不返回引号的表达式(性能偏差不使用):/[\w-.:\u0370-\uffff]+|(?=\")[^\"]+(?=\")|\"\"|(?=\')[^\']+(?=\')|\'\'/g
-        regex_escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/;          //解码
-
-
-    //编码
-    $.Xml.encode = function (value) {
-
-        return value.replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&apos;")
-            .replace(" ", "&nbsp;")
-            .replace("&", "&amp;");
-    };
-
-    //解码
-    $.Xml.decode = function (value) {
-
-        return value.replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .replace("&apos;", "'")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&");
-    };
-
-
-    $.Xml.parse = function (xml) {
-
-        var data = { tagName: "text", childNodes: [] };
-
-        if (!xml)
-        {
-            return data;
-        }
-
-
-        //处理不规范的格式
-        xml = xml.replace(regex_tag1, "</")
-           .replace(regex_tag2, "<")
-           .replace(regex_tag3, "/>")
-           .replace(regex_tag4, ">");
-
-
-
-        var escape = xml.match(regex_escape),   //是否存在需解码的字符
-            decode = $.Xml.decode,              //解码方法
-            segments = xml.match(regex_split),
-
-            i = 0,
-            length = segments.length;  //截取
-
-
-        while (i < length)
-        {
-            var segment = segments[i++];
-
-            if (segment[0] == "<") //如果是标签
-            {
-                if (segment[1] == "/") //结束标签
-                {
-                    var tagName = segment.substring(2, segment.length - 1);
-
-                    if (tagName != data.tagName)
-                    {
-                        throw "xml data is not correct! the tag \"" + data.tagName + "\" is not closed!";;
-                    }
-
-                    data = data.parent || data;
-                }
-                else //开始标签
-                {
-                    var tokens = segment.match(regex_attr),
-                        attributes = {},
-                        node = { tagName: tokens[0], parentNode: data, childNodes: [], nodeType: 1, attributes: attributes },
-
-                        j = 0,
-                        count = tokens.length;
-
-                    while (j < count)
-                    {
-                        var name = tokens[j++],
-                            value = tokens[j++];
-
-                        value = value.substring(1, value.length - 1);
-                        attributes[name] = escape && value.charAt("&") >= 0 ? decode(value) : value;
-                    }
-
-                    data.childNodes.push(node);
-
-                    if (segment[segment.length - 2] != "/") //不是直接结束
-                    {
-                        data = node;
-                    }
-                }
-            }
-            else //否则是文本内容
-            {
-                data.childNodes.push({ tagName: "#text", nodeType: 3, nodeValue: escape && segment.charAt("&") >= 0 ? decode(segment) : segment });
-            }
-        }
-
-
-        return data;
-    };
-
 
 
 
@@ -2144,19 +2749,19 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                 switch (options.dataType || defaults.dataType)
                 {
                     case "json":
-                        options.response = $.parseJson(response.responseText);
+                        options.response = $.parseJson(target.responseText);
                         break;
 
                     case "script":
-                        options.response = eval(response.responseText);
+                        options.response = eval(target.responseText);
                         break;
 
                     case "xml":
-                        options.response = response.responseXML;
+                        options.response = target.responseXML;
                         break;
 
                     default:
-                        options.response = response.responseText;
+                        options.response = target.responseText;
                         break;
                 }
 
@@ -2898,7 +3503,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-    //unicode码: \u2e80-\uffffn:东方字符 \u00c0-\u00ff 拉丁字母1  \u0400-\u04ff 西里尔字母
+    //unicode码: \u2e80-\ufffy:东方字符 \u00c0-\u00ff 拉丁字母1  \u0400-\u04ff 西里尔字母
     //[\u2e80-\uffff]+                      汉字类 按等宽字符 注:可能对其它字符处理不好
     //[\w\u00c0-\u00ff\u0400-\u04ff]+       类英文单词类 按英文单词的方式处理
     //[^\w\u00c0-\u00ff\u0400-\u04ff]       其它符号类 按单个字符的方式处理
@@ -3527,12 +4132,12 @@ Canvas2D绘图扩展
 
     $.LinearGradient.prototype.createBrush = function (context) {
 
-        var rect = context.boxModel.innerRect,
+        var r = context.boxModel.innerRect,
 
-            x = rect.windowX,
-            y = rect.windowY,
-            width = rect.width,
-            height = rect.height,
+            x = r.windowX,
+            y = r.windowY,
+            width = r.width,
+            height = r.height,
 
             g = context.createLinearGradient(x + this.x0 * width, y + this.y0 * height, x + this.x1 * width, y + this.y1 * height),
 
@@ -3566,12 +4171,12 @@ Canvas2D绘图扩展
 
     $.RadialGradient.prototype.createBrush = function (context) {
 
-        var rect = context.boxModel.innerRect,
+        var r = context.boxModel.innerRect,
 
-            x = rect.windowX,
-            y = rect.windowY,
-            width = rect.width,
-            height = rect.height,
+            x = r.windowX,
+            y = r.windowY,
+            width = r.width,
+            height = r.height,
 
             g = context.createRadialGradient(x + this.x0 * width, y + this.y0 * height, this.r0, x + this.x1 * width, y + this.y1 * height, this.r1),
 
@@ -4186,10 +4791,10 @@ Canvas2D绘图扩展
 
 
     //事件类型基类
-    $.class("Event", function ($) {
+    $.class("Event", function (Class, $) {
 
 
-        this.create = function (type, target) {
+        Class.create = function (type, target) {
 
             this.type = type;
             this.target = target;
@@ -4223,10 +4828,10 @@ Canvas2D绘图扩展
 
 
     //鼠标事件类型
-    $.class("MouseEvent", $.Event, function ($) {
+    $.class("MouseEvent", $.Event, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             this.originalEvent = originalEvent;
         };
@@ -4394,10 +4999,10 @@ Canvas2D绘图扩展
 
 
     //拖拉事件类型
-    $.class("DragEvent", $.MouseEvent, function ($) {
+    $.class("DragEvent", $.MouseEvent, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             //拖动目标
             this.dragTargets = [target];
@@ -4414,10 +5019,10 @@ Canvas2D绘图扩展
 
 
     //键盘事件类型
-    $.class("KeyEvent", $.Event, function ($) {
+    $.class("KeyEvent", $.Event, function (Class, $) {
 
 
-        this.create = function (type, target, originalEvent) {
+        Class.create = function (type, target, originalEvent) {
 
             this.originalEvent = originalEvent || {};
         };
@@ -4468,9 +5073,9 @@ Canvas2D绘图扩展
 
 
     //属性值变更事件类型
-    $.class("PropertyChangedEvent", $.Event, function ($) {
+    $.class("ChangeEvent", $.Event, function (Class, $) {
 
-        this.create = function (type, target, name, value, oldValue) {
+        Class.create = function (type, target, name, value, oldValue) {
 
             this.name = name;
             this.value = value;
@@ -5212,9 +5817,9 @@ Canvas2D绘图扩展
 
         var ownerControl = this.ownerControl,
 
-            rect = this.offsetParent && this.offsetParent.innerRect,
-            windowX = rect ? rect.windowX : 0,
-            windowY = rect ? rect.windowY : 0,
+            r = this.offsetParent && this.offsetParent.innerRect,
+            windowX = r ? r.windowX : 0,
+            windowY = r ? r.windowY : 0,
 
             x = this.x + this.offsetX,
             y = this.y + this.offsetY,
@@ -5311,12 +5916,12 @@ Canvas2D绘图扩展
             var ownerControl = this.ownerControl,
                 clipToBounds = ownerControl["x:storage"].clipToBounds,
 
-                rect = this.innerRect,
+                r = this.innerRect,
 
                 x = this.scrollLeft,
                 y = this.scrollTop,
-                right = x + rect.width,
-                bottom = y + rect.height,
+                right = x + r.width,
+                bottom = y + r.height,
 
                 i = 0,
                 length = this.children.length;
@@ -5350,7 +5955,7 @@ Canvas2D绘图扩展
         }
         else if (this["x:update:children"]) //如果子控件需要更新
         {
-            this["fn:render:children"](context, "update");
+            this["y:render:children"](context, "update");
             this["x:update:children"] = false;
         }
 
@@ -5369,16 +5974,16 @@ Canvas2D绘图扩展
         //文字测量
         if (ownerControl["x:storage"].text != null)
         {
-            ownerControl["fn:measure:text"]();
+            ownerControl["y:measure:text"]();
         }
 
 
         //测量
         if (this["x:measure"])
         {
-            if (ownerControl["fn:before:measure"])
+            if (ownerControl["y:before:measure"])
             {
-                ownerControl["fn:before:measure"](this);
+                ownerControl["y:before:measure"](this);
             }
 
             this.measure();
@@ -5403,7 +6008,7 @@ Canvas2D绘图扩展
         //绘制子项
         if (this.children)
         {
-            this["fn:render:children"](context, "render");
+            this["y:render:children"](context, "render");
         }
 
         //设置渲染环境
@@ -5421,7 +6026,7 @@ Canvas2D绘图扩展
         var decorates = ownerControl.getStyleValue("decorates");
         if (decorates && decorates.length > 0)
         {
-            this["fn:paint:decorates"](context, decorates);
+            this["y:paint:decorates"](context, decorates);
             this["x:decorates"] = true;
         }
 
@@ -5434,7 +6039,7 @@ Canvas2D绘图扩展
 
 
     //渲染或更新子项
-    p["fn:render:children"] = function (context, fn) {
+    p["y:render:children"] = function (context, fn) {
 
         var ownerControl = this.ownerControl,
 
@@ -5452,10 +6057,10 @@ Canvas2D绘图扩展
 
         if (ownerControl["x:storage"].clipToBounds)
         {
-            var rect = this.innerRect;
+            var r = this.innerRect;
 
             context.beginPath();
-            context.rect(rect.x + this.scrollLeft, rect.y + this.scrollTop, rect.width, rect.height);
+            context.rect(r.x + this.scrollLeft, r.y + this.scrollTop, r.width, r.height);
             context.clip();
         }
 
@@ -5481,7 +6086,7 @@ Canvas2D绘图扩展
     };
 
     //绘制装饰
-    p["fn:paint:decorates"] = function (context, decorates) {
+    p["y:paint:decorates"] = function (context, decorates) {
 
         var i = 0,
             length = decorates.length;
@@ -5493,7 +6098,7 @@ Canvas2D绘图扩展
             //未处理
             if (!(item instanceof $.Shape))
             {
-                item = decorates[i] = new $.JsonSerializeReader().readObject(item);
+                item = decorates[i] = new $.SerializeReader().deserialize(item);
             }
 
             //重绘模式
@@ -5521,7 +6126,7 @@ Canvas2D绘图扩展
 形状基类
 
 */
-$.class("Shape", $.SerializableObject, function ($) {
+$.class("Shape", $.SerializableObject, function (Class, $) {
 
 
 
@@ -5643,7 +6248,7 @@ $.class("Shape", $.SerializableObject, function ($) {
 线条
 
 */
-$.class("Line", $.Shape, function ($) {
+$.class("Line", $.Shape, function (Class, $) {
 
 
     this.buildPath = function (context, x, y, width, height) {
@@ -5663,7 +6268,7 @@ $.class("Line", $.Shape, function ($) {
 线条
 
 */
-$.class("DashLine", $.Shape, function ($) {
+$.class("DashLine", $.Shape, function (Class, $) {
 
 
     //虚线规则
@@ -5687,7 +6292,7 @@ $.class("DashLine", $.Shape, function ($) {
 矩形
 
 */
-$.class("Rectangle", $.Shape, function ($) {
+$.class("Rectangle", $.Shape, function (Class, $) {
 
 
 
@@ -5707,7 +6312,7 @@ $.class("Rectangle", $.Shape, function ($) {
 矩形
 
 */
-$.class("RoundRectangle", $.Shape, function ($) {
+$.class("RoundRectangle", $.Shape, function (Class, $) {
 
 
 
@@ -5732,7 +6337,7 @@ $.class("RoundRectangle", $.Shape, function ($) {
 椭圆
 
 */
-$.class("Ellipse", $.Shape, function ($) {
+$.class("Ellipse", $.Shape, function (Class, $) {
 
 
 
@@ -5754,7 +6359,7 @@ $.class("Ellipse", $.Shape, function ($) {
 椭圆
 
 */
-$.class("Polygon", $.Shape, function ($) {
+$.class("Polygon", $.Shape, function (Class, $) {
 
 
 
@@ -5783,7 +6388,7 @@ $.class("Polygon", $.Shape, function ($) {
 椭圆
 
 */
-$.class("StarPolygon", $.Shape, function ($) {
+$.class("StarPolygon", $.Shape, function (Class, $) {
 
 
 
@@ -5814,18 +6419,49 @@ $.class("StarPolygon", $.Shape, function ($) {
 
 
 //控件基类
-$.class("Control", $.SerializableObject, function ($) {
+$.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //盒模型
         this["x:boxModel"] = new $.BoxModel(this);
 
     };
+
+
+
+    //初始化类方法
+    Class.initialize = function ($) {
+
+
+        var className = this.className,
+            styles = $.styles,
+            style = styles[className] || (styles[className] = {}),
+            templates = $.templates,
+            template = templates[className] || (templates[className] = {});
+
+
+        className = this["superClass"].className;
+
+        //复制上级样式
+        if (styles.hasOwnProperty(className))
+        {
+            $["y:simple:copy"](styles[className], style, true);
+        }
+
+
+        //复制上级模板
+        if (templates.hasOwnProperty(className))
+        {
+            $["y:simple:copy"](templates[className], template, true);
+        }
+
+    };
+
 
 
 
@@ -5861,7 +6497,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //触发父控件变更
-    this["fn:parent"] = function (parent) {
+    this["y:parent"] = function (parent) {
 
         var box = this["x:boxModel"];
 
@@ -5879,18 +6515,8 @@ $.class("Control", $.SerializableObject, function ($) {
             parent["x:boxModel"]["x:measure"] = true;
         }
 
-
-        var oldValue = this["x:parent"];
-
         this["x:parent"] = parent;
-
-        this.dispatchEvent({
-
-            type: "change",
-            name: "parent",
-            value: parent,
-            oldValue: this["x:parent"]
-        });
+        this.dispatchChangeEvent("parent", parent, this["x:parent"]);
     };
 
 
@@ -5901,35 +6527,32 @@ $.class("Control", $.SerializableObject, function ($) {
     //主窗口
     this.defineProperty("mainWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var result = this.ownerWindow;
             return result && (result.mainWindow || result);
         }
-    });
+    }, true);
 
     //所属窗口
     this.defineProperty("ownerWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var parent = this["x:parent"];
-            return parent && (parent["x:ownerWindow"] || (parent["x:ownerWindow"] = parent.ownerWindow));
+            return parent && parent.ownerWindow;
         }
-    });
+    }, true);
 
     //所属图层
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var parent = this["x:parent"];
-            return parent && (parent["x:ownerLayer"] || (parent["x:ownerLayer"] = parent.ownerLayer));
+            return parent && parent.ownerLayer;
         }
-    });
+    }, true);
 
 
     //当前控件是否指定控件的父控件
@@ -5996,7 +6619,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
 
-    this["fn:define:getter"] = function (name, options) {
+    this["y:define:getter"] = function (name, options) {
 
         var body;
 
@@ -6012,12 +6635,12 @@ $.class("Control", $.SerializableObject, function ($) {
         return new Function(body);
     };
 
-    this["fn:define:setter"] = function (name, attributes) {
+    this["y:define:setter"] = function (name, attributes) {
 
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + this["fn:define:setter:initialize"]
+            + this["y:define:setter:initialize"]
 
 
             + (attributes.style ? "var oldValue = this.getStyleValue(name);" : "var oldValue = storage[name];")
@@ -6028,7 +6651,7 @@ $.class("Control", $.SerializableObject, function ($) {
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + this["fn:define:setter:change"]
+            + this["y:define:setter:change"]
 
             + "storage[name] = value;\n";
 
@@ -6067,7 +6690,7 @@ $.class("Control", $.SerializableObject, function ($) {
         }
 
 
-        body += this["fn:define:setter:bindingTo"] //处理绑定源
+        body += this["y:define:setter:bindingTo"] //处理绑定源
 
             //处理绑定目标
             + "if ((cache = this['x:bindings']) && (cache = cache[name]) && cache.setter !== null && cache['x:binding'] != true)\n"
@@ -6134,23 +6757,6 @@ $.class("Control", $.SerializableObject, function ($) {
     };
 
 
-    //复制样式(复制基类的样式至子类以便加速访问)
-    function copyStyle(styles, style, superClass) {
-
-        var className = superClass.className,
-            parent = styles[className] || (styles[className] = {});
-
-        if (!parent["x:cache"])
-        {
-            copyStyle(styles, parent, superClass.superClass);
-        }
-
-        $["fn:simple:copy"](parent, style, true);
-
-
-        style["x:cache"] = true;
-    };
-
     function getStyleValue(style, name) {
 
         var storage = this["x:storage"],
@@ -6204,13 +6810,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
         styleKey = this["x:class"].className;
-        style = (styles[styleKey] || (styles[styleKey] = {}));
-
-        if (!style["x:cache"])
-        {
-            copyStyle(styles, style, this["x:class"].superClass);
-        }
-
+        style = styles[styleKey];
 
         if ((result = getStyleValue.call(this, style, name)) != undefined)
         {
@@ -6228,12 +6828,11 @@ $.class("Control", $.SerializableObject, function ($) {
     //盒式模型
     this.defineProperty("boxModel", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"];
         }
-    });
+    }, true);
 
 
 
@@ -6242,11 +6841,11 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //
-    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.PropertyChangedEvent('locationchanged', this, name, value, oldValue));");
+    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('locationchanged', this, name, value, oldValue));");
 
 
     //
-    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.PropertyChangedEvent('resize', this, name, value, oldValue));");
+    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('resize', this, name, value, oldValue));");
 
 
 
@@ -6279,22 +6878,20 @@ $.class("Control", $.SerializableObject, function ($) {
     //
     this.defineProperty("outerRect", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"]["outerRect"];
         }
-    });
+    }, true);
 
     //
     this.defineProperty("innerRect", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:boxModel"]["innerRect"];
         }
-    });
+    }, true);
 
 
 
@@ -6368,7 +6965,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
     this.defineProperty("cursor", null);
 
-    this["fn:cursor"] = function (event) {
+    this["y:cursor"] = function (event) {
 
         var cursor = this.getStyleValue("cursor") || "default";
         return $.cursors[cursor] || cursor;
@@ -6403,23 +7000,21 @@ $.class("Control", $.SerializableObject, function ($) {
     //是否为焦点控件
     this.defineProperty("focused", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
         }
-    });
+    }, true);
 
     //是否为焦点控件或包含焦点控件
     this.defineProperty("containsFocused", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
             return focusControl && (focusControl == this || this.isParent(focusControl));
         }
-    });
+    }, true);
 
 
 
@@ -6430,12 +7025,12 @@ $.class("Control", $.SerializableObject, function ($) {
         return this.dispatchEvent("validate");
     };
 
-    this["fn:focus"] = function (event) {
+    this["y:focus"] = function (event) {
 
         return this.focus();
     };
 
-    this["fn:blur"] = function () {
+    this["y:blur"] = function () {
 
         return this.blur();
     };
@@ -6489,76 +7084,35 @@ $.class("Control", $.SerializableObject, function ($) {
     ////数据绑定主体
     //this.dataContext = null;
 
-    //binding = { source: object, expression: "name" || function () {}, formatter: function () {}, setter: function() {} }
-    this.setBinding = function (propertyName, binding) {
+    //binding = { source: object, expression: "name", setter: "", formatter: "" }
+    this.setBinding = function (name, binding) {
 
-        if (propertyName && binding)
+        if (binding)
         {
-            var source = binding.source,
-                expression = binding.expression;
+            binding.target = this;
 
-            if (source && expression)
+            if (!(binding instanceof $.DataBinding))
             {
-                var bindings = source["x:bindings:source"] || (source["x:bindings:source"] = {}),
-                    id = this.id;
-
-
-                //执行绑定
-                binding["x:binding"] = true;
-                this[propertyName] = typeof expression == "function" ? expression.call(source) : source[expression];
-                binding["x:binding"] = false;
-
-
-                //设置绑定
-                if (typeof expression == "function")
-                {
-                    var properties = binding.properties = expression.toString().match(/this\.[\w\$]+/g);
-
-                    for (var i = 0; i < properties.length; i++)
-                    {
-                        expression = properties[i] = properties[i++].substring(5);
-                        (bindings[expression] || (bindings[expression] = {}))[id] = propertyName;
-                    }
-
-                    if (binding.setter === undefined)
-                    {
-                        binding.setter = null;
-                    }
-                }
-                else //字段
-                {
-                    (bindings[expression] || (bindings[expression] = {}))[id] = propertyName;
-                }
-
-                (this["x:bindings"] || (this["x:bindings"] = {}))[propertyName] = binding;
+                binding = new $.DataBinding(binding);
             }
+
+            binding["y:initialize"](this, name);
+            binding.pull();
         }
+
+        return binding;
     };
 
-    this.removeBinding = function (propertyName) {
+    this.clearBinding = function (propertyName) {
 
-        var bindings = this["x:bindings"];
-
-        if (bindings && bindings.hasOwnProperty(propertyName))
+        if (propertyName)
         {
-            var target_binding = bindings[propertyName],
-                source_binding = target_binding.source["x:bindings:source"],
-                properties = target_binding.properties,
-                id = this.id;
+            var bindings = this["x:bindings"];
 
-            if (properties)
+            if (bindings && (bindings = bindings[propertyName]))
             {
-                for (var i = 0; i < properties.length; i++)
-                {
-                    delete source_binding[properties[i]][id];
-                }
+                bindings.clear();
             }
-            else
-            {
-                delete source_binding[target_binding.expression][id];
-            }
-
-            delete bindings[propertyName];
         }
     };
 
@@ -6710,8 +7264,8 @@ $.class("Control", $.SerializableObject, function ($) {
 
     this.hitTest = function (x, y) {
 
-        var rect = this["x:boxModel"].outerRect;
-        return x >= rect.x && y >= rect.y && x <= rect.right && y <= rect.bottom;
+        var r = this["x:boxModel"].outerRect;
+        return x >= r.x && y >= r.y && x <= r.right && y <= r.bottom;
     };
 
 
@@ -6753,7 +7307,7 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
     //测量文字方法
-    this["fn:measure:text"] = function () {
+    this["y:measure:text"] = function () {
 
         if (!this["x:textMetrics"])
         {
@@ -6779,20 +7333,20 @@ $.class("Control", $.SerializableObject, function ($) {
 
             if (boxModel.borderRadius > 0)
             {
-                var rect = boxModel.borderRect,
+                var r = boxModel.borderRect,
                     lineWidth = border[0],
                     offset = lineWidth / 2;
 
                 context.lineWidth = lineWidth;
                 context.set_strokeStyle(color);
-                context.strokeRoundRect(rect.windowX + offset, rect.windowY + offset, rect.width - lineWidth, rect.height - lineWidth, boxModel.borderRadius);
+                context.strokeRoundRect(r.windowX + offset, r.windowY + offset, r.width - lineWidth, r.height - lineWidth, boxModel.borderRadius);
             }
             else
             {
-                var rect = boxModel.outerRect;
+                var r = boxModel.outerRect;
 
                 context.set_fillStyle(color);
-                context.drawBorder(rect.windowX, rect.windowY, rect.width, rect.height, border);
+                context.drawBorder(r.windowX, r.windowY, r.width, r.height, border);
             }
         }
 
@@ -6807,18 +7361,18 @@ $.class("Control", $.SerializableObject, function ($) {
 
         if (background)
         {
-            var rect = boxModel.borderRect;
+            var r = boxModel.borderRect;
 
             context.beginPath();
             context.set_fillStyle(background);
 
             if (boxModel.borderRadius > 0) //圆角矩形
             {
-                context.roundRect(rect.windowX, rect.windowY, rect.width, rect.height, boxModel.borderRadius);
+                context.roundRect(r.windowX, r.windowY, r.width, r.height, boxModel.borderRadius);
             }
             else
             {
-                context.rect(rect.windowX, rect.windowY, rect.width, rect.height);
+                context.rect(r.windowX, r.windowY, r.width, r.height);
             }
 
             context.fill();
@@ -6843,7 +7397,7 @@ $.class("Control", $.SerializableObject, function ($) {
         if (textMetrics)
         {
             var boxModel = context.boxModel,
-                rect = boxModel.innerRect,
+                r = boxModel.innerRect,
                 font = textMetrics.font;
 
 
@@ -6855,7 +7409,7 @@ $.class("Control", $.SerializableObject, function ($) {
             if (cliped)
             {
                 context.beginPath();
-                context.rect(rect.windowX, rect.windowY, rect.width, rect.height);
+                context.rect(r.windowX, r.windowY, r.width, r.height);
                 context.clip();
             }
 
@@ -6870,8 +7424,8 @@ $.class("Control", $.SerializableObject, function ($) {
             context.set_font(font);
 
 
-            var x = rect.windowX - boxModel.scrollLeft,
-                y = rect.windowY + textMetrics[0].height,
+            var x = r.windowX - boxModel.scrollLeft,
+                y = r.windowY + textMetrics[0].height,
 
                 i = 0,
                 length = textMetrics.length;
@@ -6900,31 +7454,19 @@ $.class("Control", $.SerializableObject, function ($) {
 
 
 
-
-    this.serialize = function (writer) {
-
-        var bindings = this["x:bindings"];
-
-        if (bindings && bindings["x:serialize"])
-        {
-            writer.write("d:bindings", bindings);
-        }
-    };
-
-
 });
 
 
 
 
-﻿$.class("ScrollEvent", $.Event, function ($) {
+﻿$.class("ScrollEvent", $.Event, function (Class, $) {
 
 
 });
 
 
 //滚动条控件
-$.class("ScrollBase", $.Control, function ($) {
+$.class("ScrollBase", $.Control, function (Class, $) {
 
 
 
@@ -6934,7 +7476,7 @@ $.class("ScrollBase", $.Control, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);
@@ -7192,7 +7734,7 @@ $.class("ScrollBase", $.Control, function ($) {
 
 ﻿
 //滚动条控件
-$.class("ScrollBar", $.ScrollBase, function ($) {
+$.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
 
     this.setDefaultValue("maxStep", 200);
@@ -7299,11 +7841,11 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
             var length = boxModel.length = height - (thickness << 1);
             var slider = boxModel.slider = computeSliderLenth(storage, length);
 
-            var rect1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var rect2 = boxModel.sliderRect = [x, y + thickness + computeSliderStart(storage, length, slider), thickness, slider];
-            var rect3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
+            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
+            var r_2 = boxModel.sliderRect = [x, y + thickness + computeSliderStart(storage, length, slider), thickness, slider];
+            var r_3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
 
-            boxModel.segments = [rect1[1] + thickness, rect2[1], rect2[1] + slider, rect3[1]]; //位置段坐标
+            boxModel.segments = [r_1[1] + thickness, r_2[1], r_2[1] + slider, r_3[1]]; //位置段坐标
         }
         else
         {
@@ -7311,11 +7853,11 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
             var length = boxModel.length = width - (thickness << 1);
             var slider = boxModel.slider = computeSliderLenth(storage, length);
 
-            var rect1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var rect2 = boxModel.sliderRect = [x + thickness + computeSliderStart(storage, length, slider), y, slider, thickness];
-            var rect3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
+            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
+            var r_2 = boxModel.sliderRect = [x + thickness + computeSliderStart(storage, length, slider), y, slider, thickness];
+            var r_3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
 
-            boxModel.segments = [rect1[0] + thickness, rect2[0], rect2[0] + slider, rect3[0]]; //位置段坐标
+            boxModel.segments = [r_1[0] + thickness, r_2[0], r_2[0] + slider, r_3[0]]; //位置段坐标
         }
     };
 
@@ -7349,7 +7891,7 @@ $.class("ScrollBar", $.ScrollBase, function ($) {
 
 
 
-$.class("ScrollCorner", $.Control, function ($) {
+$.class("ScrollCorner", $.Control, function (Class, $) {
 
 
 
@@ -7359,11 +7901,11 @@ $.class("ScrollCorner", $.Control, function ($) {
 
 
 ﻿//可滚动控件
-$.class("ScrollableControl", $.Control, function ($) {
+$.class("ScrollableControl", $.Control, function (Class, $) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("scroll", this.handleScroll);
         this.addEventListener("mousewheel", this.handleMouseWheel);
@@ -7373,22 +7915,20 @@ $.class("ScrollableControl", $.Control, function ($) {
 
     this.defineProperty("horizontalScrollBar", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:hScrollBar"];
         }
-    });
+    }, true);
 
 
     this.defineProperty("verticalScrollBar", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:vScrollBar"];
         }
-    });
+    }, true);
 
 
 
@@ -7467,7 +8007,7 @@ $.class("ScrollableControl", $.Control, function ($) {
         var ownerWindow = this.ownerWindow;
         if (ownerWindow && this.isParent(ownerWindow["x:focusControl"]))
         {
-            ownerWindow["fn:caret"](event.changedX, event.changedY);
+            ownerWindow["y:caret"](event.changedX, event.changedY);
         }
 
 
@@ -7696,26 +8236,26 @@ $.class("ScrollableControl", $.Control, function ($) {
 
         var storage_1 = hScrollBar && hScrollBar["x:storage"],
             storage_2 = vScrollBar && vScrollBar["x:storage"],
-            rect = boxModel.borderRect;
+            r = boxModel.borderRect;
 
 
         if (storage_1 && storage_2) //如果出现两个滚动条
         {
-            storage_1.width = rect.width - storage_2.width;
-            storage_2.height = rect.height - storage_1.height;
+            storage_1.width = r.width - storage_2.width;
+            storage_2.height = r.height - storage_1.height;
 
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, rect.x, rect.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, rect.right - storage_2.width, rect.y, storage_2.width, vScrollBar.height, true);
+            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
+            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
         }
         else if (storage_1) //只出现水平滚动条
         {
-            storage_1.width = rect.width;
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, rect.x, rect.bottom - storage_1.height, rect.width, storage_1.height, true);
+            storage_1.width = r.width;
+            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
         }
         else //只出现竖直滚动条
         {
-            storage_2.height = rect.height;
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, rect.right - storage_2.width, rect.y, storage_2.width, rect.height, true);
+            storage_2.height = r.height;
+            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
         }
     };
 
@@ -7727,7 +8267,7 @@ $.class("ScrollableControl", $.Control, function ($) {
 
 
 ﻿//内容控件
-$.class("ContentControl", $.Control, function ($) {
+$.class("ContentControl", $.Control, function (Class, $) {
 
 
 
@@ -7745,7 +8285,7 @@ $.class("ContentControl", $.Control, function ($) {
 
             if (oldValue != value)
             {
-                if (this["x:global"].initializing)
+                if ($["x:initializing"])
                 {
                     this["x:content"] = value;
                 }
@@ -7753,31 +8293,38 @@ $.class("ContentControl", $.Control, function ($) {
                 {
                     if (oldValue)
                     {
-                        oldValue["fn:parent"](null);
+                        oldValue["y:parent"](null);
                     }
 
                     if (value)
                     {
-                        value["fn:parent"](this);
+                        value["y:parent"](this);
                     }
 
                     this["x:content"] = value;
 
-                    this.dispatchEvent({
-
-                        type: "change",
-                        name: "content",
-                        value: parent,
-                        oldValue: oldValue
-                    });
+                    this.dispatchChangeEvent("content", parent, oldValue);
                 }
             }
         }
 
-
     });
 
 
+
+    this.serialize = function (writer) {
+
+        $.ContentControl.super.serialize.call(this, writer);
+
+        writer.object("content", this["x:content"]);
+    };
+
+    this.deserialize = function (reader, data) {
+
+        $.ContentControl.super.deserialize.call(this, reader, data);
+
+        reader.object(this, "x:content", data["content"]);
+    };
 
 
 });
@@ -7787,10 +8334,10 @@ $.class("ContentControl", $.Control, function ($) {
 
 
 ﻿//Html控件基类
-$.class("HtmlControl", $.Control, function ($) {
+$.class("HtmlControl", $.Control, function (Class, $) {
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.dom = $(this.render.apply(this, arguments));
     };
@@ -7804,7 +8351,7 @@ $.class("HtmlControl", $.Control, function ($) {
 
 
 
-$.class("HtmlFrame", $.HtmlControl, function ($) {
+$.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
     var fn;
     //if ($.Browser.IE) {
@@ -7877,8 +8424,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
     var p = $.ControlCollection.prototype = [],
         push = p.push,
-        splice = p.splice,
-        global = $.global;
+        splice = p.splice;
 
 
     //隐藏标准属性
@@ -7892,13 +8438,13 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
     p.append = function (item) {
 
-        if (global.initializing)
+        if ($["x:initializing"])
         {
             item["x:parent"] = this.ownerControl;
         }
         else
         {
-            item["fn:parent"](this.ownerControl);
+            item["y:parent"](this.ownerControl);
         }
 
         push.call(this, item);
@@ -7909,7 +8455,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
         var i = 0,
             length = items.length,
-            initializing = global.initializing;
+            initializing = $["x:initializing"];
 
         while (i < length)
         {
@@ -7921,7 +8467,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
             }
             else
             {
-                item["fn:parent"](this.ownerControl);
+                item["y:parent"](this.ownerControl);
             }
 
             push.call(this, item);
@@ -7932,13 +8478,13 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
     p.insert = function (index, item) {
 
-        if (global.initializing)
+        if ($["x:initializing"])
         {
             item["x:parent"] = this.ownerControl;
         }
         else
         {
-            item["fn:parent"](this.ownerControl);
+            item["y:parent"](this.ownerControl);
         }
 
         splice.call(this, index, 0, item);
@@ -7949,7 +8495,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
         var i = 0,
             length = items.length,
-            initializing = global.initializing;
+            initializing = $["x:initializing"];
 
         while (i < length)
         {
@@ -7961,7 +8507,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
             }
             else
             {
-                item["fn:parent"](this.ownerControl);
+                item["y:parent"](this.ownerControl);
             }
 
             splice.call(this, index, 0, item);
@@ -7979,7 +8525,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
         if (index >= 0)
         {
-            item["fn:parent"](null);
+            item["y:parent"](null);
             splice.call(this, index, 1);
         }
 
@@ -7990,7 +8536,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
         if (this.length > index)
         {
-            this[index]["fn:parent"](null);
+            this[index]["y:parent"](null);
             splice.call(this, index, 1);
         }
 
@@ -8004,7 +8550,7 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
         while (i < length)
         {
-            this[index]["fn:parent"](null);
+            this[index]["y:parent"](null);
         }
 
         this.length = 0;
@@ -8435,12 +8981,12 @@ $.class("HtmlFrame", $.HtmlControl, function ($) {
 
 
 ﻿//面板控件
-$.class("Panel", $.ScrollableControl, function ($) {
+$.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //子控件集合
@@ -8466,12 +9012,11 @@ $.class("Panel", $.ScrollableControl, function ($) {
     //子控件集合
     this.defineProperty("children", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:children"];
         }
-    });
+    }, true);
 
 
 
@@ -8990,11 +9535,11 @@ $.class("Panel", $.ScrollableControl, function ($) {
 
 
         var box = this["x:boxModel"],
-            rect = box.innerRect;
+            r = box.innerRect;
 
 
-        x += box.scrollLeft - rect.x;
-        y += box.scrollTop - rect.y;
+        x += box.scrollLeft - r.x;
+        y += box.scrollTop - r.y;
 
         //if (storage.transform)
         //{
@@ -9069,11 +9614,17 @@ $.class("Panel", $.ScrollableControl, function ($) {
         $.Panel.super.serialize.call(this, writer);
         
         var children = this["x:children"];
-
-        if (children && (length = children.length) > 0)
+        if (children && children.length > 0)
         {
-            writer.write("d:children", children);
+            writer.object("children", children);
         }
+    };
+
+    this.deserialize = function (reader, data) {
+
+        $.Panel.super.deserialize.call(this, reader, data);
+
+        reader.object(this, "x:children", data["children"]);
     };
 
 
@@ -9083,7 +9634,7 @@ $.class("Panel", $.ScrollableControl, function ($) {
 
 
 ﻿//分隔条控件
-$.class("Splitter", $.ContentControl, function ($) {
+$.class("Splitter", $.ContentControl, function (Class, $) {
 
 
 
@@ -9103,7 +9654,7 @@ $.class("Splitter", $.ContentControl, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         var storage = this["x:storage"];
 
@@ -9134,10 +9685,10 @@ $.class("Splitter", $.ContentControl, function ($) {
 
             var context = layer.context,
                 boxModel = this["x:boxModel"],
-                rect = boxModel.innerRect;
+                r = boxModel.innerRect;
 
             context.fillStyle = this.getStyleValue("dragColor") || "rgba(255,0,0,0.5)";
-            context.fillRect(rect.x, rect.y, rect.width, rect.height);
+            context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context);
             this.paintBorder(context);
@@ -9171,9 +9722,25 @@ $.class("Splitter", $.ContentControl, function ($) {
 
 
 ﻿/*
+用户控件
+*/
+$.class("UserControl", $.Panel, function (Class, $) {
+
+
+
+
+
+});
+
+
+
+
+
+
+﻿/*
 
 */
-$.class("Layer", $.Panel, function ($) {
+$.class("Layer", $.UserControl, function (Class, $) {
 
 
 
@@ -9211,7 +9778,7 @@ $.class("Layer", $.Panel, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         var div = this.domLayer = document.createElement("div"),
             canvas = this.domCanvas = document.createElement("canvas");
@@ -9244,32 +9811,29 @@ $.class("Layer", $.Panel, function ($) {
 
     this.defineProperty("width", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.domCanvas.width;
         }
-    });
+    }, true);
 
     this.defineProperty("height", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.domCanvas.height;
         }
-    });
+    }, true);
 
 
 
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
 
 
@@ -9293,22 +9857,21 @@ $.class("Layer", $.Panel, function ($) {
 
 
 ﻿//窗口基类
-$.class("WindowBase", $.Layer, function ($) {
+$.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
     var host,                       //主容器
         dragging = false,           //是否处理拖动
-        mouseDown = false,          //鼠标是否按下
-        global = $.global;          //全局对象
+        mouseDown = false;          //鼠标是否按下
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //默认设置为初始化状态,在第一次渲染窗口后终止
-        global.initializing = true;
+        $["x:initializing"] = true;
 
 
 
@@ -9384,22 +9947,20 @@ $.class("WindowBase", $.Layer, function ($) {
     //所属窗口
     this.defineProperty("ownerWindow", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
     //图层
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
 
 
@@ -9410,22 +9971,6 @@ $.class("WindowBase", $.Layer, function ($) {
     //窗口切换为非活动窗口事件
     this.defineEvent("deactivate");
 
-
-
-
-    //开始初始化
-    this.beginInit = function () {
-
-        global.initializing = true;
-        return this;
-    };
-
-    //结束初始化
-    this.endInit = function () {
-
-        global.initializing = false;
-        return this;
-    };
 
 
 
@@ -9441,11 +9986,11 @@ $.class("WindowBase", $.Layer, function ($) {
         {
             if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
             {
-                activateWindow["fn:deactivate"]();
+                activateWindow["y:deactivate"]();
             }
 
             parentWindow["x:activateWindow"] = this;
-            this["fn:activate"]();
+            this["y:activate"]();
         }
     };
 
@@ -9466,13 +10011,13 @@ $.class("WindowBase", $.Layer, function ($) {
     };
 
 
-    this["fn:activate"] = function () {
+    this["y:activate"] = function () {
 
         this.domWindow.style.zIndex = 9991;
         this.dispatchEvent("activate");
     };
 
-    this["fn:deactivate"] = function () {
+    this["y:deactivate"] = function () {
 
         this.domWindow.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
@@ -9601,12 +10146,12 @@ $.class("WindowBase", $.Layer, function ($) {
     function captureControl(domMouseEvent) {
 
 
-        var source = global.mouseControl,
+        var source = $["x:mouseControl"],
             target = this.getControlAt(domMouseEvent["x:offsetX"], domMouseEvent["x:offsetY"]) || this;
 
         if (target != source)
         {
-            global.mouseControl = target;
+            $["x:mouseControl"] = target;
 
             if (source)
             {
@@ -9616,7 +10161,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
             if (target && target["x:storage"].enabled)
             {
-                this.domWindow.style.cursor = target["fn:cursor"](domMouseEvent);
+                this.domWindow.style.cursor = target["y:cursor"](domMouseEvent);
 
                 target.switchState("hover-states", "hover");
 
@@ -9647,7 +10192,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:captureControl"] || global.mouseControl;
+        var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
         if (target && target["x:storage"].enabled)
         {
@@ -9674,12 +10219,12 @@ $.class("WindowBase", $.Layer, function ($) {
 
                     if (focusControl && focusControl != target && (validate = focusControl.validate()))
                     {
-                        focusControl["fn:blur"]();
+                        focusControl["y:blur"]();
                     }
 
                     if (validate)
                     {
-                        target["fn:focus"](event);
+                        target["y:focus"](event);
                     }
                 }
             }
@@ -9720,9 +10265,9 @@ $.class("WindowBase", $.Layer, function ($) {
                 ownerWindow["x:captureDelay"].registry([domMouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = global.mouseControl)
+        else if (target = $["x:mouseControl"])
         {
-            global.mouseControl = null;
+            $["x:mouseControl"] = null;
             target.switchState("hover-states", "leave-animate");
 
             dispatchEvent("mouseout", target, domMouseEvent);
@@ -9737,7 +10282,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:captureControl"] || global.mouseControl;
+            var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
             if (target && target["x:storage"].enabled)
             {
@@ -9772,7 +10317,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute(),
-            target = ownerWindow["x:captureControl"] || global.mouseControl;
+            target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
 
 
         if (target && target["x:storage"].enabled)
@@ -9824,23 +10369,23 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
 
-    this["fn:fill"] = function (storage) {
+    this["y:fill"] = function (storage) {
 
-        global.initializing = false;
+        $["x:initializing"] = false;
 
         var domHost = this.domWindow.parentNode;
 
         if (domHost)
         {
-            var rect = domHost.getBoundingClientRect();
+            var r = domHost.getBoundingClientRect();
 
             if (storage)
             {
-                this["x:storage"].width = rect.width;
-                this["x:storage"].height = rect.height;
+                this["x:storage"].width = r.width;
+                this["x:storage"].height = r.height;
             }
 
-            return rect;
+            return r;
         }
 
         return { width: 0, height: 0 };
@@ -9931,16 +10476,16 @@ $.class("WindowBase", $.Layer, function ($) {
             //处理不完全显示
             if (box)
             {
-                var rect = box.innerRect,
+                var r = box.innerRect,
                     value;
 
-                if ((value = rect.windowY - y) > 0)
+                if ((value = r.windowY - y) > 0)
                 {
                     y += value;
                     height -= value
                 }
 
-                if ((value = y + height - rect.windowY - rect.height) > 0)
+                if ((value = y + height - r.windowY - r.height) > 0)
                 {
                     height -= value;
                 }
@@ -9965,7 +10510,7 @@ $.class("WindowBase", $.Layer, function ($) {
             }
 
 
-            var rect = boxModel.innerRect,
+            var r = boxModel.innerRect,
                 x = textMetrics.caretEnd.x;
 
 
@@ -9976,14 +10521,14 @@ $.class("WindowBase", $.Layer, function ($) {
             }
             else
             {
-                var right = boxModel.scrollLeft + rect.width;
+                var right = boxModel.scrollLeft + r.width;
 
                 if (x > right)
                 {
-                    boxModel.scrollLeft = x - rect.width;
+                    boxModel.scrollLeft = x - r.width;
                     x = right;
                 }
-                else if (right <= rect.width)
+                else if (right <= r.width)
                 {
                     boxModel.scrollLeft = 0;
                 }
@@ -9991,7 +10536,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
             //显示插入符
-            point = boxModel.targetToOffset(rect.spaceX + x - boxModel.scrollLeft, rect.spaceY);
+            point = boxModel.targetToOffset(r.spaceX + x - boxModel.scrollLeft, r.spaceY);
             if (x > 0)
             {
                 point.x -= 1;
@@ -10150,7 +10695,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //变更插入符位置
-        this["fn:caret"] = function (changedX, changedY) {
+        this["y:caret"] = function (changedX, changedY) {
 
             if (boxModel)
             {
@@ -10163,7 +10708,7 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
         //打开输入助手
-        this["fn:open:input"] = function (ownerControl, readOnly) {
+        this["y:open:input"] = function (ownerControl, readOnly) {
 
             target = ownerControl;
             boxModel = ownerControl["x:boxModel"];
@@ -10174,7 +10719,7 @@ $.class("WindowBase", $.Layer, function ($) {
         };
 
         //重置输入助手
-        var reset = this["fn:input"] = function () {
+        var reset = this["y:input"] = function () {
 
             input.focus();
             input.value = textMetrics.selectedText;
@@ -10184,7 +10729,7 @@ $.class("WindowBase", $.Layer, function ($) {
         };
 
         //关闭输入助手
-        this["fn:close:input"] = function () {
+        this["y:close:input"] = function () {
 
             if (timer)
             {
@@ -10208,11 +10753,11 @@ $.class("WindowBase", $.Layer, function ($) {
 
 
 ﻿//主窗口
-$.class("Window", $.WindowBase, function ($) {
+$.class("Window", $.WindowBase, function (Class, $) {
 
 
 
-    this.create = function (parentNode) {
+    Class.create = function (parentNode) {
 
 
         var domHost = this.domHost = document.createElement("div");
@@ -10248,7 +10793,7 @@ $.class("Window", $.WindowBase, function ($) {
     this.update = function () {
 
 
-        this["fn:fill"](true);
+        this["y:fill"](true);
 
 
         var storage = this["x:storage"],
@@ -10286,10 +10831,10 @@ $.class("Window", $.WindowBase, function ($) {
 ﻿
 
 //窗口标题栏
-$.class("WindowTitleBar", $.Panel, function ($) {
+$.class("WindowTitleBar", $.Panel, function (Class, $) {
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         this["button:icon"] = button.call(this, "left", "window-icon");
@@ -10413,12 +10958,12 @@ $.class("WindowTitleBar", $.Panel, function ($) {
 
 
 //子窗口
-$.class("ChildWindow", $.WindowBase, function ($) {
+$.class("ChildWindow", $.WindowBase, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         this.onlocationchange = function (event) {
@@ -10527,18 +11072,18 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
 
 
-    this["fn:activate"] = function () {
+    this["y:activate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["fn:activate"].call(this);
+        $.ChildWindow.super["y:activate"].call(this);
     };
 
-    this["fn:deactivate"] = function () {
+    this["y:deactivate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["fn:deactivate"].call(this);
+        $.ChildWindow.super["y:deactivate"].call(this);
     };
 
 
@@ -10580,7 +11125,7 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
 
 
-    this["fn:before:measure"] = function (boxModel) {
+    this["y:before:measure"] = function (boxModel) {
 
 
         var storage = this["x:storage"],
@@ -10596,10 +11141,10 @@ $.class("ChildWindow", $.WindowBase, function ($) {
 
         if (center)
         {
-            var rect = this["fn:fill"](storage.fullMode);
+            var r = this["y:fill"](storage.fullMode);
 
-            storage.left = Math.round((rect.width - width) / 2);
-            storage.top = Math.round((rect.height - height) / 2);
+            storage.left = Math.round((r.width - width) / 2);
+            storage.top = Math.round((r.height - height) / 2);
 
             center = false;
         }
@@ -10731,12 +11276,11 @@ var TextBase = function (multiline) {
 
     this.defineProperty("selectedText", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:textMetrics"].selectedText;
         }
-    });
+    }, true);
 
 
 
@@ -10744,7 +11288,7 @@ var TextBase = function (multiline) {
 
 
 
-    this["fn:focus"] = function (event) {
+    this["y:focus"] = function (event) {
 
         if (this.focus())
         {
@@ -10761,15 +11305,15 @@ var TextBase = function (multiline) {
 
 
             //开启输入助手
-            ownerWindow["fn:open:input"](this, this["x:storage"].readOnly);
+            ownerWindow["y:open:input"](this, this["x:storage"].readOnly);
         }
     };
 
-    this["fn:blur"] = function () {
+    this["y:blur"] = function () {
 
         if (this.blur())
         {
-            this.ownerWindow["fn:close:input"]();
+            this.ownerWindow["y:close:input"]();
         }
     };
 
@@ -10803,7 +11347,7 @@ var TextBase = function (multiline) {
             }
 
 
-            this.ownerWindow["fn:input"]();
+            this.ownerWindow["y:input"]();
         }
     };
 
@@ -10815,7 +11359,7 @@ var TextBase = function (multiline) {
         {
             if (ownerWindow["x:focusControl"] == this)
             {
-                ownerWindow["fn:input"]();
+                ownerWindow["y:input"]();
             }
 
             //释放鼠标
@@ -10841,12 +11385,12 @@ var TextBase = function (multiline) {
         if (textMetrics.selectionEnd > textMetrics.selectionStart)
         {
             var boxModel = context.boxModel,
-                rect = boxModel.innerRect,
+                r = boxModel.innerRect,
                 start = textMetrics.caretMin,
                 end = textMetrics.caretMax;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(rect.windowX + start.x - boxModel.scrollLeft, rect.windowY, end.x - start.x, 16);
+            context.fillRect(r.windowX + start.x - boxModel.scrollLeft, r.windowY, end.x - start.x, 16);
         }
     };
 
@@ -10866,12 +11410,12 @@ var TextBase = function (multiline) {
 /*
 
 */
-$.class("TextBoxBase", $.Control, function ($) {
+$.class("TextBoxBase", $.Control, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);
@@ -10908,7 +11452,7 @@ $.class("TextBoxBase", $.Control, function ($) {
 /*
 
 */
-$.class("TextButtonBase", $.TextBoxBase, function ($) {
+$.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
 
 
 
@@ -10984,7 +11528,7 @@ $.class("TextButtonBase", $.TextBoxBase, function ($) {
 /*
 
 */
-$.class("TextBox", $.TextBoxBase, function ($) {
+$.class("TextBox", $.TextBoxBase, function (Class, $) {
 
 
 
@@ -11045,7 +11589,7 @@ $.class("TextBox", $.TextBoxBase, function ($) {
 /*
 
 */
-$.class("PictureBox", $.Control, function ($) {
+$.class("PictureBox", $.Control, function (Class, $) {
 
 
 
@@ -11070,8 +11614,8 @@ $.class("PictureBox", $.Control, function ($) {
                 return;
             }
 
-            var rect = context.boxModel.innerRect;
-            context.drawImage(image, rect.windowX, rect.windowY);
+            var r = context.boxModel.innerRect;
+            context.drawImage(image, r.windowX, r.windowY);
         }
     };
 
@@ -11091,7 +11635,7 @@ $.class("PictureBox", $.Control, function ($) {
 /*
 
 */
-$.class("ComboBox", $.TextButtonBase, function ($) {
+$.class("ComboBox", $.TextButtonBase, function (Class, $) {
 
 
 
@@ -11112,11 +11656,11 @@ $.class("ComboBox", $.TextButtonBase, function ($) {
 /*
 
 */
-$.class("Memo", $.ScrollableControl, function ($) {
+$.class("Memo", $.ScrollableControl, function (Class, $) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);
@@ -11153,7 +11697,7 @@ $.class("Memo", $.ScrollableControl, function ($) {
 ﻿/*
 
 */
-$.class("Button", $.Control, function ($) {
+$.class("Button", $.Control, function (Class, $) {
 
 
 
@@ -11171,7 +11715,7 @@ $.class("Button", $.Control, function ($) {
 ﻿/*
 
 */
-$.class("TextBlock", $.Control, function ($) {
+$.class("TextBlock", $.Control, function (Class, $) {
 
 
 

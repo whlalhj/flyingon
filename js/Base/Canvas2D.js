@@ -66,12 +66,12 @@ Canvas2D绘图扩展
 
     $.LinearGradient.prototype.createBrush = function (context) {
 
-        var rect = context.boxModel.innerRect,
+        var r = context.boxModel.innerRect,
 
-            x = rect.windowX,
-            y = rect.windowY,
-            width = rect.width,
-            height = rect.height,
+            x = r.windowX,
+            y = r.windowY,
+            width = r.width,
+            height = r.height,
 
             g = context.createLinearGradient(x + this.x0 * width, y + this.y0 * height, x + this.x1 * width, y + this.y1 * height),
 
@@ -105,12 +105,12 @@ Canvas2D绘图扩展
 
     $.RadialGradient.prototype.createBrush = function (context) {
 
-        var rect = context.boxModel.innerRect,
+        var r = context.boxModel.innerRect,
 
-            x = rect.windowX,
-            y = rect.windowY,
-            width = rect.width,
-            height = rect.height,
+            x = r.windowX,
+            y = r.windowY,
+            width = r.width,
+            height = r.height,
 
             g = context.createRadialGradient(x + this.x0 * width, y + this.y0 * height, this.r0, x + this.x1 * width, y + this.y1 * height, this.r1),
 

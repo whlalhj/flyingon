@@ -2,7 +2,7 @@
 (function ($) {
 
 
-    $.class("SerializableObject", function ($) {
+    $.class("SerializableObject", function (Class, $) {
 
 
 
@@ -13,7 +13,7 @@
         $["x:objects"] = {};
 
 
-        this.create = function () {
+        Class.create = function () {
 
 
             //客户端唯一id
@@ -39,21 +39,21 @@
 
 
 
-        this["fn:define:getter"] = function (name, attributes) {
+        this["y:define:getter"] = function (name, attributes) {
 
             var body = "return this['x:storage']['" + name + "'];";
             return new Function(body);
         };
 
-        this["fn:define:setter:initialize"] = "if (this['x:global'].initializing)\n"
+        this["y:define:setter:initialize"] = "if (flyingon['x:initializing'])\n"
             + "{\n"
             + "storage[name] = value;\n"
             + "return this;\n"
             + "}\n";
 
-        this["fn:define:setter:change"] = "if ((cache = this['x:events'][name]) && cache.length > 0)\n"
+        this["y:define:setter:change"] = "if ((cache = this['x:events'][name]) && cache.length > 0)\n"
             + "{\n"
-            + "var event = { type: 'change', name: name, value: value, oldValue: oldValue };\n"
+            + "var event = new flyingon.ChangeEvent('change', name, value, oldValue);\n"
             + "if (!this.dispatchEvent(event))\n"
             + "{\n"
             + "return this;\n"
@@ -61,16 +61,16 @@
             + "value = event.value;\n"
             + "}\n";
 
-        this["fn:define:setter:bindingTo"] = "if ((cache = this['x:bindings:source']) && cache.hasOwnProperty(name))\n" //处理绑定源
+        this["y:define:setter:bindingTo"] = "if ((cache = this['x:bindings:source']) && cache.hasOwnProperty(name))\n" //处理绑定源
             + "{\n"
             + "flyingon.bindingTo(this, name);\n"
             + "}\n";
 
-        this["fn:define:setter"] = function (name, attributes) {
+        this["y:define:setter"] = function (name, attributes) {
 
             var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-                + this["fn:define:setter:initialize"]
+                + this["y:define:setter:initialize"]
                 + "var oldValue = storage[name];\n"
 
                 + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -78,13 +78,13 @@
                 + "if (oldValue !== value)\n"
                 + "{\n"
 
-                + this["fn:define:setter:change"]
+                + this["y:define:setter:change"]
 
                 + "storage[name] = value;\n"
 
                 + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-                + this["fn:define:setter:bindingTo"]
+                + this["y:define:setter:bindingTo"]
 
                 + "}\n"
 
@@ -94,7 +94,7 @@
         };
 
 
-        this["fn:parse:attributes"] = function (attributes) {
+        this["y:parse:attributes"] = function (attributes) {
 
             if (attributes)
             {
@@ -125,26 +125,26 @@
 
 
         //定义属性及set_XXX方法
-        this.defineProperty = function (name, defaultValue, attributes) {
+        this.defineProperty = function (name, defaultValue, attributes, readOnly) {
 
             if (defaultValue !== undefined)
             {
                 this["x:class"]["x:defaults"][name] = defaultValue;
             }
 
-            attributes = this["fn:parse:attributes"](attributes);
+            attributes = this["y:parse:attributes"](attributes);
 
             $.defineProperty(this, name,
-                attributes.getter || this["fn:define:getter"](name, attributes),
-                !attributes.readOnly ? (attributes.setter || this["fn:define:setter"](name, attributes)) : null);
+                attributes.getter || this["y:define:getter"](name, attributes),
+                !readOnly ? (attributes.setter || this["y:define:setter"](name, attributes)) : null);
         };
 
         //定义多个属性及set_XXX方法
-        this.defineProperties = function (names, defaultValue, attributes) {
+        this.defineProperties = function (names, defaultValue, attributes, readOnly) {
 
             for (var i = 0; i < names.length; i++)
             {
-                this.defineProperty(names[i], defaultValue, attributes);
+                this.defineProperty(names[i], defaultValue, attributes, readOnly);
             }
         };
 
@@ -274,6 +274,12 @@
             return result;
         };
 
+        //分发值变更事件
+        this.dispatchChangeEvent = function (name, value, oldValue) {
+
+            this.dispatchEvent(new $.ChangeEvent('change', this, name, value, oldValue));
+        };
+
         //是否绑定了指定名称(不带on)的事件
         this.hasEvent = function (type, bubbleEvent) {
 
@@ -322,16 +328,32 @@
             }
         };
 
-        //获取存储值
-        this.getStoreValue = function (name) {
+        //获取值
+        this.getValue = function (name) {
 
             return this["x:storage"][name];
         };
 
-        //设置存储值
-        this.setStoreValue = function (name, value) {
+        //设置值
+        this.setValue = function (name, value) {
 
             this["x:storage"][name] = value;
+        };
+
+
+
+        //自定义序列化
+        this.serialize = function (writer) {
+
+            writer.object("storage", this["x:storage"]);
+            writer.object("bindings", this["x:bindings"]);
+        };
+
+        //自定义反序列化
+        this.deserialize = function (reader, data) {
+
+            reader.object(this, "x:storage", data["storage"]);
+            reader.object(this, "x:bindings", data["bindings"]);
         };
 
 
@@ -340,7 +362,12 @@
         //销毁
         this.dispose = function () {
 
-            delete $["x:objects"][this.id];
+            var id = this.id;
+
+            delete $["x:bindings"][id];
+            delete $["x:objects"][id];
+
+            $.clearBindings(this);
         };
 
 

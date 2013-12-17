@@ -1,5 +1,5 @@
 ﻿//分隔条控件
-$.class("Splitter", $.ContentControl, function ($) {
+$.class("Splitter", $.ContentControl, function (Class, $) {
 
 
 
@@ -19,7 +19,7 @@ $.class("Splitter", $.ContentControl, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         var storage = this["x:storage"];
 
@@ -50,10 +50,10 @@ $.class("Splitter", $.ContentControl, function ($) {
 
             var context = layer.context,
                 boxModel = this["x:boxModel"],
-                rect = boxModel.innerRect;
+                r = boxModel.innerRect;
 
             context.fillStyle = this.getStyleValue("dragColor") || "rgba(255,0,0,0.5)";
-            context.fillRect(rect.x, rect.y, rect.width, rect.height);
+            context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context);
             this.paintBorder(context);

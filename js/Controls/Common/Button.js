@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-$.class("Button", $.Control, function ($) {
+$.class("Button", $.Control, function (Class, $) {
 
 
 

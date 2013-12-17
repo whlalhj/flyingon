@@ -14,25 +14,39 @@
 
     <script type="text/javascript">
 
-        var fn = function (a, b) {
 
-            "{a}";
-            "{b}";
-            return a + b;
-        };
 
-        var fn1 = flyingon["fn:template:to"](fn, { a: function () { a = 1; }, b: "b = 2" });
+        var value = new flyingon.Control();
+
+        value.setValue("中国", " v ");
+        value.setValue("key", 12345);
+
+
 
         var date = new Date();
 
+        var data;
+
         for (var i = 0; i < 10000; i++)
         {
-            var expr = new flyingon.Expression();
-            expr.data = "@v +'d' + @t + 'cdsd\\\\\\'+@t'";
+            var writer = new flyingon.SerializeWriter();
+            data = writer.serialize(value);
         }
 
+        alert(new Date() - date);
+
+
+
+        date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var reader = new flyingon.SerializeReader();
+            reader.deserialize(data);
+        }
 
         alert(new Date() - date);
+
 
         var w = new flyingon.Window(host);
 
@@ -107,7 +121,7 @@
         w.children.append(button);
 
 
-        var writer = new flyingon.JsonSerializeWriter();
+        var writer = new flyingon.SerializeWriter();
         var data = writer.serialize(w);
 
         data = '{"className":"Panel","text":"text","layoutSpaceX":10,"layoutSpaceY":10,"d:children":[{"className":"Button"}]}';
@@ -118,7 +132,7 @@
         for (var i = 0; i < 10000; i++)
         {
             //flyingon.parseJson(data);
-            var reader = new flyingon.JsonSerializeReader();
+            var reader = new flyingon.SerializeReader();
             var obj = reader.deserialize(data);
         }
 

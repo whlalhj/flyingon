@@ -1,9 +1,9 @@
 ﻿//可滚动控件
-$.class("ScrollableControl", $.Control, function ($) {
+$.class("ScrollableControl", $.Control, function (Class, $) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("scroll", this.handleScroll);
         this.addEventListener("mousewheel", this.handleMouseWheel);
@@ -13,22 +13,20 @@ $.class("ScrollableControl", $.Control, function ($) {
 
     this.defineProperty("horizontalScrollBar", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:hScrollBar"];
         }
-    });
+    }, true);
 
 
     this.defineProperty("verticalScrollBar", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:vScrollBar"];
         }
-    });
+    }, true);
 
 
 
@@ -107,7 +105,7 @@ $.class("ScrollableControl", $.Control, function ($) {
         var ownerWindow = this.ownerWindow;
         if (ownerWindow && this.isParent(ownerWindow["x:focusControl"]))
         {
-            ownerWindow["fn:caret"](event.changedX, event.changedY);
+            ownerWindow["y:caret"](event.changedX, event.changedY);
         }
 
 
@@ -336,26 +334,26 @@ $.class("ScrollableControl", $.Control, function ($) {
 
         var storage_1 = hScrollBar && hScrollBar["x:storage"],
             storage_2 = vScrollBar && vScrollBar["x:storage"],
-            rect = boxModel.borderRect;
+            r = boxModel.borderRect;
 
 
         if (storage_1 && storage_2) //如果出现两个滚动条
         {
-            storage_1.width = rect.width - storage_2.width;
-            storage_2.height = rect.height - storage_1.height;
+            storage_1.width = r.width - storage_2.width;
+            storage_2.height = r.height - storage_1.height;
 
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, rect.x, rect.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, rect.right - storage_2.width, rect.y, storage_2.width, vScrollBar.height, true);
+            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
+            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
         }
         else if (storage_1) //只出现水平滚动条
         {
-            storage_1.width = rect.width;
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, rect.x, rect.bottom - storage_1.height, rect.width, storage_1.height, true);
+            storage_1.width = r.width;
+            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
         }
         else //只出现竖直滚动条
         {
-            storage_2.height = rect.height;
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, rect.right - storage_2.width, rect.y, storage_2.width, rect.height, true);
+            storage_2.height = r.height;
+            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
         }
     };
 

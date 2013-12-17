@@ -1,118 +1,182 @@
-﻿
-(function ($) {
+﻿(function ($) {
 
 
-    $.XmlSerializeReader = function () {
-
-    };
-
-
-    var p = $.XmlSerializeReader.prototype;
+    $.class("SerializeReader", function (Class, $) {
 
 
 
-
-})(flyingon);
+        var registryList = $["x:registryList"];
 
 
 
 
-(function ($) {
+        this.deserialize = function (data) {
 
-
-    $.JsonSerializeReader = function () {
-
-    };
-
-
-    var p = $.JsonSerializeReader.prototype,
-        registryList = $["x:registryList"];
-
-
-
-    p.deserialize = function (data) {
-
-        if (data)
-        {
-            var value = $.parseJson(data);
-            return this[value.constructor == Array ? "readArray" : "readObject"](value);
-        }
-
-        return null;
-    };
-
-
-    p.readObject = function (data) {
-
-        var result,
-            names = Object.getOwnPropertyNames(data),
-            length = names.length;
-
-
-        if (data.className && (result = registryList[data.className]))
-        {
-            result = new result();
-        }
-        else
-        {
-            result = {};
-        }
-
-        for (var i = 0; i < length; i++)
-        {
-            var name = names[i],
-                value = data[name];
-
-            if (value == null)
+            if (data)
             {
-                result[name] = null;
+                if (data.constructor == String)
+                {
+                    data = this.parse(data);
+                }
+
+                return this[data.constructor == Array ? "array" : "object"](null, null, data);
             }
-            else if (typeof value != "object") //普通数据
+
+            return null;
+        };
+
+
+        this.parse = $.parseJson;
+
+
+        this.boolean = function (target, name, value) {
+
+            if (value !== undefined)
             {
-                result[name] = value;
+                return target[name] = !!value;
             }
-            else if (name.length > 0 && name[0] != "d" && name[1] != ":") //数组或对象
+        };
+
+        this.number = function (target, name, value) {
+
+            if (value !== undefined)
             {
-                result[name] = this[value.constructor == Array ? "readArray" : "readObject"](value);
+                return target[name] = parseFloat("" + value);
             }
-        }
+        };
 
+        this.string = function (target, name, value) {
 
-        if (result.deserialize)
-        {
-            result.deserialize(data);
-        }
-
-        return result;
-    };
-
-
-    p.readArray = function (data) {
-
-        var result = [],
-            length = data.length;
-
-
-        for (var i = 0; i < length; i++)
-        {
-            var value = data[i];
-
-            if (value == null)
+            if (value !== undefined)
             {
-                result[i] = null;
+                return target[name] = value == null ? null : "" + value;
             }
-            else if (typeof value != "object") //普通数据
-            {
-                result[i] = value;
-            }
-            else
-            {
-                result[i] = this[value.constructor == Array ? "readArray" : "readObject"](value);
-            }
-        }
+        };
 
-        return result;
-    };
+
+        this.object = function (target, name, value) {
+
+            if (value != null)
+            {
+                var result;
+
+                if (!target || !(result = target[name]))
+                {
+                    result = value.className && (result = registryList[value.className]) ? new result() : {};
+
+                    if (target)
+                    {
+                        target[name] = result;
+                    }
+                }
+
+
+                if (result.deserialize)
+                {
+                    result.deserialize(this, value);
+                }
+                else
+                {
+                    var names = Object.getOwnPropertyNames(value);
+
+                    for (var i = 0, length = names.length; i < length; i++)
+                    {
+                        var name = names[i],
+                            value = value[name];
+
+                        if (value != null)
+                        {
+                            switch (typeof value)
+                            {
+                                case "object":
+                                    value = this[value.constructor == Array ? "array" : "object"](value);
+                                    break;
+
+                                case "function":
+                                    value = value ? new Function("" + value) : null;
+                                    break;
+                            }
+                        }
+
+                        result[name] = value;
+                    }
+                }
+
+                return result;
+            }
+
+            return null;
+        };
+
+
+        this.array = function (target, name, value) {
+
+            if (value != null)
+            {
+                var result;
+
+                if (target)
+                {
+                    if (result = target[name])
+                    {
+                        result = target[name] = [];
+                    }
+                }
+                else
+                {
+                    result = [];
+                }
+
+
+                for (var i = 0, length = value.length; i < length; i++)
+                {
+                    var value = value[i];
+
+                    if (value != null)
+                    {
+                        switch (typeof value)
+                        {
+                            case "object":
+                                value = this[value.constructor == Array ? "array" : "object"](value);
+                                break;
+
+                            case "function":
+                                value = value ? new Function("" + value) : null;
+                                break;
+                        }
+                    }
+
+                    result.push(value);
+                }
+
+                return result;
+            }
+
+            return null;
+        };
+
+        this.function = function (target, name, value) {
+
+            if (value !== undefined)
+            {
+                return target[name] = value ? new Function("" + value) : null;
+            }
+        };
+
+    });
+
+
+
+
+
+    $.class("XmlSerializeReader", $.SerializeReader, function (Class, $) {
+
+
+        this.parse = $.parseXml;
+
+    });
+
+
 
 
 })(flyingon);

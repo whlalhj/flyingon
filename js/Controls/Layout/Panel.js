@@ -1,10 +1,10 @@
 ﻿//面板控件
-$.class("Panel", $.ScrollableControl, function ($) {
+$.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
 
         //子控件集合
@@ -30,12 +30,11 @@ $.class("Panel", $.ScrollableControl, function ($) {
     //子控件集合
     this.defineProperty("children", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this["x:children"];
         }
-    });
+    }, true);
 
 
 
@@ -554,11 +553,11 @@ $.class("Panel", $.ScrollableControl, function ($) {
 
 
         var box = this["x:boxModel"],
-            rect = box.innerRect;
+            r = box.innerRect;
 
 
-        x += box.scrollLeft - rect.x;
-        y += box.scrollTop - rect.y;
+        x += box.scrollLeft - r.x;
+        y += box.scrollTop - r.y;
 
         //if (storage.transform)
         //{
@@ -633,11 +632,17 @@ $.class("Panel", $.ScrollableControl, function ($) {
         $.Panel.super.serialize.call(this, writer);
         
         var children = this["x:children"];
-
-        if (children && (length = children.length) > 0)
+        if (children && children.length > 0)
         {
-            writer.write("d:children", children);
+            writer.object("children", children);
         }
+    };
+
+    this.deserialize = function (reader, data) {
+
+        $.Panel.super.deserialize.call(this, reader, data);
+
+        reader.object(this, "x:children", data["children"]);
     };
 
 

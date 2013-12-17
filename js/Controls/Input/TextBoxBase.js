@@ -5,12 +5,12 @@
 /*
 
 */
-$.class("TextBoxBase", $.Control, function ($) {
+$.class("TextBoxBase", $.Control, function (Class, $) {
 
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         this.addEventListener("mousedown", this.handleMouseDown);
         this.addEventListener("mousemove", this.handleMouseMove);

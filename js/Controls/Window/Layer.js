@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-$.class("Layer", $.Panel, function ($) {
+$.class("Layer", $.UserControl, function (Class, $) {
 
 
 
@@ -39,7 +39,7 @@ $.class("Layer", $.Panel, function ($) {
 
 
 
-    this.create = function () {
+    Class.create = function () {
 
         var div = this.domLayer = document.createElement("div"),
             canvas = this.domCanvas = document.createElement("canvas");
@@ -72,32 +72,29 @@ $.class("Layer", $.Panel, function ($) {
 
     this.defineProperty("width", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.domCanvas.width;
         }
-    });
+    }, true);
 
     this.defineProperty("height", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this.domCanvas.height;
         }
-    });
+    }, true);
 
 
 
     this.defineProperty("ownerLayer", undefined, {
 
-        readOnly: true,
         getter: function () {
 
             return this;
         }
-    });
+    }, true);
 
 
 

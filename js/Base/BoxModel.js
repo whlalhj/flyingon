@@ -396,9 +396,9 @@
 
         var ownerControl = this.ownerControl,
 
-            rect = this.offsetParent && this.offsetParent.innerRect,
-            windowX = rect ? rect.windowX : 0,
-            windowY = rect ? rect.windowY : 0,
+            r = this.offsetParent && this.offsetParent.innerRect,
+            windowX = r ? r.windowX : 0,
+            windowY = r ? r.windowY : 0,
 
             x = this.x + this.offsetX,
             y = this.y + this.offsetY,
@@ -495,12 +495,12 @@
             var ownerControl = this.ownerControl,
                 clipToBounds = ownerControl["x:storage"].clipToBounds,
 
-                rect = this.innerRect,
+                r = this.innerRect,
 
                 x = this.scrollLeft,
                 y = this.scrollTop,
-                right = x + rect.width,
-                bottom = y + rect.height,
+                right = x + r.width,
+                bottom = y + r.height,
 
                 i = 0,
                 length = this.children.length;
@@ -534,7 +534,7 @@
         }
         else if (this["x:update:children"]) //如果子控件需要更新
         {
-            this["fn:render:children"](context, "update");
+            this["y:render:children"](context, "update");
             this["x:update:children"] = false;
         }
 
@@ -553,16 +553,16 @@
         //文字测量
         if (ownerControl["x:storage"].text != null)
         {
-            ownerControl["fn:measure:text"]();
+            ownerControl["y:measure:text"]();
         }
 
 
         //测量
         if (this["x:measure"])
         {
-            if (ownerControl["fn:before:measure"])
+            if (ownerControl["y:before:measure"])
             {
-                ownerControl["fn:before:measure"](this);
+                ownerControl["y:before:measure"](this);
             }
 
             this.measure();
@@ -587,7 +587,7 @@
         //绘制子项
         if (this.children)
         {
-            this["fn:render:children"](context, "render");
+            this["y:render:children"](context, "render");
         }
 
         //设置渲染环境
@@ -605,7 +605,7 @@
         var decorates = ownerControl.getStyleValue("decorates");
         if (decorates && decorates.length > 0)
         {
-            this["fn:paint:decorates"](context, decorates);
+            this["y:paint:decorates"](context, decorates);
             this["x:decorates"] = true;
         }
 
@@ -618,7 +618,7 @@
 
 
     //渲染或更新子项
-    p["fn:render:children"] = function (context, fn) {
+    p["y:render:children"] = function (context, fn) {
 
         var ownerControl = this.ownerControl,
 
@@ -636,10 +636,10 @@
 
         if (ownerControl["x:storage"].clipToBounds)
         {
-            var rect = this.innerRect;
+            var r = this.innerRect;
 
             context.beginPath();
-            context.rect(rect.x + this.scrollLeft, rect.y + this.scrollTop, rect.width, rect.height);
+            context.rect(r.x + this.scrollLeft, r.y + this.scrollTop, r.width, r.height);
             context.clip();
         }
 
@@ -665,7 +665,7 @@
     };
 
     //绘制装饰
-    p["fn:paint:decorates"] = function (context, decorates) {
+    p["y:paint:decorates"] = function (context, decorates) {
 
         var i = 0,
             length = decorates.length;
@@ -677,7 +677,7 @@
             //未处理
             if (!(item instanceof $.Shape))
             {
-                item = decorates[i] = new $.JsonSerializeReader().readObject(item);
+                item = decorates[i] = new $.SerializeReader().deserialize(item);
             }
 
             //重绘模式

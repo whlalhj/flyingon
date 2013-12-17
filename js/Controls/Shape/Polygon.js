@@ -2,7 +2,7 @@
 椭圆
 
 */
-$.class("Polygon", $.Shape, function ($) {
+$.class("Polygon", $.Shape, function (Class, $) {
 
 
 

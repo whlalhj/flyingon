@@ -47,6 +47,7 @@ local.properties
 *.vbproj
 *.fsproj
 *.dbproj
+*.config
 
 # Build results
 

@@ -1,9 +1,9 @@
 ﻿//主窗口
-$.class("Window", $.WindowBase, function ($) {
+$.class("Window", $.WindowBase, function (Class, $) {
 
 
 
-    this.create = function (parentNode) {
+    Class.create = function (parentNode) {
 
 
         var domHost = this.domHost = document.createElement("div");
@@ -39,7 +39,7 @@ $.class("Window", $.WindowBase, function ($) {
     this.update = function () {
 
 
-        this["fn:fill"](true);
+        this["y:fill"](true);
 
 
         var storage = this["x:storage"],

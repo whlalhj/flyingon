@@ -517,19 +517,7 @@
     //内容控件样式
     styles["ContentControl"] = {
 
-        template: {
-
-            className: "Panel",
-            layout: "rows",
-
-            children: [
-
-
-            ],
-            bindings: {
-                text: "text"
-            }
-        }
+        
     };
 
 
@@ -681,3 +669,22 @@
 
 })(flyingon);
 
+
+
+
+
+
+/*
+定义模板
+
+*/
+(function ($) {
+
+
+    var templates = $.templates = {};
+
+
+
+
+
+})(flyingon);

@@ -21,11 +21,11 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
 
-    $.Xml = function (xml) {
+    $.Xml = function (data) {
 
-        if (xml)
+        if (data)
         {
-            this.parse(xml);
+            this.parse(data);
         }
     };
 
@@ -40,9 +40,9 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     //如果支持W3C DOM 则使用此方式创建
     if (document.implementation && document.implementation.createDocument)
     {
-        p.parse = function (xml) {
+        p.parse = function (data) {
 
-            this.dom = new DOMParser().parseFromString(xml, "text/xml");
+            this.dom = new DOMParser().parseFromString(data, "text/xml");
             this.root = this.dom.documentElement;
 
             return this;
@@ -62,33 +62,33 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return new XMLSerializer().serializeToString(this.dom);
         };
     }
-        //else if (window.ActiveXObject) //IE使用ActiveX方式创建
-        //{
-        //    p.parse = function (xml) {
+    else if (window.ActiveXObject) //IE使用ActiveX方式创建
+    {
+        p.parse = function (data) {
 
-        //        this.dom = new ActiveXObject("Microsoft.XMLDOM");
-        //        this.dom.async = "false";
-        //        this.dom.loadXML(xml);
-        //        this.root = this.dom.documentElement;
+            this.dom = new ActiveXObject("Microsoft.XMLDOM");
+            this.dom.async = "false";
+            this.dom.loadXML(data);
+            this.root = this.dom.documentElement;
 
-        //        return this.dom;
-        //    };
+            return this.dom;
+        };
 
-        //    p.load = function (file) {
+        p.load = function (file) {
 
-        //        this.dom = new ActiveXObject('Microsoft.XMLDOM');
-        //        this.dom.async = false;
-        //        this.dom.load(file);
-        //        this.root = this.dom.documentElement;
+            this.dom = new ActiveXObject('Microsoft.XMLDOM');
+            this.dom.async = false;
+            this.dom.load(file);
+            this.root = this.dom.documentElement;
 
-        //        return this.dom;
-        //    };
+            return this.dom;
+        };
 
-        //    p.serialize = function () {
+        p.serialize = function () {
 
-        //        return this.dom.xml;
-        //    };
-        //}
+            return this.dom.xml;
+        };
+    }
     else
     {
         throw "you browse does not support w3c xml api!";
@@ -98,118 +98,189 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
 
-    /*********************以上内置的Xml解析方法性能太差,以下扩展正则表达式自定义解析支持****************************/
+    /**************************扩展Xml解析方法****************************/
 
 
-    var regex_split = /[^<>]+|\<\/?[^<>]+\/?>/g,    //分隔标签
-        regex_tag1 = /\<\s+\/\s+|\<\/\s+/g,         //替换标签空格如"< / " || "</ "
-        regex_tag2 = /\<\s+/g,                      //替换标签空格如"< "
-        regex_tag3 = /\s+\/\s+\>|\/\s+\>/g,         //替换标签空格如" / >" || "/ >"
-        regex_tag4 = /\s+\>/g,                      //替换标签空格如" >" 
-        regex_attr = /\"[^\"]*\"|[\w-_.:\u0370-\uffff]+|\'[^\']*\'/g,   //分隔属性 \u4e00-\u9fa5:汉字 参考unicode表 不返回引号的表达式(性能偏差不使用):/[\w-.:\u0370-\uffff]+|(?=\")[^\"]+(?=\")|\"\"|(?=\')[^\']+(?=\')|\'\'/g
-        regex_escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/;          //解码
+    var encode_keys = {
+
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&apos;",
+        " ": "&nbsp;",
+        "&": "&amp;"
+    },
+
+    decode_keys = {
+
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": "\"",
+        "&apos;": "'",
+        "&nbsp;": " ",
+        "&amp;": "&"
+    };
 
 
     //编码
-    $.Xml.encode = function (value) {
+    $.encodeXml = function (data) {
 
-        return value.replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&apos;")
-            .replace(" ", "&nbsp;")
-            .replace("&", "&amp;");
+        return data.replace(/[\<\>\"\' \&]/g, function (key) {
+
+            return encode_keys[key];
+        });
     };
 
     //解码
-    $.Xml.decode = function (value) {
+    $.decodeXml = function (data) {
 
-        return value.replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .replace("&apos;", "'")
-            .replace("&nbsp;", " ")
-            .replace("&amp;", "&");
+        return data.replace(/&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/g, function (key) {
+
+            return decode_keys[key];
+        });
     };
 
 
-    $.Xml.parse = function (xml) {
 
-        var data = { tagName: "text", childNodes: [] };
 
-        if (!xml)
+
+
+    //解析Xml数据为Json对象 根节点的名称忽略
+    $.parseXml = function (data) {
+
+
+        if (!data)
         {
-            return data;
+            return null;
         }
 
 
-        //处理不规范的格式
-        xml = xml.replace(regex_tag1, "</")
-           .replace(regex_tag2, "<")
-           .replace(regex_tag3, "/>")
-           .replace(regex_tag4, ">");
+        //处理空格
+        data = data.replace(/^[^\<]+|[^>]+$/, "").replace(/\>\s+\</g, "><");
 
 
+        var decodeXml = $.decodeXml,              //解码方法
+            segments = data.match(/[^<>]+|\<\/?[^<>]+\/?>/g),
+            escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/.test(data),   //是否存在需解码的字符
 
-        var escape = xml.match(regex_escape),   //是否存在需解码的字符
-            decode = $.Xml.decode,              //解码方法
-            segments = xml.match(regex_split),
+            node,
+            name,
+            type,
+            value,
 
-            i = 0,
-            length = segments.length;  //截取
+            nodes = [],
+            types = [];
 
 
-        while (i < length)
+        for (var i = 0, length = segments.length; i < length; i++)
         {
-            var segment = segments[i++];
+            var segment = segments[i];
 
             if (segment[0] == "<") //如果是标签
             {
-                if (segment[1] == "/") //结束标签
+                if (!(name = segment.match(/[\w\.\:_\-\u0370-\uffff]+/)))
                 {
-                    var tagName = segment.substring(2, segment.length - 1);
-
-                    if (tagName != data.tagName)
-                    {
-                        throw "xml data is not correct! the tag \"" + data.tagName + "\" is not closed!";;
-                    }
-
-                    data = data.parent || data;
+                    throw new Error("xml tag error!");
                 }
-                else //开始标签
+
+                name = name[0];
+
+                if (segment[1] != "/") //开始标签
                 {
-                    var tokens = segment.match(regex_attr),
-                        attributes = {},
-                        node = { tagName: tokens[0], parentNode: data, childNodes: [], nodeType: 1, attributes: attributes },
-
-                        j = 0,
-                        count = tokens.length;
-
-                    while (j < count)
+                    if (type = segment.match(/type\s*=\s*[\"\']/))
                     {
-                        var name = tokens[j++],
-                            value = tokens[j++];
-
-                        value = value.substring(1, value.length - 1);
-                        attributes[name] = escape && value.charAt("&") >= 0 ? decode(value) : value;
+                        var index = type.index + type[0].length,
+                            type = segment.substring(index, segment.indexOf(segment[index - 1], index));
+                    }
+                    else if (length > i + 1) //未指定类型时有子项则为对象否则为字符串
+                    {
+                        var text = segments[i + 1];
+                        type = text[0] == "<" && text[1] != "/" ? "object" : "string";
+                    }
+                    else
+                    {
+                        type = "string";
                     }
 
-                    data.childNodes.push(node);
-
-                    if (segment[segment.length - 2] != "/") //不是直接结束
+                    switch (type)
                     {
-                        data = node;
+                        case "null":
+                        case "boolean":
+                        case "number":
+                        case "string":
+                        case "function":
+                            break;
+
+                        case "array":
+                            nodes.push(node = []);
+                            break;
+
+                        case "object":
+                            nodes.push(node = {});
+                            break;
+
+                        default:
+                            nodes.push(node = {});
+                            node.className = type;
+                            break;
+                    }
+
+                    types.push(type);
+                }
+                else //结束标签
+                {
+                    switch (types.pop())
+                    {
+                        case "null":
+                            value = null;
+                            break;
+
+                        case "boolean":
+                            value = !!value;
+                            break;
+
+                        case "number":
+                            value = parseFloat(value);
+                            break;
+
+                        case "string":
+                            break;
+
+                        case "function":
+                            value = new Function(value);
+                            break;
+
+                        default: //对象或数组
+                            value = nodes.pop();
+
+                            //根节点时返回(不处理根节点名称)
+                            if (nodes.length == 0)
+                            {
+                                return value;
+                            }
+
+                            node = nodes[nodes.length - 1];
+                            break;
+                    }
+
+                    if (node.constructor == Array)
+                    {
+                        node.push(value);
+                    }
+                    else
+                    {
+                        node[name] = value;
                     }
                 }
             }
             else //否则是文本内容
             {
-                data.childNodes.push({ tagName: "#text", nodeType: 3, nodeValue: escape && segment.charAt("&") >= 0 ? decode(segment) : segment });
+                value = escape && segment.charAt("&") >= 0 ? decodeXml(segment) : segment;
             }
         }
 
 
-        return data;
+        return node;
     };
 
 

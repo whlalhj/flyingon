@@ -2,8 +2,12 @@
 (function ($) {
 
 
-    $.Expression = function () {
+    $.Expression = function (expression) {
 
+        if (expression)
+        {
+            this.expression = expression;
+        }
     };
 
 
@@ -11,21 +15,16 @@
     var p = $.Expression.prototype;
 
 
-    var parse = $.Expression.parse = function (data, variables) {
+    var parse = function (expression, variables) {
 
 
-        if (!variables)
-        {
-            variables = [];
-        }
-
-        if (!data)
+        if (!expression)
         {
             return null;
         }
 
 
-        var values = data.match(/['"\\]|@\w+|[^'"\\@]+/g),
+        var values = expression.match(/['"\\]|@\w+|[^'"\\@]+/g),
             i = 0,
             length = values.length,
             value,
@@ -96,25 +95,50 @@
     };
 
 
+    p["x:expression"] = "";
+
+
 
     //表达式内容
-    $.defineProperty(p, "data",
+    $.defineProperty(p, "expression",
 
         function () {
 
-            return this["x:data"];
+            return this["x:expression"];
         },
 
         function (value) {
 
-            this["x:data"] = "" + value;
+            this["x:expression"] = "" + value;
             this.variables = [];
-            this.fn = parse(this["x:data"], this.variables);
+            this["x:fn"] = parse(this["x:expression"], this.variables);
         });
 
 
-    //函数 由表达式自动生成(请勿修改)
-    p.fn = null;
+    //计算
+    p.eval = function (thisArg) {
+
+        var fn = this["x:fn"];
+
+        if (fn)
+        {
+            fn.call(thisArg);
+        }
+    };
+
+
+
+    p.serialize = function (writer) {
+
+        writer.string("expression", this["x:expression"]);
+    };
+
+    p.deserialize = function (reader, data) {
+
+        reader.string(this, "expression", data.expression);
+    };
+
+
 
 
 

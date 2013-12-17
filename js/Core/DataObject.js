@@ -11,7 +11,7 @@
 
 
     //
-    $.class("DataObject", $.SerializableObject, function ($) {
+    $.class("DataObject", $.SerializableObject, function (Class, $) {
 
 
         function getter(name, attributes) {
@@ -27,7 +27,7 @@
 
             var body = "var storage = this['x:storage']['data'], cache, name = '" + name + "';\n"
 
-                + this["fn:define:setter:initialize"]
+                + this["y:define:setter:initialize"]
                 + "var oldValue = storage[name];\n"
 
                 + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -35,7 +35,7 @@
                 + "if (oldValue !== value)\n"
                 + "{\n"
 
-                + this["fn:define:setter:change"]
+                + this["y:define:setter:change"]
 
                 + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
                 + "if (!original.hasOwnProperty(name))\n"
@@ -47,7 +47,7 @@
 
                 + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-                + this["fn:define:setter:bindingTo"]
+                + this["y:define:setter:bindingTo"]
 
                 + "}\n"
 
@@ -67,7 +67,7 @@
 
             var storage = this["x:storage"];
 
-            attributes = (storage.schema || (storage.schema = {}))[name] = this["fn:parse:attributes"](attributes);
+            attributes = (storage.schema || (storage.schema = {}))[name] = this["y:parse:attributes"](attributes);
             attributes.defaultValue = defaultValue;
 
             $.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
@@ -140,7 +140,7 @@
 
 
     //
-    $.class("DataArray", $.DataObject, function ($) {
+    $.class("DataArray", $.DataObject, function (Class, $) {
 
 
 

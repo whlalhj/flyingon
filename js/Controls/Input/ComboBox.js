@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("ComboBox", $.TextButtonBase, function ($) {
+$.class("ComboBox", $.TextButtonBase, function (Class, $) {
 
 
 

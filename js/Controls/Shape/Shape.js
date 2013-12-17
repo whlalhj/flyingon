@@ -2,7 +2,7 @@
 形状基类
 
 */
-$.class("Shape", $.SerializableObject, function ($) {
+$.class("Shape", $.SerializableObject, function (Class, $) {
 
 
 

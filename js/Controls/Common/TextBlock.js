@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-$.class("TextBlock", $.Control, function ($) {
+$.class("TextBlock", $.Control, function (Class, $) {
 
 
 
