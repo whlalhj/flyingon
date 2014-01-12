@@ -1,11 +1,11 @@
 ﻿
 //滚动条控件
-$.class("ScrollBar", $.ScrollBase, function (Class, $) {
+flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
-    this.setDefaultValue("maxStep", 200);
+    this.defaultValue("maxStep", 200);
 
-    this.setDefaultValue("minStep", 20);
+    this.defaultValue("minStep", 20);
 
 
     //箭头背景
@@ -94,6 +94,10 @@ $.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
     this.measure = function (boxModel) {
 
+
+        boxModel.compute();
+
+
         var storage = this["x:storage"],
             x = boxModel.x,
             y = boxModel.y,
@@ -157,7 +161,7 @@ $.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
 
 
-$.class("ScrollCorner", $.Control, function (Class, $) {
+flyingon.class("ScrollCorner", flyingon.Control, function (Class, flyingon) {
 
 
 

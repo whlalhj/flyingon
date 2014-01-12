@@ -1,6 +1,6 @@
-﻿(function ($) {
+﻿(function (flyingon) {
 
-    $.TTS = function () {
+    flyingon.TTS = function () {
 
         var tts;
 

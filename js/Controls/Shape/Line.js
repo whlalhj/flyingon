@@ -2,7 +2,7 @@
 线条
 
 */
-$.class("Line", $.Shape, function (Class, $) {
+flyingon.class("Line", flyingon.Shape, function (Class, flyingon) {
 
 
     this.buildPath = function (context, x, y, width, height) {

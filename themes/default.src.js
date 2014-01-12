@@ -2,10 +2,10 @@
 /*
 定义系统光标
 */
-(function ($) {
+(function (flyingon) {
 
 
-    $.cursors = {
+    flyingon.cursors = {
 
         "none": "none",
 
@@ -70,10 +70,10 @@
 /*
 定义系统图片
 */
-(function ($) {
+(function (flyingon) {
 
 
-    var images = $.images = {
+    var images = flyingon.images = {
 
         //窗口图标
         "window-icon": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
@@ -207,7 +207,7 @@
     }
 
 
-})($);
+})(flyingon);
 
 
 
@@ -215,14 +215,14 @@
 
 /*
 定义系统颜色
-1. 可使用$.LinearGradient创建线性渐变色
-2. 可使用$.RadialGradient创建径向渐变色
-3. 可使用$.ImagePattern创建图像背景
+1. 可使用flyingon.LinearGradient创建线性渐变色
+2. 可使用flyingon.RadialGradient创建径向渐变色
+3. 可使用flyingon.ImagePattern创建图像背景
 */
-(function ($) {
+(function (flyingon) {
 
 
-    $.colors = {
+    flyingon.colors = {
 
 
         "control-back": "#888888",
@@ -280,10 +280,10 @@
 
         "hightlight-border": "#CCCCCC",
 
-        "button-background": new $.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
+        "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
 
 
-        "window-title-background": new $.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
+        "window-title-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
 
     };
 
@@ -296,16 +296,16 @@
 
 /*
 定义系统字体
-可使用$.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
+可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
 */
-(function ($) {
+(function (flyingon) {
 
 
-    var fonts = $.fonts = {};
+    var fonts = flyingon.fonts = {};
 
 
     //普通字体
-    var normal = fonts["normal"] = new $.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
+    var normal = fonts["normal"] = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
 
     //粗体
     fonts["bold"] = normal.deriveBold();
@@ -327,10 +327,10 @@
 定义样式
 
 */
-(function ($) {
+(function (flyingon) {
 
 
-    var styles = $.styles = {};
+    var styles = flyingon.styles = {};
 
 
 
@@ -678,10 +678,10 @@
 定义模板
 
 */
-(function ($) {
+(function (flyingon) {
 
 
-    var templates = $.templates = {};
+    var templates = flyingon.templates = {};
 
 
 

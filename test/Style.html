@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="no-cache" />
+    <title></title>
+</head>
+<body style="background-color: yellow;">
+
+    <span id="message"></span>
+    <div id="host" style="width: 100%; height: 600px; border: 1px solid blue;">
+    </div>
+
+    <script src="../js/flyingon.js"></script>
+
+    <script type="text/javascript">
+
+
+
+        var w = new flyingon.Window(host);
+
+
+        var button = new flyingon.Button();
+
+        button.style = {
+
+            states: {
+
+                "hover-states": {
+
+                    //选中时
+                    hover: {
+
+                        background: "white"
+                    }
+                }
+            }
+        };
+
+        w.children.append(button);
+
+        var background = button.background;
+
+        w.update();
+
+
+    </script>
+
+</body>
+</html>

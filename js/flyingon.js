@@ -19,17 +19,17 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 //全局变量
-(function ($) {
+(function (flyingon) {
 
 
     //版本
-    $.version = "0.0.0.1";
+    flyingon.version = "0.0.0.1";
 
     //语言
-    $.language = "zh-CHS";
+    flyingon.language = "zh-CHS";
 
     //系统设置 记录当前用户样式语言等信息
-    $.setting = $.setting || {};
+    flyingon.setting = flyingon.setting || {};
 
 
 })(flyingon);
@@ -39,7 +39,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 //扩展函数
-(function ($) {
+(function (flyingon) {
 
 
     //增加字符串格式化支持
@@ -53,40 +53,29 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    var p = Array.prototype;
+    var prototype = Array.prototype;
 
 
     //移除指定项
-    p.remove = function (item) {
+    prototype.remove = function (item) {
 
         var index = this.indexOf(item);
-
-        if (index >= 0)
-        {
-            this.splice(index, 1);
-        }
+        index >= 0 && this.splice(index, 1);
     };
 
 
     //移除指定索引
-    p.removeAt = function (index) {
+    prototype.removeAt = function (index) {
 
         this.splice(index, 1);
     };
 
 
     //二分法搜索数据段
-    p.binaryBetween = function (value, start, end) {
+    prototype.binaryBetween = function (value, start, end) {
 
-        if (start == null || start < 0)
-        {
-            start = 0;
-        }
-
-        if (end == null || end >= this.length)
-        {
-            end = this.length - 1;
-        }
+        (start == null || start < 0) && (start = 0);
+        (end == null || end >= this.length) && (end = this.length - 1);
 
 
         if (this[start] >= value)
@@ -139,17 +128,11 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //二分法查找子项位置
-    p.binaryIndexOf = function (value, start, end) {
+    prototype.binaryIndexOf = function (value, start, end) {
 
-        if (start == null || start < 0)
-        {
-            start = 0;
-        }
+        (start == null || start < 0) && (start = 0);
+        (end == null || end >= this.length) && (end = this.length - 1);
 
-        if (end == null || end >= this.length)
-        {
-            end = this.length - 1;
-        }
 
         if (this[start] > value || this[end] < value)
         {
@@ -181,17 +164,10 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //二分法搜索
-    p.binarySearch = function (callbackfn, start, end) {
+    prototype.binarySearch = function (callbackfn, start, end) {
 
-        if (start == null || start < 0)
-        {
-            start = 0;
-        }
-
-        if (end == null || end >= this.length)
-        {
-            end = this.length - 1;
-        }
+        (start == null || start < 0) && (start = 0);
+        (end == null || end >= this.length) && (end = this.length - 1);
 
 
         var center, result;
@@ -238,10 +214,10 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 //特性支持判断
-(function ($) {
+(function (flyingon) {
 
 
-    var support = $.support = {};
+    var support = flyingon.support = {};
 
 
 
@@ -313,11 +289,11 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 //通用函数
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.defineVariable = function (target, name, value, configurable, enumerable) {
+    flyingon.defineVariable = function (target, name, value, configurable, enumerable) {
 
         //target[name] = value;
         Object.defineProperty(target, name, {
@@ -331,7 +307,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    $.defineProperty = $.support.defineProperty ? function (target, name, getter, setter) {
+    flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
 
         var attributes = {
 
@@ -339,29 +315,15 @@ var flyingon = this.flyingon = this.flyingon || {};
             enumerable: true
         };
 
-        if (getter)
-        {
-            attributes.get = getter;
-        }
-
-        if (setter)
-        {
-            attributes.set = setter;
-        }
+        getter && (attributes.get = getter);
+        setter && (attributes.set = setter);
 
         Object.defineProperty(target, name, attributes);
 
     } : function (target, name, getter, setter) {
 
-        if (getter)
-        {
-            target.__defineGetter__(name, getter);
-        }
-
-        if (setter)
-        {
-            target.__defineSetter__(name, setter);
-        }
+        getter && target.__defineGetter__(name, getter);
+        setter && target.__defineSetter__(name, setter);
     };
 
 
@@ -370,7 +332,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //增加模板函数支持 以当前函数为模板动态创建新函数
-    $["y:template:to"] = function (fn, values, names) {
+    flyingon["y:template:to"] = function (fn, values, names) {
 
         var body = fn.toString().replace(/"\{\w+\}"/g, function (value) {
 
@@ -384,10 +346,7 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if (index++ > 0)
                 {
                     var lastIndexOf = value.lastIndexOf("}");
-                    if (lastIndexOf > 0)
-                    {
-                        value = value.substring(index, lastIndexOf);
-                    }
+                    lastIndexOf > 0 && (value = value.substring(index, lastIndexOf));
                 }
             }
 
@@ -400,17 +359,14 @@ var flyingon = this.flyingon = this.flyingon || {};
 
     //浅复制源对象属性至目标属性(对象直接复制引用)
     //ignoreExists: 是否忽略已存在的属性
-    $["y:simple:copy"] = function (source, target, ignoreExists) {
+    flyingon["y:simple:copy"] = function (source, target, ignoreExists) {
 
 
-        var names = Object.getOwnPropertyNames(source),
-            i = 0,
-            length = names.length;
+        var names = Object.getOwnPropertyNames(source);
 
-
-        while (i < length)
+        for (var i = 0, length = names.length; i < length; i++)
         {
-            var name = names[i++],
+            var name = names[i],
                 value = source[name];
 
             if (value != null && typeof value == "object")
@@ -419,15 +375,12 @@ var flyingon = this.flyingon = this.flyingon || {};
 
                 if (cache != null && typeof cache == "object")
                 {
-                    $["y:simple:copy"](value, cache, ignoreExists);
+                    flyingon["y:simple:copy"](value, cache, ignoreExists);
                     continue;
                 }
             }
 
-            if (!ignoreExists || !target.hasOwnProperty(name))
-            {
-                target[name] = value;
-            }
+            (!ignoreExists || !target.hasOwnProperty(name)) && (target[name] = value);
         }
 
         return target;
@@ -436,17 +389,14 @@ var flyingon = this.flyingon = this.flyingon || {};
 
     //深度复制源对象属性至目标属性(创建新对象)
     //ignoreExists: 是否忽略已存在的属性
-    $["y:deep:copy"] = function (source, target, ignoreExists) {
+    flyingon["y:deep:copy"] = function (source, target, ignoreExists) {
 
 
-        var names = Object.getOwnPropertyNames(source),
-            i = 0,
-            length = names.length;
+        var names = Object.getOwnPropertyNames(source);
 
-
-        while (i < length)
+        for (var i = 0, length = names.length; i < length; i++)
         {
-            var name = names[i++],
+            var name = names[i],
                 value = source[name];
 
             if (value != null && typeof value == "object")
@@ -456,7 +406,7 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if ((cache === undefined && (cache = target[name] = {})) ||
                     (cache !== null && typeof cache == "object"))
                 {
-                    $["y:deep:copy"](value, cache, ignoreExists);
+                    flyingon["y:deep:copy"](value, cache, ignoreExists);
                 }
             }
             else if (!ignoreExists || !target.hasOwnProperty(name))
@@ -470,7 +420,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    $.parseJson = (window.JSON && window.JSON.parse) || function (data) {
+    flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
 
         return (new Function("return " + data))();
     };
@@ -478,63 +428,17 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    //正向绑定(绑定数据源至目标控件)
-    $.bindingTo = function (source, sourceName, id) {
-
-        var bindings = source["x:bindings:source"],
-            source_binding;
-
-        if (bindings && (source_binding = bindings[sourceName]))
-        {
-            var names = id ? [id] : Object.getOwnPropertyNames(source_binding),
-                i = 0,
-                length = names.length;
-
-            if (length == 0)
-            {
-                delete bindings[sourceName];
-                return;
-            }
-
-            var objects = $["x:objects"],
-                control;
-
-            while (i < length)
-            {
-                id = names[i++];
-
-                if (control = objects[id])
-                {
-                    var name = source_binding[id],
-                        control_binding = control["x:bindings"][name],
-                        expression = control_binding.expression;
-
-                    control_binding["x:binding"] = true;
-                    control[name] = typeof expression == "function" ? expression.call(source) : source[sourceName];
-                    control_binding["x:binding"] = false;
-                }
-                else
-                {
-                    delete source_binding[id];
-                }
-            }
-        }
-    };
-
-
-
-
     //开始初始化
-    $.beginInit = function () {
+    flyingon.beginInit = function () {
 
-        $["x:initializing"] = true;
+        flyingon["x:initializing"] = true;
         return this;
     };
 
     //结束初始化
-    $.endInit = function () {
+    flyingon.endInit = function () {
 
-        $["x:initializing"] = false;
+        flyingon["x:initializing"] = false;
         return this;
     };
 
@@ -546,11 +450,11 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 //名字空间
-(function (global, $) {
+(function (global, flyingon) {
 
 
     //缓存命名空间
-    var cache = { "flyingon": $ };
+    var cache = { "flyingon": flyingon };
 
 
     //名字空间类
@@ -563,49 +467,40 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //创建或切换名字空间方法
-    $.namespace = function (name, fn) {
+    flyingon.namespace = function (name, fn) {
 
         var result = cache[name];
 
         if (!result && name)
         {
-            var values = name.split("."),
-                i = 0,
-                length = value.length;
-
             result = global;
 
-            while (i < length)
+            var values = name.split(".");
+
+            for (var i = 0, length = values.length; i < length; i++)
             {
-                var value = values[i++];
+                var value = values[i];
 
                 if (value)
                 {
                     name = i == 0 ? value : (name + "." + value);
 
-                    if (!result[value])
-                    {
-                        result[value] = new Namespace(name);
-                    };
-
+                    !result[value] && (result[value] = new Namespace(name));
                     result = result[value];
                 }
             }
         }
 
-        $.namespace.current = result || $; //切换当前命名空间
+        flyingon.namespace.current = result || flyingon; //切换当前命名空间
 
-        if (fn)
-        {
-            fn($, result);
-        }
+        fn && fn(flyingon, result);
 
         return result;
     };
 
 
     //切换当前命名空间为默认命名空间
-    $.namespace.current = $;
+    flyingon.namespace.current = flyingon;
 
 
 })(this, flyingon);
@@ -613,25 +508,63 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-//基类及继承实现
-(function ($) {
+//函数元数据
+(function (flyingon) {
 
 
+    var prototype = (flyingon.MetaFunction = function (fn) {
 
-    $.RootObject = function () {
+        this.fn = fn;
 
+        var body = fn.toString();
+
+        this.body = body.substring(body.indexOf("{") + 1, body.lastIndexOf("}"));
+
+        body = body.match(/\([^)]*\)/)[0];
+        body = body.substring(1, body.length - 1).replace(/\s+/, "");;
+
+        this.parameters = body ? body.split(",") : [];
+
+    }).prototype;
+
+
+    //合并函数内容
+    prototype.merge = function (body, insertBefore) {
+
+        if (typeof body == "function")
+        {
+            body = body.toString();
+            body = body.substring(body.indexOf("{") + 1, body.lastIndexOf("}"));
+        }
+
+        this.body = insertBefore ? body + this.body : this.body + body;
+        this.fn = new Function(this.parameters, this.body);
+        return this;
     };
 
 
-    var p = $.RootObject.prototype;
+})(flyingon);
+
+
+
+
+//基类及继承实现
+(function (flyingon) {
+
+
+
+    var prototype = (flyingon.RootObject = function () {
+
+
+    }).prototype;
 
 
 
     //类名
-    p.className = $.RootObject.className = "RootObject";
+    prototype.className = flyingon.RootObject.className = "RootObject";
 
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "[object " + this.className + "]";
     };
@@ -639,33 +572,41 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    $["x:registryList"] = { "flyingon.RootObject": $.RootObject };
+    flyingon["x:registryList"] = { "flyingon.RootObject": flyingon.RootObject };
 
 
-    $.registryClass = function (Class, classFullName) {
+    flyingon.registryClass = function (Class, classFullName) {
 
         var name = classFullName || Class.classFullName;
-        $["x:registryList"][name] = Class;
+        flyingon["x:registryList"][name] = Class;
     };
 
-    $.unregistryClass = function (classFullName) {
+    flyingon.unregistryClass = function (classFullName) {
 
-        delete $["x:registryList"][classFullName];
+        delete flyingon["x:registryList"][classFullName];
     };
 
-    $.getRegistryClass = function (classFullName) {
+    flyingon.getRegistryClass = function (classFullName) {
 
-        return $["x:registryList"][classFullName];
+        return flyingon["x:registryList"][classFullName];
     };
 
 
 
-    var errorMsg = "define class error!";
+    var errorMsg = "define class error!",
 
+        defineProperty = function (Class, prototype, name, value) {
+
+            Class[name] = value;
+            prototype["x:" + name] = value;
+            flyingon.defineVariable(prototype, name, value, false, true);
+        };
 
 
     //定义类方法
-    $.class = function (className, superClass, extension) {
+    //extension: 类扩展 必须为函数
+    //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
+    flyingon.class = function (className, superClass, extension, constructor_merge) {
 
 
         //处理参数
@@ -674,14 +615,15 @@ var flyingon = this.flyingon = this.flyingon || {};
             throw new Error(errorMsg);
         }
 
-        if (extension == null)
+        if (extension == null || typeof extension != "function")
         {
+            constructor_merge = extension;
             extension = superClass;
-            superClass = $.RootObject;
+            superClass = flyingon.RootObject;
         }
         else if (!superClass) //没有指定基类
         {
-            superClass = $.RootObject;
+            superClass = flyingon.RootObject;
         }
 
         if (typeof extension != "function") //扩展不是函数
@@ -692,94 +634,99 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-        var namespace = $.namespace.current, //当前名字空间
-            classFullName = (namespace.namespaceName ? namespace.namespaceName + "." : "") + className;  //类全名
+        var namespace = flyingon.namespace.current, //当前名字空间
+            classFullName = (namespace.namespaceName ? namespace.namespaceName + "." : "") + className; //类全名
 
 
 
 
-        //定义类模板 create为构造函数
-        function Class() {
+        //定义类模板 Class.create为构造函数
+        var Class = function () {
 
-            var chain = Class["x:constructor:chain"],
-                i = 0,
-                length = chain.length;
-
-            while (i < length)
+            var fn = Class.create;
+            if (fn)
             {
-                chain[i++].apply(this, arguments);
+                fn.apply(this, arguments);
             }
         };
 
 
 
-
-        Class["superClass"] = superClass;                      //父类
-        Class["super"] = superClass.prototype;                 //父类原型
-        Class["className"] = className;                        //类名
-        Class["classFullName"] = classFullName;                //类全名
+        //创建类原型
+        var prototype = Class.prototype = Object.create(superClass.prototype);
 
 
-        //初始化默认值管理器
-        Class["x:defaults"] = Object.create(superClass["x:defaults"] || Object.prototype);
+        defineProperty(Class, prototype, "className", className);           //类名
+        defineProperty(Class, prototype, "classFullName", classFullName);   //类全名
+
+        Class["superClass"] = superClass;                                   //父类
+        Class["super"] = superClass.prototype;                              //父类原型
+        prototype["constructor"] = Class;                                   //构造函数
+        prototype["x:defaults"] = Class["x:defaults"] = Object.create(superClass["x:defaults"] || Object.prototype);  //默认值
 
 
-
-        $.registryClass(Class); //注册类
+        flyingon.registryClass(Class); //注册类
 
         namespace[className] = Class; //输出类
 
 
 
-
-        //创建类原型
-        var p = Class.prototype = Object.create(superClass.prototype);
-
-
-
-        //定义类属性
-        $.defineVariable(p, "constructor", Class, false, true);                  //构造函数
-        $.defineVariable(p, "className", className, false, true);                //类名
-        $.defineVariable(p, "classFullName", classFullName, false, true);        //类全名
-        $.defineVariable(p, "superClass", superClass, false, true);              //父类
-
-        p["x:class"] = Class;
-
-
-
         //扩展
-        extension.call(p, Class, $);
+        extension.call(prototype, Class, flyingon);
 
 
 
-        //构造链
-        var chain = superClass["x:constructor:chain"],
-            fn;
-
-        chain = Class["x:constructor:chain"] = chain ? chain.slice(0) : [];
-        if (fn = Class["create"]) //构造函数
+        //处理构造函数
+        var superClass_create = superClass.create;
+        if (superClass_create)
         {
-            chain.push(fn);
+            var Class_create = Class.create,
+                constructor_chain = superClass["x:constructor-chain"];
+
+            if (Class_create)
+            {
+                //合并构造函数 注:已有构造链时不可以合并
+                if (!constructor_chain && constructor_merge) 
+                {
+                    Class_create = new flyingon.MetaFunction(Class_create);
+                    Class.create = Class_create.merge(superClass_create, true).fn;
+                }
+                else //生成构造链
+                {
+                    (Class["x:constructor-chain"] = (constructor_chain && constructor_chain.slice(0)) || [superClass_create]).push(Class_create);
+
+                    Class.create = function () {
+
+                        var constructor_chain = Class["x:constructor-chain"];
+                        for (var i = 0, length = constructor_chain.length; i < length; i++)
+                        {
+                            constructor_chain[i].apply(this, arguments);
+                        }
+                    };
+                }
+            }
+            else
+            {
+                constructor_chain && (Class["x:constructor-chain"] = constructor_chain);
+                Class.create = superClass_create;
+            }
         }
 
 
 
         //初始化链
-        chain = superClass["x:initialize:chain"];
-        fn = Class["initialize"];
+        var initialize_chain = superClass["x:initialize-chain"],
+            initialize = Class.initialize;
 
-        if (chain || fn)
+        if (initialize || initialize_chain)
         {
-            chain = Class["x:initialize:chain"] = chain ? chain.slice(0) : [];
+            initialize_chain = Class["x:initialize-chain"] = initialize_chain ? initialize_chain.slice(0) : [];
 
-            if (fn)
-            {
-                chain.push(fn);
-            }
+            initialize && initialize_chain.push(initialize);
 
-            for (var i = 0; i < chain.length; i++) //执行初始化类方法(从基类开始执行)
+            for (var i = 0; i < initialize_chain.length; i++) //执行初始化类方法(从基类开始执行)
             {
-                chain[i].call(Class, $);
+                initialize_chain[i].call(Class, flyingon);
             }
         }
 
@@ -787,6 +734,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
         return Class;
     };
+
 
 
 
@@ -814,23 +762,16 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 可通过使用getElementsByTagName(xPath)的方法对节点进行访问
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
 
-    $.Xml = function (data) {
+    var prototype = (flyingon.Xml = function (data) {
 
-        if (data)
-        {
-            this.parse(data);
-        }
-    };
+        data && this.parse(data);
 
-
-
-
-    var p = $.Xml.prototype;
+    }).prototype;
 
 
 
@@ -838,7 +779,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     //如果支持W3C DOM 则使用此方式创建
     if (document.implementation && document.implementation.createDocument)
     {
-        p.parse = function (data) {
+        prototype.parse = function (data) {
 
             this.dom = new DOMParser().parseFromString(data, "text/xml");
             this.root = this.dom.documentElement;
@@ -846,7 +787,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this;
         };
 
-        p.load = function (file) {
+        prototype.load = function (file) {
 
             this.dom = document.implementation.createDocument('', '', null);
             this.dom.load(file);
@@ -855,14 +796,14 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this;
         };
 
-        p.serialize = function () {
+        prototype.serialize = function () {
 
             return new XMLSerializer().serializeToString(this.dom);
         };
     }
     else if (window.ActiveXObject) //IE使用ActiveX方式创建
     {
-        p.parse = function (data) {
+        prototype.parse = function (data) {
 
             this.dom = new ActiveXObject("Microsoft.XMLDOM");
             this.dom.async = "false";
@@ -872,7 +813,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this.dom;
         };
 
-        p.load = function (file) {
+        prototype.load = function (file) {
 
             this.dom = new ActiveXObject('Microsoft.XMLDOM');
             this.dom.async = false;
@@ -882,7 +823,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this.dom;
         };
 
-        p.serialize = function () {
+        prototype.serialize = function () {
 
             return this.dom.xml;
         };
@@ -921,7 +862,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //编码
-    $.encodeXml = function (data) {
+    flyingon.encodeXml = function (data) {
 
         return data.replace(/[\<\>\"\' \&]/g, function (key) {
 
@@ -930,7 +871,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     };
 
     //解码
-    $.decodeXml = function (data) {
+    flyingon.decodeXml = function (data) {
 
         return data.replace(/&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/g, function (key) {
 
@@ -944,7 +885,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //解析Xml数据为Json对象 根节点的名称忽略
-    $.parseXml = function (data) {
+    flyingon.parseXml = function (data) {
 
 
         if (!data)
@@ -957,7 +898,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
         data = data.replace(/^[^\<]+|[^>]+$/, "").replace(/\>\s+\</g, "><");
 
 
-        var decodeXml = $.decodeXml,              //解码方法
+        var decodeXml = flyingon.decodeXml,              //解码方法
             segments = data.match(/[^<>]+|\<\/?[^<>]+\/?>/g),
             escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/.test(data),   //是否存在需解码的字符
 
@@ -1061,7 +1002,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             break;
                     }
 
-                    if (node.constructor == Array)
+                    if (Array.isArray(node) == Array)
                     {
                         node.push(value);
                     }
@@ -1088,890 +1029,907 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
 
-﻿//可序列化类
-(function ($) {
+﻿//集合
+flyingon.class("Collection", function (Class, flyingon) {
 
 
-    $.class("SerializableObject", function (Class, $) {
+    Class.create = function () {
 
-
-
-        //客户端唯一Id
-        var id = 0;
-
-        //对象管理器
-        $["x:objects"] = {};
-
-
-        Class.create = function () {
-
-
-            //客户端唯一id
-            $.defineVariable(this, "id", ++id, false, true);
-            $["x:objects"][id] = this;
-
-            //变量管理器
-            this["x:storage"] = Object.create(this["x:class"]["x:defaults"]);
-
-            //事件管理器
-            this["x:events"] = {};
-        };
+        this["x:items"] = [];
+    };
 
 
 
 
-        //唯一Id
-        $.uniqueId = function () {
 
-            return ++id;
-        };
+    flyingon.defineProperty(this, "length", function () {
 
-
+        return this["x:items"].length;
+    });
 
 
-        this["y:define:getter"] = function (name, attributes) {
+    this.get = function (index) {
 
-            var body = "return this['x:storage']['" + name + "'];";
-            return new Function(body);
-        };
+        return this["x:items"][index];
+    };
 
-        this["y:define:setter:initialize"] = "if (flyingon['x:initializing'])\n"
+    this.set = function (index, item) {
+
+        var fn = this["y:validate"];
+
+        (!fn || (item = fn.call(this, item)) !== undefined) && (this["x:items"][index] = item);
+
+        return this;
+    };
+
+    this.indexOf = function (item) {
+
+        return this["x:items"].indexOf(item);
+    };
+
+    this.append = function (item) {
+
+        var fn = this["y:validate"];
+        (!fn || (item = fn.call(this, item)) !== undefined) && this["x:items"].push(item);
+
+        return this;
+    };
+
+    this.insert = function (index, item) {
+
+        var fn = this["y:validate"];
+        (!fn || (item = fn.call(this, item)) !== undefined) && this["x:items"].splice(index, 0, item);
+
+        return this;
+    };
+
+
+    this.remove = function (item) {
+
+        var items = this["x:items"],
+            index = items.indexOf(item);
+
+        if (index >= 0)
+        {
+            var fn = this["y:remove"];
+            (!fn || fn.call(this, index) !== false) && items.splice(index, 1);
+        }
+
+        return this;
+    };
+
+    this.removeAt = function (index) {
+
+        var items = this["x:items"];
+
+        if (items.length > index)
+        {
+            var fn = this["y:remove"];
+            (!fn || fn.call(this, index) !== false) && items.splice(index, 1);
+        }
+
+        return this;
+    };
+
+    this.clear = function () {
+
+        var items = this["x:items"];
+
+        if (items.length > 0)
+        {
+            var fn = this["y:clear"];
+            (!fn || fn.call(this, items) !== false) && (items.length = 0);
+        }
+
+        return this;
+    };
+
+
+
+    //自定义序列化
+    this.serialize = function (writer) {
+
+        writer.array("items", this["x:items"]);
+    };
+
+    //自定义反序列化
+    this.deserialize = function (reader, data) {
+
+        reader.array(this, "x:items", data["items"]);
+    };
+
+
+});
+
+
+
+﻿
+//可序列化类
+flyingon.class("SerializableObject", function (Class, flyingon) {
+
+
+
+    //客户端唯一Id
+    var id = 0;
+
+    //自动名称
+    var auto_name = 0;
+
+
+    Class.create = function () {
+
+
+        //变量管理器
+        this["x:storage"] = Object.create(this["x:defaults"]);
+
+    };
+
+
+
+
+    //唯一Id
+    flyingon.newId = function () {
+
+        return "id" + (++id);
+    };
+
+
+
+    flyingon.defineProperty(this, "id", function () {
+
+        return this["x:id"] || (this["x:id"] = "id" + (++id));
+    });
+
+
+    flyingon["x:define:getter"] = function (name, attributes) {
+
+        var body = "return this['x:storage']['" + name + "'];";
+        return new Function(body);
+    };
+
+    flyingon["x:define:binding"] = "(cache = this['x:bindings']) && this['y:bindings'](name, cache);\n"; //处理绑定源
+
+    flyingon["x:define:initialize"] = "if (flyingon['x:initializing'])\n"
+        + "{\n"
+        + "storage[name] = value;\n"
+        + flyingon["x:define:binding"]
+        + "return this;\n"
+        + "}\n";
+
+    flyingon["x:define:change"] = "if ((cache = this['x:events']) && (cache = cache['change']) && cache.length > 0)\n"
+        + "{\n"
+        + "var event = new flyingon.ChangeEvent(this, name, value, oldValue);\n"
+        + "if (this.dispatchEvent(event) === false) return this;\n"
+        + "value = event.value;\n"
+        + "}\n";
+
+    flyingon["x:define:setter"] = function (name, attributes) {
+
+        var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
+
+            + flyingon["x:define:initialize"]
+            + "var oldValue = storage[name];\n"
+
+            + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
+
+            + "if (oldValue !== value)\n"
             + "{\n"
+
+            + flyingon["x:define:change"]
+
             + "storage[name] = value;\n"
-            + "return this;\n"
-            + "}\n";
 
-        this["y:define:setter:change"] = "if ((cache = this['x:events'][name]) && cache.length > 0)\n"
-            + "{\n"
-            + "var event = new flyingon.ChangeEvent('change', name, value, oldValue);\n"
-            + "if (!this.dispatchEvent(event))\n"
-            + "{\n"
-            + "return this;\n"
+            + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
+
+            + flyingon["x:define:binding"]
+
             + "}\n"
-            + "value = event.value;\n"
-            + "}\n";
 
-        this["y:define:setter:bindingTo"] = "if ((cache = this['x:bindings:source']) && cache.hasOwnProperty(name))\n" //处理绑定源
-            + "{\n"
-            + "flyingon.bindingTo(this, name);\n"
-            + "}\n";
+            + "return this;\n";
 
-        this["y:define:setter"] = function (name, attributes) {
-
-            var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
-
-                + this["y:define:setter:initialize"]
-                + "var oldValue = storage[name];\n"
-
-                + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
-
-                + "if (oldValue !== value)\n"
-                + "{\n"
-
-                + this["y:define:setter:change"]
-
-                + "storage[name] = value;\n"
-
-                + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
-
-                + this["y:define:setter:bindingTo"]
-
-                + "}\n"
-
-                + "return this;\n";
-
-            return new Function("value", body);
-        };
+        return new Function("value", body);
+    };
 
 
-        this["y:parse:attributes"] = function (attributes) {
+    flyingon["x:define:attributes"] = function (attributes) {
 
-            if (attributes)
+        if (attributes)
+        {
+            attributes.constructor == String && (attributes = { attributes: attributes });
+
+            if (attributes.attributes)
             {
-                if (attributes.constructor == String)
+                var values = attributes.attributes.split("|");
+
+                for (var i = 0, length = values.length; i < length; i++)
                 {
-                    attributes = { attributes: attributes };
+                    attributes[values[i]] = true;
                 }
 
-                if (attributes.attributes)
-                {
-                    var values = attributes.attributes.split("|"),
-                        i = 0,
-                        length = values.length;
-
-                    while (i < length)
-                    {
-                        attributes[values[i++]] = true;
-                    }
-
-                    attributes.attributes = null;
-                }
-
-                return attributes;
+                attributes.attributes = null;
             }
 
-            return {};
-        };
+            return attributes;
+        }
+
+        return {};
+    };
 
 
-        //定义属性及set_XXX方法
-        this.defineProperty = function (name, defaultValue, attributes, readOnly) {
+    //定义属性及set_XXX方法
+    this.defineProperty = function (name, defaultValue, attributes) {
 
-            if (defaultValue !== undefined)
-            {
-                this["x:class"]["x:defaults"][name] = defaultValue;
-            }
+        if (typeof defaultValue == "function" && (attributes === undefined || typeof attributes == "function"))
+        {
+            flyingon.defineProperty(this, name, defaultValue, attributes);
+        }
+        else
+        {
+            defaultValue !== undefined && (this["x:defaults"][name] = defaultValue);
 
-            attributes = this["y:parse:attributes"](attributes);
+            attributes = flyingon["x:define:attributes"](attributes);
 
-            $.defineProperty(this, name,
-                attributes.getter || this["y:define:getter"](name, attributes),
-                !readOnly ? (attributes.setter || this["y:define:setter"](name, attributes)) : null);
-        };
+            var getter = attributes.getter || flyingon["x:define:getter"](name, attributes),
+                setter = !attributes.readOnly ? (attributes.setter || flyingon["x:define:setter"](name, attributes)) : null;
 
-        //定义多个属性及set_XXX方法
-        this.defineProperties = function (names, defaultValue, attributes, readOnly) {
+            flyingon.defineProperty(this, name, getter, setter);
 
-            for (var i = 0; i < names.length; i++)
-            {
-                this.defineProperty(names[i], defaultValue, attributes, readOnly);
-            }
-        };
+            setter && attributes.autoset !== false && (this["set_" + name] = setter);
+        }
+    };
+
+    //定义多个属性及set_XXX方法
+    this.defineProperties = function (names, defaultValue, attributes) {
+
+        for (var i = 0; i < names.length; i++)
+        {
+            this.defineProperty(names[i], defaultValue, attributes);
+        }
+    };
 
 
 
-        //定义事件 name为不带on的事件名
-        this.defineEvent = function (name) {
+    //定义事件 name为不带on的事件名
+    this.defineEvent = function (name) {
 
-            $.defineProperty(this, "on" + name, null, function (listener) {
+        flyingon.defineProperty(this, "on" + name, null,
 
-                var events = this["x:events"][name];
+            function (listener) {
 
-                if (events)
-                {
-                    if (events.length > 0)
-                    {
-                        events.length = 0;
-                    }
-                }
-                else
-                {
-                    events = this["x:events"][name] = [];
-                }
+                var events = (this["x:events"] || (this["x:events"] = {}))[name];
 
+                events ? (events.length > 0 && (events.length = 0)) : (events = this["x:events"][name] = []);
                 events.push(listener);
+
                 return this;
             });
-        };
+    };
 
-        //定义多个事件 names为不带on的事件名数组
-        this.defineEvents = function (names) {
+    //定义多个事件 names为不带on的事件名数组
+    this.defineEvents = function (names) {
 
-            for (var i = 0; i < names.length; i++)
+        for (var i = 0; i < names.length; i++)
+        {
+            this.defineEvent(names[i]);
+        }
+    };
+
+
+    //绑定事件处理 注:type不带on
+    this.addEventListener = function (type, listener) {
+
+        if (listener)
+        {
+            var events = (this["x:events"] || (this["x:events"] = {}));
+            (events[type] || (events[type] = [])).push(listener);
+        }
+
+        return this;
+    };
+
+    //移除事件处理
+    this.removeListener = function (type, listener) {
+
+        var events = this["x:events"];
+
+        if (events && (events = events[type]))
+        {
+            if (listener == null)
             {
-                this.defineEvent(names[i]);
+                events.length = 0;
             }
-        };
-
-
-        //绑定事件处理 注:type不带on
-        this.addEventListener = function (type, listener) {
-
-            if (listener)
+            else
             {
-                var events = this["x:events"];
-                (events[type] || (events[type] = [])).push(listener);
+                var index = events.indexOf(listener);
+                index >= 0 && events.splice(index, 1);
             }
+        }
 
-            return this;
-        };
+        return this;
+    };
 
-        //移除事件处理
-        this.removeListener = function (type, listener) {
+    //分发事件
+    this.dispatchEvent = function (event) {
 
-            var events = this["x:events"][type],
-                index;
+        var target = this,
+            type = event.type,
+            result = true,
+            events,
+            length;
 
-            if (events)
+        if (!type)
+        {
+            type = event;
+            event = new flyingon.Event(type, this);
+        }
+
+        while (target)
+        {
+            //处理默认事件 默认事件方法规定: "event:" + type
+            if ((events = target["event:" + type]) && events.call(target, event) === false)
             {
-                if (listener == null)
+                result = false;
+
+                if (event.cancelBubble)
                 {
-                    events.length = 0;
+                    break;
                 }
-                else if ((index = events.indexOf(listener)) >= 0)
-                {
-                    events.splice(index, 1);
-                }
             }
 
-            return this;
-        };
-
-        //分发事件
-        this.dispatchEvent = function (event) {
-
-            var target = this,
-                type = event.type,
-                result = true,
-                events,
-                length;
-
-
-            if (!type)
+            //处理冒泡事件
+            if ((events = target["x:events"]) && (events = events[type]) && (length = events.length) > 0)
             {
-                type = event;
-                event = new $.Event(type, this);
-            }
-
-            while (target)
-            {
-                if (events = target["x:events"][type])
+                for (var i = 0; i < length; i++)
                 {
-                    if ((length = events.length) > 0)
+                    if (events[i].call(target, event) === false)
                     {
-                        for (var i = 0; i < length; i++)
-                        {
-                            if (events[i].call(target, event) === false)
-                            {
-                                result = false;
-                            }
-                        }
+                        result = false;
                     }
-
-                    if (event.cancelBubble)
-                    {
-                        break;
-                    }
-                }
-
-                target = target["x:parent"];
-            }
-
-
-            if (event.originalEvent)
-            {
-                if (event.defaultPrevented)
-                {
-                    event.originalEvent.preventDefault();
                 }
 
                 if (event.cancelBubble)
                 {
-                    event.originalEvent.stopPropagation();
+                    break;
+                }
+            }
+
+            target = target["x:parent"];
+        }
+
+        if (event.originalEvent)
+        {
+            if (event.defaultPrevented)
+            {
+                event.originalEvent.preventDefault();
+            }
+
+            if (event.cancelBubble)
+            {
+                event.originalEvent.stopPropagation();
+            }
+        }
+
+        return result;
+    };
+
+
+    //是否绑定了指定名称(不带on)的事件
+    this.hasEvent = function (type, bubbleEvent) {
+
+        var events = this["x:events"];
+
+        if (events && (events = events[type]) && events.length > 0)
+        {
+            return true;
+        }
+
+        return bubbleEvent ? parent.hasEvent(type, true) : false;
+    };
+
+
+
+
+    //引用序列化标记(为true时只序列化名称不序列化内容)
+    this["x:reference"] = false;
+
+    //对象名称
+    this.defineProperty("name", null);
+
+
+
+    //获取或设置属性默认值
+    this.defaultValue = function (name, value) {
+
+        var defaults = this["x:defaults"];
+
+        if (value === undefined)
+        {
+            return defaults[name];
+        }
+
+        defaults[name] = value;
+        return this;
+    };
+
+
+    //获取或设置存储值
+    this.storageValue = function (name, value) {
+
+        if (value === undefined)
+        {
+            return this["x:storage"][name];
+        }
+
+        this["x:storage"][name] = value;
+        return this;
+    };
+
+
+
+
+
+    this.setBinding = function (name, source, expression, setter) {
+
+        if (name && source)
+        {
+            !source.name && (source.name = "auto_name_" + (++auto_name));
+
+            var binding = new flyingon.DataBinding(source, expression || name, setter);
+
+            binding["y:initialize"](this, name);
+            binding.pull();
+            return binding;
+        }
+    };
+
+    this.clearBinding = function (name, dispose) {
+
+        if (name)
+        {
+            var bindings = this["x:bindings"];
+            bindings && (bindings = bindings[name]) && bindings.clear(dispose);
+        }
+    };
+
+    //执行绑定
+    this["y:bindings"] = function (name, storage) {
+
+        var bindings = storage.push;
+
+        bindings && bindings.hasOwnProperty(name) && flyingon.bindingTo(this, name);
+        (bindings = storage.pull) && (bindings = bindings[name]) && !bindings['x:binding'] && bindings.push();
+    };
+
+
+
+
+    //自定义序列化
+    this.serialize = function (writer) {
+
+        writer.object("storage", this["x:storage"]);
+        writer.bindings(this);
+    };
+
+    //自定义反序列化
+    this.deserialize = function (reader, data) {
+
+        if (data)
+        {
+            var storage = reader.object(this, "x:storage", data["storage"]);
+
+            reader.bindings(this, data);
+            storage && storage.name && ((reader.references || (reader.references = {}))[storage.name] = this);
+        }
+    };
+
+
+
+
+    //销毁
+    this.dispose = function () {
+
+        flyingon.clearBindings(this, true);
+    };
+
+
+});
+
+
+
+
+
+
+
+﻿
+flyingon.class("SerializeReader", function (Class, flyingon) {
+
+
+
+    var registryList = flyingon["x:registryList"];
+
+
+
+
+    this.deserialize = function (data, context) {
+
+        if (data)
+        {
+            data.constructor == String && (data = data[0] == "<" ? flyingon.parseXml : this.parse(data));
+
+            var result = this[Array.isArray(data) ? "array" : "object"](null, null, data);
+
+            this["y:complete"](this, context || result);
+            return result;
+        }
+
+        return null;
+    };
+
+
+    //序列化完毕后执行方法(内部方法)
+    this["y:complete"] = function (reader, context) {
+
+        //缓存的资源
+        var references = reader.references,
+            items = reader["x:bindings"],
+            binding,
+            source;
+
+        if (items)
+        {
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                var item = items[i],
+                    bindings = item[1];
+
+                for (var name in bindings)
+                {
+                    if (binding = bindings[name])
+                    {
+                        if (binding.constructor == String)
+                        {
+                            binding = new flyingon.DataBinding(context, binding);
+                        }
+                        else
+                        {
+                            if (source = binding.source)
+                            {
+                                source.constructor == String && (binding.source = (references && references[source]) || context);
+                            }
+                            else
+                            {
+                                binding.source = context;
+                            }
+
+                            !(binding instanceof flyingon.DataBinding) && (binding = new flyingon.DataBinding(binding));
+                        }
+
+                        binding["y:initialize"](item[0], name);
+                        binding.pull();
+                    }
+                }
+            }
+        }
+    };
+
+
+
+
+    this.parse = flyingon.parseJson;
+
+
+    this.boolean = function (target, name, value) {
+
+        if (value !== undefined)
+        {
+            return target[name] = !!value;
+        }
+    };
+
+    this.number = function (target, name, value) {
+
+        if (value !== undefined)
+        {
+            return target[name] = parseFloat("" + value);
+        }
+    };
+
+    this.string = function (target, name, value) {
+
+        if (value !== undefined)
+        {
+            return target[name] = value == null ? null : "" + value;
+        }
+    };
+
+
+    this.object = function (target, name, value) {
+
+        if (value != null)
+        {
+            var result;
+
+            if (!target || !(result = target[name]))
+            {
+                result = value.className && (result = registryList[value.className]) ? new result() : {};
+                target && (target[name] = result);
+            }
+
+
+            if (result.deserialize)
+            {
+                result.deserialize(this, value);
+            }
+            else
+            {
+                var names = Object.getOwnPropertyNames(value);
+
+                for (var i = 0, length = names.length; i < length; i++)
+                {
+                    var name = names[i],
+                        item = value[name];
+
+                    if (item != null)
+                    {
+                        switch (typeof item)
+                        {
+                            case "object":
+                                item = this[Array.isArray(item) ? "array" : "object"](null, null, item);
+                                break;
+
+                            case "function":
+                                item = item ? new Function("" + item) : null;
+                                break;
+                        }
+                    }
+
+                    result[name] = item;
                 }
             }
 
             return result;
-        };
+        }
+        else if (value !== undefined && target)
+        {
+            target[name] = null;
+        }
 
-        //分发值变更事件
-        this.dispatchChangeEvent = function (name, value, oldValue) {
+        return null;
+    };
 
-            this.dispatchEvent(new $.ChangeEvent('change', this, name, value, oldValue));
-        };
 
-        //是否绑定了指定名称(不带on)的事件
-        this.hasEvent = function (type, bubbleEvent) {
+    this.array = function (target, name, value) {
 
-            var events = this["x:events"][type];
+        if (value != null)
+        {
+            var result;
 
-            if (events && events.length > 0)
+            if (target)
             {
-                return true;
-            }
-
-            return bubbleEvent ? parent.hasEvent(type, true) : false;
-        };
-
-
-
-
-        //设计时资源 由设计时环境维护 请勿手动修改
-        this["x:resources"] = null;
-
-
-
-        //对象名称
-        this.defineProperty("name", null);
-
-        //值变更事件
-        this.defineEvent("change");
-
-
-
-        //获取默认值
-        this.getDefaultValue = function (name) {
-
-            return this["x:class"]["x:defaults"][name];
-        };
-
-        //修改默认值
-        this.setDefaultValue = function (name, defaultValue) {
-
-            if (defaultValue !== undefined)
-            {
-                this["x:class"]["x:defaults"][name] = defaultValue;
+                !(result = target[name]) && (result = target[name] = []);
             }
             else
             {
-                delete this["x:class"]["x:defaults"][name];
+                result = [];
             }
-        };
-
-        //获取值
-        this.getValue = function (name) {
-
-            return this["x:storage"][name];
-        };
-
-        //设置值
-        this.setValue = function (name, value) {
-
-            this["x:storage"][name] = value;
-        };
 
 
-
-        //自定义序列化
-        this.serialize = function (writer) {
-
-            writer.object("storage", this["x:storage"]);
-            writer.object("bindings", this["x:bindings"]);
-        };
-
-        //自定义反序列化
-        this.deserialize = function (reader, data) {
-
-            reader.object(this, "x:storage", data["storage"]);
-            reader.object(this, "x:bindings", data["bindings"]);
-        };
-
-
-
-
-        //销毁
-        this.dispose = function () {
-
-            var id = this.id;
-
-            delete $["x:bindings"][id];
-            delete $["x:objects"][id];
-
-            $.clearBindings(this);
-        };
-
-
-    });
-
-
-
-})(flyingon);
-
-
-
-
-
-﻿(function ($) {
-
-
-    $.class("SerializeReader", function (Class, $) {
-
-
-
-        var registryList = $["x:registryList"];
-
-
-
-
-        this.deserialize = function (data) {
-
-            if (data)
+            for (var i = 0, length = value.length; i < length; i++)
             {
-                if (data.constructor == String)
+                var item = value[i];
+
+                if (item != null)
                 {
-                    data = this.parse(data);
-                }
-
-                return this[data.constructor == Array ? "array" : "object"](null, null, data);
-            }
-
-            return null;
-        };
-
-
-        this.parse = $.parseJson;
-
-
-        this.boolean = function (target, name, value) {
-
-            if (value !== undefined)
-            {
-                return target[name] = !!value;
-            }
-        };
-
-        this.number = function (target, name, value) {
-
-            if (value !== undefined)
-            {
-                return target[name] = parseFloat("" + value);
-            }
-        };
-
-        this.string = function (target, name, value) {
-
-            if (value !== undefined)
-            {
-                return target[name] = value == null ? null : "" + value;
-            }
-        };
-
-
-        this.object = function (target, name, value) {
-
-            if (value != null)
-            {
-                var result;
-
-                if (!target || !(result = target[name]))
-                {
-                    result = value.className && (result = registryList[value.className]) ? new result() : {};
-
-                    if (target)
+                    switch (typeof item)
                     {
-                        target[name] = result;
+                        case "object":
+                            item = this[Array.isArray(item) ? "array" : "object"](null, null, item);
+                            break;
+
+                        case "function":
+                            item = item ? new Function("" + item) : null;
+                            break;
                     }
                 }
 
+                result.push(item);
+            }
 
-                if (result.deserialize)
+            return result;
+        }
+        else if (value !== undefined && target)
+        {
+            target[name] = null;
+        }
+
+        return null;
+    };
+
+    this.function = function (target, name, value) {
+
+        if (value !== undefined)
+        {
+            return target[name] = value ? new Function("" + value) : null;
+        }
+    };
+
+    this.reference = function (target, name, value) {
+
+        if (value != null)
+        {
+            var fn = value.constructor;
+
+            if (fn != String)
+            {
+                value = this[fn == Array ? "array" : "object"](target, name, value);
+            }
+            else
+            {
+                target[name] = value;
+            }
+
+            return value;
+        }
+    };
+
+    this.bindings = function (target, data) {
+
+        target && (data = data["bindings"]) && (this["x:bindings"] || (this["x:bindings"] = [])).push([target, data]);
+    };
+
+});
+
+
+
+
+
+flyingon.class("XmlSerializeReader", flyingon.SerializeReader, function (Class, flyingon) {
+
+
+    this.parse = flyingon.parseXml;
+
+});
+
+
+
+
+
+﻿
+flyingon.class("SerializeWriter", function (Class, flyingon) {
+
+
+
+    Class.create = function () {
+
+        this["x:data"] = [];
+    };
+
+
+
+    this["x:root"] = null;
+
+    this.serialize = function (target) {
+
+        this[Array.isArray(target) ? "array" : "object"](this["x:root"], target);
+        return this.toString();
+    };
+
+
+
+    this["y:value"] = function (name, value) {
+
+        switch (typeof value)
+        {
+            case "boolean":
+                this.boolean(name, value);
+                break;
+
+            case "number":
+                this.number(name, value);
+                break;
+
+            case "string":
+                this.string(name, value);
+                break;
+
+            case "object":
+                if (value == null)
                 {
-                    result.deserialize(this, value);
+                    this.null(name);
                 }
                 else
                 {
-                    var names = Object.getOwnPropertyNames(value);
+                    var cache = value.constructor;
 
-                    for (var i = 0, length = names.length; i < length; i++)
+                    if (cache == String)
                     {
-                        var name = names[i],
-                            value = value[name];
-
-                        if (value != null)
-                        {
-                            switch (typeof value)
-                            {
-                                case "object":
-                                    value = this[value.constructor == Array ? "array" : "object"](value);
-                                    break;
-
-                                case "function":
-                                    value = value ? new Function("" + value) : null;
-                                    break;
-                            }
-                        }
-
-                        result[name] = value;
+                        this.string(name, value);
+                    }
+                    else if (cache == Array) //数组
+                    {
+                        this.array(name, value);
+                    }
+                    else //对象
+                    {
+                        this.object(name, value);
                     }
                 }
+                break;
 
-                return result;
-            }
-
-            return null;
-        };
-
-
-        this.array = function (target, name, value) {
-
-            if (value != null)
-            {
-                var result;
-
-                if (target)
-                {
-                    if (result = target[name])
-                    {
-                        result = target[name] = [];
-                    }
-                }
-                else
-                {
-                    result = [];
-                }
-
-
-                for (var i = 0, length = value.length; i < length; i++)
-                {
-                    var value = value[i];
-
-                    if (value != null)
-                    {
-                        switch (typeof value)
-                        {
-                            case "object":
-                                value = this[value.constructor == Array ? "array" : "object"](value);
-                                break;
-
-                            case "function":
-                                value = value ? new Function("" + value) : null;
-                                break;
-                        }
-                    }
-
-                    result.push(value);
-                }
-
-                return result;
-            }
-
-            return null;
-        };
-
-        this.function = function (target, name, value) {
-
-            if (value !== undefined)
-            {
-                return target[name] = value ? new Function("" + value) : null;
-            }
-        };
-
-    });
-
-
-
-
-
-    $.class("XmlSerializeReader", $.SerializeReader, function (Class, $) {
-
-
-        this.parse = $.parseXml;
-
-    });
-
-
-
-
-})(flyingon);
-
-
-
-﻿(function ($) {
-
-
-    $.class("SerializeWriter", function (Class, $) {
-
-
-
-        Class.create = function () {
-
-            this["x:data"] = [];
-        };
-
-
-
-        this.serialize = function (target) {
-
-            this[target.constructor == Array ? "array" : "object"](null, target);
-            return this.toString();
-        };
-
-
-
-        this["y:value"] = function (name, value) {
-
-            switch (typeof value)
-            {
-                case "boolean":
-                    this.boolean(name, value);
-                    break;
-
-                case "number":
-                    this.number(name, value);
-                    break;
-
-                case "string":
-                    this.string(name, value);
-                    break;
-
-                case "object":
-                    if (value == null)
-                    {
-                        this.null(name);
-                    }
-                    else
-                    {
-                        var cache = value.constructor;
-
-                        if (cache == String)
-                        {
-                            this.string(name, value);
-                        }
-                        else if (cache == Array) //数组
-                        {
-                            this.array(name, value);
-                        }
-                        else //对象
-                        {
-                            this.object(name, value);
-                        }
-                    }
-                    break;
-
-                case "function":
-                    this.function(name, value);
-                    break;
-            }
-        };
+            case "function":
+                this.function(name, value);
+                break;
+        }
+    };
 
 
 
 
 
 
-        var key = function (data, name) {
+    var key = function (data, name) {
 
-            if (data[data.length - 1] != "{")
-            {
-                data.push(",");
-            }
-
-            data.push("\"" + name + "\":");
-        };
+        data[data.length - 1] != "{" && data.push(",");
+        data.push("\"" + name + "\":");
+    };
 
 
 
 
-        this.null = function (name) {
+    this.null = function (name) {
 
+        var data = this["x:data"];
+
+        name && key(data, name);
+        data.push("null");
+    };
+
+    this.boolean = function (name, value) {
+
+        if (value !== undefined)
+        {
             var data = this["x:data"];
 
-            if (name)
-            {
-                key(data, name);
-            }
+            name && key(data, name);
+            data.push(!!value);
+        }
+    };
 
-            data.push("null");
-        };
+    this.number = function (name, value) {
 
-        this.boolean = function (name, value) {
-
-            if (value !== undefined)
-            {
-                var data = this["x:data"];
-
-                if (name)
-                {
-                    key(data, name);
-                }
-
-                data.push(!!value);
-            }
-        };
-
-        this.number = function (name, value) {
-
-            if (value !== undefined)
-            {
-                var data = this["x:data"];
-
-                if (name)
-                {
-                    key(data, name);
-                }
-
-                data.push(value || 0);
-            }
-        };
-
-        this.string = function (name, value) {
-
-            if (value !== undefined)
-            {
-                var data = this["x:data"];
-
-                if (name)
-                {
-                    key(data, name);
-                }
-
-                data.push(value != null ? "\"" + value.replace("\"", "\\\"") + "\"" : "null");
-            }
-        };
-
-        this.object = function (name, value) {
-
-            if (value != null)
-            {
-                var data = this["x:data"];
-
-                if (name)
-                {
-                    key(data, name);
-                }
-
-                if (value != null)
-                {
-                    data.push("{");
-
-                    if (name = value.className)
-                    {
-                        data.push("\"className\":\"" + name + "\"");
-                    }
-
-
-                    if ("serialize" in value)
-                    {
-                        value.serialize(this);
-                    }
-                    else
-                    {
-                        var names = Object.getOwnPropertyNames(value);
-
-                        for (var i = 0, length = names.length; i < length; i++)
-                        {
-                            if (i > 0 || name)
-                            {
-                                data.push(",");
-                            }
-
-                            data.push("\"" + (name = names[i]) + "\":");
-                            this["y:value"](null, value[name]);
-                        }
-                    }
-
-
-                    data.push("}");
-                }
-                else
-                {
-                    data.push("null");
-                }
-            }
-        };
-
-        this.array = function (name, value) {
-
-            if (value != null)
-            {
-                var data = this["x:data"];
-
-                if (name)
-                {
-                    key(data, name);
-                }
-
-                if (value != null)
-                {
-                    data.push("[");
-
-                    for (var i = 0, length = value.length; i < length; i++)
-                    {
-                        if (i > 0)
-                        {
-                            data.push(",");
-                        }
-
-                        this["y:value"](null, value[i]);
-                    }
-
-                    data.push("]");
-                }
-                else
-                {
-                    data.push("null");
-                }
-            }
-        };
-
-        this.function = function (name, value) {
-
-            if (value !== undefined)
-            {
-                this.string(name, value ? value.toString() : null);
-            }
-        };
-
-
-        this.toString = this.toLocaleString = function () {
-
-            return this["x:data"].join("");
-        };
-
-    });
-
-
-
-
-
-
-
-
-    //t 0:null 1:boolean 2:number 3:string 4:object 5:array 9:function
-    $.class("XmlSerializeWriter", $.SerializeWriter, function (Class, $) {
-
-
-        this.serialize = function (target) {
-
-            this[target.constructor == Array ? "array" : "object"]("data", target);
-            return this.toString();
-        };
-
-
-        this.null = function (name) {
-
-            this["x:data"].push("<" + name + " type=\"null\"/>");
-        };
-
-        this.boolean = function (name, value) {
-
-            if (value !== undefined)
-            {
-                this["x:data"].push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
-            }
-        };
-
-        this.number = function (name, value) {
-
-            if (value !== undefined)
-            {
-                this["x:data"].push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
-            }
-        };
-
-        this.string = function (name, value) {
-
-            if (value !== undefined)
-            {
-                if (value != null)
-                {
-                    if (value.indexOf("&") >= 0)
-                    {
-                        value = $.decodeXml(value);
-                    }
-
-                    this["x:data"].push("<" + name + " type=\"string\">" + value + "</" + name + ">");
-                }
-                else
-                {
-                    data.push("<" + name + " type=\"null\"/>");
-                }
-            }
-        };
-
-        this.object = function (name, value) {
-
-            if (value === undefined)
-            {
-                return;
-            }
-
-
+        if (value !== undefined)
+        {
             var data = this["x:data"];
 
-            if (data != null)
+            name && key(data, name);
+            data.push(value || 0);
+        }
+    };
+
+    this.string = function (name, value) {
+
+        if (value !== undefined)
+        {
+            var data = this["x:data"];
+
+            name && key(data, name);
+            data.push(value != null ? "\"" + value.replace("\"", "\\\"") + "\"" : "null");
+        }
+    };
+
+    this.object = function (name, value) {
+
+        if (value !== undefined)
+        {
+            var data = this["x:data"];
+
+            name && key(data, name);
+
+            if (value != null)
             {
-                data.push("<" + name + " type=\"" + (value.className || "object") + "\">");
+                data.push("{");
+
+                (name = value.className) && data.push("\"className\":\"" + name + "\"");
 
                 if ("serialize" in value)
                 {
@@ -1983,87 +1941,225 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
                     for (var i = 0, length = names.length; i < length; i++)
                     {
-                        var key = names[i];
-                        this["y:value"](key, value[key]);
+                        (i > 0 || name) && data.push(",");
+
+                        data.push("\"" + (name = names[i]) + "\":");
+                        this["y:value"](null, value[name]);
                     }
                 }
 
-                data.push("</" + name + ">");
+
+                data.push("}");
             }
             else
             {
-                data.push("<" + name + " type=\"null\"/>");
+                data.push("null");
             }
-        };
+        }
+    };
 
-        this.array = function (name, value) {
+    this.array = function (name, value) {
 
-            if (value === undefined)
-            {
-                return;
-            }
-
-
+        if (value !== undefined)
+        {
             var data = this["x:data"];
 
+            name && key(data, name);
+ 
             if (value != null)
             {
-                data.push("<" + name + " type=\"array\"");
+                data.push("[");
 
                 for (var i = 0, length = value.length; i < length; i++)
                 {
-                    this["y:value"]("item", value[i]);
+                    i > 0 && data.push(",");
+                    this["y:value"](null, value[i]);
                 }
 
-                data.push("</" + name + ">");
+                data.push("]");
             }
             else
             {
-                data.push("<" + name + " type=\"null\"/>");
+                data.push("null");
             }
-        };
+        }
+    };
 
-        this.function = function (name, value) {
+    this.function = function (name, value) {
 
-            if (value !== undefined)
+        value !== undefined && this.string(name, value ? value.toString() : null);
+    };
+
+
+    this.reference = function (name, value) {
+
+        if (value != null)
+        {
+            //未设置名称则直接序列化
+            if (!value["x:reference"])
             {
-                if (value)
-                {
-                    value = value.toString();
-
-                    if (value.indexOf("&") >= 0)
-                    {
-                        value = $.decodeXml(value);
-                    }
-                }
-
+                this[Array.isArray(value) ? "array" : "object"](name, value);
+            }
+            else if (value = value.name)
+            {
                 this.string(name, value);
             }
-        };
-
-
-    });
-
-
-})(flyingon);
-
-
-
-﻿//表达式
-(function ($) {
-
-
-    $.Expression = function (expression) {
-
-        if (expression)
-        {
-            this.expression = expression;
+            else
+            {
+                throw new Error("serialize reference fail! no name!");
+            }
         }
     };
 
 
+    this.bindings = function (target) {
 
-    var p = $.Expression.prototype;
+        target && (target = target["x:bindings"]) && (target = target.pull) && this.object("bindings", target);
+    };
+
+
+    this.toString = this.toLocaleString = function () {
+
+        return this["x:data"].join("");
+    };
+
+});
+
+
+
+
+//t 0:null 1:boolean 2:number 3:string 4:object 5:array 9:function
+flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, flyingon) {
+
+
+    this["x:root"] = "xml";
+
+
+    this.null = function (name) {
+
+        this["x:data"].push("<" + name + " type=\"null\"/>");
+    };
+
+    this.boolean = function (name, value) {
+
+        value !== undefined && this["x:data"].push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
+    };
+
+    this.number = function (name, value) {
+
+        value !== undefined && this["x:data"].push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
+    };
+
+    this.string = function (name, value) {
+
+        if (value !== undefined)
+        {
+            if (value != null)
+            {
+                value.indexOf("&") >= 0 && (value = flyingon.decodeXml(value));
+                this["x:data"].push("<" + name + " type=\"string\">" + value + "</" + name + ">");
+            }
+            else
+            {
+                data.push("<" + name + " type=\"null\"/>");
+            }
+        }
+    };
+
+    this.object = function (name, value) {
+
+        if (value === undefined)
+        {
+            return;
+        }
+
+
+        var data = this["x:data"];
+
+        if (data != null)
+        {
+            data.push("<" + name + " type=\"" + (value.className || "object") + "\">");
+
+            if ("serialize" in value)
+            {
+                value.serialize(this);
+            }
+            else
+            {
+                var names = Object.getOwnPropertyNames(value);
+
+                for (var i = 0, length = names.length; i < length; i++)
+                {
+                    var key = names[i];
+                    this["y:value"](key, value[key]);
+                }
+            }
+
+            data.push("</" + name + ">");
+        }
+        else
+        {
+            data.push("<" + name + " type=\"null\"/>");
+        }
+    };
+
+    this.array = function (name, value) {
+
+        if (value === undefined)
+        {
+            return;
+        }
+
+
+        var data = this["x:data"];
+
+        if (value != null)
+        {
+            data.push("<" + name + " type=\"array\"");
+
+            for (var i = 0, length = value.length; i < length; i++)
+            {
+                this["y:value"]("item", value[i]);
+            }
+
+            data.push("</" + name + ">");
+        }
+        else
+        {
+            data.push("<" + name + " type=\"null\"/>");
+        }
+    };
+
+    this.function = function (name, value) {
+
+        if (value !== undefined)
+        {
+            if (value)
+            {
+                value = value.toString();
+                value.indexOf("&") >= 0 && (value = flyingon.decodeXml(value));
+            }
+
+            this.string(name, value);
+        }
+    };
+
+
+});
+
+
+
+
+﻿//表达式
+(function (flyingon) {
+
+
+    var prototype = (flyingon.Expression = function (expression) {
+
+        expression && (this.expression = expression);
+
+    }).prototype;
+
 
 
     var parse = function (expression, variables) {
@@ -2075,15 +2171,16 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
         }
 
 
+        !expression.match(/return[\s;]/) && (expression = "return " + expression);
+
+
         var values = expression.match(/['"\\]|@\w+|[^'"\\@]+/g),
-            i = 0,
-            length = values.length,
             value,
             quote,  //引号
             escape, //转义
             body = "";
 
-        while (i < length)
+        for (var i = 0, length = values.length; i < length; i++)
         {
             switch (value = values[i])
             {
@@ -2091,17 +2188,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                 case "\"":
                     if (!escape)
                     {
-                        if (quote)
-                        {
-                            if (quote == value)
-                            {
-                                quote = null;
-                            }
-                        }
-                        else
-                        {
-                            quote = value;
-                        }
+                        quote ? ((quote == value) && (quote = null)) : (quote = value);
                     }
                     else
                     {
@@ -2128,30 +2215,26 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                     escape = false;
                     break;
             }
-
-            i++;
         }
 
 
-        i = 0;
-        length = variables.length;
-
-        while (i < length)
+        for (var i = 0, length = variables.length; i < length; i++)
         {
-            body += "var " + (value = variables[i++]) + " = this[\"" + value + "\"];\n";
+            body += "var " + (value = variables[i]) + " = this[\"" + value + "\"];\n";
         }
 
-        body += "return " + values.join("") + ";";
+
+        body += values.join("");
         return new Function(body);
     };
 
 
-    p["x:expression"] = "";
+    prototype["x:expression"] = "";
 
 
 
     //表达式内容
-    $.defineProperty(p, "expression",
+    flyingon.defineProperty(prototype, "expression",
 
         function () {
 
@@ -2167,24 +2250,24 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //计算
-    p.eval = function (thisArg) {
+    prototype.eval = function (thisArg) {
 
         var fn = this["x:fn"];
 
         if (fn)
         {
-            fn.call(thisArg);
+            return fn.call(thisArg);
         }
     };
 
 
 
-    p.serialize = function (writer) {
+    prototype.serialize = function (writer) {
 
         writer.string("expression", this["x:expression"]);
     };
 
-    p.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data) {
 
         reader.string(this, "expression", data.expression);
     };
@@ -2201,73 +2284,92 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 /// <reference path="SerializableObject.js" />
 
 
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.clearBindings = function (source) {
 
-        if (source = source["x:bindings:source"])
+    //正向绑定(绑定数据源至目标控件)
+    flyingon.bindingTo = function (source, name) {
+
+        var bindings = source["x:bindings"],
+            binding;
+
+        if (bindings && (bindings = bindings.push) && (binding = bindings[name]))
         {
-            var names = Object.getOwnPropertyNames(source),
-                name,
-                binding,
-                target;
+            var keys = Object.getOwnPropertyNames(binding),
+                length = keys.length;
 
-
-            for (var i = 0, length = names.length; i < length; i++)
+            if (length == 0)
             {
-                if ((name = names[i]) && (binding = source[name]))
+                delete bindings[name];
+            }
+            else
+            {
+                for (var i = 0; i < length; i++)
                 {
-                    delete source[name];
-
-                    if (target = binding["x:target"])
-                    {
-                        delete target[binding.propertyName];
-                    }
+                    binding[keys[i]].pull();
                 }
             }
         }
     };
 
 
+    var clearBindings = function (storage, dispose) {
 
+        var names = Object.getOwnPropertyNames(storage),
+            name,
+            bindings;
 
-    $.DataBinding = function (source, expression, formatter, setter) {
-
-        if (arguments.length > 0)
+        for (var i = 0, length = names.length; i < length; i++)
         {
-            if (expression == null)
+            if ((name = names[i]) && (bindings = source[name]))
             {
-                expression = source.expression;
-                formatter = source.formatter;
-                setter = source.setter;
-                source = source.source;
-            }
+                var keys = Object.getOwnPropertyNames(bindings);
 
-
-            this["x:source"] = source;
-            this["x:expression"] = "" + expression;
-
-            if (formatter != null)
-            {
-                this["x:formatter"] = "" + formatter;
-            }
-
-            if (setter != null)
-            {
-                this["x:setter"] = "" + setter;
+                for (var j = 0, count = keys.length; j < count; j++)
+                {
+                    bindings[keys[j]].clear(dispose);
+                }
             }
         }
     };
 
+    flyingon.clearBindings = function (source, dispose) {
 
-    var p = $.DataBinding.prototype;
+        if (source && (source = source["x:bindings"]))
+        {
+            var storage = source.pull;
+
+            storage && clearBindings(storage, dispose);
+            (storage = source.push) && clearBindings(storage, dispose);
+        }
+    };
+
+
+
+
+    var prototype = (flyingon.DataBinding = function (source, expression, setter) {
+
+        if (source)
+        {
+            if (!expression && (expression = source.expression))
+            {
+                setter = source.setter;
+                source = source.source;
+            }
+
+            this["x:source"] = source;
+            this["x:expression"] = expression;
+            this["x:setter"] = setter;
+        }
+
+    }).prototype;
 
 
     var defineProperty = function (name) {
 
-        $.defineProperty(p, name, function () {
+        flyingon.defineProperty(prototype, name, function () {
 
             return this["x:" + name];
         });
@@ -2287,9 +2389,6 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     //绑定表达式
     defineProperty("expression");
 
-    //格式化
-    defineProperty("formatter");
-
     //更新表达式
     defineProperty("setter");
 
@@ -2297,22 +2396,23 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //是否正在处理绑定
-    p["x:binding"] = false;
+    prototype["x:binding"] = false;
 
     //获取值函数
-    p["y:getter"] = null;
+    prototype["y:getter"] = null;
 
     //设置值函数
-    p["y:setter"] = null;
+    prototype["y:setter"] = null;
 
 
 
     //初始化绑定关系
-    p["y:initialize"] = function (target, name) {
+    prototype["y:initialize"] = function (target, name) {
 
         var source = this["x:source"],
             expression = this["x:expression"],
-            bindings = source["x:bindings:source"] || (source["x:bindings:source"] = {}),
+            bindings = target["x:bindings"] || (target["x:bindings"] = {}),
+            id = target.id || (target.id = flyingon.newId()),
             cache;
 
 
@@ -2321,62 +2421,73 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
         //缓存目标
-        if (cache = target["x:bindings"])
+        if (cache = bindings.pull)
         {
             //一个目标属性只能绑定一个
-            if (cache[name])
-            {
-                cache[name].clear();
-            }
-
+            cache[name] && cache[name].clear();
             cache[name] = this;
         }
         else
         {
-            (target["x:bindings"] = {})[name] = this;
+            (bindings.pull = {})[name] = this;
         }
 
 
 
+        bindings = source["x:bindings"] || (source["x:bindings"] = { push: {} });
+        bindings = bindings.push || (bindings.push = {});
+
         //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
         if (expression.match(/^\d|[^\w]/))
         {
-            cache = (this["y:getter"] = new $.Expression(expression)).variables;
+            cache = (this["y:getter"] = new flyingon.Expression(expression)).variables;
 
             for (var i = 0, length = cache.length; i < length; i++)
             {
-                bindings[cache[i]] = this;
+                expression = cache[i];
+                (bindings[expression] || (bindings[expression] = {}))[id] = this;
             }
         }
         else
         {
             this["y:getter"] = null;
-            bindings[expression] = this;
+            (bindings[expression] || (bindings[expression] = {}))[id] = this;
         }
 
 
         //处理更新
-        if (cache = this["x:setter"])
-        {
-            this["y:setter"] = new $.Expression(cache);
-        }
+        (cache = this["x:setter"]) && (this["y:setter"] = new flyingon.Expression(cache));
     };
 
 
-    //从数据源同步数据至目标属性
-    p.pull = function () {
 
-        var cache,
-            result = (cache = this["y:getter"]) ? cache.eval(this["x:source"]) : this["x:source"][this["x:expression"]];
+    //从数据源同步数据至目标属性
+    prototype.pull = function () {
+
+        var source = this["x:source"],
+            result;
+
+        if (result = this["y:getter"])
+        {
+            result = result.eval(source);
+        }
+        else
+        {
+            var name = this["x:expression"];
+            if ((result = source[name]) === undefined)
+            {
+                source instanceof flyingon.DataObject && (result = source.value(name));
+            }
+        }
 
         this["x:binding"] = true;
-        this["x:target"][this.name] = (cache = this["x:formatter"]) ? cache.format(result) : result;
+        this["x:target"][this["x:name"]] = result;
         this["x:binding"] = false;
     };
 
 
     //从目标属性同步数据至源
-    p.push = function () {
+    prototype.push = function () {
 
         var cache = this["x:expression"];
 
@@ -2386,7 +2497,11 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
             if (!this["y:getter"]) //直接绑定字段
             {
-                this["x:source"][cache] = this["x:target"][this["x:name"]];
+                var target = this["x:target"],
+                    name = this["x:name"];
+
+                (result = target[name]) === undefined && target instanceof flyingon.DataObject && (result = target.value(name));
+                this["x:source"][cache] = result;
             }
             else if (cache = this["y:setter"]) //表达式需要自定义setter方法
             {
@@ -2399,7 +2514,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //清除绑定关系
-    p.clear = function () {
+    prototype.clear = function (dispose) {
 
         var source = this["x:source"],
             target = this["x:target"],
@@ -2428,36 +2543,30 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
             delete target["x:bindings"][this["x:name"]];
         }
+
+
+        if (dispose)
+        {
+            delete this["x:source"];
+            delete this["x:target"];
+            delete this["y:getter"];
+            delete this["y:setter"];
+        }
     };
 
 
-    p.serialize = function (writer) {
+    prototype.serialize = function (writer) {
 
-        writer.string("name", this["x:name"]);
-
-        //this["x:source"] = source;
+        writer.reference("source", this["x:source"]);
         writer.string("expression", this["x:expression"]);
-        writer.string("formatter", this["x:formatter"]);
         writer.string("setter", this["x:setter"]);
     };
 
-    p.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data) {
 
-        reader.string(this, "x:name", data["name"]);
-
-        //this["x:source"] = source;
+        reader.reference(this, "x:source", data["source"]);
         reader.string(this, "x:expression", data["expression"]);
-        reader.string(this, "x:formatter", data["formatter"]);
         reader.string(this, "x:setter", data["setter"]);
-    };
-
-
-    p.dispose = function () {
-
-        this["x:source"] = null;
-        this["x:target"] = null;
-        this["y:getter"] = null;
-        this["y:setter"] = null;
     };
 
 
@@ -2469,191 +2578,256 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 ﻿/// <reference path="../Base/Core.js" />
 
 
-/*
 
-数据对象
-
-
-*/
-(function ($) {
+//数据对象
+flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyingon) {
 
 
-    //
-    $.class("DataObject", $.SerializableObject, function (Class, $) {
+    function getter(name, attributes) {
+
+        var body = "var name = \"" + name + "\";\nreturn this['x:data'][name] || this.defaultValue(name);";
+
+        return new Function(body);
+    };
+
+    function setter(name, attributes) {
+
+        var body = "var storage = this['x:data'], cache, name = '" + name + "';\n"
+
+            + flyingon["x:define:initialize"]
+            + "var oldValue = storage[name];\n"
+
+            + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
+
+            + "if (oldValue !== value)\n"
+            + "{\n"
+
+            + flyingon["x:define:change"]
+
+            + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
+            + "if (!original.hasOwnProperty(name))\n"
+            + "{\n"
+            + "original[name] = oldValue;\n"
+            + "}\n"
+
+            + "storage[name] = value;\n"
+
+            + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
+
+            + flyingon["x:define:binding"]
+
+            + "}\n"
+
+            + "return this;\n";
 
 
-        function getter(name, attributes) {
-
-            var body = "var name = \"" + name + "\";\n"
-
-                + "return this['x:storage']['data'][name] || this.getDefaultValue(name);";
-
-            return this["get_" + name] = new Function(body);
-        };
-
-        function setter(name, attributes) {
-
-            var body = "var storage = this['x:storage']['data'], cache, name = '" + name + "';\n"
-
-                + this["y:define:setter:initialize"]
-                + "var oldValue = storage[name];\n"
-
-                + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
-
-                + "if (oldValue !== value)\n"
-                + "{\n"
-
-                + this["y:define:setter:change"]
-
-                + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
-                + "if (!original.hasOwnProperty(name))\n"
-                + "{\n"
-                + "original[name] = oldValue;\n"
-                + "}\n"
-
-                + "storage[name] = value;\n"
-
-                + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
-
-                + this["y:define:setter:bindingTo"]
-
-                + "}\n"
-
-                + "return this;\n";
+        return new Function("value", body);
+    };
 
 
-            return this["set_" + name] = new Function("value", body);
-        };
 
 
-        this.defineDataProperty = function (name, defaultValue, attributes) {
+    Class.create = function () {
 
-            if (defaultValue !== undefined)
+        this["x:data"] = {};
+    };
+
+
+
+    this.defineDataProperty = function (name, defaultValue, attributes) {
+
+
+        defaultValue !== undefined && (this["x:defaults"][name] = defaultValue);
+
+        var schema = this["x:schema"] || (this["x:schema"] = {});
+
+        attributes = schema[name] = flyingon["x:define:attributes"](attributes);
+        attributes.defaultValue = defaultValue;
+
+        flyingon.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
+        return this;
+    };
+
+    this.removeDataProperty = function (name) {
+
+        delete this["x:data"][name];
+
+        var schema = this["x:schema"];
+        if (schema)
+        {
+            delete schema[name];
+        }
+    };
+
+
+
+    //值变更事件
+    this.defineEvent("change");
+
+
+
+    //数据
+    this.defineProperty("data",
+
+        function () {
+
+            return this["x:data"];
+        },
+
+        function (value) {
+
+            var oldValue = this["x:data"];
+            if (oldValue != value)
             {
-                this["x:class"]["x:defaults"][name] = defaultValue;
+                this["x:data"] = value;
+                this.dispatchEvent("change", "name", value, oldValue);
             }
-
-            var storage = this["x:storage"];
-
-            attributes = (storage.schema || (storage.schema = {}))[name] = this["y:parse:attributes"](attributes);
-            attributes.defaultValue = defaultValue;
-
-            $.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
-            return this;
-        };
-
-        this.removeDataProperty = function (name) {
-
-            delete this[name];
-            delete this["x:storage"].schema[name];
-        };
-
-
-
-        //数据结构
-        this.defineProperty("schema", null);
-
-        //数据
-        this.defineProperty("data", null);
-
-        //获取数据
-        this.getData = function (name) {
-
-            return (this["get_" + name] || this.defineDataProperty(name)["get_" + name]).call(this);
-        };
-
-        //修改数据
-        this.setData = function (name, value) {
-
-            return (this["set_" + name] || this.defineDataProperty(name)["set_" + name]).call(this, value);
-        };
-
-        //获取原始数据
-        this.getOriginalData = function (name) {
-
-            var data = this["x:storage"]["data"],
-                original = data["x:original"];
-
-            return (original && original.hasOwnProperty(name) ? original[name] : data[name]) || null;
-        };
-
-        this.hasChanged = function (name) {
-
-            var data = this["x:storage"]["data"]["x:original"];
-            return data && (!name || data.hasOwnProperty(name));
-        };
-
-        this.acceptChanges = function () {
-
-            this["x:storage"]["data"]["x:original"] = null;
-        };
-
-        this.rejectChanges = function () {
-
-            var storage = this["x:storage"],
-                data = storage["data"],
-                original = data["x:original"];
-
-            if (original)
-            {
-                data["x:original"] = null;
-                storage["data"] = original;
-            }
-        };
-
-    });
-
-
-
-
-
-    //
-    $.class("DataArray", $.DataObject, function (Class, $) {
-
-
-
-        this.ondataadd = null;
-
-        this.ondataremove = null;
-
-
-
-
-        //当前位置
-        this.defineProperty("position", 0, {
-
-            valueChangingCode: "if (value < 0) { value = 0; } else if (value >= storage.length) { value = storage.length - 1; }",
         });
 
 
-        this.append = function (item) {
+    //获取或设置存储的值
+    this.value = function (name, value) {
+
+        if (value === undefined)
+        {
+            return this["x:storage"][name];
+        }
+
+        this["x:storage"][name] = value;
+        return this;
+    };
+
+    //获取或设值
+    this.value = function (name, value) {
+
+        var data = this["x:data"];
+
+        if (value === undefined)
+        {
+            return (data && data[name]) || this[name];
+        }
+
+        data[name] = value;
+        return this;
+    };
+
+    //获取原始值
+    this.originalValue = function (name) {
+
+        var data = this["x:data"],
+            original = data["x:original"];
+
+        return (original && original[name]) || data[name];
+    };
+
+    this.hasChanged = function (name) {
+
+        var data = this["x:data"]["x:original"];
+        return data && (!name || data.hasOwnProperty(name));
+    };
+
+    this.acceptChanges = function () {
+
+        this["x:data"]["x:original"] = null;
+    };
+
+    this.rejectChanges = function () {
+
+        var data = this["x:data"],
+            original = data["x:original"];
+
+        if (original)
+        {
+            data["x:original"] = null;
+            this["x:data"] = original;
+        }
+    };
 
 
-        };
 
-        this.insert = function (index, item) {
+    //自定义序列化
+    this.serialize = function (writer) {
 
-        };
+        flyingon.DataObject.super.serialize.call(this, writer);
+        this["y:serialize:data"](writer);
+    };
 
-        this.remove = function (item) {
+    this["y:serialize:data"] = function (writer) {
 
-        };
+        writer.object("data", this["x:data"]);
+    };
 
-        this.removeAt = function (index) {
+    this.deserialize = function (reader, data) {
 
-        };
+        flyingon.DataObject.super.deserialize.call(this, reader, data);
+        this["y:deserialize:data"](reader, data);
+    };
 
+    this["y:deserialize:data"] = function (reader, data) {
+
+        reader.object(this, "x:data", data.data);
+    };
+
+}, true);
+
+
+
+
+//
+flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
+
+
+
+    this.ondataadd = null;
+
+    this.ondataremove = null;
+
+
+
+
+    //当前位置
+    this.defineProperty("position", 0, {
+
+        valueChangingCode: "if (value < 0) value = 0; else if (value >= storage.length) value = storage.length - 1;",
     });
 
 
 
-})(flyingon);
+
+    //数据结构
+    this.defineProperty("schema", function () {
+
+        return this["x:schema"];
+    });
+
+
+
+    this.append = function (item) {
+
+
+    };
+
+    this.insert = function (index, item) {
+
+    };
+
+    this.remove = function (item) {
+
+    };
+
+    this.removeAt = function (index) {
+
+    };
+
+}, true);
+
+
 
 
 
 ﻿
 ///Ajax实现
-(function (global, $) {
+(function (global, flyingon) {
 
 
     var ajax_fn = null, //ajax创建函数
@@ -2680,7 +2854,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
         if (!ajax_fn)
         {
-            items = [
+            var items = [
 
                 function () { return new XMLHttpRequest(); },
                 function () { return new ActiveXObject("Microsoft.XMLHTTP"); },
@@ -2709,7 +2883,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     };
 
 
-    $.encodeURL = function (url, json) {
+    flyingon.encodeURL = function (url, json) {
 
         if (url && json)
         {
@@ -2749,7 +2923,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                 switch (options.dataType || defaults.dataType)
                 {
                     case "json":
-                        options.response = $.parseJson(target.responseText);
+                        options.response = flyingon.parseJson(target.responseText);
                         break;
 
                     case "script":
@@ -2765,24 +2939,18 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                         break;
                 }
 
-                if (fn = options.success)
-                {
-                    fn(target, options.response);
-                }
+                (fn = options.success) && fn(target, options.response);
             }
             else
             {
                 (options["error"] || defaults["error"])(target);
             }
 
-            if (fn = options.complete)
-            {
-                fn(target, options.response);
-            }
+            (fn = options.complete) && fn(target, options.response);
         }
         else if (fn = options.progress)
         {
-            fn(++(options.progressValue || (options.progressValue = 0)));
+            fn(options.progressValue ? ++options.progressValue : (options.progressValue = 1));
         }
     };
 
@@ -2826,7 +2994,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
     }
     */
-    $.ajax = function (options) {
+    flyingon.ajax = function (options) {
 
         var type = options.type || defaults.type,
             result = ajax_fn ? ajax_fn() : ajax(),
@@ -2838,11 +3006,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             options.timer = setTimeout(function () {
 
                 result.abort();
-
-                if (options.abort)
-                {
-                    options.abort(result);
-                }
+                options.abort && options.abort(result);
 
             }, options.timeout);
         }
@@ -2851,10 +3015,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
         result.onreadystatechange = response;
         result.open(type, options.url, async, options.user, options.password);
 
-        if (type == "POST" || type == "PUT")
-        {
-            result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
-        }
+        (type == "POST" || type == "PUT") && result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
 
         if (options.headers)
         {
@@ -2869,23 +3030,23 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     };
 
 
-    $.get = function (url, options) {
+    flyingon.get = function (url, options) {
 
         (options || (options = {})).url = url;
         options.type = "GET";
 
-        return $.ajax(options);
+        return flyingon.ajax(options);
     };
 
-    $.post = function (url, options) {
+    flyingon.post = function (url, options) {
 
         (options || (options = {})).url = url;
         options.type = "POST";
 
-        return $.ajax(options);
+        return flyingon.ajax(options);
     };
 
-    $.require = function (url) {
+    flyingon.require = function (url) {
 
         if (url)
         {
@@ -2897,7 +3058,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                 async: false
             };
 
-            $.ajax(options);
+            flyingon.ajax(options);
             return options.response;
         };
     };
@@ -2933,10 +3094,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
     this.registry = function (args) {
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        };
+        timer && clearTimeout(timer);
 
         data = args;
         timer = setTimeout(this.execute, this.interval);
@@ -2965,19 +3123,19 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
-    $.Point = function (x, y) {
+    var prototype = (flyingon.Point = function (x, y) {
 
         this.x = x || 0;
         this.y = y || 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Point.prototype;
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ x:" + this.x + ", y:" + this.y + " }";
     };
@@ -2988,19 +3146,19 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
-    $.Size = function (width, height) {
+    var prototype = (flyingon.Size = function (width, height) {
 
         this.width = width || 0;
         this.height = height || 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Size.prototype;
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ width:" + this.width + ", height:" + this.height + " }";
     };
@@ -3011,10 +3169,10 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
-    $.Rect = function (x, y, width, height) {
+    var prototype = (flyingon.Rect = function (x, y, width, height) {
 
         if (arguments.length > 0)
         {
@@ -3023,34 +3181,39 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
             this.width = width || 0;
             this.height = height || 0;
         }
-    };
 
-    var p = $.Rect.prototype;
+    }).prototype;
 
-    p.x = 0;
 
-    p.y = 0;
 
-    p.width = 0;
+    prototype.x = 0;
 
-    p.height = 0;
+    prototype.y = 0;
 
-    $.defineProperty(p, "right", function () {
+    prototype.width = 0;
+
+    prototype.height = 0;
+
+
+
+    flyingon.defineProperty(prototype, "right", function () {
 
         return this.x + this.width;
     });
 
-    $.defineProperty(p, "bottom", function () {
+    flyingon.defineProperty(prototype, "bottom", function () {
 
         return this.y + this.height;
     });
 
-    p.copy = function () {
 
-        return new $.Rect(this.x, this.y, this.width, this.height);
+
+    prototype.copy = function (width_delta, height_delta) {
+
+        return new flyingon.Rect(this.x, this.y, this.width + (width_delta || 0), this.height + (height_delta || 0));
     };
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ x:" + this.x + ", y:" + this.y + ", width:" + this.width + ", height:" + this.height + " }";
     };
@@ -3061,7 +3224,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
     //角度转弧度系数
@@ -3075,7 +3238,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     //d	垂直缩放绘图
     //e	水平移动绘图
     //f	垂直移动绘图
-    $.Matrix = function () {
+    var prototype = (flyingon.Matrix = function () {
 
         this.a = 1;
 
@@ -3088,12 +3251,11 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         this.e = 0;
 
         this.f = 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Matrix.prototype;
-
-    p.fromArray = function (array) {
+    prototype.fromArray = function (array) {
 
         this.a = array[0];
         this.b = array[1];
@@ -3105,24 +3267,24 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         return this;
     };
 
-    p.toArray = function () {
+    prototype.toArray = function () {
 
         return [this.a, this.b, this.c, this.d, this.e, this.f];
     };
 
-    p.translate = function (x, y) {
+    prototype.translate = function (x, y) {
 
         this.append(1, 0, 0, 1, x, y);
         return this;
     };
 
-    p.scale = function (scaleX, scaleY) {
+    prototype.scale = function (scaleX, scaleY) {
 
         this.append(scaleX, 0, 0, scaleY, 0, 0);
         return this;
     };
 
-    p.rotate = function (angle) {
+    prototype.rotate = function (angle) {
 
         angle *= radian;
 
@@ -3133,7 +3295,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         return this;
     };
 
-    p.skew = function (skewX, skewY) {
+    prototype.skew = function (skewX, skewY) {
 
         var x = Math.Tan(skewX * n);
         var y = Math.Tan(skewY * n);
@@ -3142,7 +3304,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         return this;
     };
 
-    p.append = function (a, b, c, d, e, f) {
+    prototype.append = function (a, b, c, d, e, f) {
 
         var a1 = this.a;
         var b1 = this.b;
@@ -3160,7 +3322,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     };
 
 
-    p.transform = function (x, y) {
+    prototype.transform = function (x, y) {
 
         return {
             x: Math.round(x * this.a + y * this.b + this.e, 0),
@@ -3168,7 +3330,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         };
     };
 
-    p.reverse = function (x, y) {
+    prototype.reverse = function (x, y) {
 
         return {
             x: Math.round((this.b * y - this.d * x + this.d * this.e - this.b * this.f) / (this.c * this.b - this.a * this.d)),
@@ -3185,12 +3347,12 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 ﻿/*
 枚举定义
 */
-(function ($) {
+(function (flyingon) {
 
 
 
     //显示方式
-    $.Visibility = {
+    flyingon.Visibility = {
 
         //显示
         visible: "visible",
@@ -3206,7 +3368,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //停靠方式
-    $.Dock = {
+    flyingon.Dock = {
 
         //左
         left: "left",
@@ -3228,26 +3390,45 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //拉伸方式
-    $.Stretch = {
+    flyingon.Stretch = {
 
         //不拉伸
-        none: "n",
+        no: "no",
 
-        //水平拉伸
-        horizontal: "x",
+        //宽度拉伸
+        width: "width",
 
-        //垂直拉伸
-        vertical: "y",
+        //高度拉伸
+        height: "height",
 
         //全部拉伸
-        all: "xy"
+        all: "all"
+
+    };
+
+
+
+    //自动调整大小方式
+    flyingon.AutoSize = {
+
+        //不调整
+        no: "no",
+
+        //宽度调整
+        width: "width",
+
+        //高度调整
+        height: "height",
+
+        //全部调整
+        all: "all"
 
     };
 
 
 
     //水平对齐方式
-    $.HorizontalAlign = {
+    flyingon.HorizontalAlign = {
 
         //左对齐
         left: "left",
@@ -3263,7 +3444,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //垂直对齐方式
-    $.VerticalAlign = {
+    flyingon.VerticalAlign = {
 
         //顶部对齐
         top: "top",
@@ -3280,7 +3461,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //布局方式
-    $.Layout = {
+    flyingon.Layout = {
 
         //单行排列
         row: "row",
@@ -3317,7 +3498,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //滚动条显示方式
-    $.ScrollBarVisibility = {
+    flyingon.ScrollBarVisibility = {
 
         //自动显示或隐藏
         auto: "auto",
@@ -3340,32 +3521,30 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 ﻿
 //文字片段
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.TextSnippet = function (font, text) {
+    var prototype = (flyingon.TextSnippet = function (font, text) {
 
         this.font = font;
         this.text = text;
-    };
 
+    }).prototype = [];
 
-
-    var p = $.TextSnippet.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文字段宽度
-    p.width = 0;
+    prototype.width = 0;
 
 
     //测量单词中每一个字符占用的宽度
@@ -3379,15 +3558,12 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
         var result = [],
             cache = font["x:cache"],
-            context = font["x:context"],
-
-            i = 0,
-            length = text.length;
+            context = font["x:context"];
 
 
-        while (i < length)
+        for (var i = 0, length = text.length; i < length; i++)
         {
-            var char = text[i++];
+            var char = text[i];
             result.push(cache[char] || (cache[char] = context.measureText(char).width));
         }
 
@@ -3399,15 +3575,12 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
         var value = 0,
             chars = this.chars = measureText(this.font, this.text),
-            cache = this.cache = [0],
-
-            i = 0,
-            length = chars.length;
+            cache = this.cache = [0];
 
 
-        while (i < length)
+        for (var i = 0, length = chars.length; i < length; i++)
         {
-            cache.push(value += chars[i++]);
+            cache.push(value += chars[i]);
         }
 
         return cache;
@@ -3417,26 +3590,16 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //获取指定位置的字符索引
-    p.charAt = function (x) {
+    prototype.charAt = function (x) {
 
-        if (this.unit) //等宽字体
-        {
-            return Math.round(x / this.unit);
-        }
-
-        return (this.cache || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this.cache || initialize.call(this)).binaryBetween(x);
     };
 
 
     //获取指定字符索引的相对位置
-    p.position = function (charIndex) {
+    prototype.position = function (charIndex) {
 
-        if (this.unit) //等宽字体
-        {
-            return charIndex * this.unit;
-        }
-
-        return (this.cache || initialize.call(this))[charIndex];
+        return this.unit ? charIndex * this.unit : (this.cache || initialize.call(this))[charIndex];
     };
 
 
@@ -3449,51 +3612,46 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 ﻿//文本行
-(function ($) {
+(function (flyingon) {
 
 
-    $.TextPiece = function (font, text) {
+    var prototype = (flyingon.TextPiece = function (font, text) {
 
         this.font = font;
         this.text = text;
         this.height = font.lineHeight;
-    };
 
+    }).prototype = [];
 
-    var p = $.TextPiece.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文本行总宽度
-    p.width = 0;
+    prototype.width = 0;
 
     //文本行总高度
-    p.height = 0;
+    prototype.height = 0;
 
 
 
     function initialize() {
 
-        var value1 = 0,
-            value2 = 0,
-            cache1 = this.cache1 = [0],
-            cache2 = this.cache2 = [0],
+        var value_1 = 0,
+            value_2 = 0,
+            cache_1 = this["x:cache:1"] = [0],
+            cache_2 = this["x:cache:2"] = [0];
 
-            i = 0,
-            length = this.length - 1;
-
-
-        while (i < length)
+        for (var i = 0, length = this.length - 1; i < length; i++)
         {
-            var snippet = this[i++];
+            var snippet = this[i];
 
-            cache1.push(value1 += snippet.text.length);     //文本索引
-            cache2.push(value2 += snippet.width);           //位置
+            cache_1.push(value_1 += snippet.text.length);     //文本索引
+            cache_2.push(value_2 += snippet.width);           //位置
         }
 
         return this;
@@ -3513,23 +3671,20 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     //测量文字 以提升canvas的measureText方法性能较差的问题
     //请尽量使用相同的字体对象以获得较好的性能
     //需注意此方法对内存占用有一定的影响 在IE下可能存在一定的误差(IE的字体渲染有问题:分段测量值的和<>直接测量值???)
-    p.measureText = function () {
+    prototype.measureText = function () {
 
         var font = this.font,
             cache = font["x:cache"],
             context = font["x:context"],
             chinese = cache["汉"],
             values = this.text.match(regex_measure) || [""],
-            x = 0,
-
-            i = 0,
-            length = values.length;
+            x = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = values.length; i < length; i++)
         {
-            var text = values[i++],
-                snippet = new $.TextSnippet(font, text);
+            var text = values[i],
+                snippet = new flyingon.TextSnippet(font, text);
 
 
             if (text[0] > "\u2e80") //东方字符类
@@ -3556,11 +3711,12 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //获取指定索引的测量信息
-    p.locate = function (columnIndex) {
+    prototype.find = function (columnIndex) {
 
         if (columnIndex >= this.text.length)
         {
             return {
+
                 snippetIndex: this.length - 1,
                 charIndex: this[this.length - 1].text.length,
                 columnIndex: this.text.length,
@@ -3569,29 +3725,28 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         }
 
 
-        if (columnIndex < 0)
-        {
-            columnIndex = 0;
-        }
+        columnIndex < 0 && (columnIndex = 0);
 
-        var index = (this.cache1 || initialize.call(this).cache1).binaryBetween(columnIndex),
+
+        var index = (this["x:cache:1"] || initialize.call(this)["x:cache:1"]).binaryBetween(columnIndex),
             snippet = this[index],
-            charIndex = columnIndex - this.cache1[index];
+            charIndex = columnIndex - this["x:cache:1"][index];
 
 
         return {
+
             snippetIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this.cache2[index] + snippet.position(charIndex)
+            x: this["x:cache:2"][index] + snippet.position(charIndex)
         };
     };
 
 
     //查找指定位置的测量信息
-    p.locateAt = function (x) {
+    prototype.findAt = function (x) {
 
-        var index = (this.cache2 || initialize.call(this).cache2).binaryBetween(x),
+        var index = (this["x:cache:2"] || initialize.call(this)["x:cache:2"]).binaryBetween(x),
             snippet = this[index],
             charIndex,
             x;
@@ -3604,15 +3759,16 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         }
         else
         {
-            charIndex = snippet.charAt(x - this.cache2[index]);
-            x = this.cache2[index] + snippet.position(charIndex);
+            charIndex = snippet.charAt(x - this["x:cache:2"][index]);
+            x = this["x:cache:2"][index] + snippet.position(charIndex);
         }
 
 
         return {
+
             snippetIndex: index,
             charIndex: charIndex,
-            columnIndex: this.cache1[index] + charIndex,
+            columnIndex: this["x:cache:1"][index] + charIndex,
             x: x
         };
     };
@@ -3628,45 +3784,42 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 ﻿
 
 //文本测量
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.TextMetrics = function (ownerControl) {
+    var prototype = (flyingon.TextMetrics = function (ownerControl) {
 
         this.ownerControl = ownerControl;
-    };
 
+    }).prototype = [];
 
-
-
-    var p = $.TextMetrics.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本
-    p.text = null;
+    prototype.text = null;
 
     //最大宽度
-    p.width = 0;
+    prototype.width = 0;
 
     //最大高度
-    p.height = 0;
+    prototype.height = 0;
 
     //是否多行
-    p.multiline = false;
+    prototype.multiline = false;
 
 
     //开始选中位置
-    p.selectionStart = 0;
+    prototype.selectionStart = 0;
 
     //结束选中位置
-    p.selectionEnd = 0;
+    prototype.selectionEnd = 0;
 
     //选中文本
-    p.selectedText = "";
+    prototype.selectedText = "";
 
 
 
@@ -3675,10 +3828,10 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
     function initialize() {
 
-        var value1 = 0,
-            value2 = 0,
-            cache1 = this.cache1 = [0],
-            cache2 = this.cache2 = [0],
+        var value_1 = 0,
+            value_2 = 0,
+            cache_1 = this["x:cache:1"] = [0],
+            cache_2 = this["x:cache:2"] = [0],
             length = this.length - 1;
 
 
@@ -3686,8 +3839,8 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         {
             var line = this[i];
 
-            cache1.push(value1 += line.text.length);     //文本索引
-            cache2.push(value2 += line.height);          //位置
+            cache_1.push(value_1 += line.text.length);     //文本索引
+            cache_2.push(value_2 += line.height);          //位置
         }
 
         return this;
@@ -3696,7 +3849,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-    p.measureText = function (font, text, multiline) {
+    prototype.measureText = function (font, text, multiline) {
 
         this.font = font;
         this.text = text;
@@ -3713,23 +3866,16 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
         if (text)
         {
-            var values = multiline ? text.split(/\r?\n/g) : [text.replace(/[\r\n]?/g, "")],
+            var values = multiline ? text.split(/\r?\n/g) : [text.replace(/[\r\n]?/g, "")];
 
-                i = 0,
-                length = values.length;
-
-
-            while (i < length)
+            for (var i = 0, length = values.length; i < length; i++)
             {
-                var piece = new $.TextPiece(font, values[i++]);
+                var piece = new flyingon.TextPiece(font, values[i]);
+
                 piece.measureText();
                 this.push(piece);
 
-                if (this.width < piece.width) //最大宽度
-                {
-                    this.width = piece.width;
-                }
-
+                this.width < piece.width && (this.width = piece.width); //最大宽度
                 this.height += piece.height;
             }
         }
@@ -3742,17 +3888,13 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //获取指定索引的字符信息
-    p.locate = function (textIndex) {
+    prototype.find = function (textIndex) {
 
-        if (textIndex < 0)
-        {
-            textIndex = 0;
-        }
+        textIndex < 0 && (textIndex = 0);
 
-
-        var index = (this.cache1 || initialize.call(this).cache1).binaryBetween(textIndex),
-            start = this.cache1[index],
-            result = this[index].locate(textIndex - start);
+        var index = (this["x:cache:1"] || initialize.call(this)["x:cache:1"]).binaryBetween(textIndex),
+            start = this["x:cache:1"][index],
+            result = this[index].find(textIndex - start);
 
         result.pieceIndex = index;
         result.textIndex = start + result.columnIndex;
@@ -3762,13 +3904,13 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //查找指定位置的字符信息
-    p.locateAt = function (x, y) {
+    prototype.findAt = function (x, y) {
 
-        var index = (this.cache2 || initialize.call(this).cache2).binaryBetween(y),
-            result = this[index].locateAt(x);
+        var index = (this["x:cache:2"] || initialize.call(this)["x:cache:2"]).binaryBetween(y),
+            result = this[index].findAt(x);
 
         result.pieceIndex = index;
-        result.textIndex = this.cache1[index] + result.columnIndex;
+        result.textIndex = this["x:cache:1"][index] + result.columnIndex;
 
         return result;
     };
@@ -3796,38 +3938,38 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //移动至指定坐标
-    p.moveAt = function (x, y) {
+    prototype.moveAt = function (x, y) {
 
-        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.locateAt(x, y);
+        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.findAt(x, y);
         this.selectionStart = this.selectionEnd = this.caretStart.textIndex;
         this.selectedText = "";
     };
 
 
     //选择至指定坐标
-    p.selectionAt = function (x, y) {
+    prototype.selectionAt = function (x, y) {
 
-        this.caretEnd = this.caretMax = this.locateAt(x, y);
+        this.caretEnd = this.caretMax = this.findAt(x, y);
         selectionEnd.call(this);
     };
 
 
-    p.moveTo = function (textIndex) {
+    prototype.moveTo = function (textIndex) {
 
-        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.locate(textIndex);
+        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.find(textIndex);
         this.selectionStart = this.selectionEnd = this.caretStart.textIndex;
         this.selectedText = "";
     };
 
 
-    p.selectionTo = function (textIndex) {
+    prototype.selectionTo = function (textIndex) {
 
-        this.caretEnd = this.caretMax = this.locate(textIndex);
+        this.caretEnd = this.caretMax = this.find(textIndex);
         selectionEnd.call(this);
     };
 
 
-    p.replace = function (text) {
+    prototype.replace = function (text) {
 
         var ownerControl = this.ownerControl;
 
@@ -3846,7 +3988,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
             end = index2 + 1 < this.length ? this[index2 + 1].text : "";
 
 
-            var piece = new $.TextPiece(this.font, text);
+            var piece = new flyingon.TextPiece(this.font, text);
             piece.measureText();
 
             this.splice(index1, index2 - index1 + 1, piece);
@@ -3864,13 +4006,9 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     };
 
 
-    p.remove = function (length) {
+    prototype.remove = function (length) {
 
-        if (!this.selectedText) //未选择
-        {
-            this.selectionTo(this.selectionEnd + length);
-        }
-
+        !this.selectedText && this.selectionTo(this.selectionEnd + length); //未选择
         return this.replace("");
     };
 
@@ -3886,20 +4024,15 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
 
-    $.Text = function () {
+    var prototype = (flyingon.Text = function () {
 
 
-    };
-
-
-
-
-    var p = $.Text.prototype;
+    }).prototype;
 
 
 
@@ -3915,18 +4048,19 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.Font = function (style, variant, weight, size, family) {
+    var prototype = (flyingon.Font = function (style, variant, weight, size, family) {
 
         if (arguments.length > 0)
         {
             this["x:storage"] = [style, variant, weight, size, family];
             initialize.call(this);
         }
-    };
+
+    }).prototype;
 
 
 
@@ -3957,15 +4091,13 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
 
-    var p = $.Font.prototype,
+    var defineProperty = function (name, index) {
 
-        defineProperty = function (name, index) {
+        flyingon.defineProperty(prototype, name, function () {
 
-            $.defineProperty(p, name, function () {
-
-                return this["x:storage"][index];
-            });
-        };
+            return this["x:storage"][index];
+        });
+    };
 
 
 
@@ -3988,7 +4120,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     defineProperty("value", 5);
 
     //行高
-    p.lineHeight = 12;
+    prototype.lineHeight = 12;
 
 
     ////start     文本在指定的位置开始
@@ -3996,7 +4128,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     ////center    文本的中心被放置在指定的位置
     ////left      文本左对齐
     ////right     文本右对齐
-    //p.align = "start";
+    //prototype.align = "start";
 
     ////alphabetic    文本基线是普通的字母基线
     ////top           文本基线是 em 方框的顶端
@@ -4004,15 +4136,15 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     ////middle        文本基线是 em 方框的正中
     ////ideographic   文本基线是表意基线
     ////bottom        文本基线是 em 方框的底端
-    //p.baseline = "alphabetic";
+    //prototype.baseline = "alphabetic";
 
 
 
 
     //以当前字体为原型衍生出新字体  properties : { style:XXX, variant:XXX, weight:XXX, size:XXX, family:XXX }
-    p.derive = function (properties) {
+    prototype.derive = function (properties) {
 
-        var result = new $.Font(),
+        var result = new flyingon.Font(),
             data = result["x:storage"] = this["x:storage"].slice(0, 4);
 
         data[0] = properties.style || data[0];
@@ -4028,31 +4160,24 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
 
     //根据当前字体衍生出粗体
-    p.deriveBold = function () {
+    prototype.deriveBold = function () {
 
         return this["bold"] = this.derive({ weight: "bold" });
     };
 
     //根据当前字体衍生出斜体
-    p.deriveItalic = function () {
+    prototype.deriveItalic = function () {
 
         return this["italic"] = this.derive({ style: "italic" });
     };
 
     //根据当前字体衍生出粗斜体
-    p.deriveBoldItalic = function () {
+    prototype.deriveBoldItalic = function () {
 
         var result = this.derive({ weight: "bold", style: "italic" });
 
-        if (this["bold"])
-        {
-            this["bold"]["italic"] = result;
-        }
-
-        if (this["italic"])
-        {
-            this["italic"]["bold"] = result;
-        }
+        this["bold"] && (this["bold"]["italic"] = result);
+        this["italic"] && (this["italic"]["bold"] = result);
 
         return this["bold-italic"] = result;
     };
@@ -4073,7 +4198,7 @@ Canvas2D绘图扩展
 
 */
 
-(function ($) {
+(function (flyingon) {
 
 
 
@@ -4082,7 +4207,7 @@ Canvas2D绘图扩展
     转成RGB颜色
 
     */
-    $.toRGBString = function (r, g, b, alpha) {
+    flyingon.toRGBString = function (r, g, b, alpha) {
 
         if (arguments.length <= 2)
         {
@@ -4104,7 +4229,7 @@ Canvas2D绘图扩展
     转成HSL颜色
 
     */
-    $.toHSLString = function (hue, saturation, lightness, alpha) {
+    flyingon.toHSLString = function (hue, saturation, lightness, alpha) {
 
         if (alpha == null)
         {
@@ -4121,7 +4246,7 @@ Canvas2D绘图扩展
     线性渐变
 
     */
-    $.LinearGradient = function (x0, y0, x1, y1, colorStops) {
+    var LinearGradient = flyingon.LinearGradient = function (x0, y0, x1, y1, colorStops) {
 
         this.x0 = x0;
         this.y0 = y0;
@@ -4130,7 +4255,7 @@ Canvas2D绘图扩展
         this.colorStops = colorStops;
     };
 
-    $.LinearGradient.prototype.createBrush = function (context) {
+    LinearGradient.prototype.createBrush = function (context) {
 
         var r = context.boxModel.innerRect,
 
@@ -4158,7 +4283,7 @@ Canvas2D绘图扩展
     径向渐变
 
     */
-    $.RadialGradient = function (x0, y0, r0, x1, y1, r1, colorStops) {
+    var RadialGradient = flyingon.RadialGradient = function (x0, y0, r0, x1, y1, r1, colorStops) {
 
         this.x0 = x0;
         this.y0 = y0;
@@ -4169,7 +4294,7 @@ Canvas2D绘图扩展
         this.colorStops = colorStops;
     };
 
-    $.RadialGradient.prototype.createBrush = function (context) {
+    RadialGradient.prototype.createBrush = function (context) {
 
         var r = context.boxModel.innerRect,
 
@@ -4196,13 +4321,13 @@ Canvas2D绘图扩展
     图像填充模式
 
     */
-    $.ImagePattern = function (image, repetition) {
+    var ImagePattern = flyingon.ImagePattern = function (image, repetition) {
 
         this.image = image;
         this.repetition = repetition;
     };
 
-    $.ImagePattern.prototype.createBrush = function (context) {
+    ImagePattern.prototype.createBrush = function (context) {
 
         return context.createPattern(this.image, this.repetition);
     };
@@ -4214,25 +4339,25 @@ Canvas2D绘图扩展
     加载主题
 
     */
-    $.loadTheme = function (themeName) {
+    flyingon.loadTheme = function (themeName) {
 
-        $.require("/themes/" + (themeName || $.setting.themeName || "default") + ".js");
-        ($.styles["Control"] || ($.styles["Control"] = {}))["x:cache"] = true; //缓存标记
+        flyingon.require("/themes/" + (themeName || flyingon.setting.themeName || "default") + ".js");
+        (flyingon.styles["Control"] || (flyingon.styles["Control"] = {}))["x:cache"] = true; //缓存标记
     };
 
-    $.loadTheme();
+    flyingon.loadTheme();
 
 
 
 
 
-    var colors = $.colors, //系统颜色
+    var colors = flyingon.colors, //系统颜色
 
-        fonts = $.fonts, //系统字体
+        fonts = flyingon.fonts, //系统字体
 
         radian = Math.PI / 180, //角度转弧度系数
 
-        p = CanvasRenderingContext2D.prototype;
+        prototype = CanvasRenderingContext2D.prototype;
 
 
 
@@ -4253,14 +4378,14 @@ Canvas2D绘图扩展
             return this;
         };
 
-    }, p);
+    }, prototype);
 
 
 
     /*    
     set_shadowColor(color) = "#000000"	设置或返回用于阴影的颜色 
     */
-    p.set_shadowColor = function (color) {
+    prototype.set_shadowColor = function (color) {
 
         this.shadowColor = color;
         return this;
@@ -4269,7 +4394,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowBlur(number) = 0	    设置或返回用于阴影的模糊级别 
     */
-    p.set_shadowBlur = function (value) {
+    prototype.set_shadowBlur = function (value) {
 
         this.shadowBlur = value;
         return this;
@@ -4278,7 +4403,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowOffsetX(number) = 0	设置或返回阴影距形状的水平距离 
     */
-    p.set_shadowOffsetX = function (value) {
+    prototype.set_shadowOffsetX = function (value) {
 
         this.shadowOffsetX = value;
         return this;
@@ -4287,7 +4412,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowOffsetY(number) = 0	设置或返回阴影距形状的垂直距离 
     */
-    p.set_shadowOffsetY = function (value) {
+    prototype.set_shadowOffsetY = function (value) {
 
         this.shadowOffsetY = value;
         return this;
@@ -4296,7 +4421,7 @@ Canvas2D绘图扩展
     /* 
     set_lineCap("butt|round|square") = "butt"	    设置或返回线条的结束端点样式 
     */
-    p.set_lineCap = function (value) {
+    prototype.set_lineCap = function (value) {
 
         this.lineCap = value;
         return this;
@@ -4305,7 +4430,7 @@ Canvas2D绘图扩展
     /* 
     set_lineJoin("bevel|round|miter") = "miter"	    设置或返回两条线相交时 所创建的拐角类型 
     */
-    p.set_lineJoin = function (value) {
+    prototype.set_lineJoin = function (value) {
 
         this.lineJoin = value;
         return this;
@@ -4314,7 +4439,7 @@ Canvas2D绘图扩展
     /* 
     set_lineWidth(number) = 1	    设置或返回当前的线条宽度 
     */
-    p.set_lineWidth = function (value) {
+    prototype.set_lineWidth = function (value) {
 
         this.lineWidth = value;
         return this;
@@ -4323,7 +4448,7 @@ Canvas2D绘图扩展
     /* 
     set_miterLimit(number) = 10	    设置或返回最大斜接长度 
     */
-    p.set_miterLimit = function (value) {
+    prototype.set_miterLimit = function (value) {
 
         this.miterLimit = value;
         return this;
@@ -4332,7 +4457,7 @@ Canvas2D绘图扩展
     /* 
     set_font("italic small-caps bold 12px arial") = "10px sans-serif"	设置或返回文本内容的当前字体属性 
     */
-    p.set_font = function (value) {
+    prototype.set_font = function (value) {
 
         var font = fonts[value] || value;
 
@@ -4343,7 +4468,7 @@ Canvas2D绘图扩展
     /* 
     set_textAlign("center|end|left|right|start") = "start"	设置或返回文本内容的当前对齐方式 
     */
-    p.set_textAlign = function (value) {
+    prototype.set_textAlign = function (value) {
 
         this.textAlign = value;
         return this;
@@ -4352,7 +4477,7 @@ Canvas2D绘图扩展
     /* 
     set_textBaseline("alphabetic|top|hanging|middle|ideographic|bottom") = "alphabetic"	设置或返回在绘制文本时使用的当前文本基线
     */
-    p.set_textBaseline = function (value) {
+    prototype.set_textBaseline = function (value) {
 
         this.textBaseline = value;
         return this;
@@ -4361,7 +4486,7 @@ Canvas2D绘图扩展
     /* 
     set_globalAlpha(number)	透明值 必须介于0.0(完全透明)与1.0(不透明)之间
     */
-    p.set_globalAlpha = function (value) {
+    prototype.set_globalAlpha = function (value) {
 
         this.globalAlpha = value;
         return this;
@@ -4382,7 +4507,7 @@ Canvas2D绘图扩展
     copy	显示源图像 忽略目标图像 
     source-over	使用异或操作对源图像与目标图像进行组合 
     */
-    p.set_globalCompositeOperation = function (value) {
+    prototype.set_globalCompositeOperation = function (value) {
 
         this.globalCompositeOperation = value;
         return this;
@@ -4490,7 +4615,7 @@ Canvas2D绘图扩展
     /****************************以下为方法扩展********************************/
 
 
-    p.drawBorder = function (x, y, width, height, border) {
+    prototype.drawBorder = function (x, y, width, height, border) {
 
         this.beginPath();
 
@@ -4504,7 +4629,7 @@ Canvas2D绘图扩展
 
 
 
-    p.rectTo = function (x, y, width, height, anticlockwise) {
+    prototype.rectTo = function (x, y, width, height, anticlockwise) {
 
         var right = x + width,
             bottom = y + height;
@@ -4536,7 +4661,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.roundRect = function (x, y, width, height, radius, anticlockwise) {
+    prototype.roundRect = function (x, y, width, height, radius, anticlockwise) {
 
         var right = x + width,
             bottom = y + height;
@@ -4583,7 +4708,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.fillRoundRect = function (x, y, width, height, radius) {
+    prototype.fillRoundRect = function (x, y, width, height, radius) {
 
         this.beginPath();
         this.roundRect(x, y, width, height, radius);
@@ -4598,7 +4723,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.strokeRoundRect = function (x, y, width, height, radius) {
+    prototype.strokeRoundRect = function (x, y, width, height, radius) {
 
         this.beginPath();
         this.roundRect(x, y, width, height, radius);
@@ -4607,7 +4732,7 @@ Canvas2D绘图扩展
 
 
     //多边形
-    p.polygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.polygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         var delta = (anticlockwise ? -2 : 2) * Math.PI / sides;
 
@@ -4622,14 +4747,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillPolygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.fillPolygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         this.beginPath();
         this.polygon(sides, x, y, radius, angle, anticlockwise);
         this.fill();
     };
 
-    p.strokePolygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.strokePolygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         this.beginPath();
         this.polygon(sides, x, y, radius, angle, anticlockwise);
@@ -4638,7 +4763,7 @@ Canvas2D绘图扩展
 
 
 
-    p.starPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.starPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         var delta = (anticlockwise ? -1 : 1) * Math.PI / vertexes;
 
@@ -4656,14 +4781,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.fillStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         this.beginPath();
         this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
         this.fill();
     };
 
-    p.strokeStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.strokeStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         this.beginPath();
         this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
@@ -4672,7 +4797,7 @@ Canvas2D绘图扩展
 
 
 
-    p.ellipse = function (x, y, width, height, anticlockwise) {
+    prototype.ellipse = function (x, y, width, height, anticlockwise) {
 
         var controlX = width / 1.5,  //控制点x(width / 0.75) / 2
             controlY = height / 2;   //控制点y
@@ -4691,14 +4816,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillEllipse = function (x, y, width, height) {
+    prototype.fillEllipse = function (x, y, width, height) {
 
         this.beginPath();
         this.ellipse(x, y, width, height);
         this.fill();
     };
 
-    p.strokeEllipse = function (x, y, width, height) {
+    prototype.strokeEllipse = function (x, y, width, height) {
 
         this.beginPath();
         this.ellipse(x, y, width, height);
@@ -4708,12 +4833,9 @@ Canvas2D绘图扩展
 
 
     //画虚线
-    p.dashLine = function (x1, y1, x2, y2, dashArray) {
+    prototype.dashLine = function (x1, y1, x2, y2, dashArray) {
 
-        if (!dashArray)
-        {
-            dashArray = [10, 5];
-        }
+        !dashArray && (dashArray = [10, 5]);
 
 
         this.moveTo(x1, y1);
@@ -4730,18 +4852,12 @@ Canvas2D绘图扩展
         while (distRemaining >= 0.1)
         {
             var dashLength = dashArray[index++ % length];
+            dashLength > distRemaining && (dashLength = distRemaining);
 
-            if (dashLength > distRemaining)
-            {
-                dashLength = distRemaining;
-            }
 
             var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
 
-            if (width < 0)
-            {
-                step = -step;
-            }
+            width < 0 && (step = -step);
 
             x1 += step;
             y1 += slope * step;
@@ -4762,7 +4878,7 @@ Canvas2D绘图扩展
     var cache = document.createElement("canvas");
 
     //缓冲绘图
-    p.cache = function (width, height) {
+    prototype.cache = function (width, height) {
 
         cache.width = width;
         cache.height = height;
@@ -4771,7 +4887,7 @@ Canvas2D绘图扩展
     };
 
     //复制至指定目标
-    p.copyTo = function (target, x, y) {
+    prototype.copyTo = function (target, x, y) {
 
         var data = this.getImageData(0, 0, this.canvas.width, this.canvas.height);
         target.putImageData(data, x, y);
@@ -4784,322 +4900,321 @@ Canvas2D绘图扩展
 
 
 
+﻿
+//事件类型基类
+flyingon.class("Event", function (Class, flyingon) {
+
+
+    //事件类型
+    this.type = null;
+
+    //事件目标
+    this.target = null;
+
+    //是否取消冒泡
+    this.cancelBubble = false;
+
+    //是否阻止默认动作
+    this.defaultPrevented = false;
+
+
+
+    this.stopPropagation = function () {
+
+        this.cancelBubble = true;
+    };
+
+    this.preventDefault = function () {
+
+        this.defaultPrevented = true;
+    };
+
+
+});
+
+
+
+
+//鼠标事件类型
+flyingon.class("MouseEvent", flyingon.Event, function (Class, flyingon) {
+
+
+    Class.create = function (type, target, originalEvent) {
+
+        this.type = type;
+        this.target = target;
+        this.originalEvent = originalEvent;
+    };
+
+
+    var target = this,
+
+        defineProperty = function (name) {
+
+            flyingon.defineProperty(target, name, function () {
+
+                return this.originalEvent[name];
+            });
+        };
+
+
+    //是否按下ctrl键
+    defineProperty("ctrlKey");
+
+    //是否按下shift键
+    defineProperty("shiftKey");
+
+    //是否按下alt键
+    defineProperty("altKey");
+
+    //是否按下meta键
+    defineProperty("metaKey");
+
+    //事件触发时间
+    defineProperty("timeStamp");
+
+    //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
+    defineProperty("button");
+
+    //相对屏幕的x坐标
+    defineProperty("screenX");
+
+    //相对屏幕的y坐标
+    defineProperty("screenY");
+
+    //相对窗口客户区的x坐标
+    defineProperty("clientX");
+
+    //相对窗口客户区的y坐标
+    defineProperty("clientY");
+
+
+
+
+
+    function offsetToTarget() {
+
+        var event = this.originalEvent;
+
+        if (!event["x:targetX"])
+        {
+            var offset = this.target["x:boxModel"].offsetToTarget(event["x:offsetX"], event["x:offsetY"]);
+
+            event["x:targetX"] = offset.x;
+            event["x:targetY"] = offset.y;
+        }
+
+        return event;
+    };
+
+
+    function offsetToWindow() {
+
+        var event = this.originalEvent;
+
+        if (!event["x:windowX"])
+        {
+            var offset = this.target["x:boxModel"].offsetToWindow(event["x:offsetX"], event["x:offsetY"]);
+
+            event["x:windowX"] = offset.x;
+            event["x:windowY"] = offset.y;
+        }
+
+        return event;
+    };
+
+
+    function offsetToControl() {
+
+        var event = this.originalEvent;
+
+        if (!event["x:controlX"])
+        {
+            var offset = this.target["x:boxModel"].offsetToControl(event["x:offsetX"], event["x:offsetY"]);
+
+            event["x:controlX"] = offset.x;
+            event["x:controlY"] = offset.y;
+        }
+
+        return event;
+    };
+
+
+
+
+    //x偏移坐标
+    flyingon.defineProperty(this, "offsetX", function () {
+
+        return this.originalEvent["x:offsetX"];
+    });
+
+    //y偏移坐标
+    flyingon.defineProperty(this, "offsetY", function () {
+
+        return this.originalEvent["x:offsetY"];
+    });
+
+
+    //x目标坐标
+    flyingon.defineProperty(this, "targetX", function () {
+
+        return this.originalEvent["x:targetX"] || offsetToTarget.call(this)["x:targetX"];
+    });
+
+    //y目标坐标
+    flyingon.defineProperty(this, "targetY", function () {
+
+        return this.originalEvent["x:targetY"] || offsetToTarget.call(this)["x:targetY"];
+    });
+
+
+    //x窗口坐标
+    flyingon.defineProperty(this, "windowX", function () {
+
+        return this.originalEvent["x:windowX"] || offsetToWindow.call(this)["x:windowX"];
+    });
+
+    //y窗口坐标
+    flyingon.defineProperty(this, "windowY", function () {
+
+        return this.originalEvent["x:windowY"] || offsetToWindow.call(this)["x:windowY"];
+    });
+
+    //x相对坐标
+    flyingon.defineProperty(this, "controlX", function () {
+
+        return this.originalEvent["x:controlX"] || offsetToControl.call(this)["x:controlX"];
+    });
+
+    //y相对坐标
+    flyingon.defineProperty(this, "controlY", function () {
+
+        return this.originalEvent["x:controlY"] || offsetToControl.call(this)["x:controlY"];
+    });
+
+
+
+
+    //鼠标滚轮数据
+    flyingon.defineProperty(this, "wheelDelta", function () {
+
+        return this.originalEvent.wheelDelta || (-this.originalEvent.detail * 40);
+    });
+
+
+}, true);
+
+
+
+
+//拖拉事件类型
+flyingon.class("DragEvent", flyingon.MouseEvent, function (Class, flyingon) {
+
+
+    Class.create = function (type, target, originalEvent) {
+
+        this.dragTargets = [target];
+    };
+
+
+    //拖动目标
+    this.dragTargets = null;
+
+    //接收目标
+    this.dropTarget = null;
+
+
+}, true);
+
+
+
+
+//键盘事件类型
+flyingon.class("KeyEvent", flyingon.Event, function (Class, flyingon) {
+
+
+    Class.create = function (type, target, originalEvent) {
+
+        this.type = type;
+        this.target = target;
+        this.originalEvent = originalEvent || {};
+    };
+
+
+
+    //是否按下ctrl键
+    flyingon.defineProperty(this, "ctrlKey", function () {
+
+        return this.originalEvent["ctrlKey"];
+    });
+
+    //是否按下shift键
+    flyingon.defineProperty(this, "shiftKey", function () {
+
+        return this.originalEvent["shiftKey"];
+    });
+
+    //是否按下alt键
+    flyingon.defineProperty(this, "altKey", function () {
+
+        return this.originalEvent["altKey"];
+    });
+
+    //是否按下meta键
+    flyingon.defineProperty(this, "metaKey", function () {
+
+        return this.originalEvent["metaKey"];
+    });
+
+    //事件触发时间
+    flyingon.defineProperty(this, "timeStamp", function () {
+
+        return this.originalEvent["timeStamp"];
+    });
+
+    //键码
+    flyingon.defineProperty(this, "keyCode", function () {
+
+        return this.originalEvent.which || this.originalEvent.keyCode;
+    });
+
+});
+
+
+
+
+
+//属性值变更事件类型
+flyingon.class("ChangeEvent", flyingon.Event, function (Class, flyingon) {
+
+
+    Class.create = function (target, name, value, oldValue) {
+
+        this.target = target;
+        this.name = name;
+        this.value = value;
+        this.oldValue = oldValue;
+    };
+
+
+    this.type = "change";
+
+});
+
+
+
+
+
+
 ﻿/*
 
 */
-(function ($) {
-
-
-    //事件类型基类
-    $.class("Event", function (Class, $) {
-
-
-        Class.create = function (type, target) {
-
-            this.type = type;
-            this.target = target;
-        };
-
-
-
-
-        //是否取消冒泡
-        this.cancelBubble = false;
-
-        //是否阻止默认动作
-        this.defaultPrevented = false;
-
-
-
-        this.stopPropagation = function () {
-
-            this.cancelBubble = true;
-        };
-
-        this.preventDefault = function () {
-
-            this.defaultPrevented = true;
-        };
-
-
-    });
-
-
-
-
-    //鼠标事件类型
-    $.class("MouseEvent", $.Event, function (Class, $) {
-
-
-        Class.create = function (type, target, originalEvent) {
-
-            this.originalEvent = originalEvent;
-        };
-
-
-        var target = this,
-
-            defineProperty = function (name) {
-
-                $.defineProperty(target, name, function () {
-
-                    return this.originalEvent[name];
-                });
-            };
-
-
-        //是否按下ctrl键
-        defineProperty("ctrlKey");
-
-        //是否按下shift键
-        defineProperty("shiftKey");
-
-        //是否按下alt键
-        defineProperty("altKey");
-
-        //是否按下meta键
-        defineProperty("metaKey");
-
-        //事件触发时间
-        defineProperty("timeStamp");
-
-        //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-        defineProperty("button");
-
-        //相对屏幕的x坐标
-        defineProperty("screenX");
-
-        //相对屏幕的y坐标
-        defineProperty("screenY");
-
-        //相对窗口客户区的x坐标
-        defineProperty("clientX");
-
-        //相对窗口客户区的y坐标
-        defineProperty("clientY");
-
-
-
-
-
-        function offsetToTarget() {
-
-            var event = this.originalEvent;
-
-            if (!event["x:targetX"])
-            {
-                var p = this.target["x:boxModel"].offsetToTarget(event["x:offsetX"], event["x:offsetY"]);
-
-                event["x:targetX"] = p.x;
-                event["x:targetY"] = p.y;
-            }
-
-            return event;
-        };
-
-
-        function offsetToWindow() {
-
-            var event = this.originalEvent;
-
-            if (!event["x:windowX"])
-            {
-                var p = this.target["x:boxModel"].offsetToWindow(event["x:offsetX"], event["x:offsetY"]);
-
-                event["x:windowX"] = p.x;
-                event["x:windowY"] = p.y;
-            }
-
-            return event;
-        };
-
-
-        function offsetToControl() {
-
-            var event = this.originalEvent;
-
-            if (!event["x:controlX"])
-            {
-                var p = this.target["x:boxModel"].offsetToControl(event["x:offsetX"], event["x:offsetY"]);
-
-                event["x:controlX"] = p.x;
-                event["x:controlY"] = p.y;
-            }
-
-            return event;
-        };
-
-
-
-
-        //x偏移坐标
-        $.defineProperty(this, "offsetX", function () {
-
-            return this.originalEvent["x:offsetX"];
-        });
-
-        //y偏移坐标
-        $.defineProperty(this, "offsetY", function () {
-
-            return this.originalEvent["x:offsetY"];
-        });
-
-
-        //x目标坐标
-        $.defineProperty(this, "targetX", function () {
-
-            return this.originalEvent["x:targetX"] || offsetToTarget.call(this)["x:targetX"];
-        });
-
-        //y目标坐标
-        $.defineProperty(this, "targetY", function () {
-
-            return this.originalEvent["x:targetY"] || offsetToTarget.call(this)["x:targetY"];
-        });
-
-
-        //x窗口坐标
-        $.defineProperty(this, "windowX", function () {
-
-            return this.originalEvent["x:windowX"] || offsetToWindow.call(this)["x:windowX"];
-        });
-
-        //y窗口坐标
-        $.defineProperty(this, "windowY", function () {
-
-            return this.originalEvent["x:windowY"] || offsetToWindow.call(this)["x:windowY"];
-        });
-
-        //x相对坐标
-        $.defineProperty(this, "controlX", function () {
-
-            return this.originalEvent["x:controlX"] || offsetToControl.call(this)["x:controlX"];
-        });
-
-        //y相对坐标
-        $.defineProperty(this, "controlY", function () {
-
-            return this.originalEvent["x:controlY"] || offsetToControl.call(this)["x:controlY"];
-        });
-
-
-
-
-        //鼠标滚轮数据
-        $.defineProperty(this, "wheelDelta", function () {
-
-            return this.originalEvent.wheelDelta || (-this.originalEvent.detail * 40);
-        });
-
-
-    });
-
-
-
-
-
-    //拖拉事件类型
-    $.class("DragEvent", $.MouseEvent, function (Class, $) {
-
-
-        Class.create = function (type, target, originalEvent) {
-
-            //拖动目标
-            this.dragTargets = [target];
-
-            //接收目标
-            this.dropTarget = null;
-
-        };
-
-    });
-
-
-
-
-
-    //键盘事件类型
-    $.class("KeyEvent", $.Event, function (Class, $) {
-
-
-        Class.create = function (type, target, originalEvent) {
-
-            this.originalEvent = originalEvent || {};
-        };
-
-
-
-        //是否按下ctrl键
-        $.defineProperty(this, "ctrlKey", function () {
-
-            return this.originalEvent["ctrlKey"];
-        });
-
-        //是否按下shift键
-        $.defineProperty(this, "shiftKey", function () {
-
-            return this.originalEvent["shiftKey"];
-        });
-
-        //是否按下alt键
-        $.defineProperty(this, "altKey", function () {
-
-            return this.originalEvent["altKey"];
-        });
-
-        //是否按下meta键
-        $.defineProperty(this, "metaKey", function () {
-
-            return this.originalEvent["metaKey"];
-        });
-
-        //事件触发时间
-        $.defineProperty(this, "timeStamp", function () {
-
-            return this.originalEvent["timeStamp"];
-        });
-
-        //键码
-        $.defineProperty(this, "keyCode", function () {
-
-            return this.originalEvent.which || this.originalEvent.keyCode;
-        });
-
-    });
-
-
-
-
-
-
-    //属性值变更事件类型
-    $.class("ChangeEvent", $.Event, function (Class, $) {
-
-        Class.create = function (type, target, name, value, oldValue) {
-
-            this.name = name;
-            this.value = value;
-            this.oldValue = oldValue;
-        };
-
-    });
-
-
-
-})(flyingon);
-
-
-
-
-﻿/*
-
-*/
-(function ($) {
+(function (flyingon) {
 
 
 
     //拖拉管理
-    var Dragdrop = $.Dragdrop = {};
+    var Dragdrop = flyingon.Dragdrop = {};
 
 
 
@@ -5113,7 +5228,6 @@ Canvas2D绘图扩展
         ownerLayer,         //拖拉层
         ownerControl,       //目标控件
 
-        startEvent,         //原始事件
         dragTargets,        //拖动目标
         dropTarget,         //接收目标
 
@@ -5121,7 +5235,8 @@ Canvas2D绘图扩展
         nodropCursor,       //禁止拖放时的光标
 
         dragging,   //是否正在拖动
-        lastEvent,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
+        start_event,         //原始事件
+        last_event,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
         offsetX,    //X方向因移动造成的修正距离
         offsetY;    //Y方向因移动造成的修正距离
 
@@ -5129,9 +5244,9 @@ Canvas2D绘图扩展
 
 
     //新建事件
-    function newevent(type, originalEvent) {
+    function new_event(type, originalEvent) {
 
-        var result = new $.DragEvent(type, ownerControl, originalEvent);
+        var result = new flyingon.DragEvent(type, ownerControl, originalEvent);
 
         result.dragTargets = dragTargets;
         result.dropTarget = dropTarget;
@@ -5142,7 +5257,7 @@ Canvas2D绘图扩展
     //创建拖拉层
     function createLayer() {
 
-        ownerLayer = new $.Layer();
+        ownerLayer = new flyingon.Layer();
         ownerLayer.disableGetControlAt = true;
         ownerLayer["x:storage"].clipToBounds = false;
 
@@ -5152,7 +5267,7 @@ Canvas2D绘图扩展
         style.cursor = dragger.allowdropCursor;
         style.opacity = dragger.opacity || 0.5;
 
-        ownerWindow.appendLayer(ownerLayer, 9999);
+        ownerWindow.appendLayer(9999, ownerLayer);
     };
 
 
@@ -5162,10 +5277,10 @@ Canvas2D绘图扩展
     Dragdrop.dragger = {
 
         //允许拖放地显示光标
-        allowdropCursor: $.cursors["allow-drop"],
+        allowdropCursor: flyingon.cursors["allow-drop"],
 
         //不允许拖放时显示光标
-        nodropCursor: $.cursors["no-drop"],
+        nodropCursor: flyingon.cursors["no-drop"],
 
         //透明度
         opacity: 0.5,
@@ -5178,16 +5293,12 @@ Canvas2D绘图扩展
         },
 
         //默认绘制行为
-        paint: function (dragTargets) {
+        paint: function (context, dragTargets) {
 
             for (var i = 0; i < dragTargets.length; i++)
             {
                 var box = dragTargets[i]["x:boxModel"];
-
-                if (box)
-                {
-                    box.render(layer.context);
-                }
+                box && box.render(context);
             }
         },
 
@@ -5199,11 +5310,7 @@ Canvas2D绘图扩展
                 event;
 
 
-            if (target == ownerControl)
-            {
-                target = ownerControl["x:parent"];
-            }
-
+            target == ownerControl && (target = ownerControl["x:parent"]);
 
             if (dropTarget != target)
             {
@@ -5211,7 +5318,7 @@ Canvas2D绘图扩展
 
                 if (dropTarget)
                 {
-                    event = newevent("dragleave", domMouseEvent);
+                    event = new_event("dragleave", domMouseEvent);
                     dropTarget.dispatchEvent(event);
                 }
 
@@ -5220,7 +5327,7 @@ Canvas2D绘图扩展
                 {
                     dropTarget = target;
 
-                    event = newevent("dragenter", domMouseEvent);
+                    event = new_event("dragenter", domMouseEvent);
                     target.dispatchEvent(event);
                 }
                 else
@@ -5230,13 +5337,13 @@ Canvas2D绘图扩展
             }
 
 
-            event = newevent("drag", domMouseEvent);
+            event = new_event("drag", domMouseEvent);
             ownerControl.dispatchEvent(event);
 
 
             if (target)
             {
-                event = newevent("dragover", domMouseEvent);
+                event = new_event("dragover", domMouseEvent);
                 target.dispatchEvent(event);
             }
         },
@@ -5244,12 +5351,8 @@ Canvas2D绘图扩展
         //默认停止行为
         stop: function (domMouseEvent, offsetX, offsetY) {
 
-            if (dropTarget)
-            {
-                dropTarget.dispatchEvent(newevent("drop", domMouseEvent));
-            }
-
-            ownerControl.dispatchEvent(newevent("dragend", domMouseEvent));
+            dropTarget && dropTarget.dispatchEvent(new_event("drop", domMouseEvent));
+            ownerControl.dispatchEvent(new_event("dragend", domMouseEvent));
         }
 
     };
@@ -5282,27 +5385,22 @@ Canvas2D绘图扩展
 
 
         //开始拖拉事件
-        var event = newevent("dragstart", startEvent);
+        var event = new_event("dragstart", start_event);
 
         //是否取消
         event.canceled = false;
 
 
         //开始
-        if (dragger.start)
-        {
-            dragger.start(event);
-        }
+        dragger.start && dragger.start(event);
+
 
         if (!event.canceled)
         {
-            if (event.dragTargets)
-            {
-                dragTargets = event.dragTargets;
-            }
+            event.dragTargets && (dragTargets = event.dragTargets);
 
             createLayer();
-            dragger.paint.call(ownerControl, ownerLayer, dragTargets);
+            dragger.paint.call(ownerControl, ownerLayer.context, dragTargets);
         }
         else
         {
@@ -5313,16 +5411,13 @@ Canvas2D绘图扩展
     //开始拖动(200毫秒内保持按下鼠标则执行拖动)
     Dragdrop.start = function (window, target, domMouseEvent) {
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
+        timer && clearTimeout(timer);
 
         dragging = true;
 
         ownerWindow = window;
         ownerControl = target;
-        startEvent = domMouseEvent;
+        start_event = domMouseEvent;
 
         offsetX = 0;
         offsetY = 0;
@@ -5349,18 +5444,18 @@ Canvas2D绘图扩展
 
         if (ownerLayer)
         {
-            var event = lastEvent = domMouseEvent;
+            var event = last_event = domMouseEvent;
 
             //div移动距离
-            offsetX = event.clientX - startEvent.clientX;
-            offsetY = event.clientY - startEvent.clientY;
+            offsetX = event.clientX - start_event.clientX;
+            offsetY = event.clientY - start_event.clientY;
 
-            var p = dragger.move.call(target, event, offsetX, offsetY);
+            var offset = dragger.move.call(ownerControl, event, offsetX, offsetY);
 
-            if (p)
+            if (offset)
             {
-                offsetX = p.x || 0;
-                offsetY = p.y || 0;
+                offsetX = offset.x || 0;
+                offsetY = offset.y || 0;
             };
 
             ownerLayer.domLayer.style.left = offsetX + "px";
@@ -5389,24 +5484,24 @@ Canvas2D绘图扩展
         if (ownerLayer)
         {
             //如果按下且移动过且可接受拖放时才触发停止方法
-            if (lastEvent && ownerLayer.domLayer.style.cursor != nodropCursor)
+            if (last_event && ownerLayer.domLayer.style.cursor != nodropCursor)
             {
-                dragger.stop.call(target, lastEvent, offsetX, offsetY);
+                dragger.stop.call(ownerControl, last_event, offsetX, offsetY);
             };
 
             ownerWindow.removeLayer(ownerLayer);
             ownerLayer = null;
 
             //处理捕获控件
-            ownerWindow["x:captureDelay"].registry([lastEvent]);
+            ownerWindow["x:captureDelay"].registry([last_event]);
         }
         else
         {
-            target.dispatchEvent(new $.MouseEvent("mousedown", target, startEvent));
+            ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event));
         };
 
         ownerWindow = ownerLayer = ownerControl = null;
-        startEvent = lastEvent = null;
+        start_event = last_event = null;
         dragger = dragTargets = dropTarget = dragging = null;
 
         return result;
@@ -5422,250 +5517,105 @@ Canvas2D绘图扩展
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
     //变量管理器
-    $.BoxModel = function (ownerControl) {
-
+    var prototype = (flyingon.BoxModel = function (ownerControl) {
 
         //所属控件
         this.ownerControl = ownerControl;
 
+    }).prototype;
 
-        //外框范围
-        this.outerRect = new $.Rect();
-
-        //绘制边框范围
-        this.borderRect = new $.Rect();
-
-        //内框范围
-        this.innerRect = new $.Rect();
-    };
-
-
-
-
-    var p = $.BoxModel.prototype;
 
 
     //上级盒模型
-    p.parent = null;
+    prototype.parent = null;
 
     //相对偏移所属父模型
-    p.offsetParent = null;
+    prototype.offsetParent = null;
 
     //子盒模型
-    p.children = null;
+    prototype.children = null;
 
     //附加项
-    p.addition = null;
-
-    //可渲染的子项集
-    p.renderItems = null;
+    prototype.additions = null;
 
     //是否需要渲染
-    p.visible = true;
+    prototype.visible = true;
 
 
 
 
     //是否需要重绘
-    p["x:update"] = false;
+    prototype["x:update"] = false;
 
     //子模型是否需要重绘
-    p["x:update:children"] = false;
+    prototype["x:update:children"] = false;
 
     //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
-    p["x:update:mode"] = 0;
+    prototype["x:update:mode"] = 0;
 
 
-    //是否影响测量
-    p["x:measure"] = true;
+
+    //是否需要测量
+    prototype["x:measure"] = false;
 
     //是否图层
-    p["x:layer"] = false;
+    prototype["x:layer"] = false;
 
 
 
     //相对x坐标
-    p.x = 0;
+    prototype.x = 0;
 
     //相对y坐标
-    p.y = 0;
-
-    //相对x偏移
-    p.offsetX = 0;
-
-    //相对y偏移
-    p.offsetY = 0;
+    prototype.y = 0;
 
     //绝对x坐标
-    p.windowX = 0;
+    prototype.windowX = 0;
 
     //绝对y坐标
-    p.windowY = 0;
-
-
-    //x滚动偏移
-    p.scrollLeft = 0;
-
-    //y滚动偏移
-    p.scrollTop = 0;
-
-    //滚动宽度
-    p.scrollWidth = 0;
-
-    //滚动高度
-    p.scrollHeight = 0;
+    prototype.windowY = 0;
 
 
     //渲染宽度
-    p.width = 0;
+    prototype.width = 0;
 
     //渲染高度
-    p.height = 0;
+    prototype.height = 0;
 
     //右边x坐标
-    p.right = 0;
+    prototype.right = 0;
 
     //底部y坐标
-    p.bottom = 0;
+    prototype.bottom = 0;
+
+
+    //x渲染偏移
+    prototype.offsetX = 0;
+
+    //y渲染偏移
+    prototype.offsetY = 0;
+
+    //最大可显示宽度
+    prototype.maxWidth = 0;
+
+    //最大可显示高度
+    prototype.maxHeight = 0;
 
 
     //外边距
-    p.margin = [0, 0, 0, 0];
+    prototype.margin = [0, 0, 0, 0];
 
     //边框
-    p.border = [0, 0, 0, 0];
+    prototype.border = [0, 0, 0, 0];
 
     //内边距
-    p.padding = [0, 0, 0, 0];
+    prototype.padding = [0, 0, 0, 0];
 
-
-
-
-
-
-
-    //设置可用范围 注:传入的范围为最大可用范围 系统会自动根据此范围计算出实际占用空间
-    p.setUsableRect = function (parent, x, y, width, height, addition) {
-
-
-        var storage = this.ownerControl["x:storage"];
-
-
-        //先测量大小
-        switch (storage.stretch)
-        {
-            case "x":
-                this.width = width;
-                this.height = storage.height;
-                break;
-
-            case "y":
-                this.width = storage.width;
-                this.height = height;
-                break;
-
-            case "xy":
-                this.width = width;
-                this.height = height;
-                break;
-
-            default:
-                this.width = storage.width;
-                this.height = storage.height;
-                break
-        }
-
-        if (storage.maxWidth > 0 && this.width > storage.maxWidth)
-        {
-            this.width = storage.maxWidth;
-        }
-
-        if (storage.minWidth > 0 && this.width < storage.minWidth)
-        {
-            this.width = storage.minWidth;
-        }
-
-
-        if (storage.maxHeight > 0 && this.height > storage.maxHeight)
-        {
-            this.height = storage.maxHeight;
-        }
-
-        if (storage.minHeight > 0 && this.height < storage.minHeight)
-        {
-            this.height = storage.minHeight;
-        }
-
-
-
-        //再计算位置
-        switch (storage.horizontalAlign)
-        {
-            case "center":
-                x += Math.round((width - this.width) / 2);
-                break;
-
-            case "right":
-                x += width - this.width;
-                break;
-        }
-
-        switch (storage.verticalAlign)
-        {
-            case "center":
-                y += Math.round((height - this.height) / 2);
-                break;
-
-            case "bottom":
-                y += height - this.height;
-                break;
-        }
-
-
-
-        this.x = x;
-        this.y = y;
-
-        this.offsetX = storage.offsetX;
-        this.offsetY = storage.offsetY;
-
-        this.right = x + this.width;
-        this.bottom = y + this.height;
-
-
-
-        //处理父模型
-        this.parent = parent;
-
-        if (parent)
-        {
-            if (addition !== true)
-            {
-                this.offsetParent = parent;
-                (parent.children || (parent.children = [])).push(this);
-            }
-            else
-            {
-                this.offsetParent = parent && parent.parent;
-                (parent.addition || (parent.addition = [])).push(this);
-            }
-        }
-        else
-        {
-            this.offsetParent = null;
-        }
-
-
-        this["x:measure"] = true;
-        this["x:update"] = true;
-
-        return this;
-    };
 
 
 
@@ -5680,8 +5630,8 @@ Canvas2D绘图扩展
 
         while (parent = target.offsetParent)
         {
-            x += parent.scrollLeft;
-            y += parent.scrollTop;
+            x += parent.offsetX;
+            y += parent.offsetY;
 
             target = parent;
         }
@@ -5690,7 +5640,7 @@ Canvas2D绘图扩展
     };
 
     //偏移坐标转目标坐标
-    p.offsetToTarget = function (x, y) {
+    prototype.offsetToTarget = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -5701,56 +5651,52 @@ Canvas2D绘图扩展
     };
 
     //偏移坐标转窗口坐标
-    p.offsetToWindow = function (x, y) {
+    prototype.offsetToWindow = function (x, y) {
 
         var result = scroll.call(this);
 
         result.x += x;
         result.y += y;
 
-
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.scrollLeft && result.x < this.windowX + this.innerRect.right)
+        if (this.offsetX && result.x < this.windowX + this.innerRect.right)
         {
-            result.x += this.scrollLeft;
+            result.x += this.offsetX;
         }
 
-        if (this.scrollTop && result.y < this.windowY + this.innerRect.bottom)
+        if (this.offsetY && result.y < this.windowY + this.innerRect.bottom)
         {
-            result.y += this.scrollTop;
+            result.y += this.offsetY;
         }
-
 
         return result;
     };
 
     //偏移坐标转控件坐标
-    p.offsetToControl = function (x, y) {
+    prototype.offsetToControl = function (x, y) {
 
         var result = scroll.call(this);
 
         result.x += x - this.windowX;
         result.y += y - this.windowY;
 
-
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.scrollLeft && result.x < this.innerRect.right)
+        if (this.offsetX && result.x < this.innerRect.right)
         {
-            result.x += this.scrollLeft;
+            result.x += this.offsetX;
         }
 
-        if (this.scrollTop && result.y < this.innerRect.bottom)
+        if (this.offsetY && result.y < this.innerRect.bottom)
         {
-            result.y += this.scrollTop;
+            result.y += this.offsetY;
         }
-
 
         return result;
     };
 
 
     //目标坐标转偏移坐标
-    p.targetToOffset = function (x, y) {
+    prototype.targetToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -5761,49 +5707,45 @@ Canvas2D绘图扩展
     };
 
     //窗口坐标转偏移坐标
-    p.windowToOffset = function (x, y) {
+    prototype.windowToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
         result.x = x - result.x;
         result.y = y - result.y;
 
-
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.scrollLeft && result.x <= this.windowX + this.scrollLeft + this.innerRect.right)
+        if (this.offsetX && result.x <= this.windowX + this.offsetX + this.innerRect.right)
         {
-            result.x -= this.scrollLeft;
+            result.x -= this.offsetX;
         }
 
-        if (this.scrollTop && result.y <= this.windowY + this.scrollTop + this.innerRect.bottom)
+        if (this.offsetY && result.y <= this.windowY + this.offsetY + this.innerRect.bottom)
         {
-            result.y -= this.scrollTop;
+            result.y -= this.offsetY;
         }
-
 
         return result;
     };
 
     //控件坐标转偏移坐标
-    p.controlToOffset = function (x, y) {
+    prototype.controlToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
         result.x = this.windowX + x - result.x;
         result.y = this.windowY + y - result.y;
 
-
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.scrollLeft && result.x <= this.windowX + this.scrollLeft + this.innerRect.right)
+        if (this.offsetX && result.x <= this.windowX + this.offsetX + this.innerRect.right)
         {
-            result.x -= this.scrollLeft;
+            result.x -= this.offsetX;
         }
 
-        if (this.scrollTop && result.y <= this.windowY + this.scrollTop + this.innerRect.bottom)
+        if (this.offsetY && result.y <= this.windowY + this.offsetY + this.innerRect.bottom)
         {
-            result.y -= this.scrollTop;
+            result.y -= this.offsetY;
         }
-
 
         return result;
     };
@@ -5811,61 +5753,9 @@ Canvas2D绘图扩展
 
 
 
-    //测量
-    p.measure = function () {
-
-
-        var ownerControl = this.ownerControl,
-
-            r = this.offsetParent && this.offsetParent.innerRect,
-            windowX = r ? r.windowX : 0,
-            windowY = r ? r.windowY : 0,
-
-            x = this.x + this.offsetX,
-            y = this.y + this.offsetY,
-            width = this.width,
-            height = this.height,
-
-
-            border = this.border = ownerControl.getStyleValue("border"), //计算出数据绘制时用
-            padding = this.padding = ownerControl.getStyleValue("padding"),
-
-            outerRect = this.outerRect,
-            borderRect = this.borderRect,
-            innerRect = this.innerRect;
-
-
-        border.border = (border[0] + border[1] + border[2] + border[3]) > 0; //是否有边框线
-
-        outerRect.windowX = this.windowX = (outerRect.x = x) + windowX;
-        outerRect.windowY = this.windowY = (outerRect.y = y) + windowY;
-        outerRect.width = width;
-        outerRect.height = height;
-
-        borderRect.windowX = (borderRect.x = x + border[3]) + windowX;
-        borderRect.windowY = (borderRect.y = y + border[0]) + windowY;
-        borderRect.width = width - (border[3] + border[1]);
-        borderRect.height = height - (border[0] + border[2]);
-
-        innerRect.windowX = (innerRect.x = x + (innerRect.spaceX = border[3] + padding[3])) + windowX;
-        innerRect.windowY = (innerRect.y = y + (innerRect.spaceY = border[0] + padding[0])) + windowY;
-        innerRect.width = borderRect.width - (padding[3] + padding[1]);
-        innerRect.height = borderRect.height - (padding[0] + padding[2]);
-
-
-        this.borderRadius = border[0] > 0 && ownerControl.getStyleValue("borderRadius"); //圆角边框不能隐藏边线及不支持粗细不同的边线
-
-        this.renderItems = null;
-        this["x:measure"] = false;
-        this["x:update:mode"] = 0;
-
-        return this;
-    };
-
-
 
     //使当前盒模型无效
-    p.invalidate = function () {
+    prototype.invalidate = function () {
 
         if (!this["x:update"])
         {
@@ -5886,11 +5776,7 @@ Canvas2D绘图扩展
                     else
                     {
                         parent["x:update"] = true;
-
-                        if (update == 1)
-                        {
-                            update = 0;
-                        }
+                        update == 1 && (update = 0);
                     }
                 }
 
@@ -5903,51 +5789,8 @@ Canvas2D绘图扩展
 
 
 
-    //获取当前可渲染的子项
-    function getRenderItems(clipToBounds) {
-
-        var result = this.renderItems;
-
-        if (!result)
-        {
-            result = this.renderItems = [];
-
-
-            var ownerControl = this.ownerControl,
-                clipToBounds = ownerControl["x:storage"].clipToBounds,
-
-                r = this.innerRect,
-
-                x = this.scrollLeft,
-                y = this.scrollTop,
-                right = x + r.width,
-                bottom = y + r.height,
-
-                i = 0,
-                length = this.children.length;
-
-
-            while (i < length)
-            {
-                var box = this.children[i++];
-
-                if (box.visible &&
-                    box.right >= x &&
-                    box.bottom >= y &&
-                    box.ownerControl["x:storage"].visibility == "visible" &&
-                    (!clipToBounds || (box.x < right && box.y < bottom)))
-                {
-                    result.push(box);
-                }
-            }
-        }
-
-        return result;
-    };
-
-
     //更新
-    p.update = function (context) {
+    prototype.update = function (context) {
 
         if (this["x:update"]) //如果需要更新
         {
@@ -5963,36 +5806,299 @@ Canvas2D绘图扩展
     };
 
 
+
+
+    //计算位置
+    var position = function (storage, width, height) {
+
+        var value;
+
+        if (width > 0 && (value = (width - this.width)))
+        {
+            switch (storage.horizontalAlign)
+            {
+                case "center":
+                    this.x += value >> 1;
+                    break;
+
+                case "right":
+                    this.x += value;
+                    break;
+            }
+        }
+
+        if (height > 0 && (value = (height - this.height)))
+        {
+            switch (storage.verticalAlign)
+            {
+                case "center":
+                    this.y += value >> 1;
+                    break;
+
+                case "bottom":
+                    this.y += value;
+                    break;
+            }
+        }
+    };
+
+
+    ////初始化盒模型
+    //prototype.measure = function (parent, x, y, width, height, additions) {
+
+    //    this.x = x;
+    //    this.y = y;
+    //    this.width = width;
+    //    this.height = height;
+
+    //    this.locate(parent, additions);
+    //};
+
+
+    //测量 传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
+    //注:width, height <= 0 表示可使用无限大的空间 
+    prototype.measure = function (parent, x, y, width, height, additions) {
+
+
+        var ownerControl = this.ownerControl,
+            storage = ownerControl["x:storage"],
+
+            margin = this.margin = ownerControl.styleValue("margin");
+
+
+        //减去外框
+        this.x = x + margin[3];
+        this.y = y + margin[0];
+
+
+        //先测量大小
+        switch (width > 0 && ((width -= margin[3] + margin[1]) > 0 || (width = 0)) && storage.stretch)
+        {
+            case "width":
+            case "all":
+                this.width = width < storage.minWidth ? storage.minWidth : (storage.maxWidth > 0 && width > storage.maxWidth ? storage.maxWidth : (width || storage.width));
+                break;
+
+            default: //no或无限宽度
+                this.width = storage.width;
+                break;
+        }
+
+        switch (height > 0 && ((height -= margin[0] + margin[2]) > 0 || (height = 0)) && storage.stretch)
+        {
+            case "height":
+            case "all":
+                this.height = height < storage.minHeight ? storage.minHeight : (storage.maxHeight > 0 && height > storage.maxHeight ? storage.maxHeight : (height || storage.height));
+                break;
+
+            default: //no或无限宽度
+                this.height = storage.height;
+                break;
+        }
+
+
+        //计算位置
+        position.call(this, storage, width, height);
+
+
+        //处理父模型
+        this.parent = parent;
+
+        if (parent)
+        {
+            if (additions !== true)
+            {
+                this.offsetParent = parent;
+                (parent.children || (parent.children = [])).push(this);
+            }
+            else
+            {
+                this.offsetParent = parent && parent.parent;
+                (parent.additions || (parent.additions = [])).push(this);
+            }
+        }
+        else
+        {
+            this.offsetParent = null;
+        }
+
+
+        //处理自动大小
+        if (storage.autoSize != "no")
+        {
+            //测量
+            this["y:measure"](ownerControl);
+
+            ownerControl.adjustAutoSize(this);
+            position.call(this, storage, width, height);
+
+            this.compute();
+        }
+        else //延迟测量
+        {
+            this["x:measure"] = true;
+        }
+
+
+        //
+        this.right = this.x + this.width;
+        this.bottom = this.y + this.height;
+
+
+        this["x:update"] = true;
+    };
+
+
+    //移动至指定位置(大小不变)
+    prototype.moveTo = function (x, y) {
+
+        this.right = (this.x += x - this.x) + this.width;
+        this.bottom = (this.y += y - this.y) + this.height;
+
+        if (!this["x:measure"])
+        {
+            this.compute();
+        }
+    };
+
+
+    //定位单个内容控件
+    prototype.content = function (content) {
+
+        if (content)
+        {
+            var r = this.innerRect,
+                box = content["x:boxModel"],
+                margin = box.margin = content.styleValue("margin");
+
+            box.measure(this, margin[3], margin[0], r.width - margin[3] - margin[1], r.height - margin[0] - margin[2]);
+        }
+    };
+
+
+
+    prototype["y:measure"] = function (ownerControl) {
+
+        var fn;
+
+        //测量
+        this["x:measure"] = false;
+        this["x:update:mode"] = 0;
+
+
+        //设置最大范围
+        this.maxWidth = this.width;
+        this.maxHeight = this.height;
+
+
+        (fn = ownerControl.measure) ? fn.call(ownerControl, this) : this.compute();
+
+
+        if (fn = ownerControl.measureText) //自定义文字测量
+        {
+            fn.call(ownerControl, this);
+        }
+        else
+        {
+            var storage = ownerControl["x:storage"];
+            if (storage.text != null && !ownerControl["x:textMetrics"])
+            {
+                var result = ownerControl["x:textMetrics"] = new flyingon.TextMetrics(this);
+                result.measureText(this.font, storage.text, storage.multiline);
+            }
+        }
+    };
+
+
+    //计算盒模型
+    prototype.compute = function () {
+
+
+        var ownerControl = this.ownerControl,
+            storage = ownerControl["x:storage"],
+
+            outerRect = this.outerRect = new flyingon.Rect(),
+            borderRect = this.borderRect = new flyingon.Rect(),
+            innerRect = this.innerRect = new flyingon.Rect(),
+
+            x = outerRect.x = this.x,
+            y = outerRect.y = this.y,
+            width = outerRect.width = this.width,
+            height = outerRect.height = this.height,
+
+            border = this.border = ownerControl.styleValue("border"),
+            padding = this.padding = ownerControl.styleValue("padding");
+
+
+        borderRect.x = x + border[3];
+        borderRect.y = y + border[0];
+        borderRect.width = width - (border[3] + border[1]);
+        borderRect.height = height - (border[0] + border[2]);
+
+        innerRect.x = x + (innerRect.spaceX = border[3] + padding[3]);
+        innerRect.y = y + (innerRect.spaceY = border[0] + padding[0]);
+        innerRect.width = borderRect.width - (padding[3] + padding[1]);
+        innerRect.height = borderRect.height - (padding[0] + padding[2]);
+
+
+        //标记需计算绝对位置
+        this["x:initialize"] = true;
+
+        return this;
+    };
+
+
+    //初始化(内部方法)
+    prototype["y:initialize"] = function () {
+
+        var ownerControl = this.ownerControl,
+
+            r = this.offsetParent && this.offsetParent.innerRect,
+            windowX = r ? r.windowX : 0,
+            windowY = r ? r.windowY : 0,
+
+            outerRect = this.outerRect,
+            borderRect = this.borderRect,
+            innerRect = this.innerRect,
+
+            border = this.border;
+
+
+        this["x:initialize"] = false;
+
+        outerRect.windowX = this.windowX = outerRect.x + windowX;
+        outerRect.windowY = this.windowY = outerRect.y + windowY;
+
+        borderRect.windowX = borderRect.x + windowX;
+        borderRect.windowY = borderRect.y + windowY;
+
+        innerRect.windowX = innerRect.x + windowX;
+        innerRect.windowY = innerRect.y + windowY;
+
+
+        border.border = (border[0] + border[1] + border[2] + border[3]) > 0; //是否有边框线
+
+        this.borderRadius = border[0] > 0 && ownerControl.styleValue("borderRadius"); //圆角边框不能隐藏边线及不支持粗细不同的边线
+    };
+
+
     //渲染
-    p.render = function (context) {
+    prototype.render = function (context) {
 
 
         var ownerControl = this.ownerControl;
 
 
-
-        //文字测量
-        if (ownerControl["x:storage"].text != null)
-        {
-            ownerControl["y:measure:text"]();
-        }
-
-
         //测量
         if (this["x:measure"])
         {
-            if (ownerControl["y:before:measure"])
-            {
-                ownerControl["y:before:measure"](this);
-            }
+            this["y:measure"](ownerControl);
+        }
 
-            this.measure();
-
-            //调用控件的测量方法
-            if (ownerControl.measure)
-            {
-                ownerControl.measure(this);
-            }
+        //初始化
+        if (this["x:initialize"])
+        {
+            this["y:initialize"]();
         }
 
 
@@ -6005,11 +6111,13 @@ Canvas2D绘图扩展
             this["x:update:mode"] = 1;
         }
 
+
         //绘制子项
         if (this.children)
         {
             this["y:render:children"](context, "render");
         }
+
 
         //设置渲染环境
         context.boxModel = this;
@@ -6020,16 +6128,13 @@ Canvas2D绘图扩展
         //绘制外框
         ownerControl.paintBorder(context);
 
-        //绘制装饰
-        this["x:decorates"] = false;
 
-        var decorates = ownerControl.getStyleValue("decorates");
+        //绘制装饰
+        var decorates = ownerControl.styleValue("decorates");
         if (decorates && decorates.length > 0)
         {
             this["y:paint:decorates"](context, decorates);
-            this["x:decorates"] = true;
         }
-
 
         //修改状态
         this["x:update"] = false;
@@ -6039,66 +6144,75 @@ Canvas2D绘图扩展
 
 
     //渲染或更新子项
-    p["y:render:children"] = function (context, fn) {
+    prototype["y:render:children"] = function (context, fn) {
 
         var ownerControl = this.ownerControl,
+            items = ownerControl["y:render:children"],
+            item,
+            length;
 
-            items = getRenderItems.call(this),
-            i = 0,
-            length = items.length;
 
+        items = (items && items.call(ownerControl, this)) || this.children;
 
-        context.save();
-
-        if (this.scrollLeft || this.scrollTop)
+        if ((length = items.length) > 0)
         {
-            context.translate(-this.scrollLeft, -this.scrollTop);
+            context.save();
+
+            if (this.offsetX || this.offsetY)
+            {
+                context.translate(-this.offsetX, -this.offsetY);
+            }
+
+            if (ownerControl["x:storage"].clipToBounds)
+            {
+                var r = this.innerRect;
+
+                context.beginPath();
+                context.rect(r.x + this.offsetX, r.y + this.offsetY, r.width, r.height);
+                context.clip();
+            }
+
+            for (var i = 0; i < length; i++)
+            {
+                if ((item = items[i]) && item.visible)
+                {
+                    item[fn](context);
+                }
+            }
+
+            context.restore();
         }
-
-        if (ownerControl["x:storage"].clipToBounds)
-        {
-            var r = this.innerRect;
-
-            context.beginPath();
-            context.rect(r.x + this.scrollLeft, r.y + this.scrollTop, r.width, r.height);
-            context.clip();
-        }
-
-        while (i < length)
-        {
-            items[i++][fn](context);
-        }
-
-        context.restore();
 
 
         //绘制附加内容
-        if (this.addition)
+        if (this.additions)
         {
-            i = 0;
-            length = this.addition.length;
+            items = this.additions;
+            length = items.length;
 
-            while (i < length)
+            for (var i = 0; i < length; i++)
             {
-                this.addition[i++][fn](context);
+                if ((item = items[i]) && item.visible)
+                {
+                    item[fn](context);
+                }
             }
         }
     };
 
     //绘制装饰
-    p["y:paint:decorates"] = function (context, decorates) {
+    prototype["y:paint:decorates"] = function (context, decorates) {
 
-        var i = 0,
-            length = decorates.length;
+        var reader;
 
-        while (i < length)
+        for (var i = 0, length = decorates.length; i < length; i++)
         {
             var item = decorates[i];
 
             //未处理
-            if (!(item instanceof $.Shape))
+            if (!(item instanceof flyingon.Shape))
             {
-                item = decorates[i] = new $.SerializeReader().deserialize(item);
+                (item = decorates[i] = (reader || (reader = new flyingon.SerializeReader()))).deserialize(item);
             }
 
             //重绘模式
@@ -6108,7 +6222,6 @@ Canvas2D绘图扩展
             }
 
             item.paint(context);
-            i++;
         }
     };
 
@@ -6118,15 +6231,11 @@ Canvas2D绘图扩展
 
 
 
-(function ($) {
-
-
-
 ﻿/*
 形状基类
 
 */
-$.class("Shape", $.SerializableObject, function (Class, $) {
+flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) {
 
 
 
@@ -6134,7 +6243,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
     this.defineProperty("fillStyle", null);
 
     //边框色
-    this.defineProperty("strokeStyle", $.colors["control-border"]);
+    this.defineProperty("strokeStyle", flyingon.colors["control-border"]);
 
     //线宽
     this.defineProperty("lineWidth", 1);
@@ -6170,17 +6279,14 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
 
     function children(context, storage, borderRect) {
 
-        var i = 0,
-            children = storage.children,
-            length = children.length,
-            offset;
+        var items = storage.children;
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++];
+            var item = items[i];
 
             storage = item["x:storage"];
-            offset = storage.offset;
+            var offset = storage.offset;
 
             item.buildPath(context,
                 borderRect.windowX + offset[3],
@@ -6188,10 +6294,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
                 storage.width <= 0 ? borderRect.width * storage.scaleX - offset[3] - offset[1] : storage.width,
                 storage.height <= 0 ? borderRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
 
-            if (storage.children)
-            {
-                children(context, storage, borderRect);
-            }
+            storage.children && children(context, storage, borderRect);
         }
     };
 
@@ -6213,10 +6316,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
             storage.height <= 0 ? borderRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
 
 
-        if (storage.children)
-        {
-            children(context, storage, borderRect);
-        }
+        storage.children && children(context, storage, borderRect);
 
 
         if (storage.fillStyle)
@@ -6248,7 +6348,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
 线条
 
 */
-$.class("Line", $.Shape, function (Class, $) {
+flyingon.class("Line", flyingon.Shape, function (Class, flyingon) {
 
 
     this.buildPath = function (context, x, y, width, height) {
@@ -6268,7 +6368,7 @@ $.class("Line", $.Shape, function (Class, $) {
 线条
 
 */
-$.class("DashLine", $.Shape, function (Class, $) {
+flyingon.class("DashLine", flyingon.Shape, function (Class, flyingon) {
 
 
     //虚线规则
@@ -6292,7 +6392,7 @@ $.class("DashLine", $.Shape, function (Class, $) {
 矩形
 
 */
-$.class("Rectangle", $.Shape, function (Class, $) {
+flyingon.class("Rectangle", flyingon.Shape, function (Class, flyingon) {
 
 
 
@@ -6312,7 +6412,7 @@ $.class("Rectangle", $.Shape, function (Class, $) {
 矩形
 
 */
-$.class("RoundRectangle", $.Shape, function (Class, $) {
+flyingon.class("RoundRectangle", flyingon.Shape, function (Class, flyingon) {
 
 
 
@@ -6337,7 +6437,7 @@ $.class("RoundRectangle", $.Shape, function (Class, $) {
 椭圆
 
 */
-$.class("Ellipse", $.Shape, function (Class, $) {
+flyingon.class("Ellipse", flyingon.Shape, function (Class, flyingon) {
 
 
 
@@ -6359,7 +6459,7 @@ $.class("Ellipse", $.Shape, function (Class, $) {
 椭圆
 
 */
-$.class("Polygon", $.Shape, function (Class, $) {
+flyingon.class("Polygon", flyingon.Shape, function (Class, flyingon) {
 
 
 
@@ -6388,7 +6488,7 @@ $.class("Polygon", $.Shape, function (Class, $) {
 椭圆
 
 */
-$.class("StarPolygon", $.Shape, function (Class, $) {
+flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
 
 
 
@@ -6419,7 +6519,7 @@ $.class("StarPolygon", $.Shape, function (Class, $) {
 
 
 //控件基类
-$.class("Control", $.SerializableObject, function (Class, $) {
+flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon) {
 
 
 
@@ -6428,42 +6528,38 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
         //盒模型
-        this["x:boxModel"] = new $.BoxModel(this);
-
+        this["x:boxModel"] = new flyingon.BoxModel(this);
     };
 
 
 
     //初始化类方法
-    Class.initialize = function ($) {
+    Class.initialize = function (flyingon) {
 
 
         var className = this.className,
-            styles = $.styles,
+            styles = flyingon.styles,
             style = styles[className] || (styles[className] = {}),
-            templates = $.templates,
+            templates = flyingon.templates,
             template = templates[className] || (templates[className] = {});
 
 
         className = this["superClass"].className;
 
         //复制上级样式
-        if (styles.hasOwnProperty(className))
-        {
-            $["y:simple:copy"](styles[className], style, true);
-        }
-
+        styles.hasOwnProperty(className) && flyingon["y:simple:copy"](styles[className], style, true);
 
         //复制上级模板
-        if (templates.hasOwnProperty(className))
-        {
-            $["y:simple:copy"](templates[className], template, true);
-        }
+        templates.hasOwnProperty(className) && flyingon["y:simple:copy"](templates[className], template, true);
 
     };
 
 
 
+
+
+    //引用序列化标记(为true时只序列化名称不序列化内容)
+    this["x:reference"] = true;
 
 
 
@@ -6482,16 +6578,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
             if (value != oldValue)
             {
-                if (oldValue)
-                {
-                    oldValue["x:children"].remove(this);
-                }
-
-                if (value)
-                {
-                    value["x:children"].append(this);
-                }
+                oldValue && oldValue["x:children"].remove(this);
+                value && value["x:children"].append(this);
             }
+
+            return this;
         }
     });
 
@@ -6501,22 +6592,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
         var box = this["x:boxModel"];
 
-        if (box.parent)
-        {
-            box.parent["x:measure"] = true;
-        }
-        else
-        {
-            box["x:measure"] = true;
-        }
-
-        if (parent)
-        {
-            parent["x:boxModel"]["x:measure"] = true;
-        }
+        box.parent && (box.parent["x:partition"] = true);
+        parent && (parent["x:boxModel"]["x:partition"] = true);
 
         this["x:parent"] = parent;
-        this.dispatchChangeEvent("parent", parent, this["x:parent"]);
+        this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this["x:parent"]));
     };
 
 
@@ -6525,34 +6605,25 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //主窗口
-    this.defineProperty("mainWindow", undefined, {
+    this.defineProperty("mainWindow", function () {
 
-        getter: function () {
-
-            var result = this.ownerWindow;
-            return result && (result.mainWindow || result);
-        }
-    }, true);
+        var result = this.ownerWindow;
+        return result && (result.mainWindow || result);
+    });
 
     //所属窗口
-    this.defineProperty("ownerWindow", undefined, {
+    this.defineProperty("ownerWindow", function () {
 
-        getter: function () {
-
-            var parent = this["x:parent"];
-            return parent && parent.ownerWindow;
-        }
-    }, true);
+        var parent = this["x:parent"];
+        return parent && parent.ownerWindow;
+    });
 
     //所属图层
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
-
-            var parent = this["x:parent"];
-            return parent && parent.ownerLayer;
-        }
-    }, true);
+        var parent = this["x:parent"];
+        return parent && parent.ownerLayer;
+    });
 
 
     //当前控件是否指定控件的父控件
@@ -6604,10 +6675,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
         var parent = this["x:parent"];
 
-        if (parent)
-        {
-            parent["x:children"].remove(this);
-        }
+        parent && parent["x:children"].remove(this);
 
         return this;
     };
@@ -6619,13 +6687,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-    this["y:define:getter"] = function (name, options) {
+    flyingon["x:define:getter"] = function (name, options) {
 
         var body;
 
         if (options.style) // 样式属性
         {
-            body = "return this.getStyleValue('" + name + "');";
+            body = "return this.styleValue('" + name + "');";
         }
         else
         {
@@ -6635,15 +6703,15 @@ $.class("Control", $.SerializableObject, function (Class, $) {
         return new Function(body);
     };
 
-    this["y:define:setter"] = function (name, attributes) {
+    flyingon["x:define:setter"] = function (name, attributes) {
 
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + this["y:define:setter:initialize"]
+            + flyingon["x:define:initialize"]
 
 
-            + (attributes.style ? "var oldValue = this.getStyleValue(name);" : "var oldValue = storage[name];")
+            + (attributes.style ? "var oldValue = this.styleValue(name);\n" : "var oldValue = storage[name];\n")
 
             + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
 
@@ -6651,64 +6719,42 @@ $.class("Control", $.SerializableObject, function (Class, $) {
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + this["y:define:setter:change"]
+            + flyingon["x:define:change"]
 
-            + "storage[name] = value;\n";
+            + "storage[name] = value;\n"
+            + "var boxModel = this['x:boxModel'];\n";
 
 
-        //布局 可能会影响父控件布局
-        if (attributes.layout)
+        attributes.valueChangedCode && (body += attributes.valueChangedCode + "\n"); //自定义值变更代码
+
+        body += flyingon["x:define:binding"]; //处理绑定源
+
+
+        //需要重新定位
+        if (attributes.locate)
         {
-            body += "if (cache = this['x:boxModel'].parent)\n"
+            body += "if (cache = boxModel.parent)\n"
                 + "{\n"
                 + "cache['x:measure'] = true;\n"
                 + "cache.ownerControl.invalidate();\n"
                 + "}\n"
                 + "else\n"
                 + "{\n"
+                + "boxModel['x:measure'] = true;\n"
                 + "this.invalidate();\n"
                 + "}\n";
-
-            attributes.invalidate = false;
         }
-
-
-        //测量 可能会影响空间占用及子控件排列
-        if (attributes.measure)
+        else if (attributes.measure) //需要重新测量
         {
-            body += "this['x:boxModel']['x:measure'] = true;\nthis.invalidate();\n";
+            body += "boxModel['x:measure'] = true;\nthis.invalidate();\n";
         }
-        else if (attributes.invalidate) //标记区域无效 需要重新绘制
+        else if (attributes.invalidate)  //需要重新绘制
         {
             body += "this.invalidate();\n";
         }
 
 
-        if (attributes.valueChangedCode) //自定义值变更代码
-        {
-            body += attributes.valueChangedCode + "\n";
-        }
-
-
-        body += this["y:define:setter:bindingTo"] //处理绑定源
-
-            //处理绑定目标
-            + "if ((cache = this['x:bindings']) && (cache = cache[name]) && cache.setter !== null && cache['x:binding'] != true)\n"
-            + "{\n"
-            + "if (cache.setter === undefined)\n"
-            + "{\n"
-            + "cache.source[cache.expression] = this[name]\n"
-            + "}\n"
-            + "else\n"
-            + "{\n"
-            + "cache.setter.call(cache.source, this[name]);\n"
-            + "}\n"
-            + "}\n"
-
-
-            + "}\n"
-
-            + "return this;\n";
+        body += "}\nreturn this;"
 
 
         return new Function("value", body);
@@ -6717,8 +6763,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-    //自定义样式
+    //指定样式Key
     this.defineProperty("styleKey", null, "invalidate");
+
+    //自定义样式
+    this.defineProperty("style", null, "invalidate");
 
     /*
     预定义状态组:
@@ -6730,16 +6779,19 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this["x:states"] = ["common-states", "focus-states", "hover-states"];
 
     //自定义状态组
-    this.defineStates = function (states) {
+    this.defineStates = function (statesName, defaultValue, index) {
 
-        this["x:states"] = ["common-states"].concat(states).concat(["focus-states", "hover-states"]);
+        var states = this["x:states"] = this["x:states"].slice(0);
+        states.splice(index || states.length - 2, 0, statesName);
+
+        defaultValue !== undefined && this.defaultValue(statesName, defaultValue);
     };
 
-    this.setDefaultValue("common-states", null);
+    this.defaultValue("common-states", null);
 
-    this.setDefaultValue("focus-states", null);
+    this.defaultValue("focus-states", null);
 
-    this.setDefaultValue("hover-states", null);
+    this.defaultValue("hover-states", null);
 
     //切换状态
     this.switchState = function (statesName, stateName) {
@@ -6757,7 +6809,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     };
 
 
-    function getStyleValue(style, name) {
+    function styleValue(style, name) {
 
         var storage = this["x:storage"],
             states = this["x:states"],
@@ -6784,37 +6836,40 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     };
 
     //获取样式值
-    this.getStyleValue = function (name) {
+    this.styleValue = function (name) {
 
 
-        var storage = this["x:storage"],
-            result;
+        var storage = this["x:storage"];
 
-
-        if ((result = (storage.hasOwnProperty(name) && storage[name])) != false)
+        if (storage.hasOwnProperty(name))
         {
-            return result;
+            return storage[name];
+        }
+
+        var style = storage.style;
+        if (style && (style = styleValue.call(this, style, name)) != undefined)
+        {
+            return style;
         }
 
 
-        var styles = $.styles,
-            styleKey,
-            style;
+        var styles = flyingon.styles,
+            styleKey;
 
         if ((styleKey = storage.styleKey) &&
             (style = (styles[styleKey])) &&
-            (result = getStyleValue.call(this, style, name)) != undefined)
+            (style = styleValue.call(this, style, name)) != undefined)
         {
-            return result;
+            return style;
         }
 
 
-        styleKey = this["x:class"].className;
+        styleKey = this["x:className"];
         style = styles[styleKey];
 
-        if ((result = getStyleValue.call(this, style, name)) != undefined)
+        if ((style = styleValue.call(this, style, name)) != undefined)
         {
-            return result;
+            return style;
         }
 
         return storage[name] || null;
@@ -6826,72 +6881,42 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     /***************BoxModel相关属性***************/
 
     //盒式模型
-    this.defineProperty("boxModel", undefined, {
+    this.defineProperty("boxModel", function () {
 
-        getter: function () {
-
-            return this["x:boxModel"];
-        }
-    }, true);
+        return this["x:boxModel"];
+    });
 
 
 
     //
-    this.defineProperties(["offsetX", "offsetY"], 0, "measure|layout");
-
-
-    //
-    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('locationchanged', this, name, value, oldValue));");
-
-
-    //
-    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('resize', this, name, value, oldValue));");
+    this.defineProperties(["left", "top", "width", "height"], 0, "locate");
 
 
 
 
     //是否显示 visible:显示 hidden:不显示但保留占位 collapsed:不显示也不占位 见枚举flyingon.Visibility对象
-    this.defineProperty("visibility", "visible", "layout");
+    this.defineProperty("visibility", "visible", "locate");
 
     //
-    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "measure|layout");
+    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate");
 
 
 
-    //拉伸方式 n:不拉伸 x:横向拉伸 y:纵向拉伸 xy:全部拉伸 见枚举flyingon.Stretch对象
-    this.defineProperty("stretch", "xy", "measure|layout");
+    //拉伸方式 no:不拉伸 width:宽度拉伸 height:高度拉伸 all:全部拉伸 见枚举flyingon.Stretch对象
+    this.defineProperty("stretch", "no", "locate");
 
     //水平对齐 left center right 见枚举flyingon.HorizontalAlign对象
-    this.defineProperty("horizontalAlign", "left", "measure|layout");
+    this.defineProperty("horizontalAlign", "left", "locate");
 
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
-    this.defineProperty("verticalAlign", "top", "measure|layout");
+    this.defineProperty("verticalAlign", "top", "locate");
 
     //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
-    this.defineProperty("dock", "left", "measure|layout");
+    this.defineProperty("dock", "left", "locate");
 
     //表格布局时行及列索引 
-    this.defineProperties(["rowIndex", "columnIndex"], null, "measure|layout");
+    this.defineProperties(["rowIndex", "columnIndex"], null, "locate");
 
-
-
-    //
-    this.defineProperty("outerRect", undefined, {
-
-        getter: function () {
-
-            return this["x:boxModel"]["outerRect"];
-        }
-    }, true);
-
-    //
-    this.defineProperty("innerRect", undefined, {
-
-        getter: function () {
-
-            return this["x:boxModel"]["innerRect"];
-        }
-    }, true);
 
 
 
@@ -6900,7 +6925,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
     /***************BoxModel及样式相关属性***************/
 
-    this.defineProperty("margin", [0, 0, 0, 0], "measure|style");
+    this.defineProperty("margin", [0, 0, 0, 0], "locate|style");
 
     this.defineProperty("border", [0, 0, 0, 0], "measure|style");
 
@@ -6931,11 +6956,10 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     //字体
     this.defineProperty("font", "normal", {
 
-        attributes: "style",
-
+        attributes: "measure|style",
         getter: function () {
 
-            return $.fonts[this.getStyleValue("font") || "normal"] || $.fonts["normal"];
+            return flyingon.fonts[this.styleValue("font") || "normal"] || flyingon.fonts["normal"];
         }
 
     }, "this['x:textMetrics'] = null;");
@@ -6944,8 +6968,21 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //装饰
-    this.defineProperty("decorates", null, "style");
+    this.defineProperty("decorates", null, "invalidate|style");
 
+
+
+
+    //自动调整大小方式(根据内容大小自动变化)  no:不调整 width:宽度调整 height:高度调整 all:全部调整见枚举flyingon.AutoSize对象
+    this.defineProperty("autoSize", "no", {
+
+        valueChangedCode: "value && value != 'no' && this.adjustAutoSize(this['x:boxModel']);"
+    });
+
+    //调整自动大小
+    this.adjustAutoSize = function (boxModel, size) {
+
+    };
 
 
 
@@ -6967,8 +7004,8 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
     this["y:cursor"] = function (event) {
 
-        var cursor = this.getStyleValue("cursor") || "default";
-        return $.cursors[cursor] || cursor;
+        var cursor = this.styleValue("cursor") || "default";
+        return flyingon.cursors[cursor] || cursor;
     };
 
 
@@ -6998,23 +7035,87 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //是否为焦点控件
-    this.defineProperty("focused", undefined, {
+    this.defineProperty("focused", function () {
 
-        getter: function () {
-
-            return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
-        }
-    }, true);
+        return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
+    });
 
     //是否为焦点控件或包含焦点控件
-    this.defineProperty("containsFocused", undefined, {
+    this.defineProperty("containsFocused", function () {
+
+        var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
+        return focusControl && (focusControl == this || this.isParent(focusControl));
+    });
+
+
+
+
+
+    //是否可以拖动
+    this.defineProperty("draggable", false);
+
+    //是否可以接受拖放
+    this.defineProperty("droppable", false);
+
+
+
+    //值变更事件
+    this.defineEvent("change");
+
+    //定义鼠标事件
+    this.defineEvents(["mousedown", "mousemove", "click", "dblclick", "mouseup", "mouseover", "mouseout", "mousewheel"]);
+
+    //定义拖拉事件
+    this.defineEvents(["dragstart", "drag", "dragend", "dragenter", "dragover", "dragleave", "drop"]);
+
+    //定义键盘事件
+    this.defineEvents(["keydown", "keypress", "keyup"]);
+
+    //定义其它事件
+    this.defineEvents(["focus", "blur", "locationchanged", "resize", "validate"]);
+
+
+
+
+
+
+    //模板
+    this.defineProperty("template", null, {
+
+        attributes: "measure",
+        valueChangedCode: "this.clearTemplate();",
 
         getter: function () {
 
-            var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
-            return focusControl && (focusControl == this || this.isParent(focusControl));
+            var storage = this["x:storage"];
+
+            if (storage.hasOwnProperty("template"))
+            {
+                return storage.template;
+            }
+
+            return flyingon.templates[this["x:className"]] || storage.template;
         }
-    }, true);
+    });
+
+    //创建模板控件
+    this.createTemplateControl = function (template, context) {
+
+        var result = new flyingon.SerializeReader().deserialize(template, context || this);
+
+        if (result)
+        {
+            result["x:parent"] = this;
+            return result;
+        }
+    };
+
+    //清除模板控件
+    this.clearTemplate = function () {
+
+    };
+
+
 
 
 
@@ -7080,44 +7181,6 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-
-    ////数据绑定主体
-    //this.dataContext = null;
-
-    //binding = { source: object, expression: "name", setter: "", formatter: "" }
-    this.setBinding = function (name, binding) {
-
-        if (binding)
-        {
-            binding.target = this;
-
-            if (!(binding instanceof $.DataBinding))
-            {
-                binding = new $.DataBinding(binding);
-            }
-
-            binding["y:initialize"](this, name);
-            binding.pull();
-        }
-
-        return binding;
-    };
-
-    this.clearBinding = function (propertyName) {
-
-        if (propertyName)
-        {
-            var bindings = this["x:bindings"];
-
-            if (bindings && (bindings = bindings[propertyName]))
-            {
-                bindings.clear();
-            }
-        }
-    };
-
-
-
     //显示弹出控件
     this.showPopup = function (x, y) {
 
@@ -7129,22 +7192,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
             if (!layer)
             {
-                layer = ownerWindow["x:popupLayer"] = ownerWindow.appendLayer(null, 9997);
+                layer = ownerWindow["x:popupLayer"] = ownerWindow.appendLayer(9997);
                 layer.layout = "absolute";
                 layer.paintBackground = function () { };
             }
 
-
-            if (x != null)
-            {
-                this["x:storage"].left = x;
-            }
-
-            if (y != null)
-            {
-                this["x:storage"].top = y;
-            }
-
+            x != null && (this["x:storage"].left = x);
+            y != null && (this["x:storage"].top = y);
 
             layer["x:children"].append(this);
             layer.invalidate();
@@ -7155,37 +7209,10 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this.closePopup = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow.removeLayer(ownerWindow["x:popupLayer"]);
-        }
+        ownerWindow && ownerWindow.removeLayer(ownerWindow["x:popupLayer"]);
     };
 
 
-
-
-
-
-    //是否可以拖动
-    this.defineProperty("draggable", false);
-
-    //是否可以接受拖放
-    this.defineProperty("droppable", false);
-
-
-
-
-    //定义鼠标事件
-    this.defineEvents(["mousedown", "mousemove", "click", "dblclick", "mouseup", "mouseover", "mouseout", "mousewheel"]);
-
-    //定义拖拉事件
-    this.defineEvents(["dragstart", "drag", "dragend", "dragenter", "dragover", "dragleave", "drop"]);
-
-    //定义键盘事件
-    this.defineEvents(["keydown", "keypress", "keyup"]);
-
-    //定义其它事件
-    this.defineEvents(["parentchanged", "focus", "blur", "locationchanged", "resize", "validate"]);
 
 
 
@@ -7193,20 +7220,14 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this.setCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow["x:captureControl"] = this;
-        }
+        ownerWindow && (ownerWindow["x:captureControl"] = this);
     };
 
     //释放鼠标
     this.releaseCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow["x:captureControl"] = null;
-        }
+        ownerWindow && (ownerWindow["x:captureControl"] = null);
     };
 
 
@@ -7270,21 +7291,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-
-
-
-
     //使区域无效
     this.invalidate = function () {
 
         var layer = this.ownerLayer;
 
         this["x:boxModel"].invalidate();
-
-        if (layer)
-        {
-            layer.registryUpdate();
-        }
+        layer && layer.registryUpdate();
     };
 
 
@@ -7304,32 +7317,15 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-
-
-    //测量文字方法
-    this["y:measure:text"] = function () {
-
-        if (!this["x:textMetrics"])
-        {
-            var storage = this["x:storage"];
-
-            this["x:textMetrics"] = new $.TextMetrics(this);
-            this["x:textMetrics"].measureText(this.font, storage.text, storage.multiline);
-        }
-    };
-
-
-
-
     //绘制边框
     this.paintBorder = function (context) {
 
-        var boxModel = context.boxModel,
+        var boxModel = this["x:boxModel"],
             border = boxModel.border;
 
         if (border && border.border)
         {
-            var color = this.getStyleValue("borderColor");
+            var color = this.styleValue("borderColor");
 
             if (boxModel.borderRadius > 0)
             {
@@ -7414,32 +7410,24 @@ $.class("Control", $.SerializableObject, function (Class, $) {
             }
 
 
-            if (this.paintTextBackground)
-            {
-                this.paintTextBackground(context);
-            }
+            this.paintTextBackground && this.paintTextBackground(context);
 
 
             context.set_fillStyle(this.foreground);
             context.set_font(font);
 
 
-            var x = r.windowX - boxModel.scrollLeft,
-                y = r.windowY + textMetrics[0].height,
-
-                i = 0,
-                length = textMetrics.length;
+            var x = r.windowX - boxModel.offsetX,
+                y = r.windowY + textMetrics[0].height;
 
 
-            while (i < length)
+            for (var i = 0, length = textMetrics.length; i < length; i++)
             {
-                var line = textMetrics[i++],
-                    j = 0,
-                    count = line.length;
+                var line = textMetrics[i];
 
-                while (j < count)
+                for (var j = 0, count = line.length; j < count; j++)
                 {
-                    var snippet = line[j++];
+                    var snippet = line[j];
                     context.fillText(snippet.text, x, y);
 
                     x += snippet.width;
@@ -7454,51 +7442,60 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-});
+}, true);
 
 
 
 
-﻿$.class("ScrollEvent", $.Event, function (Class, $) {
+﻿flyingon.class("ScrollEvent", flyingon.Event, function (Class, flyingon) {
 
+
+    Class.create = function (target) {
+
+        this.target = target;
+    };
+
+
+    this.type = "scroll";
+
+    //水平滚动条
+    this.horizontalScrollBar = null;
+
+    //竖起滚动条
+    this.verticalScrollBar = null;
+
+    //水平变化距离
+    this.changedX = 0;
+
+    //竖直变化距离
+    this.changedY = 0;
 
 });
 
 
 //滚动条控件
-$.class("ScrollBase", $.Control, function (Class, $) {
+flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
-
-    
     var timer,      //定时变更定时器
         dragger;    //拖拉者
-
-
-
-    Class.create = function () {
-
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
 
 
 
     //是否竖直滚动条
     this.defineProperty("isVertical", false, {
 
-        attributes: "measure|layout",
+        attributes: "locate",
         valueChangedCode: "var width = storage.width;\nstorage.width = storage.height;\nstorage.height = width;"
     });
 
 
 
-    this.setDefaultValue("focusable", false);
+    this.defaultValue("focusable", false);
 
-    this.setDefaultValue("width", 200);
+    this.defaultValue("width", 200);
 
-    this.setDefaultValue("height", 16);
+    this.defaultValue("height", 16);
 
 
 
@@ -7541,13 +7538,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
 
 
 
-    this.handleMouseDown = function (event) {
+    this["event:mousedown"] = function (event) {
 
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
+        timer && clearTimeout(timer);
+
 
         var storage = this["x:storage"],
             step,
@@ -7582,14 +7577,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         }
 
 
-        if (this.changeValue(step, limit))
-        {
-            this.changeValueTime(step, limit);
-        }
+        this.changeValue(step, limit) && this.changeValueTime(step, limit);
     };
 
 
-    this.handleMouseMove = function (event) {
+    this["event:mousemove"] = function (event) {
 
         if (dragger)
         {
@@ -7597,14 +7589,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
                 offset = storage.isVertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
                 value = Math.round(offset * (storage.maxValue - storage.minValue) / this["x:boxModel"].length);
 
-            if (value)
-            {
-                this.changeValue(0, dragger.value + value);
-            }
+            value && this.changeValue(0, dragger.value + value);
         }
     };
 
-    this.handleMouseUp = function (event) {
+    this["event:mouseup"] = function (event) {
 
         if (timer)
         {
@@ -7615,6 +7604,7 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         this.ownerWindow["x:captureControl"] = null;
         dragger = null;
     };
+
 
 
     //变更值
@@ -7639,10 +7629,7 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         }
 
 
-        if (!step || (step > 0 && value > limit) || (step < 0 && value < limit))
-        {
-            value = limit;
-        }
+        (!step || (step > 0 && value > limit) || (step < 0 && value < limit)) && (value = limit);
 
 
         step = value - storage.value;
@@ -7656,19 +7643,17 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         storage.value = value;
 
 
-        var event = new $.ScrollEvent("scroll", this);
+        var event = new flyingon.ScrollEvent("scroll", this);
 
         if (storage.isVertical)
         {
             event.verticalScrollBar = this;
-            event.changedX = 0;
             event.changedY = step;
         }
         else
         {
             event.horizontalScrollBar = this;
             event.changedX = step;
-            event.changedY = 0;
         }
 
         this.dispatchEvent(event);
@@ -7686,38 +7671,25 @@ $.class("ScrollBase", $.Control, function (Class, $) {
 
         var self = this;
 
-        timer = setTimeout(function () {
+        var fn = function () {
 
             clearTimeout(timer);
+            self.changeValue(step, limit) && (timer = setTimeout(fn, 200));
+        };
 
-            if (timer && self.changeValue(step, limit))
-            {
-                timer = setTimeout(fn, 200);
-            }
-
-        }, 200);
+        timer = setTimeout(fn, 200);
     };
 
 
     //根据位置获取当前值
     this.getValueAt = function (x, y, exclueSlider) {
 
-
         var storage = this["x:storage"],
             boxModel = this["x:boxModel"],
-
             value = storage.isVertical ? y : x;
 
-
-        if (exclueSlider)
-        {
-            value -= boxModel.slider;
-        }
-
-        if (boxModel.thickness)
-        {
-            value -= boxModel.thickness;
-        }
+        exclueSlider && (value -= boxModel.slider);
+        boxModel.thickness && (value -= boxModel.thickness);
 
         return storage.minValue + Math.round(value * storage.maxValue / boxModel.length);
     };
@@ -7734,12 +7706,12 @@ $.class("ScrollBase", $.Control, function (Class, $) {
 
 ﻿
 //滚动条控件
-$.class("ScrollBar", $.ScrollBase, function (Class, $) {
+flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
-    this.setDefaultValue("maxStep", 200);
+    this.defaultValue("maxStep", 200);
 
-    this.setDefaultValue("minStep", 20);
+    this.defaultValue("minStep", 20);
 
 
     //箭头背景
@@ -7828,6 +7800,10 @@ $.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
     this.measure = function (boxModel) {
 
+
+        boxModel.compute();
+
+
         var storage = this["x:storage"],
             x = boxModel.x,
             y = boxModel.y,
@@ -7891,7 +7867,7 @@ $.class("ScrollBar", $.ScrollBase, function (Class, $) {
 
 
 
-$.class("ScrollCorner", $.Control, function (Class, $) {
+flyingon.class("ScrollCorner", flyingon.Control, function (Class, flyingon) {
 
 
 
@@ -7901,64 +7877,87 @@ $.class("ScrollCorner", $.Control, function (Class, $) {
 
 
 ﻿//可滚动控件
-$.class("ScrollableControl", $.Control, function (Class, $) {
+flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-    Class.create = function () {
 
-        this.addEventListener("scroll", this.handleScroll);
-        this.addEventListener("mousewheel", this.handleMouseWheel);
-    };
+    this.defineProperty("horizontalScrollBar", function () {
 
-
-
-    this.defineProperty("horizontalScrollBar", undefined, {
-
-        getter: function () {
-
-            return this["x:hScrollBar"];
-        }
-    }, true);
+        return this["x:hScrollBar"];
+    });
 
 
-    this.defineProperty("verticalScrollBar", undefined, {
+    this.defineProperty("verticalScrollBar", function () {
 
-        getter: function () {
-
-            return this["x:vScrollBar"];
-        }
-    }, true);
+        return this["x:vScrollBar"];
+    });
 
 
 
 
     //定义水平及竖直滚动条显示方式 auto always never  见枚举flyingon.ScrollBarVisibility对象
-    this.defineProperties(["horizontalScroll", "verticalScroll"], "auto", "measure|layout");
+    this.defineProperties(["horizontalScroll", "verticalScroll"], "auto", "measure");
 
 
 
 
-    function defineProperty(name) {
+    function defineProperty(name, boxModel, attributes) {
 
         this.defineProperty("name", 0, {
 
-            attributes: "validate",
-            valueChangedCode: "var boxModel = this['x:boxModel'];\nboxModel[name] = value;\nboxModel.renderItems = null;"
+            attributes: attributes || "invalidate",
+            valueChangedCode: "this['x:boxModel']['" + boxModel + "'] = value;"
         });
     };
 
     //
-    defineProperty.call(this, "scrollLeft");
+    defineProperty.call(this, "scrollLeft", "offsetX");
 
     //
-    defineProperty.call(this, "scrollTop");
+    defineProperty.call(this, "scrollTop", "offsetY");
 
     //
-    defineProperty.call(this, "scrollWidth");
+    defineProperty.call(this, "scrollWidth", "maxWidth", "measure");
 
     //
-    defineProperty.call(this, "scrollHeight");
+    defineProperty.call(this, "scrollHeight", "maxHeight", "measure");
+
+
+
+
+
+    this["event:scroll"] = function (event) {
+
+        var box = this["x:boxModel"];
+
+        event.changedX && (box.offsetX += event.changedX);
+        event.changedY && (box.offsetY += event.changedY);
+
+        this["x:render:children"] = null;
+        this.invalidate();
+
+        //修正因滚动造成的输入符位置变更问题
+        var ownerWindow = this.ownerWindow;
+        ownerWindow && this.isParent(ownerWindow["x:focusControl"]) && ownerWindow["y:caret"](event.changedX, event.changedY);
+
+        event.stopPropagation();
+    };
+
+    this["event:mousewheel"] = function (event) {
+
+        var vScrollBar = this["x:vScrollBar"];
+
+        if (vScrollBar)
+        {
+            var storage = vScrollBar["x:storage"],
+                step = event.wheelDelta < 0 ? storage.minStep : -storage.minStep;
+
+            vScrollBar.changeValue(step);
+            event.stopPropagation();
+        }
+    };
+
 
 
 
@@ -7982,228 +7981,155 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
 
 
 
-    this.defineEvent("scrollchanged");
-
-
-    this.handleScroll = function (event) {
-
-        var box = this["x:boxModel"];
-
-        if (event.changedX)
-        {
-            box.scrollLeft += event.changedX;
-        }
-
-        if (event.changedY)
-        {
-            box.scrollTop += event.changedY;
-        }
-
-
-        box.renderItems = null;
-
-
-        //修正因滚动造成的输入符位置变更问题
-        var ownerWindow = this.ownerWindow;
-        if (ownerWindow && this.isParent(ownerWindow["x:focusControl"]))
-        {
-            ownerWindow["y:caret"](event.changedX, event.changedY);
-        }
-
-
-        this.invalidate();
-
-        event.stopPropagation();
-    };
-
-    this.handleMouseWheel = function (event) {
-
-        var vScrollBar = this["x:vScrollBar"];
-
-        if (vScrollBar)
-        {
-            var storage = vScrollBar["x:storage"],
-                step = event.wheelDelta < 0 ? storage.minStep : -storage.minStep;
-
-            vScrollBar.changeValue(step);
-            event.stopPropagation();
-        }
-
-    };
-
-
-
-
-
-
-
-
-    //测量
     this.measure = function (boxModel) {
 
 
-        var innerRect = boxModel.innerRect;
+        boxModel.compute();
 
 
-        boxModel.scrollWidth = 0;
-        boxModel.scrollHeight = 0;
+        var innerRect = boxModel.innerRect,
+            width = innerRect.width,
+            height = innerRect.height;
 
 
         //自动滚动条时先按无滚动条进行排列
-        var _hScrollBar = getHorizontalBar.call(this, innerRect.width),
-            _vScrollBar = getVerticalBar.call(this, innerRect.height);
+        var _hScrollBar = horizontalBar.call(this, width),
+            _vScrollBar = verticalBar.call(this, height);
+
+        _vScrollBar && (innerRect.width -= _vScrollBar["x:storage"].width);
+        _hScrollBar && (innerRect.height -= _hScrollBar["x:storage"].height);
+
+        this.arrange(boxModel, innerRect);
 
 
-        this.adjustBoxModel(boxModel, _hScrollBar, _vScrollBar);
-        this.arrange(boxModel);
-
+        var hScrollBar = horizontalBar.call(this, width),
+            vScrollBar = verticalBar.call(this, height)
 
         //如果滚动条有变则重新计算及排列
-        var hScrollBar = getHorizontalBar.call(this, innerRect.width),
-            vScrollBar = getVerticalBar.call(this, innerRect.height);
-
         if (_hScrollBar != hScrollBar || _vScrollBar != vScrollBar)
         {
-            var measure = this.measure; //防止循环调用
-            this.measure = null;
+            innerRect.width = width;
+            innerRect.height = height;
 
-            boxModel.measure(); //退回重新测量
+            vScrollBar && (width -= vScrollBar["x:storage"].width);
+            hScrollBar && (height -= hScrollBar["x:storage"].height);
 
-            this.measure = measure;
-
-            this.adjustBoxModel(boxModel, hScrollBar, vScrollBar);
-            this.arrange(boxModel);
-
-
-            //重新设置滚动条
-            if (hScrollBar)
-            {
-                hScrollBar.maxValue = boxModel.scrollWidth;
-            }
-
-            if (vScrollBar)
-            {
-                vScrollBar.maxValue = boxModel.scrollHeight;
-            }
+            this.arrange(boxModel, innerRect);
         }
 
 
-        var scrollCorner = getScrollCorner.call(this, hScrollBar, vScrollBar);
-        if (scrollCorner)
+        //处理滚动条
+        if (hScrollBar || vScrollBar)
         {
-            scrollCorner["x:boxModel"].setUsableRect(boxModel);
+            hScrollBar && (hScrollBar.maxValue = boxModel.maxWidth);
+            vScrollBar && (vScrollBar.maxValue = boxModel.maxHeight);
+
+
+            //设置滚动条位置
+            this["y:measure:scroll"](boxModel, hScrollBar, vScrollBar);
+
+
+            //处理拐角
+            var scrollCorner = this["x:scrollCorner"];
+
+            if (hScrollBar && vScrollBar)
+            {
+                !scrollCorner && (scrollCorner = this["x:scrollCorner"] = this["x:scrollCorner:cache"] || this.createScrollCorner());
+                scrollCorner["x:boxModel"].measure(boxModel, 0, 0, 0, 0);
+            }
+            else if (scrollCorner)
+            {
+                this["x:scrollCorner:cache"] = scrollCorner;
+                this["x:scrollCorner"] = null;
+            }
         }
     };
 
-    //修正盒模型
-    this.adjustBoxModel = function (boxModel, hScrollBar, vScrollBar) {
+    this.adjustAutoSize = function (boxModel, size) {
 
-        if (hScrollBar || vScrollBar)
-        {
-            if (hScrollBar)
-            {
-                boxModel.innerRect.height -= hScrollBar["x:storage"].height;
-            }
-
-            if (vScrollBar)
-            {
-                boxModel.innerRect.width -= vScrollBar["x:storage"].width;
-            }
-
-            this.setScrollBarRect(boxModel, hScrollBar, vScrollBar);
-        }
+        //size.width = boxModel.maxWidth;
+        //size.height = boxModel.maxHeight;
     };
 
 
 
     //排列子控件
-    this.arrange = function (boxModel) {
+    this.arrange = function (boxModel, usableRect) {
 
     };
 
 
 
+    function cache(target, name) {
 
-    function getHorizontalBar(viewportSize) {
+        target["x:boxModel"].visible = false;
+
+        this[name + ":cache"] = target;
+        this[name] = null;
+    };
+
+    function restore(name) {
+
+        var result = this[name];
+        if (result)
+        {
+            result["x:boxModel"].visible = true;
+            this[name] = undefined;
+        }
+
+        return result;
+    };
+
+    function horizontalBar(viewportSize) {
 
         var storage = this["x:storage"],
             box = this["x:boxModel"],
             result = this["x:hScrollBar"];
 
-
-        if (storage.horizontalScroll == "always" || (storage.horizontalScroll == "auto" && box.scrollWidth > viewportSize))
+        if (storage.horizontalScroll == "always" || (storage.horizontalScroll == "auto" && box.maxWidth > viewportSize &&
+            storage.autoSize != "width" && storage.autoSize != "all"))
         {
-            if (!result)
-            {
-                result = this["x:hScrollBar"] = this["x:hScrollBar:cache"] || this.createHorizontalScrollBar();
-            }
+            !result && (result = this["x:hScrollBar"] = restore.call(this, "x:hScrollBar:cache") || this.createHorizontalScrollBar());
 
             result["x:parent"] = this;
 
             storage = result["x:storage"];
-
-            storage.value = box.scrollLeft;
-            storage.maxValue = box.scrollWidth;
+            storage.value = box.offsetX;
+            storage.maxValue = box.maxWidth;
             storage.viewportSize = viewportSize;
 
             return result;
         }
         else if (result)
         {
-            this["x:hScrollBar:cache"] = result;
-            this["x:hScrollBar"] = null;
+            cache.call(this, result, "x:hScrollBar");
         }
     };
 
-    function getVerticalBar(viewportSize) {
+    function verticalBar(viewportSize) {
 
         var storage = this["x:storage"],
             box = this["x:boxModel"],
             result = this["x:vScrollBar"];
 
-
-        if (storage.verticalScroll == "always" || (storage.verticalScroll == "auto" && box.scrollHeight > viewportSize))
+        if (storage.verticalScroll == "always" || (storage.verticalScroll == "auto" && box.maxHeight > viewportSize &&
+            storage.autoSize != "height" &&
+            storage.autoSize != "all"))
         {
-            if (!result)
-            {
-                result = this["x:vScrollBar"] = this["x:vScrollBar:cache"] || this.createVerticalScrollBar();
-            }
+            !result && (result = this["x:vScrollBar"] = restore.call(this, "x:vScrollBar:cache") || this.createVerticalScrollBar());
 
             result["x:parent"] = this;
 
             storage = result["x:storage"];
-
-            storage.value = box.scrollTop;
-            storage.maxValue = box.scrollHeight;
+            storage.value = box.offsetY;
+            storage.maxValue = box.maxHeight;
             storage.viewportSize = viewportSize;
 
             return result;
         }
         else if (result)
         {
-            this["x:vScrollBar:cache"] = result;
-            this["x:vScrollBar"] = null;
-        }
-    };
-
-    function getScrollCorner(hScrollBar, vScrollBar) {
-
-        var result = this["x:scrollCorner"];
-
-
-        if (hScrollBar && vScrollBar)
-        {
-            if (!result)
-            {
-                result = this["x:scrollCorner"] = this["x:scrollCorner:cache"] || this.createScrollCorner();
-            }
-
-            return result;
-        }
-        else if (result)
-        {
-            this["x:scrollCorner:cache"] = result;
-            this["x:scrollCorner"] = null;
+            cache.call(this, result, "x:vScrollBar");
         }
     };
 
@@ -8212,13 +8138,13 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
     //创建水平滚动条
     this.createHorizontalScrollBar = function () {
 
-        return new $.ScrollBar();
+        return new flyingon.ScrollBar();
     };
 
     //创建竖直滚动条
     this.createVerticalScrollBar = function () {
 
-        var result = new $.ScrollBar();
+        var result = new flyingon.ScrollBar();
         result.isVertical = true;
         return result;
     };
@@ -8226,13 +8152,13 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
     //创建滚动条拐角
     this.createScrollCorner = function () {
 
-        return new $.ScrollCorner();
+        return new flyingon.ScrollCorner();
     };
 
 
 
-    //设置滚动条显示范围
-    this.setScrollBarRect = function (boxModel, hScrollBar, vScrollBar) {
+    //测量滚动条
+    this["y:measure:scroll"] = function (boxModel, hScrollBar, vScrollBar) {
 
         var storage_1 = hScrollBar && hScrollBar["x:storage"],
             storage_2 = vScrollBar && vScrollBar["x:storage"],
@@ -8244,18 +8170,18 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
             storage_1.width = r.width - storage_2.width;
             storage_2.height = r.height - storage_1.height;
 
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
+            hScrollBar["x:boxModel"].measure(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
+            vScrollBar["x:boxModel"].measure(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
         }
         else if (storage_1) //只出现水平滚动条
         {
             storage_1.width = r.width;
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
+            hScrollBar["x:boxModel"].measure(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
         }
         else //只出现竖直滚动条
         {
             storage_2.height = r.height;
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
+            vScrollBar["x:boxModel"].measure(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
         }
     };
 
@@ -8266,64 +8192,139 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
 
 
 
-﻿//内容控件
-$.class("ContentControl", $.Control, function (Class, $) {
+﻿
+//内容控件
+flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
+
+
+
+    this.defaultValue("width", 100);
+
+    this.defaultValue("height", 21);
 
 
 
     //内容控件
-    this.defineProperty("content", null, {
+    this.defineProperty("content",
 
-        getter: function () {
+        function () {
 
             return this["x:content"];
         },
 
-        setter: function (value) {
+        function (value) {
 
             var oldValue = this["x:content"];
 
             if (oldValue != value)
             {
-                if ($["x:initializing"])
+                if (flyingon["x:initializing"])
                 {
                     this["x:content"] = value;
                 }
                 else
                 {
-                    if (oldValue)
+                    if (oldValue instanceof flyingon.Control)
                     {
                         oldValue["y:parent"](null);
                     }
 
-                    if (value)
-                    {
-                        value["y:parent"](this);
-                    }
-
                     this["x:content"] = value;
+                    this["x:boxModel"]["x:measure"] = true;
+                    this.dispatchEvent(new flyingon.ChangeEvent(this, "content", parent, oldValue));
 
-                    this.dispatchChangeEvent("content", parent, oldValue);
+                    this.invalidate();
                 }
             }
+
+            return this;
+        });
+
+
+
+
+    //获取指定位置的控件
+    this.getControlAt = function (x, y) {
+
+        var content = this["x:content"];
+
+        if (content && content.hitTest(x, y))
+        {
+            return content.getControlAt ? content.getControlAt(x, y) : content;
         }
 
-    });
+        return this;
+    };
+
+
+    this.arrange = function (boxModel, usableRect) {
+
+        boxModel.content(this["x:content"]);
+    };
 
 
 
     this.serialize = function (writer) {
 
-        $.ContentControl.super.serialize.call(this, writer);
+        flyingon.ContentControl.super.serialize.call(this, writer);
 
         writer.object("content", this["x:content"]);
     };
 
     this.deserialize = function (reader, data) {
 
-        $.ContentControl.super.deserialize.call(this, reader, data);
+        if (data)
+        {
+            flyingon.ContentControl.super.deserialize.call(this, reader, data);
 
-        reader.object(this, "x:content", data["content"]);
+            reader.object(this, "x:content", data["content"]);
+        }
+    };
+
+
+});
+
+
+
+
+
+﻿//模板控件
+flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
+
+
+
+    //获取指定位置的控件
+    this.getControlAt = function (x, y) {
+
+        if (!this["x:designMode"]) //未实现
+        {
+            var content = this["x:content"];
+
+            if (content && content.hitTest(x, y))
+            {
+                return content.getControlAt ? content.getControlAt(x, y) : content;
+            }
+        }
+
+        return this;
+    };
+
+
+    this.clearTemplate = function () {
+
+        var content = this["x:content"];
+        if (content)
+        {
+            content["x:parent"] = null;
+            this["x:content"] = null;
+        }
+    };
+
+
+    this.arrange = function (boxModel, usableRect) {
+
+        var content = this["x:content"] || (this["x:content"] = this.createTemplateControl(this.template));
+        content && boxModel.content(content);
     };
 
 
@@ -8334,7 +8335,7 @@ $.class("ContentControl", $.Control, function (Class, $) {
 
 
 ﻿//Html控件基类
-$.class("HtmlControl", $.Control, function (Class, $) {
+flyingon.class("HtmlControl", flyingon.Control, function (Class, flyingon) {
 
 
     Class.create = function () {
@@ -8347,14 +8348,14 @@ $.class("HtmlControl", $.Control, function (Class, $) {
 
     };
 
-});
+}, true);
 
 
 
-$.class("HtmlFrame", $.HtmlControl, function (Class, $) {
+flyingon.class("HtmlFrame", flyingon.HtmlControl, function (Class, flyingon) {
 
     var fn;
-    //if ($.Browser.IE) {
+    //if (flyingon.Browser.IE) {
     //
     //    fn = function (frame, html) {
     //        frame.contentWindow.contentHtml = html;
@@ -8387,15 +8388,8 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
             frame.onload = null;
 
-            if (html)
-            {
-                fn(frame, html);
-            }
-
-            if (self.loaded)
-            {
-                self.loaded(frame);
-            }
+            html && fn(frame, html);
+            self.loaded && self.loaded(frame);
         };
 
         frame.src = "about:blank";
@@ -8408,60 +8402,273 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
 
+﻿
+var items_control = function (flyingon) {
+
+
+
+    //定义索引状态(根据不同的索引状态显示不同的值)
+    this.defineStates("index-states", 0);
+
+    //最大索引号(小于0则不启用索引状态)
+    this.defineProperty("maxIndex", 0, "invalidate");
+
+
+
+    //子项默认高度
+    this.defineProperty("itemHeight", 16, "invalidate");
+
+    //开始显示索引号
+    this.defineProperty("visibleIndex", 0, "invalidate");
+
+
+
+
+
+    this["y:create:item"] = function () {
+
+    };
+
+    this.clearTemplate = function () {
+
+        var items = this["x:items"],
+            length = items && items.length;
+
+        for (var i = 0; i < length; i++)
+        {
+            var item = items[i],
+                control = item["x:control"];
+
+            if (control)
+            {
+                item["x:control"] = null;
+                control.dispose();
+            }
+        }
+    };
+
+    //排列子项
+    this.arrange = function (boxModel, usableRect) {
+
+        var items = this["x:items"],
+            children = this["x:render:children"] = [],
+
+            storage = this["x:storage"],
+            maxIndex = storage.maxIndex,
+            itemHeight = storage.itemHeight,
+            visibleIndex = storage.visibleIndex,
+
+            y = 0,
+            width = usableRect.width,
+            height = usableRect.height,
+
+            template;
+
+
+        for (var i = 0, length = items.length; i < length; i++)
+        {
+            var item = items[i];
+
+            if (item.visible)
+            {
+                var control = item["x:control"];
+
+                if (!control)
+                {
+                    template === undefined && (template = this.template);
+
+                    if (template)
+                    {
+                        control = item["x:control"] = this.createTemplateControl(template, item);
+                    }
+                    else
+                    {
+                        control = item["x:control"] = this["y:create:item"]();
+                    }
+                }
+
+
+                if (control)
+                {
+                    var box = control["x:boxModel"];
+                    box.measure(boxModel, 0, y, width, itemHeight);
+
+                    children.push(control);
+
+                    if ((y += box.height) >= height)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    };
+
+    //获取当前可渲染的子项
+    this["y:render:children"] = function (boxModel) {
+
+        return this["x:render:children"];
+    };
+
+
+
+
+
+    this.serialize = function (writer) {
+
+        flyingon.SerializableObject.prototype.serialize.call(this, writer);
+
+        var items = this[name];
+        items && items.length > 0 && writer.object(items_name, items);
+    };
+
+    this.deserialize = function (reader, data) {
+
+        if (data)
+        {
+            flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
+
+            reader.object(this, name, data[items_name]);
+        }
+    };
+
+};
+
+
+
+
+
+﻿//子项集合
+flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon) {
+
+
+    this.value = function (index) {
+
+        var item = this["x:items"][index];
+        return item && item.value;
+    };
+
+
+ 
+    this["y:validate"] = function (item, index) {
+
+        if (item instanceof flyingon.Item)
+        {
+            return true;
+        }
+
+        throw new Error("item not a Item!");
+    };
+
+    this["y:remove"] = function (index) {
+
+        return true;
+    };
+
+    this["y:clear"] = function () {
+
+        return true;
+    };
+
+
+});
+
+
+
+
+
+﻿
+flyingon.class("ListBoxItem", flyingon.SerializableObject, function (Class, flyingon) {
+
+
+    this.defineProperty("text", null);
+
+    this.defineProperty("value", null);
+
+    this.defineProperty("image", null);
+
+    this.defineProperty("selected", false);
+
+});
+
+
+
+//
+flyingon.class("ListBoxItemCollection", flyingon.Collection, function (Class, flyingon) {
+
+
+    Class.create = function (OwnerControl) {
+
+        this.OwnerControl = OwnerControl;
+    };
+
+
+
+    this["y:validate"] = function (item) {
+
+        if (!(item instanceof flyingon.ListBoxItem))
+        {
+            var result = new flyingon.ListBoxItem();
+
+            result.value = item;
+            result.text = item ? "" + item : "";
+            item = result;
+        }
+
+        !flyingon['x:initializing'] && this.ownerControl.invalidate();
+
+        return item;
+    };
+
+    this["y:remove"] = function (index) {
+
+        !flyingon['x:initializing'] && this.ownerControl.invalidate();
+    };
+
+    this["y:clear"] = function (items) {
+
+        !flyingon['x:initializing'] && this.ownerControl.invalidate();
+    };
+
+}, true);
+
+
+
+
+//多子项面板
+flyingon.class("ListBox", flyingon.TemplateControl, function (Class, flyingon) {
+
+
+
+
+    items_control.call(this, "items", flyingon.ListBoxItemCollection, flyingon);
+
+
+});
+
+
+
+
+
 ﻿/*
 
 */
-(function ($) {
+flyingon.class("ControlCollection", flyingon.Collection, function (Class, flyingon) {
 
 
-    //控件集合
-    $.ControlCollection = function (ownerControl) {
+    Class.create = function (ownerControl) {
 
         this.ownerControl = ownerControl;
     };
 
 
 
-    var p = $.ControlCollection.prototype = [],
-        push = p.push,
-        splice = p.splice;
 
+    this["y:validate"] = function (item, index) {
 
-    //隐藏标准属性
-    ["push", "concat", "pop", "shift", "splice", "unshift"].forEach(function (item) {
-
-        $.defineVariable(this, item, undefined, true, false);
-    }, p);
-
-
-
-
-    p.append = function (item) {
-
-        if ($["x:initializing"])
+        if (item instanceof flyingon.Control)
         {
-            item["x:parent"] = this.ownerControl;
-        }
-        else
-        {
-            item["y:parent"](this.ownerControl);
-        }
-
-        push.call(this, item);
-        return this;
-    };
-
-    p.appendRange = function (items) {
-
-        var i = 0,
-            length = items.length,
-            initializing = $["x:initializing"];
-
-        while (i < length)
-        {
-            var item = items[i++];
-
-            if (initializing)
+            if (flyingon["x:initializing"])
             {
                 item["x:parent"] = this.ownerControl;
             }
@@ -8470,96 +8677,28 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
                 item["y:parent"](this.ownerControl);
             }
 
-            push.call(this, item);
+            return item;
         }
 
-        return this;
+        throw new Error("item not a Control!");
     };
 
-    p.insert = function (index, item) {
+    this["y:remove"] = function (index) {
 
-        if ($["x:initializing"])
-        {
-            item["x:parent"] = this.ownerControl;
-        }
-        else
-        {
-            item["y:parent"](this.ownerControl);
-        }
-
-        splice.call(this, index, 0, item);
-        return this;
+        this["x:items"][index]["y:parent"](null);
     };
 
-    p.insertRange = function (index, items) {
+    this["y:clear"] = function (items) {
 
-        var i = 0,
-            length = items.length,
-            initializing = $["x:initializing"];
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = items[i++];
-
-            if (initializing)
-            {
-                item["x:parent"] = this.ownerControl;
-            }
-            else
-            {
-                item["y:parent"](this.ownerControl);
-            }
-
-            splice.call(this, index, 0, item);
+            items[i]["y:parent"](null);
         }
-
-        return this;
     };
 
 
+}, true);
 
-
-    p.remove = function (item) {
-
-        var index = this.indexOf(item);
-
-        if (index >= 0)
-        {
-            item["y:parent"](null);
-            splice.call(this, index, 1);
-        }
-
-        return this;
-    };
-
-    p.removeAt = function (index) {
-
-        if (this.length > index)
-        {
-            this[index]["y:parent"](null);
-            splice.call(this, index, 1);
-        }
-
-        return this;
-    };
-
-    p.clear = function () {
-
-        var i = 0,
-            length = this.length;
-
-        while (i < length)
-        {
-            this[index]["y:parent"](null);
-        }
-
-        this.length = 0;
-        return this;
-    };
-
-
-
-})(flyingon);
 
 
 
@@ -8567,34 +8706,34 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
     //布局格
-    function Cell(table, row) {
+    var Cell = function Cell(table, row) {
 
         this.table = table;
         this.row = row;
-    };
+
+    }, prototype = Cell.prototype;
 
 
-    var p = Cell.prototype;
 
-    p.subtable = null;
+    prototype.subtable = null;
 
-    p.x = 0;
+    prototype.x = 0;
 
-    p.width = 0;
+    prototype.width = 0;
 
-    p.widthSet = "*";
+    prototype.widthSet = "*";
 
-    p.widthWeight = 100;
+    prototype.widthWeight = 100;
 
-    p.widthAuto = false;
+    prototype.widthAuto = false;
 
     //设置列宽
-    p.setWidth = function (value) {
+    prototype.setWidth = function (value) {
 
         if (this.widthAuto)
         {
@@ -8629,33 +8768,32 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
     //布局行
-    function Row(table) {
+    var Row = function Row(table) {
 
         this.table = table;
         this.cells = [];
-    };
+
+    }, prototype = Row.prototype;
 
 
-    var p = Row.prototype;
+    prototype.y = 0;
 
-    p.y = 0;
+    prototype.height = 0;
 
-    p.height = 0;
+    prototype.heightSet = "*";
 
-    p.heightSet = "*";
+    prototype.heightWeight = 100;
 
-    p.heightWeight = 100;
-
-    p.heightAuto = false;
+    prototype.heightAuto = false;
 
     //所属单元格所有固定宽度的总和
-    p.widthFixed = 0;
+    prototype.widthFixed = 0;
 
     //自动宽度的表格数
-    p.widthWeights = 0;
+    prototype.widthWeights = 0;
 
     //设置行高
-    p.setHeight = function (value) {
+    prototype.setHeight = function (value) {
 
         if (this.heightAuto)
         {
@@ -8689,29 +8827,28 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
     //布局表
-    $.LayoutTable = function () {
+    var LayoutTable = flyingon.LayoutTable = function () {
 
         this.rows = [];
 
-    };
+    }, prototype = LayoutTable.prototype;
 
 
-    var p = $.LayoutTable.prototype;
 
     //列留空
-    p.spaceX = 0;
+    prototype.spaceX = 0;
 
     //行留空
-    p.spaceY = 0;
+    prototype.spaceY = 0;
 
     //所属行中所有固定高度的总和
-    p.heightFixed = 0;
+    prototype.heightFixed = 0;
 
     //自动高度的权重总数
-    p.heightWeights = 0;
+    prototype.heightWeights = 0;
 
 
-    p.compute = function (width, height) {
+    prototype.compute = function (width, height) {
 
         this.width = width || 0;
         this.height = height || 0;
@@ -8720,19 +8857,16 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
             spaceY = this.spaceY || 0,
 
             rows = this.rows,
+            length = rows.length,
 
             y = this.y || 0,
-            height = Math.max(this.height - this.heightFixed - (rows - 1) * spaceY, 0),
-            heightWeights = this.heightWeights,
-
-            i = 0;
-        length = row.length;
+            height = Math.max(this.height - this.heightFixed - (length - 1) * spaceY, 0),
+            heightWeights = this.heightWeights;
 
 
-
-        while (i < length)
+        for (var i = 0; i < length; i++)
         {
-            var row = rows[i++];
+            var row = rows[i];
 
             row.y = y;
 
@@ -8745,17 +8879,15 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
             var cells = row.cells,
+                count = cells.length,
 
                 x = this.x || 0,
-                width = Math.max(this.width - row.widthFixed - (cells - 1) * spaceX, 0),
-                widthWeights = row.widthWeights,
+                width = Math.max(this.width - row.widthFixed - (count - 1) * spaceX, 0),
+                widthWeights = row.widthWeights;
 
-                j = 0,
-                count = cells.length;
-
-            while (j < count)
+            for (var j = 0; j < count; j++)
             {
-                var cell = cells[j++];
+                var cell = cells[j];
 
                 cell.x = x;
 
@@ -8785,26 +8917,26 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
     };
 
 
-    p.appendRow = function (height) {
+    prototype.appendRow = function (height) {
 
     };
 
 
-    p.insertRow = function (index, height) {
+    prototype.insertRow = function (index, height) {
 
     };
 
-    p.appendColumn = function (width) {
+    prototype.appendColumn = function (width) {
 
     };
 
-    p.insertColumn = function (index, width) {
+    prototype.insertColumn = function (index, width) {
 
     };
 
 
 
-    p.create = function (rows, columns) {
+    prototype.create = function (rows, columns) {
 
         var rows = Math.max(rows, 0) || 3,
             columns = Math.max(columns, 0) || 3;
@@ -8831,7 +8963,7 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
         }
     };
 
-    p.load = function (value) {
+    prototype.load = function (value) {
 
         value = value || "T R* C* C* C* R* C* C* C* R* C* C* C* END";
 
@@ -8840,15 +8972,12 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
             table = this,
             row,
             cell,
-            tokens = value.split(/\s/g),
-
-            i = 0,
-            length = tokens.length;
+            tokens = value.split(/\s/g);
 
 
-        while (i < length)
+        for (var i = 0, length = tokens.length; i < length; i++)
         {
-            var token = tokens[i++],
+            var token = tokens[i],
                 value = token.substring(1);
 
             if (token == "END")
@@ -8866,7 +8995,7 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
                             tables.push(table);
                             rows.push(row);
 
-                            table = cell.subtable = new $.LayoutTable();
+                            table = cell.subtable = new flyingon.LayoutTable();
                             row = null;
                         }
                         break;
@@ -8893,43 +9022,29 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
     };
 
 
-    p.serialize = function () {
+    prototype.serialize = function () {
 
     };
 
-    p.deserialize = function (value) {
+    prototype.deserialize = function (value) {
 
 
     };
 
-    p.getAllCells = function () {
+    prototype.getAllCells = function () {
 
         var result = [],
-            rows = this.rows,
-            i = 0,
-            length = rows.length;
+            rows = this.rows;
 
-
-        while (i < length)
+        for (var i = 0, length = rows.length; i < length; i++)
         {
-            var row = rows[i++],
-                cells = row.cells,
-                j = 0,
-                count = row.cells.length;
+            var row = rows[i],
+                cells = row.cells;
 
-
-            while (j < count)
+            for (var j = 0, count = cells.length; j < count; j++)
             {
-                var cell = cells[j++];
-
-                if (cell.subtable)
-                {
-                    result = result.concat(cell.subtable.getAllCells());
-                }
-                else
-                {
-                    result.push(cell);
-                }
+                var cell = cells[j];
+                result.push((cell.subtable && cell.subtable.getAllCells()) || cell);
             }
         }
 
@@ -8939,36 +9054,23 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
     //顺序排列子控件
-    p.sequenceLayout = function (children, boxModel) {
+    prototype.sequenceLayout = function (children, boxModel) {
 
-        var index = 0,
-            cells = this.getAllCells(),
-            length = children.length;
+        var cells = this.getAllCells(),
+            length = cells.length,
+            index = 0;
 
-
-        for (var i = 0; i < length; i++)
+        for (var i = 0, count = children.length ; i < count; i++)
         {
             var item = children[i],
                 box = item["x:boxModel"];
 
-
             if (box.visible = (item["x:storage"].visibility != "collapsed"))
             {
-                if (index >= cells.length)
+                if (box.visible = (index < length))
                 {
-                    box.visible = false;
-                }
-                else
-                {
-                    var cell = cells[index++],
-                        margin = box.margin = item.getStyleValue("margin");
-
-                    box.setUsableRect(
-                        boxModel,
-                        cell.x + margin[3],
-                        cell.row.y + margin[0],
-                        cell.width - margin[3] - margin[1],
-                        cell.row.height - margin[0] - margin[2]);
+                    var cell = cells[index++];
+                    box.measure(boxModel, cell.x, cell.y, cell.width, cell.height);
                 }
             }
         }
@@ -8981,7 +9083,7 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
 
 ﻿//面板控件
-$.class("Panel", $.ScrollableControl, function (Class, $) {
+flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
@@ -8990,8 +9092,7 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
         //子控件集合
-        this["x:children"] = new $.ControlCollection(this);
-
+        this["x:children"] = new flyingon.ControlCollection(this);
     };
 
 
@@ -8999,57 +9100,54 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
     //修改默认修值接受拖放
-    this.setDefaultValue("droppable", true);
+    this.defaultValue("droppable", true);
 
 
 
-    this.setDefaultValue("width", 400);
+    this.defaultValue("width", 400);
 
-    this.setDefaultValue("height", 400);
+    this.defaultValue("height", 400);
 
 
 
     //子控件集合
-    this.defineProperty("children", undefined, {
+    this.defineProperty("children", function () {
 
-        getter: function () {
-
-            return this["x:children"];
-        }
-    }, true);
+        return this["x:children"];
+    });
 
 
 
     //当前布局 见枚举flyingon.Layout对象
     this.defineProperty("layout", "rows", {
 
-        attributes: "measure|layout",
-        valueChangedCode: "var boxModel = this['x:boxModel'];\nboxModel.scrollLeft = 0;\nboxModel.scrollTop = 0;\nboxModel.renderItems = null;"
+        attributes: "locate",
+        valueChangedCode: "boxModel.offsetX = 0;\nboxModel.offsetY = 0;"
     });
 
     //布局x轴间隔 0-1之间表示间隔值为总宽度百分比
-    this.defineProperty("layoutSpaceX", 0, "measure|layout");
+    this.defineProperty("layoutSpaceX", 0, "locate");
 
     //布局y轴间隔 0-1之间表示间隔值为总高度的百分比
-    this.defineProperty("layoutSpaceY", 0, "measure|layout");
+    this.defineProperty("layoutSpaceY", 0, "locate");
 
     //布局行高
-    this.defineProperty("layoutRowHeight", 0, "measure|layout");
+    this.defineProperty("layoutRowHeight", 0, "locate");
 
     //布局列宽
-    this.defineProperty("layoutColumnWidth", 0, "measure|layout");
+    this.defineProperty("layoutColumnWidth", 0, "locate");
 
     //当前布局页索引
-    this.defineProperty("layoutPageIndex", 0, "measure|layout");
+    this.defineProperty("layoutPageIndex", 0, "locate");
 
     //布局列数
-    this.defineProperty("layoutColumns", 3, "measure|layout");
+    this.defineProperty("layoutColumns", 3, "locate");
 
     //布局行数
-    this.defineProperty("layoutRows", 3, "measure|layout");
+    this.defineProperty("layoutRows", 3, "locate");
 
     //布局表
-    this.defineProperty("layoutTable", "T R* C* C* C* R* C* C* C* R* C* C* C* END", "measure|layout");
+    this.defineProperty("layoutTable", "T R* C* C* C* R* C* C* C* R* C* C* C* END", "locate");
 
 
 
@@ -9064,212 +9162,154 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
     //单行排列 layoutSpaceX verticalAlign
-    layouts.row = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.row = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var x = 0,
             height = usableRect.height,
-
-            i = 0,
-            length = children.length;
+            scrollHeight = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
-                storage = item["x:storage"],
+            var item = items[i],
                 box = item["x:boxModel"];
 
-
-            if (box.visible = (storage.visibility != "collapsed"))
+            if (box.visible = (item["x:storage"].visibility != "collapsed"))
             {
-                var margin = box.margin = item.getStyleValue("margin");
+                box.measure(boxModel, x, 0, 0, height);
+                x = box.right + box.margin[3] + spaceX;
 
-                x += margin[3];
-
-                box.setUsableRect(
-                    boxModel,
-                    x,
-                    margin[0],
-                    storage.width,
-                    height - margin[0] - margin[2]);
-
-                x += storage.width + margin[3] + spaceX;
+                box.height > scrollHeight && (scrollHeight = box.height);
             }
         }
 
 
-        boxModel.scrollWidth = children[children.length - 1]["x:boxModel"].right;
+        boxModel.maxWidth = items[items.length - 1]["x:boxModel"].right;
+        scrollHeight > boxModel.maxHeight && (boxModel.maxHeight = scrollHeight);
     };
 
 
     //单列排列 layoutSpaceY horizontalAlign
-    layouts.column = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.column = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var y = 0,
             width = usableRect.width,
-
-            i = 0,
-            length = children.length;
+            scrollWidth = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
-                storage = item["x:storage"],
+            var item = items[i],
                 box = item["x:boxModel"];
 
-
-            if (box.visible = (storage.visibility != "collapsed"))
+            if (box.visible = (item["x:storage"].visibility != "collapsed"))
             {
-                var margin = box.margin = item.getStyleValue("margin");
+                box.measure(boxModel, 0, y, width, 0);
 
-                y += margin[0];
+                y = box.bottom + box.margin[2] + spaceY;
 
-                box.setUsableRect(
-                    boxModel,
-                    margin[3],
-                    y,
-                    width - margin[3] - margin[1],
-                    storage.height);
-
-                y += storage.height + margin[2] + spaceY;
+                box.width > scrollWidth && (scrollWidth = box.width);
             }
         }
 
 
-        boxModel.scrollHeight = children[children.length - 1]["x:boxModel"].bottom;
+        scrollWidth > boxModel.maxWidth && (boxModel.maxWidth = scrollWidth);
+        boxModel.maxHeight = items[items.length - 1]["x:boxModel"].bottom;
     };
 
 
     //多行排列 layoutSpaceX layoutSpaceY layoutRowHeight verticalAlign
-    layouts.rows = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.rows = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
+            x = 0,
+            y = 0,
+            cache,
+
+            maxWidth = usableRect.width,
             rowHeight = storage.layoutRowHeight > 0 ? storage.layoutRowHeight : 0,
             maxHeight = rowHeight,
 
-            x = 0,
-            y = 0,
-            right = usableRect.width,
-
-            i = 0,
-            length = children.length;
+            scrollWidth = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
+            var item = items[i],
                 storage = item["x:storage"],
                 box = item["x:boxModel"];
 
-
             if (box.visible = (storage.visibility != "collapsed"))
             {
-                var margin = box.margin = item.getStyleValue("margin");
+                box.measure(boxModel, x, y, storage.width, maxHeight);
+                cache = box.right + box.margin[1] + spaceX;
 
-
-                if (x > 0 && x + margin[3] + storage.width + margin[1] > right) //如果超出宽度则折行
+                if (x > 0 && cache > maxWidth) //如果超出宽度则折行
                 {
-                    x = 0;
-                    y += maxHeight + spaceY;
-
-                    maxHeight = rowHeight;
+                    //重新定位
+                    box.moveTo(x = 0, y += maxHeight + spaceY);
+                    cache = box.right + box.margin[1] + spaceX;
                 }
 
-
-
-                x += margin[3];
-
-                box.setUsableRect(
-                  boxModel,
-                  x,
-                  y + margin[0],
-                  storage.width,
-                  Math.max(rowHeight && (rowHeight - margin[0] - margin[2]), storage.height));
-
-
-                x += storage.width + margin[1] + spaceX;
-
-
-                var height = storage.height + margin[0] + margin[2];
-                if (height > maxHeight)
-                {
-                    maxHeight = height;
-                }
+                (x = cache) > scrollWidth && (scrollWidth = x);
+                (cache = box.height + box.margin[0] + box.margin[2]) > maxHeight && (maxHeight = cache);
             }
         }
 
 
-        boxModel.scrollHeight = children[children.length - 1]["x:boxModel"].bottom;
+        scrollWidth > boxModel.maxWidth && (boxModel.maxWidth = scrollWidth);
+        boxModel.maxHeight = items[items.length - 1]["x:boxModel"].bottom;
     };
 
 
     //多列排列 layoutSpaceX layoutSpaceY layoutColumnWidth  horizontalAlign
-    layouts.columns = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.columns = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
-            colWidth = storage.layoutColumnWidth > 0 ? storage.layoutColumnWidth : 0,
-            maxWidth = colWidth,
-
             x = 0,
             y = 0,
-            bottom = usableRect.height,
+            cache,
 
-            i = 0,
-            length = children.length;
+            colWidth = storage.layoutColumnWidth > 0 ? storage.layoutColumnWidth : 0,
+            maxWidth = colWidth,
+            maxHeight = usableRect.height,
+
+            scrollHeight = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
+            var item = items[i],
                 storage = item["x:storage"],
                 box = item["x:boxModel"];
 
-
             if (box.visible = (storage.visibility != "collapsed"))
             {
-                var margin = box.margin = item.getStyleValue("margin");
+                box.measure(boxModel, x, y, maxWidth, storage.height);
+                cache = box.bottom + box.margin[2] + spaceY;
 
-
-                if (y > 0 && y + margin[0] + storage.height + margin[2] > bottom) //如果超出高度则折行
+                if (y > 0 && cache > maxHeight) //如果超出高度则折行
                 {
-                    x += maxWidth + spaceX;
-                    y = 0;
-
-                    maxWidth = colWidth;
+                    //重新定位
+                    box.moveTo(x += maxWidth + spaceX, y = 0);
+                    cache = box.bottom + box.margin[2] + spaceY;
                 }
 
-
-
-                y += margin[0];
-
-                box.setUsableRect(
-                    boxModel,
-                    x + margin[3],
-                    y,
-                    Math.max(colWidth && (colWidth - margin[3] - margin[1]), storage.width),
-                    storage.height);
-
-                y += storage.height + margin[2] + spaceY;
-
-
-                var width = storage.width + margin[3] + margin[1];
-                if (width > maxWidth)
-                {
-                    maxWidth = width;
-                }
+                (y = cache) > scrollHeight && (scrollHeight = y);
+                (cache = box.width + box.margin[3] + box.margin[1]) > maxWidth && (maxWidth = cache);
             }
         }
 
 
-        boxModel.scrollWidth = children[children.length - 1]["x:boxModel"].right;
+        boxModel.maxWidth = items[items.length - 1]["x:boxModel"].right;
+        scrollHeight > boxModel.maxHeight && (boxModel.maxHeight = scrollHeight);
     };
 
 
     //停靠 layoutSpaceX layoutSpaceY dock  horizontalAlign verticalAlign
-    layouts.dock = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.dock = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
@@ -9281,15 +9321,11 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
             right = width,
             bottom = height,
 
-            fills = [],
+            fills = [];
 
-            i = 0,
-            length = children.length;
-
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
+            var item = items[i],
                 storage = item["x:storage"],
                 box = item["x:boxModel"];
 
@@ -9302,63 +9338,35 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
                 }
                 else
                 {
-                    var margin = box.margin = item.getStyleValue("margin");
-
                     switch (storage.dock)
                     {
                         case "left":
-                            x += margin[3];
+                            box.measure(boxModel, x, y, storage.width, height);
 
-                            box.setUsableRect(
-                                boxModel,
-                                x,
-                                y + margin[0],
-                                storage.width,
-                                height - margin[0] - margin[2]);
-
-                            x += storage.width + margin[1] + spaceX;
+                            x = box.right + spaceX;
                             width = right - x;
                             break;
 
                         case "top":
-                            y += margin[0];
+                            box.measure(boxModel, x, y, width, storage.height);
 
-                            box.setUsableRect(
-                                boxModel,
-                                x + margin[3],
-                                y,
-                                width - margin[3] - margin[1],
-                                storage.height);
-
-                            y += storage.height + margin[2] + spaceY;
+                            y = storage.bottom + spaceY;
                             height = bottom - y;
                             break;
 
                         case "right":
-                            right -= margin[1] + storage.width;
+                            right -= box.margin[1] + storage.width;
+                            box.measure(boxModel, right, y, storage.width, height);
 
-                            box.setUsableRect(
-                                boxModel,
-                                right,
-                                y + margin[0],
-                                storage.width,
-                                height - margin[0] - margin[2]);
-
-                            right -= margin[3] + spaceX;
+                            right -= spaceX;
                             width = right - x;
                             break;
 
                         case "bottom":
-                            bottom -= margin[2] + storage.height;
+                            bottom -= box.margin[2] + storage.height;
+                            box.measure(boxModel, x, bottom, width, storage.height);
 
-                            box.setUsableRect(
-                                boxModel,
-                                x + margin[3],
-                                bottom,
-                                width - margin[3] - margin[1],
-                                storage.height);
-
-                            bottom -= margin[0] + spaceY;
+                            bottom -= spaceY;
                             height = bottom - y;
                             break;
 
@@ -9371,72 +9379,61 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
         }
 
 
-        for (var i = 0; i < fills.length; i++)
+        if (width > x && height > y)
         {
-            fills[i].setUsableRect(boxModel, x, y, width, height);
+            for (var i = 0; i < fills.length; i++)
+            {
+                fills[i].measure(boxModel, x, y, width, height);
+            }
         }
 
     };
 
 
     //单页显示 layoutPage  horizontalAlign verticalAlign
-    layouts.page = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.page = function (items, boxModel, usableRect, spaceX, spaceY) {
 
-        var index = this["x:storage"].layoutPageIndex || 0,
+        var index = this["x:storage"].layoutPageIndex || 0;
 
-            i = 0,
-            length = children.length;
-
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
+            var item = items[i],
                 box = item["x:boxModel"];
 
             if (box.visible = (i == index))
             {
-                var margin = box.margin = item.getStyleValue("margin");
-
-                box.setUsableRect(
-                    boxModel,
-                    margin[3],
-                    margin[0],
-                    usableRect.width - margin[3] - margin[1],
-                    usableRect.height - margin[0] - margin[2]);
+                box.measure(boxModel, 0, 0, usableRect.width, usableRect.height);
             }
         }
     };
 
 
     //网格排列 layoutColumns layoutRows gridLineColor layoutSpaceX layoutSpaceY  horizontalAlign verticalAlign
-    layouts.grid = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.grid = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
-            table = new $.LayoutTable();
-
+            table = new flyingon.LayoutTable();
 
         table.create(storage.layoutRows, storage.layoutColumns);
-
 
         table.spaceX = spaceX;
         table.spaceY = spaceY;
 
         table.compute(usableRect.width, usableRect.height);
-        table.sequenceLayout(children, boxModel);
+        table.sequenceLayout(items, boxModel);
     };
 
 
     //表格排列 layoutTable layoutSpaceX layoutSpaceY  horizontalAlign verticalAlign
     //示例: "T R* C* C* C* R* C* C* C* R* C* C* C* END"
-    layouts.table = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.table = function (items, boxModel, usableRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
             table = storage.layoutTable;
 
-
-        if (!(table instanceof $.LayoutTable))
+        if (!(table instanceof flyingon.LayoutTable))
         {
-            table = new $.LayoutTable();
+            table = new flyingon.LayoutTable();
             table.load(storage.layoutTable);
         }
 
@@ -9444,77 +9441,109 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
         table.spaceY = spaceY;
 
         table.compute(usableRect.width, usableRect.height);
-        table.sequenceLayout(children, boxModel);
+        table.sequenceLayout(items, boxModel);
     };
 
 
     //绝对定位 left top
-    layouts.absolute = function (children, boxModel, usableRect, spaceX, spaceY) {
+    layouts.absolute = function (items, boxModel, usableRect, spaceX, spaceY) {
 
-
-        var i = 0,
-            length = children.length;
-
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++],
+            var item = items[i],
                 storage = item["x:storage"],
                 box = item["x:boxModel"];
 
-
             if (box.visible = (storage.visibility != "collapsed"))
             {
-                box.setUsableRect(
-                    boxModel,
-                    storage.left,
-                    storage.top,
-                    storage.width,
-                    storage.height);
+                box.measure(boxModel, storage.left, storage.top, storage.width, storage.height);
 
-
-                if (box.right > boxModel.scrollWidth)
-                {
-                    boxModel.scrollWidth = box.right;
-                }
-
-                if (box.bottom > boxModel.scrollHeight)
-                {
-                    boxModel.scrollHeight = box.bottom;
-                }
+                box.right > boxModel.maxWidth && (boxModel.maxWidth = box.right);
+                box.bottom > boxModel.maxHeight && (boxModel.maxHeight = box.bottom);
             }
         }
     };
 
 
 
+    //注册自定义布局 注意回调函数规范及设置盒模型的maxWidth及maxHeight值
+    Class.registryLayout = function (name, layoutfn) {
+
+        layouts[name] = layoutfn;
+    };
+
+
     //自定义获取布局的方法
     this.getLayout = null;
 
+
+
+
     //排列子控件
-    this.arrange = function (boxModel) {
-
-
-        var storage = this["x:storage"],
-            children = this["x:children"],
-            fn = children.length > 0 && ((this.getLayout && this.getLayout(storage.layout)) || layouts[storage.layout]);
+    this.arrange = function (boxModel, usableRect) {
 
 
         boxModel.children = null;
+        this["x:render:children"] = null;
 
-        if (fn)
+
+        var storage = this["x:storage"],
+            items = this["x:children"]["x:items"];
+
+        if (items.length > 0)
         {
-            var usableRect = boxModel.innerRect,
-                spaceX = storage.layoutSpaceX,
-                spaceY = storage.layoutSpaceY;
+            var fn = this.getLayout;
 
-            spaceX = spaceX > 0 ? (spaceX > 1 ? spaceX : Math.round(usableRect.width * spaceX)) : 0;
-            spaceY = spaceY > 0 ? (spaceY > 1 ? spaceY : Math.round(usableRect.height * spaceY)) : 0;
+            if (fn = ((fn && fn.call(this, storage.layout)) || layouts[storage.layout]))
+            {
+                var spaceX = storage.layoutSpaceX,
+                    spaceY = storage.layoutSpaceY;
 
-            fn.call(this, children, boxModel, usableRect, spaceX, spaceY);
+                spaceX = spaceX > 0 ? (spaceX > 1 ? spaceX : Math.round(usableRect.width * spaceX)) : 0;
+                spaceY = spaceY > 0 ? (spaceY > 1 ? spaceY : Math.round(usableRect.height * spaceY)) : 0;
+
+                fn.call(this, items, boxModel, usableRect, spaceX, spaceY);
+            }
         }
 
         return this;
+    };
+
+
+    //获取当前可渲染的子项
+    this["y:render:children"] = function (boxModel) {
+
+        var result = this["x:render:children"];
+
+        if (!result)
+        {
+            var clipToBounds = this["x:storage"].clipToBounds,
+
+                children = boxModel.children,
+                r = boxModel.innerRect,
+                x = boxModel.offsetX,
+                y = boxModel.offsetY,
+                right = x + r.width,
+                bottom = y + r.height;
+
+            result = this["x:render:children"] = [];
+
+            for (var i = 0, length = children.length; i < length; i++)
+            {
+                var item = children[i];
+
+                if (item.visible &&
+                    item.right >= x &&
+                    item.bottom >= y &&
+                    item.ownerControl["x:storage"].visibility == "visible" &&
+                    (!clipToBounds || (item.x < right && item.y < bottom)))
+                {
+                    result.push(item);
+                }
+            }
+        }
+
+        return result;
     };
 
 
@@ -9525,7 +9554,7 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
     this.getControlAt = function (x, y) {
 
         //判断滚动条
-        var result = $.Panel.super.getControlAt.call(this, x, y);
+        var result = flyingon.Panel.super.getControlAt.call(this, x, y);
 
         if (result)
         {
@@ -9538,8 +9567,8 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
             r = box.innerRect;
 
 
-        x += box.scrollLeft - r.x;
-        y += box.scrollTop - r.y;
+        x += box.offsetX - r.x;
+        y += box.offsetY - r.y;
 
         //if (storage.transform)
         //{
@@ -9547,7 +9576,7 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
         //}
 
 
-        var items = box.renderItems;
+        var items = this["x:render:children"];
 
         if (items && items.length > 0)
         {
@@ -9569,15 +9598,8 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
 
 
 
-    //注册自定义布局 注意回调函数规范及处理scrollWidth及scrollHeight
-    $.Panel.registryLayout = function (name, layoutfn) {
-
-        layouts[name] = layoutfn;
-    };
-
-
-
     this.focus = function () {
+
 
         if (this.containsFocused)
         {
@@ -9585,25 +9607,22 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
         }
 
 
-        var children = this["x:children"],
-            i = 0,
-            length = children.length;
+        var items = this["x:children"]["x:items"];
 
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            if (children[i++].focus(event))
+            if (items[i].focus(event))
             {
                 return true;
             }
         }
 
-        return $.Panel.super.focus.call(this, event);
+        return flyingon.Panel.super.focus.call(this, event);
     };
 
     this.blur = function () {
 
-        return this.containsFocused ? $.Panel.super.blur.call(this, event) : false;
+        return this.containsFocused ? flyingon.Panel.super.blur.call(this, event) : false;
     };
 
 
@@ -9611,83 +9630,84 @@ $.class("Panel", $.ScrollableControl, function (Class, $) {
 
     this.serialize = function (writer) {
 
-        $.Panel.super.serialize.call(this, writer);
-        
-        var children = this["x:children"];
-        if (children && children.length > 0)
-        {
-            writer.object("children", children);
-        }
+        flyingon.Panel.super.serialize.call(this, writer);
+
+        var items = this["x:children"]["x:items"];
+        items && items.length > 0 && writer.array("children", items);
     };
 
     this.deserialize = function (reader, data) {
 
-        $.Panel.super.deserialize.call(this, reader, data);
+        if (data)
+        {
+            flyingon.Panel.super.deserialize.call(this, reader, data);
 
-        reader.object(this, "x:children", data["children"]);
+            var items = reader.array(this["x:children"], "x:items", data["children"]);
+            if (items && items.length > 0)
+            {
+                for (var i = 0, length = items.length; i < length; i++)
+                {
+                    items[i]["x:parent"] = this;
+                }
+            }
+        }
     };
 
 
-});
+}, true);
 
 
 
 
 ﻿//分隔条控件
-$.class("Splitter", $.ContentControl, function (Class, $) {
-
-
-
-    function handleMouseDown(e) {
-
-
-    };
-
-    function handleMouseMove(e) {
-
-    };
-
-    function handleMouseUp(e) {
-
-
-    };
+flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
 
 
     Class.create = function () {
 
         var storage = this["x:storage"];
-
-        storage.cursor = $.cursors["col-resize"];
+        storage.cursor = flyingon.cursors["col-resize"];
         storage.dock = "left";
         storage.draggable = true;
-
-
-        this.addEventListener("mousedown", handleMouseDown);
-        this.addEventListener("mousemove", handleMouseMove);
-        this.addEventListener("mouseup", handleMouseUp);
     };
 
 
 
-    this.setDefaultValue("draggable", true);
+    this.defaultValue("draggable", true);
 
+
+
+
+    this["event:mousedown"] = function (event) {
+
+
+    };
+
+    this["event:mousemove"] = function (event) {
+
+
+    };
+
+    this["event:mouseup"] = function (event) {
+
+
+    };
 
 
 
     this.dragger = {
 
-        allowdropCursor: $.cursors["col-Resize"],
+        allowdropCursor: flyingon.cursors["col-Resize"],
 
-        nodropCursor: $.cursors["no-drop"],
+        nodropCursor: flyingon.cursors["no-drop"],
 
-        paint: function (dragTargets) {
+        paint: function (context, dragTargets) {
 
-            var context = layer.context,
-                boxModel = this["x:boxModel"],
+            var boxModel = this["x:boxModel"],
                 r = boxModel.innerRect;
 
-            context.fillStyle = this.getStyleValue("dragColor") || "rgba(255,0,0,0.5)";
+            context.fillStyle = this.styleValue("dragColor") || "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context);
@@ -9715,7 +9735,7 @@ $.class("Splitter", $.ContentControl, function (Class, $) {
     };
 
 
-});
+}, true);
 
 
 
@@ -9724,7 +9744,7 @@ $.class("Splitter", $.ContentControl, function (Class, $) {
 ﻿/*
 用户控件
 */
-$.class("UserControl", $.Panel, function (Class, $) {
+flyingon.class("UserControl", flyingon.Panel, function (Class, flyingon) {
 
 
 
@@ -9740,41 +9760,7 @@ $.class("UserControl", $.Panel, function (Class, $) {
 ﻿/*
 
 */
-$.class("Layer", $.UserControl, function (Class, $) {
-
-
-
-    function DelayUpdater(layer) {
-
-
-        var timer;
-
-
-        function execute() {
-
-            layer["x:boxModel"].update(layer.context);
-        };
-
-        layer.registryUpdate = function () {
-
-            if (timer)
-            {
-                //clearTimeout(timer);
-            };
-
-            timer = setTimeout(execute, 5);
-        };
-
-        layer.unregistryUpdate = function () {
-
-            if (timer)
-            {
-                //clearTimeout(timer);
-                timer = 0;
-            };
-        };
-    };
-
+flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
 
@@ -9795,10 +9781,9 @@ $.class("Layer", $.UserControl, function (Class, $) {
         this.context = canvas.getContext("2d");
         this.context.layer = this;
 
-        this["x:boxModel"]["x:layer"] = true;
 
         //注册延时更新
-        new DelayUpdater(this);
+        this["y:initialize:update"](this);
     };
 
 
@@ -9809,32 +9794,63 @@ $.class("Layer", $.UserControl, function (Class, $) {
     });
 
 
-    this.defineProperty("width", undefined, {
+    this.defineProperty("width", function () {
 
-        getter: function () {
+        return this.domCanvas.width;
+    });
 
-            return this.domCanvas.width;
-        }
-    }, true);
+    this.defineProperty("height", function () {
 
-    this.defineProperty("height", undefined, {
-
-        getter: function () {
-
-            return this.domCanvas.height;
-        }
-    }, true);
+        return this.domCanvas.height;
+    });
 
 
 
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
+        return this;
+    });
 
-            return this;
-        }
-    }, true);
 
+
+    //初始化延时更新器
+    this["y:initialize:update"] = function (layer) {
+
+
+        var timer,
+            boxModel = layer["x:boxModel"];
+
+
+        boxModel["x:layer"] = true;
+
+
+        function execute() {
+
+            if (boxModel.innerRect)
+            {
+                boxModel.update(layer.context);
+            }
+        };
+
+        layer.registryUpdate = function () {
+
+            if (timer)
+            {
+                clearTimeout(timer);
+            };
+
+            timer = setTimeout(execute, 5);
+        };
+
+        layer.unregistryUpdate = function () {
+
+            if (timer)
+            {
+                clearTimeout(timer);
+                timer = 0;
+            };
+        };
+    };
 
 
 
@@ -9849,7 +9865,7 @@ $.class("Layer", $.UserControl, function (Class, $) {
 
 
 
-});
+}, true);
 
 
 
@@ -9857,7 +9873,7 @@ $.class("Layer", $.UserControl, function (Class, $) {
 
 
 ﻿//窗口基类
-$.class("WindowBase", $.Layer, function (Class, $) {
+flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
@@ -9871,7 +9887,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         //默认设置为初始化状态,在第一次渲染窗口后终止
-        $["x:initializing"] = true;
+        flyingon["x:initializing"] = true;
 
 
 
@@ -9937,7 +9953,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         this["x:windows"] = [];
 
         //创建控件捕获延迟执行器
-        this["x:captureDelay"] = new $.DelayExecutor(10, captureControl, this);
+        this["x:captureDelay"] = new flyingon.DelayExecutor(10, captureControl, this);
     };
 
 
@@ -9945,22 +9961,16 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
     //所属窗口
-    this.defineProperty("ownerWindow", undefined, {
+    this.defineProperty("ownerWindow", function () {
 
-        getter: function () {
-
-            return this;
-        }
-    }, true);
+        return this;
+    });
 
     //图层
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
-
-            return this;
-        }
-    }, true);
+        return this;
+    });
 
 
 
@@ -9984,10 +9994,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
         if (parentWindow)
         {
-            if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
-            {
-                activateWindow["y:deactivate"]();
-            }
+            deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]) && activateWindow["y:deactivate"]();
 
             parentWindow["x:activateWindow"] = this;
             this["y:activate"]();
@@ -10049,21 +10056,19 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
     */
 
-    this.appendLayer = function (zIndex) {
+    this.appendLayer = function (zIndex, layer) {
 
         var storage = this["x:storage"],
-            result = layer || new $.Layer();
+            result = layer || new flyingon.Layer();
 
 
-        if (zIndex)
-        {
-            result.domLayer.style.zIndex = zIndex;
-        }
+        zIndex && (result.domLayer.style.zIndex = zIndex);
 
         result.domCanvas.width = storage.width;
         result.domCanvas.height = storage.height;
 
-        result["x:boxModel"].setUsableRect(null, 0, 0, storage.width, storage.height);
+        result["x:boxModel"].measure(null, 0, 0, storage.width, storage.height);
+
         result["x:parent"] = this;
 
         result.domLayer["x:ownerWindow"] = result.domCanvas["x:ownerWindow"] = this;
@@ -10088,7 +10093,6 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
-
     this.getControlAt = function (x, y) {
 
         for (var i = this.layers.length - 1; i >= 0; i--)
@@ -10097,14 +10101,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
             {
-                return $.WindowBase.super.getControlAt.call(layer, x, y);
+                return flyingon.WindowBase.super.getControlAt.call(layer, x, y);
             }
         }
 
         return this;
     };
-
-
 
 
 
@@ -10135,7 +10137,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
     //触发带mouseDown的鼠标事件
     function dispatchEvent(type, target, domMouseEvent) {
 
-        var event = new $.MouseEvent(type, target, domMouseEvent);
+        var event = new flyingon.MouseEvent(type, target, domMouseEvent);
         event.mouseDown = mouseDown;
 
         target.dispatchEvent(event);
@@ -10146,12 +10148,14 @@ $.class("WindowBase", $.Layer, function (Class, $) {
     function captureControl(domMouseEvent) {
 
 
-        var source = $["x:mouseControl"],
+        var source = flyingon["x:mouseControl"],
             target = this.getControlAt(domMouseEvent["x:offsetX"], domMouseEvent["x:offsetY"]) || this;
 
         if (target != source)
         {
-            $["x:mouseControl"] = target;
+            document.title = target.id;
+
+            flyingon["x:mouseControl"] = target;
 
             if (source)
             {
@@ -10184,15 +10188,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.mainWindow.getActivateWindow()) //活动窗口不是当前点击窗口
-        {
-            ownerWindow.activate(true);
-        }
+        ownerWindow != ownerWindow.mainWindow.getActivateWindow() && ownerWindow.activate(true); //活动窗口不是当前点击窗口
 
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+        var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
         if (target && target["x:storage"].enabled)
         {
@@ -10201,12 +10202,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
             //如果可拖动
             if (dragging = target["x:storage"].draggable || ownerWindow["x:storage"].designMode)
             {
-                $.Dragdrop.start(ownerWindow, target, domMouseEvent, true);
+                flyingon.Dragdrop.start(ownerWindow, target, domMouseEvent, true);
             }
             else
             {
                 //分发事件
-                var event = new $.MouseEvent("mousedown", target, domMouseEvent);
+                var event = new flyingon.MouseEvent("mousedown", target, domMouseEvent);
                 target.dispatchEvent(event);
 
 
@@ -10217,15 +10218,8 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                 {
                     var validate = true;
 
-                    if (focusControl && focusControl != target && (validate = focusControl.validate()))
-                    {
-                        focusControl["y:blur"]();
-                    }
-
-                    if (validate)
-                    {
-                        target["y:focus"](event);
-                    }
+                    focusControl && focusControl != target && (validate = focusControl.validate()) && focusControl["y:blur"]();
+                    validate && target["y:focus"](event);
                 }
             }
 
@@ -10251,23 +10245,20 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
             if (dragging) //处理拖动
             {
-                $.Dragdrop.move(domMouseEvent);
+                flyingon.Dragdrop.move(domMouseEvent);
             }
             else if (target = ownerWindow["x:captureControl"]) //启用捕获
             {
-                if (target["x:storage"].enabled)
-                {
-                    dispatchEvent("mousemove", target, domMouseEvent);
-                }
+                target["x:storage"].enabled && dispatchEvent("mousemove", target, domMouseEvent);
             }
             else
             {
                 ownerWindow["x:captureDelay"].registry([domMouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = $["x:mouseControl"])
+        else if (target = flyingon["x:mouseControl"])
         {
-            $["x:mouseControl"] = null;
+            flyingon["x:mouseControl"] = null;
             target.switchState("hover-states", "leave-animate");
 
             dispatchEvent("mouseout", target, domMouseEvent);
@@ -10282,7 +10273,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+            var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
             if (target && target["x:storage"].enabled)
             {
@@ -10292,13 +10283,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                 {
                     dragging = false;
 
-                    if (!$.Dragdrop.stop())
+                    if (!flyingon.Dragdrop.stop())
                     {
                         return;
                     }
                 }
 
-                target.dispatchEvent(new $.MouseEvent("mouseup", target, domMouseEvent));
+                target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, domMouseEvent));
             }
 
 
@@ -10317,13 +10308,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute(),
-            target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+            target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
 
         if (target && target["x:storage"].enabled)
         {
             offset.call(ownerWindow, domMouseEvent);
-            target.dispatchEvent(new $.MouseEvent(type, target, domMouseEvent));
+            target.dispatchEvent(new flyingon.MouseEvent(type, target, domMouseEvent));
         }
 
         domMouseEvent.stopPropagation();
@@ -10354,7 +10345,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         //如果有输入焦点控件则发送事件至输入焦点控件
         if (focuseControl && focuseControl["x:storage"].enabled)
         {
-            target.dispatchEvent(new $.KeyEvent(domMouseEvent.type, target, domMouseEvent));
+            target.dispatchEvent(new flyingon.KeyEvent(domMouseEvent.type, target, domMouseEvent));
         }
         else //否则处理accessKey
         {
@@ -10367,11 +10358,9 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
-
-
     this["y:fill"] = function (storage) {
 
-        $["x:initializing"] = false;
+        flyingon["x:initializing"] = false;
 
         var domHost = this.domWindow.parentNode;
 
@@ -10398,19 +10387,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         this["x:boxModel"].invalidate();
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 0,
-            length = layers.length;
+        var layers = this.layers;
 
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            layers[i++].registryUpdate();
+            layers[i].registryUpdate();
         }
     };
-
-
-
-
 
 
 
@@ -10438,10 +10421,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         input.setAttribute("style", "position:absolute;z-index:-1;padding:0;border:0;width:1px;height:1px;top:100px;");
 
 
-        if (navigator.userAgent.match(/MSIE/))
-        {
-            input.style.width = 0;
-        }
+        navigator.userAgent.match(/MSIE/) && (input.style.width = 0);
 
 
         input.onselectstart = function (event) {
@@ -10485,15 +10465,8 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                     height -= value
                 }
 
-                if ((value = y + height - r.windowY - r.height) > 0)
-                {
-                    height -= value;
-                }
-
-                if (height < 0)
-                {
-                    height = 0;
-                }
+                (value = y + height - r.windowY - r.height) > 0 && (height -= value);
+                height < 0 && (height = 0);
             }
 
             div.setAttribute("style", "visibility:visible;position:absolute;background-color:black;z-Index:9998;width:1px;left:" + x + "px;top:" + y + "px;height:" + height + "px;");
@@ -10504,10 +10477,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         function update() {
 
 
-            if (timer)
-            {
-                clearInterval(timer);
-            }
+            timer && clearInterval(timer);
 
 
             var r = boxModel.innerRect,
@@ -10515,32 +10485,29 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
             //自动滚动调整
-            if (x < boxModel.scrollLeft)
+            if (x < boxModel.offsetX)
             {
-                boxModel.scrollLeft = x;
+                boxModel.offsetX = x;
             }
             else
             {
-                var right = boxModel.scrollLeft + r.width;
+                var right = boxModel.offsetX + r.width;
 
                 if (x > right)
                 {
-                    boxModel.scrollLeft = x - r.width;
+                    boxModel.offsetX = x - r.width;
                     x = right;
                 }
                 else if (right <= r.width)
                 {
-                    boxModel.scrollLeft = 0;
+                    boxModel.offsetX = 0;
                 }
             }
 
 
             //显示插入符
-            point = boxModel.targetToOffset(r.spaceX + x - boxModel.scrollLeft, r.spaceY);
-            if (x > 0)
-            {
-                point.x -= 1;
-            }
+            point = boxModel.targetToOffset(r.spaceX + x - boxModel.offsetX, r.spaceY);
+            x > 0 && (point.x -= 1);
 
 
             input.style.left = point.x + "px";
@@ -10685,10 +10652,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
             }
 
 
-            if (keyCode != 17 && !input.readOnly && input.value) //不处理ctrl键
-            {
-                oninput.call(this, input.value);
-            }
+            keyCode != 17 && !input.readOnly && input.value && oninput.call(this, input.value); //不处理ctrl键
         };
 
 
@@ -10753,7 +10717,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
 ﻿//主窗口
-$.class("Window", $.WindowBase, function (Class, $) {
+flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
@@ -10769,12 +10733,12 @@ $.class("Window", $.WindowBase, function (Class, $) {
         domHost.appendChild(this.domWindow);
 
         //添加至指定dom
-        (parentNode || document.body).appendChild(domHost);
+        (parentNode || flyingon["x:window:host"] || document.body).appendChild(domHost);
 
 
 
         //定义主窗口变更
-        $.defineVariable(this, "mainWindow", this, false, true);
+        flyingon.defineVariable(this, "mainWindow", this, false, true);
 
         //设为活动窗口
         this.activate();
@@ -10800,21 +10764,18 @@ $.class("Window", $.WindowBase, function (Class, $) {
             width = storage.width,
             height = storage.height,
 
-            layers = this.layers,
-            i = 0,
-            length = layers.length;
+            layers = this.layers;
 
-
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++],
+            var layer = layers[i],
                 box = layer["x:boxModel"];
 
             layer.unregistryUpdate();
             layer.domCanvas.width = width; //清空画布
             layer.domCanvas.height = height;
 
-            box.setUsableRect(null, 0, 0, width, height);
+            box.measure(null, 0, 0, width, height);
             box.render(layer.context);
         }
 
@@ -10822,7 +10783,7 @@ $.class("Window", $.WindowBase, function (Class, $) {
 
 
 
-});
+}, true);
 
 
 
@@ -10831,7 +10792,7 @@ $.class("Window", $.WindowBase, function (Class, $) {
 ﻿
 
 //窗口标题栏
-$.class("WindowTitleBar", $.Panel, function (Class, $) {
+flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
 
     Class.create = function () {
@@ -10854,35 +10815,28 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
             this.ownerWindow.close();
         });
 
-
-        this.addEventListener("mousedown", mousedown);
-        this.addEventListener("mousemove", mousemove);
-        this.addEventListener("mouseup", mouseup);
     };
 
 
 
-    this.setDefaultValue("focusable", false);
+    this.defaultValue("focusable", false);
 
-    this.setDefaultValue("height", 25);
+    this.defaultValue("height", 25);
 
-    this.setDefaultValue("layout", "dock");
+    this.defaultValue("layout", "dock");
 
 
 
 
     function button(dock, styleKey, click) {
 
-        var result = new $.PictureBox();
+        var result = new flyingon.PictureBox();
 
         result.dock = dock;
         result.width = 20;
         result.styleKey = styleKey;
 
-        if (click)
-        {
-            result.onclick = click;
-        }
+        click && (result.onclick = click);
 
         this["x:children"].append(result);
         return result;
@@ -10914,20 +10868,22 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
         return { left: left, top: top };
     };
 
-    function mousedown(event) {
+
+
+    this["event:mousedown"] = function (event) {
 
         var ownerWindow = this.ownerWindow,
             storage = ownerWindow["x:storage"],
-            p = translate(ownerWindow.mainWindow, storage.left, storage.top);
+            offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
 
 
-        offsetX = p.left - event.clientX;
-        offsetY = p.top - event.clientY;
+        offsetX = offset.left - event.clientX;
+        offsetY = offset.top - event.clientY;
 
         ownerWindow["x:captureControl"] = this; //捕获鼠标
     };
 
-    function mousemove(event) {
+    this["event:mousemove"] = function (event) {
 
         if (event.mouseDown)
         {
@@ -10939,26 +10895,26 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
             storage.left = event.clientX + offsetX,
             storage.top = event.clientY + offsetY;
 
-            var p = translate(ownerWindow.mainWindow, storage.left, storage.top);
+            var offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
 
-            style.left = p.left + "px";
-            style.top = p.top + "px";
+            style.left = offset.left + "px";
+            style.top = offset.top + "px";
         }
     };
 
-    function mouseup(event) {
+    this["event:mouseup"] = function (event) {
 
         this.ownerWindow["x:captureControl"] = null;
     };
 
 
-});
+}, true);
 
 
 
 
 //子窗口
-$.class("ChildWindow", $.WindowBase, function (Class, $) {
+flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
@@ -10972,7 +10928,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
         };
 
 
-        this.titleBar = this.createTitleBar() || new $.WindowTitleBar();
+        this.titleBar = this.createTitleBar() || new flyingon.WindowTitleBar();
         this.titleBar["x:parent"] = this;
     };
 
@@ -11013,7 +10969,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
             return this.titleBar.getControlAt(x, y);
         }
 
-        return $.ChildWindow.super.getControlAt.call(this, x, y);
+        return flyingon.ChildWindow.super.getControlAt.call(this, x, y);
     };
 
 
@@ -11038,17 +10994,14 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         children.push(this);
 
-        $.defineVariable(this, "parentWindow", parentWindow, true, true);
-        $.defineVariable(this, "mainWindow", parentWindow.mainWindow, true, true);
+        flyingon.defineVariable(this, "parentWindow", parentWindow, true, true);
+        flyingon.defineVariable(this, "mainWindow", parentWindow.mainWindow, true, true);
 
 
         var domHost = this.mainWindow.domHost;
 
         //如果是模式窗口则添加遮罩层
-        if (modalWindow)
-        {
-            domHost.appendChild(this.domMask);
-        }
+        modalWindow && domHost.appendChild(this.domMask);
 
         domHost.appendChild(this.domWindow);
 
@@ -11076,14 +11029,14 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["y:activate"].call(this);
+        flyingon.ChildWindow.super["y:activate"].call(this);
     };
 
     this["y:deactivate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["y:deactivate"].call(this);
+        flyingon.ChildWindow.super["y:deactivate"].call(this);
     };
 
 
@@ -11102,15 +11055,12 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
                 domHost.removeChild(this.domWindow);
 
-                if (this.domMask.parentNode)
-                {
-                    domHost.removeChild(this.domMask);
-                }
+                this.domMask.parentNode && domHost.removeChild(this.domMask);
 
                 parentWindow["x:windows"].splice(index, 1);
 
-                $.defineVariable(this, "parentWindow", null, true, true);
-                $.defineVariable(this, "mainWindow", null, true, true);
+                flyingon.defineVariable(this, "parentWindow", null, true, true);
+                flyingon.defineVariable(this, "mainWindow", null, true, true);
 
                 this.dispatchEvent("closed");
 
@@ -11125,7 +11075,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
 
 
-    this["y:before:measure"] = function (boxModel) {
+    this.measure = function (boxModel) {
 
 
         var storage = this["x:storage"],
@@ -11158,23 +11108,25 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         //处理标题栏
         boxModel.children = null;
-        titleBar["x:boxModel"].setUsableRect(boxModel, 0, 0, width, y, true);
+        titleBar["x:boxModel"].measure(boxModel, 0, 0, width, y, true);
 
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 0,
-            length = layers.length;
+        var layers = this.layers;
 
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++];
+            var layer = layers[i];
 
-            layer["x:boxModel"].setUsableRect(null, 0, y, width, height - y);
+            layer["x:boxModel"].measure(null, 0, y, width, height - y);
 
             layer.domCanvas.width = width; //清空画布
             layer.domCanvas.height = height;
         }
+
+
+        //调用默认测量方法
+        boxModel.compute();
     };
 
 
@@ -11183,25 +11135,22 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
     this.paint = function (context) {
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 1,
-            length = layers.length;
+        var layers = this.layers;
 
-
-        while (i < length)
+        for (var i = 1, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++];
+            var layer = layers[i];
 
             layer.unregistryUpdate();
             layer["x:boxModel"].render(layer.context);
         }
 
-        $.ChildWindow.super.paint.call(this, context);
+        flyingon.ChildWindow.super.paint.call(this, context);
     };
 
 
 
-});
+}, true);
 
 
 
@@ -11225,7 +11174,7 @@ var TextBase = function (multiline) {
 
 
 
-    this.setDefaultValue("text", "");
+    this.defaultValue("text", "");
 
 
     this.defineProperty("readOnly", false);
@@ -11242,10 +11191,8 @@ var TextBase = function (multiline) {
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow["x:focusControl"] == this)
-            {
-                this["x:textMetrics"].moveTo(value);
-            }
+            this.ownerWindow && this.ownerWindow["x:focusControl"] == this && this["x:textMetrics"].moveTo(value);
+            return this;
         }
     });
 
@@ -11262,25 +11209,21 @@ var TextBase = function (multiline) {
 
             if (this.ownerWindow && this.ownerWindow["x:focusControl"] == this)
             {
-                if (value < 0)
-                {
-                    value = 0;
-                }
-
                 var textMetrics = this["x:textMetrics"];
+
+                value < 0 && (value = 0);
                 textMetrics.selectionTo(textMetrics.selectionStart + value);
             }
+
+            return this;
         }
     });
 
 
-    this.defineProperty("selectedText", undefined, {
+    this.defineProperty("selectedText", function () {
 
-        getter: function () {
-
-            return this["x:textMetrics"].selectedText;
-        }
-    }, true);
+        return this["x:textMetrics"].selectedText;
+    });
 
 
 
@@ -11311,21 +11254,18 @@ var TextBase = function (multiline) {
 
     this["y:blur"] = function () {
 
-        if (this.blur())
-        {
-            this.ownerWindow["y:close:input"]();
-        }
+        this.blur() && this.ownerWindow["y:close:input"]();
     };
 
 
 
 
-    this.handleMouseDown = function (event) {
+    this["event:mousedown"] = function (event) {
 
         this.ownerWindow["x:captureControl"] = this; //捕获鼠标
     };
 
-    this.handleMouseMove = function (event) {
+    this["event:mousemove"] = function (event) {
 
         if (event.mouseDown && this.ownerWindow["x:focusControl"] == this)
         {
@@ -11351,16 +11291,13 @@ var TextBase = function (multiline) {
         }
     };
 
-    this.handleMouseUp = function (event) {
+    this["event:mouseup"] = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
         if (ownerWindow)
         {
-            if (ownerWindow["x:focusControl"] == this)
-            {
-                ownerWindow["y:input"]();
-            }
+            ownerWindow["x:focusControl"] == this && ownerWindow["y:input"]();
 
             //释放鼠标
             ownerWindow["x:captureControl"] = null;
@@ -11390,7 +11327,7 @@ var TextBase = function (multiline) {
                 end = textMetrics.caretMax;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(r.windowX + start.x - boxModel.scrollLeft, r.windowY, end.x - start.x, 16);
+            context.fillRect(r.windowX + start.x - boxModel.offsetX, r.windowY, end.x - start.x, 16);
         }
     };
 
@@ -11410,25 +11347,15 @@ var TextBase = function (multiline) {
 /*
 
 */
-$.class("TextBoxBase", $.Control, function (Class, $) {
+flyingon.class("TextBoxBase", flyingon.Control, function (Class, flyingon) {
 
 
 
+    this.defaultValue("width", 100);
 
-    Class.create = function () {
+    this.defaultValue("height", 21);
 
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
-
-
-
-    this.setDefaultValue("width", 100);
-
-    this.setDefaultValue("height", 21);
-
-    this.setDefaultValue("multiline", false);
+    this.defaultValue("multiline", false);
 
 
 
@@ -11452,7 +11379,7 @@ $.class("TextBoxBase", $.Control, function (Class, $) {
 /*
 
 */
-$.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
+flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon) {
 
 
 
@@ -11465,13 +11392,15 @@ $.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
 
     this.measure = function (boxModel) {
 
+
+        boxModel.compute();
+
+
         var innerRect = boxModel.innerRect,
             imageRect = boxModel.imageRect;
 
-        if (!imageRect)
-        {
-            imageRect = boxModel.imageRect = new $.Rect();
-        }
+
+        !imageRect && (imageRect = boxModel.imageRect = new flyingon.Rect());
 
         imageRect.x = innerRect.x;
         imageRect.y = innerRect.y;
@@ -11528,7 +11457,7 @@ $.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
 /*
 
 */
-$.class("TextBox", $.TextBoxBase, function (Class, $) {
+flyingon.class("TextBox", flyingon.TextBoxBase, function (Class, flyingon) {
 
 
 
@@ -11589,7 +11518,7 @@ $.class("TextBox", $.TextBoxBase, function (Class, $) {
 /*
 
 */
-$.class("PictureBox", $.Control, function (Class, $) {
+flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
 
 
 
@@ -11609,7 +11538,7 @@ $.class("PictureBox", $.Control, function (Class, $) {
 
         if (image)
         {
-            if (image.constructor == String && (image = $.images[image]) == null)
+            if (image.constructor == String && (image = flyingon.images[image]) == null)
             {
                 return;
             }
@@ -11635,7 +11564,7 @@ $.class("PictureBox", $.Control, function (Class, $) {
 /*
 
 */
-$.class("ComboBox", $.TextButtonBase, function (Class, $) {
+flyingon.class("ComboBox", flyingon.TextButtonBase, function (Class, flyingon) {
 
 
 
@@ -11656,25 +11585,15 @@ $.class("ComboBox", $.TextButtonBase, function (Class, $) {
 /*
 
 */
-$.class("Memo", $.ScrollableControl, function (Class, $) {
+flyingon.class("Memo", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
-    Class.create = function () {
+    this.defaultValue("width", 200);
 
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
+    this.defaultValue("height", 40);
 
-
-
-
-    this.setDefaultValue("width", 200);
-
-    this.setDefaultValue("height", 40);
-
-    this.setDefaultValue("multiline", true);
+    this.defaultValue("multiline", true);
 
 
 
@@ -11697,13 +11616,13 @@ $.class("Memo", $.ScrollableControl, function (Class, $) {
 ﻿/*
 
 */
-$.class("Button", $.Control, function (Class, $) {
+flyingon.class("Button", flyingon.Control, function (Class, flyingon) {
 
 
 
-    this.setDefaultValue("width", 100);
+    this.defaultValue("width", 100);
 
-    this.setDefaultValue("height", 21);
+    this.defaultValue("height", 21);
 
 
 });
@@ -11715,7 +11634,7 @@ $.class("Button", $.Control, function (Class, $) {
 ﻿/*
 
 */
-$.class("TextBlock", $.Control, function (Class, $) {
+flyingon.class("TextBlock", flyingon.Control, function (Class, flyingon) {
 
 
 
@@ -11725,8 +11644,3 @@ $.class("TextBlock", $.Control, function (Class, $) {
 
 
 
-
-
-
-
-})(flyingon);

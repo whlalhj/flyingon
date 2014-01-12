@@ -1,19 +1,19 @@
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
-    $.Point = function (x, y) {
+    var prototype = (flyingon.Point = function (x, y) {
 
         this.x = x || 0;
         this.y = y || 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Point.prototype;
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ x:" + this.x + ", y:" + this.y + " }";
     };
@@ -24,19 +24,19 @@
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
-    $.Size = function (width, height) {
+    var prototype = (flyingon.Size = function (width, height) {
 
         this.width = width || 0;
         this.height = height || 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Size.prototype;
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ width:" + this.width + ", height:" + this.height + " }";
     };
@@ -47,10 +47,10 @@
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
-    $.Rect = function (x, y, width, height) {
+    var prototype = (flyingon.Rect = function (x, y, width, height) {
 
         if (arguments.length > 0)
         {
@@ -59,34 +59,39 @@
             this.width = width || 0;
             this.height = height || 0;
         }
-    };
 
-    var p = $.Rect.prototype;
+    }).prototype;
 
-    p.x = 0;
 
-    p.y = 0;
 
-    p.width = 0;
+    prototype.x = 0;
 
-    p.height = 0;
+    prototype.y = 0;
 
-    $.defineProperty(p, "right", function () {
+    prototype.width = 0;
+
+    prototype.height = 0;
+
+
+
+    flyingon.defineProperty(prototype, "right", function () {
 
         return this.x + this.width;
     });
 
-    $.defineProperty(p, "bottom", function () {
+    flyingon.defineProperty(prototype, "bottom", function () {
 
         return this.y + this.height;
     });
 
-    p.copy = function () {
 
-        return new $.Rect(this.x, this.y, this.width, this.height);
+
+    prototype.copy = function (width_delta, height_delta) {
+
+        return new flyingon.Rect(this.x, this.y, this.width + (width_delta || 0), this.height + (height_delta || 0));
     };
 
-    p.toString = p.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
         return "{ x:" + this.x + ", y:" + this.y + ", width:" + this.width + ", height:" + this.height + " }";
     };
@@ -97,7 +102,7 @@
 
 
 
-(function ($) {
+(function (flyingon) {
 
 
     //角度转弧度系数
@@ -111,7 +116,7 @@
     //d	垂直缩放绘图
     //e	水平移动绘图
     //f	垂直移动绘图
-    $.Matrix = function () {
+    var prototype = (flyingon.Matrix = function () {
 
         this.a = 1;
 
@@ -124,12 +129,11 @@
         this.e = 0;
 
         this.f = 0;
-    };
+
+    }).prototype;
 
 
-    var p = $.Matrix.prototype;
-
-    p.fromArray = function (array) {
+    prototype.fromArray = function (array) {
 
         this.a = array[0];
         this.b = array[1];
@@ -141,24 +145,24 @@
         return this;
     };
 
-    p.toArray = function () {
+    prototype.toArray = function () {
 
         return [this.a, this.b, this.c, this.d, this.e, this.f];
     };
 
-    p.translate = function (x, y) {
+    prototype.translate = function (x, y) {
 
         this.append(1, 0, 0, 1, x, y);
         return this;
     };
 
-    p.scale = function (scaleX, scaleY) {
+    prototype.scale = function (scaleX, scaleY) {
 
         this.append(scaleX, 0, 0, scaleY, 0, 0);
         return this;
     };
 
-    p.rotate = function (angle) {
+    prototype.rotate = function (angle) {
 
         angle *= radian;
 
@@ -169,7 +173,7 @@
         return this;
     };
 
-    p.skew = function (skewX, skewY) {
+    prototype.skew = function (skewX, skewY) {
 
         var x = Math.Tan(skewX * n);
         var y = Math.Tan(skewY * n);
@@ -178,7 +182,7 @@
         return this;
     };
 
-    p.append = function (a, b, c, d, e, f) {
+    prototype.append = function (a, b, c, d, e, f) {
 
         var a1 = this.a;
         var b1 = this.b;
@@ -196,7 +200,7 @@
     };
 
 
-    p.transform = function (x, y) {
+    prototype.transform = function (x, y) {
 
         return {
             x: Math.round(x * this.a + y * this.b + this.e, 0),
@@ -204,7 +208,7 @@
         };
     };
 
-    p.reverse = function (x, y) {
+    prototype.reverse = function (x, y) {
 
         return {
             x: Math.round((this.b * y - this.d * x + this.d * this.e - this.b * this.f) / (this.c * this.b - this.a * this.d)),

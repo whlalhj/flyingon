@@ -8,7 +8,7 @@ var TextBase = function (multiline) {
 
 
 
-    this.setDefaultValue("text", "");
+    this.defaultValue("text", "");
 
 
     this.defineProperty("readOnly", false);
@@ -25,10 +25,8 @@ var TextBase = function (multiline) {
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow["x:focusControl"] == this)
-            {
-                this["x:textMetrics"].moveTo(value);
-            }
+            this.ownerWindow && this.ownerWindow["x:focusControl"] == this && this["x:textMetrics"].moveTo(value);
+            return this;
         }
     });
 
@@ -45,25 +43,21 @@ var TextBase = function (multiline) {
 
             if (this.ownerWindow && this.ownerWindow["x:focusControl"] == this)
             {
-                if (value < 0)
-                {
-                    value = 0;
-                }
-
                 var textMetrics = this["x:textMetrics"];
+
+                value < 0 && (value = 0);
                 textMetrics.selectionTo(textMetrics.selectionStart + value);
             }
+
+            return this;
         }
     });
 
 
-    this.defineProperty("selectedText", undefined, {
+    this.defineProperty("selectedText", function () {
 
-        getter: function () {
-
-            return this["x:textMetrics"].selectedText;
-        }
-    }, true);
+        return this["x:textMetrics"].selectedText;
+    });
 
 
 
@@ -94,21 +88,18 @@ var TextBase = function (multiline) {
 
     this["y:blur"] = function () {
 
-        if (this.blur())
-        {
-            this.ownerWindow["y:close:input"]();
-        }
+        this.blur() && this.ownerWindow["y:close:input"]();
     };
 
 
 
 
-    this.handleMouseDown = function (event) {
+    this["event:mousedown"] = function (event) {
 
         this.ownerWindow["x:captureControl"] = this; //捕获鼠标
     };
 
-    this.handleMouseMove = function (event) {
+    this["event:mousemove"] = function (event) {
 
         if (event.mouseDown && this.ownerWindow["x:focusControl"] == this)
         {
@@ -134,16 +125,13 @@ var TextBase = function (multiline) {
         }
     };
 
-    this.handleMouseUp = function (event) {
+    this["event:mouseup"] = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
         if (ownerWindow)
         {
-            if (ownerWindow["x:focusControl"] == this)
-            {
-                ownerWindow["y:input"]();
-            }
+            ownerWindow["x:focusControl"] == this && ownerWindow["y:input"]();
 
             //释放鼠标
             ownerWindow["x:captureControl"] = null;
@@ -173,7 +161,7 @@ var TextBase = function (multiline) {
                 end = textMetrics.caretMax;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(r.windowX + start.x - boxModel.scrollLeft, r.windowY, end.x - start.x, 16);
+            context.fillRect(r.windowX + start.x - boxModel.offsetX, r.windowY, end.x - start.x, 16);
         }
     };
 

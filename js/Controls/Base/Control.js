@@ -2,7 +2,7 @@
 
 
 //控件基类
-$.class("Control", $.SerializableObject, function (Class, $) {
+flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon) {
 
 
 
@@ -11,41 +11,38 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
         //盒模型
-        this["x:boxModel"] = new $.BoxModel(this);
+        this["x:boxModel"] = new flyingon.BoxModel(this);
     };
 
 
 
     //初始化类方法
-    Class.initialize = function ($) {
+    Class.initialize = function (flyingon) {
 
 
         var className = this.className,
-            styles = $.styles,
+            styles = flyingon.styles,
             style = styles[className] || (styles[className] = {}),
-            templates = $.templates,
+            templates = flyingon.templates,
             template = templates[className] || (templates[className] = {});
 
 
         className = this["superClass"].className;
 
         //复制上级样式
-        if (styles.hasOwnProperty(className))
-        {
-            $["y:simple:copy"](styles[className], style, true);
-        }
-
+        styles.hasOwnProperty(className) && flyingon["y:simple:copy"](styles[className], style, true);
 
         //复制上级模板
-        if (templates.hasOwnProperty(className))
-        {
-            $["y:simple:copy"](templates[className], template, true);
-        }
+        templates.hasOwnProperty(className) && flyingon["y:simple:copy"](templates[className], template, true);
 
     };
 
 
 
+
+
+    //引用序列化标记(为true时只序列化名称不序列化内容)
+    this["x:reference"] = true;
 
 
 
@@ -64,16 +61,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
             if (value != oldValue)
             {
-                if (oldValue)
-                {
-                    oldValue["x:children"].remove(this);
-                }
-
-                if (value)
-                {
-                    value["x:children"].append(this);
-                }
+                oldValue && oldValue["x:children"].remove(this);
+                value && value["x:children"].append(this);
             }
+
+            return this;
         }
     });
 
@@ -83,22 +75,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
         var box = this["x:boxModel"];
 
-        if (box.parent)
-        {
-            box.parent["x:measure"] = true;
-        }
-        else
-        {
-            box["x:measure"] = true;
-        }
-
-        if (parent)
-        {
-            parent["x:boxModel"]["x:measure"] = true;
-        }
+        box.parent && (box.parent["x:partition"] = true);
+        parent && (parent["x:boxModel"]["x:partition"] = true);
 
         this["x:parent"] = parent;
-        this.dispatchChangeEvent("parent", parent, this["x:parent"]);
+        this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this["x:parent"]));
     };
 
 
@@ -107,34 +88,25 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //主窗口
-    this.defineProperty("mainWindow", undefined, {
+    this.defineProperty("mainWindow", function () {
 
-        getter: function () {
-
-            var result = this.ownerWindow;
-            return result && (result.mainWindow || result);
-        }
-    }, true);
+        var result = this.ownerWindow;
+        return result && (result.mainWindow || result);
+    });
 
     //所属窗口
-    this.defineProperty("ownerWindow", undefined, {
+    this.defineProperty("ownerWindow", function () {
 
-        getter: function () {
-
-            var parent = this["x:parent"];
-            return parent && parent.ownerWindow;
-        }
-    }, true);
+        var parent = this["x:parent"];
+        return parent && parent.ownerWindow;
+    });
 
     //所属图层
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
-
-            var parent = this["x:parent"];
-            return parent && parent.ownerLayer;
-        }
-    }, true);
+        var parent = this["x:parent"];
+        return parent && parent.ownerLayer;
+    });
 
 
     //当前控件是否指定控件的父控件
@@ -186,10 +158,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
         var parent = this["x:parent"];
 
-        if (parent)
-        {
-            parent["x:children"].remove(this);
-        }
+        parent && parent["x:children"].remove(this);
 
         return this;
     };
@@ -201,13 +170,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-    this["y:define:getter"] = function (name, options) {
+    flyingon["x:define:getter"] = function (name, options) {
 
         var body;
 
         if (options.style) // 样式属性
         {
-            body = "return this.getStyleValue('" + name + "');";
+            body = "return this.styleValue('" + name + "');";
         }
         else
         {
@@ -217,15 +186,15 @@ $.class("Control", $.SerializableObject, function (Class, $) {
         return new Function(body);
     };
 
-    this["y:define:setter"] = function (name, attributes) {
+    flyingon["x:define:setter"] = function (name, attributes) {
 
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + this["y:define:setter:initialize"]
+            + flyingon["x:define:initialize"]
 
 
-            + (attributes.style ? "var oldValue = this.getStyleValue(name);" : "var oldValue = storage[name];")
+            + (attributes.style ? "var oldValue = this.styleValue(name);\n" : "var oldValue = storage[name];\n")
 
             + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
 
@@ -233,64 +202,42 @@ $.class("Control", $.SerializableObject, function (Class, $) {
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + this["y:define:setter:change"]
+            + flyingon["x:define:change"]
 
-            + "storage[name] = value;\n";
+            + "storage[name] = value;\n"
+            + "var boxModel = this['x:boxModel'];\n";
 
 
-        //布局 可能会影响父控件布局
-        if (attributes.layout)
+        attributes.valueChangedCode && (body += attributes.valueChangedCode + "\n"); //自定义值变更代码
+
+        body += flyingon["x:define:binding"]; //处理绑定源
+
+
+        //需要重新定位
+        if (attributes.locate)
         {
-            body += "if (cache = this['x:boxModel'].parent)\n"
+            body += "if (cache = boxModel.parent)\n"
                 + "{\n"
                 + "cache['x:measure'] = true;\n"
                 + "cache.ownerControl.invalidate();\n"
                 + "}\n"
                 + "else\n"
                 + "{\n"
+                + "boxModel['x:measure'] = true;\n"
                 + "this.invalidate();\n"
                 + "}\n";
-
-            attributes.invalidate = false;
         }
-
-
-        //测量 可能会影响空间占用及子控件排列
-        if (attributes.measure)
+        else if (attributes.measure) //需要重新测量
         {
-            body += "this['x:boxModel']['x:measure'] = true;\nthis.invalidate();\n";
+            body += "boxModel['x:measure'] = true;\nthis.invalidate();\n";
         }
-        else if (attributes.invalidate) //标记区域无效 需要重新绘制
+        else if (attributes.invalidate)  //需要重新绘制
         {
             body += "this.invalidate();\n";
         }
 
 
-        if (attributes.valueChangedCode) //自定义值变更代码
-        {
-            body += attributes.valueChangedCode + "\n";
-        }
-
-
-        body += this["y:define:setter:bindingTo"] //处理绑定源
-
-            //处理绑定目标
-            + "if ((cache = this['x:bindings']) && (cache = cache[name]) && cache.setter !== null && cache['x:binding'] != true)\n"
-            + "{\n"
-            + "if (cache.setter === undefined)\n"
-            + "{\n"
-            + "cache.source[cache.expression] = this[name]\n"
-            + "}\n"
-            + "else\n"
-            + "{\n"
-            + "cache.setter.call(cache.source, this[name]);\n"
-            + "}\n"
-            + "}\n"
-
-
-            + "}\n"
-
-            + "return this;\n";
+        body += "}\nreturn this;"
 
 
         return new Function("value", body);
@@ -299,8 +246,11 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-    //自定义样式
+    //指定样式Key
     this.defineProperty("styleKey", null, "invalidate");
+
+    //自定义样式
+    this.defineProperty("style", null, "invalidate");
 
     /*
     预定义状态组:
@@ -312,16 +262,19 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this["x:states"] = ["common-states", "focus-states", "hover-states"];
 
     //自定义状态组
-    this.defineStates = function (states) {
+    this.defineStates = function (statesName, defaultValue, index) {
 
-        this["x:states"] = ["common-states"].concat(states).concat(["focus-states", "hover-states"]);
+        var states = this["x:states"] = this["x:states"].slice(0);
+        states.splice(index || states.length - 2, 0, statesName);
+
+        defaultValue !== undefined && this.defaultValue(statesName, defaultValue);
     };
 
-    this.setDefaultValue("common-states", null);
+    this.defaultValue("common-states", null);
 
-    this.setDefaultValue("focus-states", null);
+    this.defaultValue("focus-states", null);
 
-    this.setDefaultValue("hover-states", null);
+    this.defaultValue("hover-states", null);
 
     //切换状态
     this.switchState = function (statesName, stateName) {
@@ -339,7 +292,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     };
 
 
-    function getStyleValue(style, name) {
+    function styleValue(style, name) {
 
         var storage = this["x:storage"],
             states = this["x:states"],
@@ -366,37 +319,40 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     };
 
     //获取样式值
-    this.getStyleValue = function (name) {
+    this.styleValue = function (name) {
 
 
-        var storage = this["x:storage"],
-            result;
+        var storage = this["x:storage"];
 
-
-        if ((result = (storage.hasOwnProperty(name) && storage[name])) != false)
+        if (storage.hasOwnProperty(name))
         {
-            return result;
+            return storage[name];
+        }
+
+        var style = storage.style;
+        if (style && (style = styleValue.call(this, style, name)) != undefined)
+        {
+            return style;
         }
 
 
-        var styles = $.styles,
-            styleKey,
-            style;
+        var styles = flyingon.styles,
+            styleKey;
 
         if ((styleKey = storage.styleKey) &&
             (style = (styles[styleKey])) &&
-            (result = getStyleValue.call(this, style, name)) != undefined)
+            (style = styleValue.call(this, style, name)) != undefined)
         {
-            return result;
+            return style;
         }
 
 
-        styleKey = this["x:class"].className;
+        styleKey = this["x:className"];
         style = styles[styleKey];
 
-        if ((result = getStyleValue.call(this, style, name)) != undefined)
+        if ((style = styleValue.call(this, style, name)) != undefined)
         {
-            return result;
+            return style;
         }
 
         return storage[name] || null;
@@ -408,72 +364,42 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     /***************BoxModel相关属性***************/
 
     //盒式模型
-    this.defineProperty("boxModel", undefined, {
+    this.defineProperty("boxModel", function () {
 
-        getter: function () {
-
-            return this["x:boxModel"];
-        }
-    }, true);
+        return this["x:boxModel"];
+    });
 
 
 
     //
-    this.defineProperties(["offsetX", "offsetY"], 0, "measure|layout");
-
-
-    //
-    this.defineProperties(["left", "top"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('locationchanged', this, name, value, oldValue));");
-
-
-    //
-    this.defineProperties(["width", "height"], 0, "measure|layout", "this.dispatchEvent(new flyingon.ChangeEvent('resize', this, name, value, oldValue));");
+    this.defineProperties(["left", "top", "width", "height"], 0, "locate");
 
 
 
 
     //是否显示 visible:显示 hidden:不显示但保留占位 collapsed:不显示也不占位 见枚举flyingon.Visibility对象
-    this.defineProperty("visibility", "visible", "layout");
+    this.defineProperty("visibility", "visible", "locate");
 
     //
-    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "measure|layout");
+    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate");
 
 
 
-    //拉伸方式 n:不拉伸 x:横向拉伸 y:纵向拉伸 xy:全部拉伸 见枚举flyingon.Stretch对象
-    this.defineProperty("stretch", "xy", "measure|layout");
+    //拉伸方式 no:不拉伸 width:宽度拉伸 height:高度拉伸 all:全部拉伸 见枚举flyingon.Stretch对象
+    this.defineProperty("stretch", "no", "locate");
 
     //水平对齐 left center right 见枚举flyingon.HorizontalAlign对象
-    this.defineProperty("horizontalAlign", "left", "measure|layout");
+    this.defineProperty("horizontalAlign", "left", "locate");
 
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
-    this.defineProperty("verticalAlign", "top", "measure|layout");
+    this.defineProperty("verticalAlign", "top", "locate");
 
     //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
-    this.defineProperty("dock", "left", "measure|layout");
+    this.defineProperty("dock", "left", "locate");
 
     //表格布局时行及列索引 
-    this.defineProperties(["rowIndex", "columnIndex"], null, "measure|layout");
+    this.defineProperties(["rowIndex", "columnIndex"], null, "locate");
 
-
-
-    //
-    this.defineProperty("outerRect", undefined, {
-
-        getter: function () {
-
-            return this["x:boxModel"]["outerRect"];
-        }
-    }, true);
-
-    //
-    this.defineProperty("innerRect", undefined, {
-
-        getter: function () {
-
-            return this["x:boxModel"]["innerRect"];
-        }
-    }, true);
 
 
 
@@ -482,7 +408,7 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
     /***************BoxModel及样式相关属性***************/
 
-    this.defineProperty("margin", [0, 0, 0, 0], "measure|style");
+    this.defineProperty("margin", [0, 0, 0, 0], "locate|style");
 
     this.defineProperty("border", [0, 0, 0, 0], "measure|style");
 
@@ -513,11 +439,10 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     //字体
     this.defineProperty("font", "normal", {
 
-        attributes: "style",
-
+        attributes: "measure|style",
         getter: function () {
 
-            return $.fonts[this.getStyleValue("font") || "normal"] || $.fonts["normal"];
+            return flyingon.fonts[this.styleValue("font") || "normal"] || flyingon.fonts["normal"];
         }
 
     }, "this['x:textMetrics'] = null;");
@@ -526,8 +451,21 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //装饰
-    this.defineProperty("decorates", null, "style");
+    this.defineProperty("decorates", null, "invalidate|style");
 
+
+
+
+    //自动调整大小方式(根据内容大小自动变化)  no:不调整 width:宽度调整 height:高度调整 all:全部调整见枚举flyingon.AutoSize对象
+    this.defineProperty("autoSize", "no", {
+
+        valueChangedCode: "value && value != 'no' && this.adjustAutoSize(this['x:boxModel']);"
+    });
+
+    //调整自动大小
+    this.adjustAutoSize = function (boxModel, size) {
+
+    };
 
 
 
@@ -549,8 +487,8 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
     this["y:cursor"] = function (event) {
 
-        var cursor = this.getStyleValue("cursor") || "default";
-        return $.cursors[cursor] || cursor;
+        var cursor = this.styleValue("cursor") || "default";
+        return flyingon.cursors[cursor] || cursor;
     };
 
 
@@ -580,23 +518,87 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
     //是否为焦点控件
-    this.defineProperty("focused", undefined, {
+    this.defineProperty("focused", function () {
 
-        getter: function () {
-
-            return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
-        }
-    }, true);
+        return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
+    });
 
     //是否为焦点控件或包含焦点控件
-    this.defineProperty("containsFocused", undefined, {
+    this.defineProperty("containsFocused", function () {
+
+        var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
+        return focusControl && (focusControl == this || this.isParent(focusControl));
+    });
+
+
+
+
+
+    //是否可以拖动
+    this.defineProperty("draggable", false);
+
+    //是否可以接受拖放
+    this.defineProperty("droppable", false);
+
+
+
+    //值变更事件
+    this.defineEvent("change");
+
+    //定义鼠标事件
+    this.defineEvents(["mousedown", "mousemove", "click", "dblclick", "mouseup", "mouseover", "mouseout", "mousewheel"]);
+
+    //定义拖拉事件
+    this.defineEvents(["dragstart", "drag", "dragend", "dragenter", "dragover", "dragleave", "drop"]);
+
+    //定义键盘事件
+    this.defineEvents(["keydown", "keypress", "keyup"]);
+
+    //定义其它事件
+    this.defineEvents(["focus", "blur", "locationchanged", "resize", "validate"]);
+
+
+
+
+
+
+    //模板
+    this.defineProperty("template", null, {
+
+        attributes: "measure",
+        valueChangedCode: "this.clearTemplate();",
 
         getter: function () {
 
-            var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
-            return focusControl && (focusControl == this || this.isParent(focusControl));
+            var storage = this["x:storage"];
+
+            if (storage.hasOwnProperty("template"))
+            {
+                return storage.template;
+            }
+
+            return flyingon.templates[this["x:className"]] || storage.template;
         }
-    }, true);
+    });
+
+    //创建模板控件
+    this.createTemplateControl = function (template, context) {
+
+        var result = new flyingon.SerializeReader().deserialize(template, context || this);
+
+        if (result)
+        {
+            result["x:parent"] = this;
+            return result;
+        }
+    };
+
+    //清除模板控件
+    this.clearTemplate = function () {
+
+    };
+
+
 
 
 
@@ -662,44 +664,6 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-
-    ////数据绑定主体
-    //this.dataContext = null;
-
-    //binding = { source: object, expression: "name", setter: "", formatter: "" }
-    this.setBinding = function (name, binding) {
-
-        if (binding)
-        {
-            binding.target = this;
-
-            if (!(binding instanceof $.DataBinding))
-            {
-                binding = new $.DataBinding(binding);
-            }
-
-            binding["y:initialize"](this, name);
-            binding.pull();
-        }
-
-        return binding;
-    };
-
-    this.clearBinding = function (propertyName) {
-
-        if (propertyName)
-        {
-            var bindings = this["x:bindings"];
-
-            if (bindings && (bindings = bindings[propertyName]))
-            {
-                bindings.clear();
-            }
-        }
-    };
-
-
-
     //显示弹出控件
     this.showPopup = function (x, y) {
 
@@ -711,22 +675,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
             if (!layer)
             {
-                layer = ownerWindow["x:popupLayer"] = ownerWindow.appendLayer(null, 9997);
+                layer = ownerWindow["x:popupLayer"] = ownerWindow.appendLayer(9997);
                 layer.layout = "absolute";
                 layer.paintBackground = function () { };
             }
 
-
-            if (x != null)
-            {
-                this["x:storage"].left = x;
-            }
-
-            if (y != null)
-            {
-                this["x:storage"].top = y;
-            }
-
+            x != null && (this["x:storage"].left = x);
+            y != null && (this["x:storage"].top = y);
 
             layer["x:children"].append(this);
             layer.invalidate();
@@ -737,37 +692,10 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this.closePopup = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow.removeLayer(ownerWindow["x:popupLayer"]);
-        }
+        ownerWindow && ownerWindow.removeLayer(ownerWindow["x:popupLayer"]);
     };
 
 
-
-
-
-
-    //是否可以拖动
-    this.defineProperty("draggable", false);
-
-    //是否可以接受拖放
-    this.defineProperty("droppable", false);
-
-
-
-
-    //定义鼠标事件
-    this.defineEvents(["mousedown", "mousemove", "click", "dblclick", "mouseup", "mouseover", "mouseout", "mousewheel"]);
-
-    //定义拖拉事件
-    this.defineEvents(["dragstart", "drag", "dragend", "dragenter", "dragover", "dragleave", "drop"]);
-
-    //定义键盘事件
-    this.defineEvents(["keydown", "keypress", "keyup"]);
-
-    //定义其它事件
-    this.defineEvents(["parentchanged", "focus", "blur", "locationchanged", "resize", "validate"]);
 
 
 
@@ -775,20 +703,14 @@ $.class("Control", $.SerializableObject, function (Class, $) {
     this.setCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow["x:captureControl"] = this;
-        }
+        ownerWindow && (ownerWindow["x:captureControl"] = this);
     };
 
     //释放鼠标
     this.releaseCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow)
-        {
-            ownerWindow["x:captureControl"] = null;
-        }
+        ownerWindow && (ownerWindow["x:captureControl"] = null);
     };
 
 
@@ -852,41 +774,13 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-    //模板
-    this.defineProperty("template", null, {
-
-        getter: function () {
-
-        }
-    });
-
-    //创建模板控件
-    this.createTemplateControl = function () {
-
-
-    };
-
-    //设置模板控件
-    this.applyTemplateControl = function (control) {
-
-
-    };
-
-
-
-
-
     //使区域无效
     this.invalidate = function () {
 
         var layer = this.ownerLayer;
 
         this["x:boxModel"].invalidate();
-
-        if (layer)
-        {
-            layer.registryUpdate();
-        }
+        layer && layer.registryUpdate();
     };
 
 
@@ -906,32 +800,15 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-
-
-    //测量文字方法
-    this["y:measure:text"] = function () {
-
-        if (!this["x:textMetrics"])
-        {
-            var storage = this["x:storage"];
-
-            this["x:textMetrics"] = new $.TextMetrics(this);
-            this["x:textMetrics"].measureText(this.font, storage.text, storage.multiline);
-        }
-    };
-
-
-
-
     //绘制边框
     this.paintBorder = function (context) {
 
-        var boxModel = context.boxModel,
+        var boxModel = this["x:boxModel"],
             border = boxModel.border;
 
         if (border && border.border)
         {
-            var color = this.getStyleValue("borderColor");
+            var color = this.styleValue("borderColor");
 
             if (boxModel.borderRadius > 0)
             {
@@ -1016,32 +893,24 @@ $.class("Control", $.SerializableObject, function (Class, $) {
             }
 
 
-            if (this.paintTextBackground)
-            {
-                this.paintTextBackground(context);
-            }
+            this.paintTextBackground && this.paintTextBackground(context);
 
 
             context.set_fillStyle(this.foreground);
             context.set_font(font);
 
 
-            var x = r.windowX - boxModel.scrollLeft,
-                y = r.windowY + textMetrics[0].height,
-
-                i = 0,
-                length = textMetrics.length;
+            var x = r.windowX - boxModel.offsetX,
+                y = r.windowY + textMetrics[0].height;
 
 
-            while (i < length)
+            for (var i = 0, length = textMetrics.length; i < length; i++)
             {
-                var line = textMetrics[i++],
-                    j = 0,
-                    count = line.length;
+                var line = textMetrics[i];
 
-                while (j < count)
+                for (var j = 0, count = line.length; j < count; j++)
                 {
-                    var snippet = line[j++];
+                    var snippet = line[j];
                     context.fillText(snippet.text, x, y);
 
                     x += snippet.width;
@@ -1056,4 +925,4 @@ $.class("Control", $.SerializableObject, function (Class, $) {
 
 
 
-});
+}, true);

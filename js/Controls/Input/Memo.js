@@ -5,25 +5,15 @@
 /*
 
 */
-$.class("Memo", $.ScrollableControl, function (Class, $) {
+flyingon.class("Memo", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
-    Class.create = function () {
+    this.defaultValue("width", 200);
 
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
+    this.defaultValue("height", 40);
 
-
-
-
-    this.setDefaultValue("width", 200);
-
-    this.setDefaultValue("height", 40);
-
-    this.setDefaultValue("multiline", true);
+    this.defaultValue("multiline", true);
 
 
 

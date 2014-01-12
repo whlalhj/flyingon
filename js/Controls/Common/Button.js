@@ -1,13 +1,13 @@
 ﻿/*
 
 */
-$.class("Button", $.Control, function (Class, $) {
+flyingon.class("Button", flyingon.Control, function (Class, flyingon) {
 
 
 
-    this.setDefaultValue("width", 100);
+    this.defaultValue("width", 100);
 
-    this.setDefaultValue("height", 21);
+    this.defaultValue("height", 21);
 
 
 });

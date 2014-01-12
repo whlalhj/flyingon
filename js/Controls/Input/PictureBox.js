@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("PictureBox", $.Control, function (Class, $) {
+flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
 
 
 
@@ -25,7 +25,7 @@ $.class("PictureBox", $.Control, function (Class, $) {
 
         if (image)
         {
-            if (image.constructor == String && (image = $.images[image]) == null)
+            if (image.constructor == String && (image = flyingon.images[image]) == null)
             {
                 return;
             }

@@ -1,57 +1,22 @@
 ﻿/*
 
 */
-(function ($) {
+flyingon.class("ControlCollection", flyingon.Collection, function (Class, flyingon) {
 
 
-    //控件集合
-    $.ControlCollection = function (ownerControl) {
+    Class.create = function (ownerControl) {
 
         this.ownerControl = ownerControl;
     };
 
 
 
-    var p = $.ControlCollection.prototype = [],
-        push = p.push,
-        splice = p.splice;
 
+    this["y:validate"] = function (item, index) {
 
-    //隐藏标准属性
-    ["push", "concat", "pop", "shift", "splice", "unshift"].forEach(function (item) {
-
-        $.defineVariable(this, item, undefined, true, false);
-    }, p);
-
-
-
-
-    p.append = function (item) {
-
-        if ($["x:initializing"])
+        if (item instanceof flyingon.Control)
         {
-            item["x:parent"] = this.ownerControl;
-        }
-        else
-        {
-            item["y:parent"](this.ownerControl);
-        }
-
-        push.call(this, item);
-        return this;
-    };
-
-    p.appendRange = function (items) {
-
-        var i = 0,
-            length = items.length,
-            initializing = $["x:initializing"];
-
-        while (i < length)
-        {
-            var item = items[i++];
-
-            if (initializing)
+            if (flyingon["x:initializing"])
             {
                 item["x:parent"] = this.ownerControl;
             }
@@ -60,93 +25,25 @@
                 item["y:parent"](this.ownerControl);
             }
 
-            push.call(this, item);
+            return item;
         }
 
-        return this;
+        throw new Error("item not a Control!");
     };
 
-    p.insert = function (index, item) {
+    this["y:remove"] = function (index) {
 
-        if ($["x:initializing"])
-        {
-            item["x:parent"] = this.ownerControl;
-        }
-        else
-        {
-            item["y:parent"](this.ownerControl);
-        }
-
-        splice.call(this, index, 0, item);
-        return this;
+        this["x:items"][index]["y:parent"](null);
     };
 
-    p.insertRange = function (index, items) {
+    this["y:clear"] = function (items) {
 
-        var i = 0,
-            length = items.length,
-            initializing = $["x:initializing"];
-
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = items[i++];
-
-            if (initializing)
-            {
-                item["x:parent"] = this.ownerControl;
-            }
-            else
-            {
-                item["y:parent"](this.ownerControl);
-            }
-
-            splice.call(this, index, 0, item);
+            items[i]["y:parent"](null);
         }
-
-        return this;
     };
 
 
+}, true);
 
-
-    p.remove = function (item) {
-
-        var index = this.indexOf(item);
-
-        if (index >= 0)
-        {
-            item["y:parent"](null);
-            splice.call(this, index, 1);
-        }
-
-        return this;
-    };
-
-    p.removeAt = function (index) {
-
-        if (this.length > index)
-        {
-            this[index]["y:parent"](null);
-            splice.call(this, index, 1);
-        }
-
-        return this;
-    };
-
-    p.clear = function () {
-
-        var i = 0,
-            length = this.length;
-
-        while (i < length)
-        {
-            this[index]["y:parent"](null);
-        }
-
-        this.length = 0;
-        return this;
-    };
-
-
-
-})(flyingon);

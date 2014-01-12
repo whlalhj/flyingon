@@ -1,12 +1,12 @@
 ﻿/*
 枚举定义
 */
-(function ($) {
+(function (flyingon) {
 
 
 
     //显示方式
-    $.Visibility = {
+    flyingon.Visibility = {
 
         //显示
         visible: "visible",
@@ -22,7 +22,7 @@
 
 
     //停靠方式
-    $.Dock = {
+    flyingon.Dock = {
 
         //左
         left: "left",
@@ -44,26 +44,45 @@
 
 
     //拉伸方式
-    $.Stretch = {
+    flyingon.Stretch = {
 
         //不拉伸
-        none: "n",
+        no: "no",
 
-        //水平拉伸
-        horizontal: "x",
+        //宽度拉伸
+        width: "width",
 
-        //垂直拉伸
-        vertical: "y",
+        //高度拉伸
+        height: "height",
 
         //全部拉伸
-        all: "xy"
+        all: "all"
+
+    };
+
+
+
+    //自动调整大小方式
+    flyingon.AutoSize = {
+
+        //不调整
+        no: "no",
+
+        //宽度调整
+        width: "width",
+
+        //高度调整
+        height: "height",
+
+        //全部调整
+        all: "all"
 
     };
 
 
 
     //水平对齐方式
-    $.HorizontalAlign = {
+    flyingon.HorizontalAlign = {
 
         //左对齐
         left: "left",
@@ -79,7 +98,7 @@
 
 
     //垂直对齐方式
-    $.VerticalAlign = {
+    flyingon.VerticalAlign = {
 
         //顶部对齐
         top: "top",
@@ -96,7 +115,7 @@
 
 
     //布局方式
-    $.Layout = {
+    flyingon.Layout = {
 
         //单行排列
         row: "row",
@@ -133,7 +152,7 @@
 
 
     //滚动条显示方式
-    $.ScrollBarVisibility = {
+    flyingon.ScrollBarVisibility = {
 
         //自动显示或隐藏
         auto: "auto",

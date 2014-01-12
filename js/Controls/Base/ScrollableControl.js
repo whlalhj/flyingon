@@ -1,62 +1,85 @@
 ﻿//可滚动控件
-$.class("ScrollableControl", $.Control, function (Class, $) {
+flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-    Class.create = function () {
 
-        this.addEventListener("scroll", this.handleScroll);
-        this.addEventListener("mousewheel", this.handleMouseWheel);
-    };
+    this.defineProperty("horizontalScrollBar", function () {
 
-
-
-    this.defineProperty("horizontalScrollBar", undefined, {
-
-        getter: function () {
-
-            return this["x:hScrollBar"];
-        }
-    }, true);
+        return this["x:hScrollBar"];
+    });
 
 
-    this.defineProperty("verticalScrollBar", undefined, {
+    this.defineProperty("verticalScrollBar", function () {
 
-        getter: function () {
-
-            return this["x:vScrollBar"];
-        }
-    }, true);
+        return this["x:vScrollBar"];
+    });
 
 
 
 
     //定义水平及竖直滚动条显示方式 auto always never  见枚举flyingon.ScrollBarVisibility对象
-    this.defineProperties(["horizontalScroll", "verticalScroll"], "auto", "measure|layout");
+    this.defineProperties(["horizontalScroll", "verticalScroll"], "auto", "measure");
 
 
 
 
-    function defineProperty(name) {
+    function defineProperty(name, boxModel, attributes) {
 
         this.defineProperty("name", 0, {
 
-            attributes: "validate",
-            valueChangedCode: "var boxModel = this['x:boxModel'];\nboxModel[name] = value;\nboxModel.renderItems = null;"
+            attributes: attributes || "invalidate",
+            valueChangedCode: "this['x:boxModel']['" + boxModel + "'] = value;"
         });
     };
 
     //
-    defineProperty.call(this, "scrollLeft");
+    defineProperty.call(this, "scrollLeft", "offsetX");
 
     //
-    defineProperty.call(this, "scrollTop");
+    defineProperty.call(this, "scrollTop", "offsetY");
 
     //
-    defineProperty.call(this, "scrollWidth");
+    defineProperty.call(this, "scrollWidth", "maxWidth", "measure");
 
     //
-    defineProperty.call(this, "scrollHeight");
+    defineProperty.call(this, "scrollHeight", "maxHeight", "measure");
+
+
+
+
+
+    this["event:scroll"] = function (event) {
+
+        var box = this["x:boxModel"];
+
+        event.changedX && (box.offsetX += event.changedX);
+        event.changedY && (box.offsetY += event.changedY);
+
+        this["x:render:children"] = null;
+        this.invalidate();
+
+        //修正因滚动造成的输入符位置变更问题
+        var ownerWindow = this.ownerWindow;
+        ownerWindow && this.isParent(ownerWindow["x:focusControl"]) && ownerWindow["y:caret"](event.changedX, event.changedY);
+
+        event.stopPropagation();
+    };
+
+    this["event:mousewheel"] = function (event) {
+
+        var vScrollBar = this["x:vScrollBar"];
+
+        if (vScrollBar)
+        {
+            var storage = vScrollBar["x:storage"],
+                step = event.wheelDelta < 0 ? storage.minStep : -storage.minStep;
+
+            vScrollBar.changeValue(step);
+            event.stopPropagation();
+        }
+    };
+
 
 
 
@@ -80,228 +103,155 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
 
 
 
-    this.defineEvent("scrollchanged");
-
-
-    this.handleScroll = function (event) {
-
-        var box = this["x:boxModel"];
-
-        if (event.changedX)
-        {
-            box.scrollLeft += event.changedX;
-        }
-
-        if (event.changedY)
-        {
-            box.scrollTop += event.changedY;
-        }
-
-
-        box.renderItems = null;
-
-
-        //修正因滚动造成的输入符位置变更问题
-        var ownerWindow = this.ownerWindow;
-        if (ownerWindow && this.isParent(ownerWindow["x:focusControl"]))
-        {
-            ownerWindow["y:caret"](event.changedX, event.changedY);
-        }
-
-
-        this.invalidate();
-
-        event.stopPropagation();
-    };
-
-    this.handleMouseWheel = function (event) {
-
-        var vScrollBar = this["x:vScrollBar"];
-
-        if (vScrollBar)
-        {
-            var storage = vScrollBar["x:storage"],
-                step = event.wheelDelta < 0 ? storage.minStep : -storage.minStep;
-
-            vScrollBar.changeValue(step);
-            event.stopPropagation();
-        }
-
-    };
-
-
-
-
-
-
-
-
-    //测量
     this.measure = function (boxModel) {
 
 
-        var innerRect = boxModel.innerRect;
+        boxModel.compute();
 
 
-        boxModel.scrollWidth = 0;
-        boxModel.scrollHeight = 0;
+        var innerRect = boxModel.innerRect,
+            width = innerRect.width,
+            height = innerRect.height;
 
 
         //自动滚动条时先按无滚动条进行排列
-        var _hScrollBar = getHorizontalBar.call(this, innerRect.width),
-            _vScrollBar = getVerticalBar.call(this, innerRect.height);
+        var _hScrollBar = horizontalBar.call(this, width),
+            _vScrollBar = verticalBar.call(this, height);
+
+        _vScrollBar && (innerRect.width -= _vScrollBar["x:storage"].width);
+        _hScrollBar && (innerRect.height -= _hScrollBar["x:storage"].height);
+
+        this.arrange(boxModel, innerRect);
 
 
-        this.adjustBoxModel(boxModel, _hScrollBar, _vScrollBar);
-        this.arrange(boxModel);
-
+        var hScrollBar = horizontalBar.call(this, width),
+            vScrollBar = verticalBar.call(this, height)
 
         //如果滚动条有变则重新计算及排列
-        var hScrollBar = getHorizontalBar.call(this, innerRect.width),
-            vScrollBar = getVerticalBar.call(this, innerRect.height);
-
         if (_hScrollBar != hScrollBar || _vScrollBar != vScrollBar)
         {
-            var measure = this.measure; //防止循环调用
-            this.measure = null;
+            innerRect.width = width;
+            innerRect.height = height;
 
-            boxModel.measure(); //退回重新测量
+            vScrollBar && (width -= vScrollBar["x:storage"].width);
+            hScrollBar && (height -= hScrollBar["x:storage"].height);
 
-            this.measure = measure;
-
-            this.adjustBoxModel(boxModel, hScrollBar, vScrollBar);
-            this.arrange(boxModel);
-
-
-            //重新设置滚动条
-            if (hScrollBar)
-            {
-                hScrollBar.maxValue = boxModel.scrollWidth;
-            }
-
-            if (vScrollBar)
-            {
-                vScrollBar.maxValue = boxModel.scrollHeight;
-            }
+            this.arrange(boxModel, innerRect);
         }
 
 
-        var scrollCorner = getScrollCorner.call(this, hScrollBar, vScrollBar);
-        if (scrollCorner)
+        //处理滚动条
+        if (hScrollBar || vScrollBar)
         {
-            scrollCorner["x:boxModel"].setUsableRect(boxModel);
+            hScrollBar && (hScrollBar.maxValue = boxModel.maxWidth);
+            vScrollBar && (vScrollBar.maxValue = boxModel.maxHeight);
+
+
+            //设置滚动条位置
+            this["y:measure:scroll"](boxModel, hScrollBar, vScrollBar);
+
+
+            //处理拐角
+            var scrollCorner = this["x:scrollCorner"];
+
+            if (hScrollBar && vScrollBar)
+            {
+                !scrollCorner && (scrollCorner = this["x:scrollCorner"] = this["x:scrollCorner:cache"] || this.createScrollCorner());
+                scrollCorner["x:boxModel"].measure(boxModel, 0, 0, 0, 0);
+            }
+            else if (scrollCorner)
+            {
+                this["x:scrollCorner:cache"] = scrollCorner;
+                this["x:scrollCorner"] = null;
+            }
         }
     };
 
-    //修正盒模型
-    this.adjustBoxModel = function (boxModel, hScrollBar, vScrollBar) {
+    this.adjustAutoSize = function (boxModel, size) {
 
-        if (hScrollBar || vScrollBar)
-        {
-            if (hScrollBar)
-            {
-                boxModel.innerRect.height -= hScrollBar["x:storage"].height;
-            }
-
-            if (vScrollBar)
-            {
-                boxModel.innerRect.width -= vScrollBar["x:storage"].width;
-            }
-
-            this.setScrollBarRect(boxModel, hScrollBar, vScrollBar);
-        }
+        //size.width = boxModel.maxWidth;
+        //size.height = boxModel.maxHeight;
     };
 
 
 
     //排列子控件
-    this.arrange = function (boxModel) {
+    this.arrange = function (boxModel, usableRect) {
 
     };
 
 
 
+    function cache(target, name) {
 
-    function getHorizontalBar(viewportSize) {
+        target["x:boxModel"].visible = false;
+
+        this[name + ":cache"] = target;
+        this[name] = null;
+    };
+
+    function restore(name) {
+
+        var result = this[name];
+        if (result)
+        {
+            result["x:boxModel"].visible = true;
+            this[name] = undefined;
+        }
+
+        return result;
+    };
+
+    function horizontalBar(viewportSize) {
 
         var storage = this["x:storage"],
             box = this["x:boxModel"],
             result = this["x:hScrollBar"];
 
-
-        if (storage.horizontalScroll == "always" || (storage.horizontalScroll == "auto" && box.scrollWidth > viewportSize))
+        if (storage.horizontalScroll == "always" || (storage.horizontalScroll == "auto" && box.maxWidth > viewportSize &&
+            storage.autoSize != "width" && storage.autoSize != "all"))
         {
-            if (!result)
-            {
-                result = this["x:hScrollBar"] = this["x:hScrollBar:cache"] || this.createHorizontalScrollBar();
-            }
+            !result && (result = this["x:hScrollBar"] = restore.call(this, "x:hScrollBar:cache") || this.createHorizontalScrollBar());
 
             result["x:parent"] = this;
 
             storage = result["x:storage"];
-
-            storage.value = box.scrollLeft;
-            storage.maxValue = box.scrollWidth;
+            storage.value = box.offsetX;
+            storage.maxValue = box.maxWidth;
             storage.viewportSize = viewportSize;
 
             return result;
         }
         else if (result)
         {
-            this["x:hScrollBar:cache"] = result;
-            this["x:hScrollBar"] = null;
+            cache.call(this, result, "x:hScrollBar");
         }
     };
 
-    function getVerticalBar(viewportSize) {
+    function verticalBar(viewportSize) {
 
         var storage = this["x:storage"],
             box = this["x:boxModel"],
             result = this["x:vScrollBar"];
 
-
-        if (storage.verticalScroll == "always" || (storage.verticalScroll == "auto" && box.scrollHeight > viewportSize))
+        if (storage.verticalScroll == "always" || (storage.verticalScroll == "auto" && box.maxHeight > viewportSize &&
+            storage.autoSize != "height" &&
+            storage.autoSize != "all"))
         {
-            if (!result)
-            {
-                result = this["x:vScrollBar"] = this["x:vScrollBar:cache"] || this.createVerticalScrollBar();
-            }
+            !result && (result = this["x:vScrollBar"] = restore.call(this, "x:vScrollBar:cache") || this.createVerticalScrollBar());
 
             result["x:parent"] = this;
 
             storage = result["x:storage"];
-
-            storage.value = box.scrollTop;
-            storage.maxValue = box.scrollHeight;
+            storage.value = box.offsetY;
+            storage.maxValue = box.maxHeight;
             storage.viewportSize = viewportSize;
 
             return result;
         }
         else if (result)
         {
-            this["x:vScrollBar:cache"] = result;
-            this["x:vScrollBar"] = null;
-        }
-    };
-
-    function getScrollCorner(hScrollBar, vScrollBar) {
-
-        var result = this["x:scrollCorner"];
-
-
-        if (hScrollBar && vScrollBar)
-        {
-            if (!result)
-            {
-                result = this["x:scrollCorner"] = this["x:scrollCorner:cache"] || this.createScrollCorner();
-            }
-
-            return result;
-        }
-        else if (result)
-        {
-            this["x:scrollCorner:cache"] = result;
-            this["x:scrollCorner"] = null;
+            cache.call(this, result, "x:vScrollBar");
         }
     };
 
@@ -310,13 +260,13 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
     //创建水平滚动条
     this.createHorizontalScrollBar = function () {
 
-        return new $.ScrollBar();
+        return new flyingon.ScrollBar();
     };
 
     //创建竖直滚动条
     this.createVerticalScrollBar = function () {
 
-        var result = new $.ScrollBar();
+        var result = new flyingon.ScrollBar();
         result.isVertical = true;
         return result;
     };
@@ -324,13 +274,13 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
     //创建滚动条拐角
     this.createScrollCorner = function () {
 
-        return new $.ScrollCorner();
+        return new flyingon.ScrollCorner();
     };
 
 
 
-    //设置滚动条显示范围
-    this.setScrollBarRect = function (boxModel, hScrollBar, vScrollBar) {
+    //测量滚动条
+    this["y:measure:scroll"] = function (boxModel, hScrollBar, vScrollBar) {
 
         var storage_1 = hScrollBar && hScrollBar["x:storage"],
             storage_2 = vScrollBar && vScrollBar["x:storage"],
@@ -342,18 +292,18 @@ $.class("ScrollableControl", $.Control, function (Class, $) {
             storage_1.width = r.width - storage_2.width;
             storage_2.height = r.height - storage_1.height;
 
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
+            hScrollBar["x:boxModel"].measure(boxModel, r.x, r.bottom - storage_1.height, hScrollBar.width, storage_1.height, true);
+            vScrollBar["x:boxModel"].measure(boxModel, r.right - storage_2.width, r.y, storage_2.width, vScrollBar.height, true);
         }
         else if (storage_1) //只出现水平滚动条
         {
             storage_1.width = r.width;
-            hScrollBar["x:boxModel"].setUsableRect(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
+            hScrollBar["x:boxModel"].measure(boxModel, r.x, r.bottom - storage_1.height, r.width, storage_1.height, true);
         }
         else //只出现竖直滚动条
         {
             storage_2.height = r.height;
-            vScrollBar["x:boxModel"].setUsableRect(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
+            vScrollBar["x:boxModel"].measure(boxModel, r.right - storage_2.width, r.y, storage_2.width, r.height, true);
         }
     };
 

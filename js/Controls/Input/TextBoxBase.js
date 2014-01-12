@@ -5,25 +5,15 @@
 /*
 
 */
-$.class("TextBoxBase", $.Control, function (Class, $) {
+flyingon.class("TextBoxBase", flyingon.Control, function (Class, flyingon) {
 
 
 
+    this.defaultValue("width", 100);
 
-    Class.create = function () {
+    this.defaultValue("height", 21);
 
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
-
-
-
-    this.setDefaultValue("width", 100);
-
-    this.setDefaultValue("height", 21);
-
-    this.setDefaultValue("multiline", false);
+    this.defaultValue("multiline", false);
 
 
 

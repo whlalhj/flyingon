@@ -1,12 +1,12 @@
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
     //拖拉管理
-    var Dragdrop = $.Dragdrop = {};
+    var Dragdrop = flyingon.Dragdrop = {};
 
 
 
@@ -20,7 +20,6 @@
         ownerLayer,         //拖拉层
         ownerControl,       //目标控件
 
-        startEvent,         //原始事件
         dragTargets,        //拖动目标
         dropTarget,         //接收目标
 
@@ -28,7 +27,8 @@
         nodropCursor,       //禁止拖放时的光标
 
         dragging,   //是否正在拖动
-        lastEvent,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
+        start_event,         //原始事件
+        last_event,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
         offsetX,    //X方向因移动造成的修正距离
         offsetY;    //Y方向因移动造成的修正距离
 
@@ -36,9 +36,9 @@
 
 
     //新建事件
-    function newevent(type, originalEvent) {
+    function new_event(type, originalEvent) {
 
-        var result = new $.DragEvent(type, ownerControl, originalEvent);
+        var result = new flyingon.DragEvent(type, ownerControl, originalEvent);
 
         result.dragTargets = dragTargets;
         result.dropTarget = dropTarget;
@@ -49,7 +49,7 @@
     //创建拖拉层
     function createLayer() {
 
-        ownerLayer = new $.Layer();
+        ownerLayer = new flyingon.Layer();
         ownerLayer.disableGetControlAt = true;
         ownerLayer["x:storage"].clipToBounds = false;
 
@@ -59,7 +59,7 @@
         style.cursor = dragger.allowdropCursor;
         style.opacity = dragger.opacity || 0.5;
 
-        ownerWindow.appendLayer(ownerLayer, 9999);
+        ownerWindow.appendLayer(9999, ownerLayer);
     };
 
 
@@ -69,10 +69,10 @@
     Dragdrop.dragger = {
 
         //允许拖放地显示光标
-        allowdropCursor: $.cursors["allow-drop"],
+        allowdropCursor: flyingon.cursors["allow-drop"],
 
         //不允许拖放时显示光标
-        nodropCursor: $.cursors["no-drop"],
+        nodropCursor: flyingon.cursors["no-drop"],
 
         //透明度
         opacity: 0.5,
@@ -85,16 +85,12 @@
         },
 
         //默认绘制行为
-        paint: function (dragTargets) {
+        paint: function (context, dragTargets) {
 
             for (var i = 0; i < dragTargets.length; i++)
             {
                 var box = dragTargets[i]["x:boxModel"];
-
-                if (box)
-                {
-                    box.render(layer.context);
-                }
+                box && box.render(context);
             }
         },
 
@@ -106,11 +102,7 @@
                 event;
 
 
-            if (target == ownerControl)
-            {
-                target = ownerControl["x:parent"];
-            }
-
+            target == ownerControl && (target = ownerControl["x:parent"]);
 
             if (dropTarget != target)
             {
@@ -118,7 +110,7 @@
 
                 if (dropTarget)
                 {
-                    event = newevent("dragleave", domMouseEvent);
+                    event = new_event("dragleave", domMouseEvent);
                     dropTarget.dispatchEvent(event);
                 }
 
@@ -127,7 +119,7 @@
                 {
                     dropTarget = target;
 
-                    event = newevent("dragenter", domMouseEvent);
+                    event = new_event("dragenter", domMouseEvent);
                     target.dispatchEvent(event);
                 }
                 else
@@ -137,13 +129,13 @@
             }
 
 
-            event = newevent("drag", domMouseEvent);
+            event = new_event("drag", domMouseEvent);
             ownerControl.dispatchEvent(event);
 
 
             if (target)
             {
-                event = newevent("dragover", domMouseEvent);
+                event = new_event("dragover", domMouseEvent);
                 target.dispatchEvent(event);
             }
         },
@@ -151,12 +143,8 @@
         //默认停止行为
         stop: function (domMouseEvent, offsetX, offsetY) {
 
-            if (dropTarget)
-            {
-                dropTarget.dispatchEvent(newevent("drop", domMouseEvent));
-            }
-
-            ownerControl.dispatchEvent(newevent("dragend", domMouseEvent));
+            dropTarget && dropTarget.dispatchEvent(new_event("drop", domMouseEvent));
+            ownerControl.dispatchEvent(new_event("dragend", domMouseEvent));
         }
 
     };
@@ -189,27 +177,22 @@
 
 
         //开始拖拉事件
-        var event = newevent("dragstart", startEvent);
+        var event = new_event("dragstart", start_event);
 
         //是否取消
         event.canceled = false;
 
 
         //开始
-        if (dragger.start)
-        {
-            dragger.start(event);
-        }
+        dragger.start && dragger.start(event);
+
 
         if (!event.canceled)
         {
-            if (event.dragTargets)
-            {
-                dragTargets = event.dragTargets;
-            }
+            event.dragTargets && (dragTargets = event.dragTargets);
 
             createLayer();
-            dragger.paint.call(ownerControl, ownerLayer, dragTargets);
+            dragger.paint.call(ownerControl, ownerLayer.context, dragTargets);
         }
         else
         {
@@ -220,16 +203,13 @@
     //开始拖动(200毫秒内保持按下鼠标则执行拖动)
     Dragdrop.start = function (window, target, domMouseEvent) {
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
+        timer && clearTimeout(timer);
 
         dragging = true;
 
         ownerWindow = window;
         ownerControl = target;
-        startEvent = domMouseEvent;
+        start_event = domMouseEvent;
 
         offsetX = 0;
         offsetY = 0;
@@ -256,18 +236,18 @@
 
         if (ownerLayer)
         {
-            var event = lastEvent = domMouseEvent;
+            var event = last_event = domMouseEvent;
 
             //div移动距离
-            offsetX = event.clientX - startEvent.clientX;
-            offsetY = event.clientY - startEvent.clientY;
+            offsetX = event.clientX - start_event.clientX;
+            offsetY = event.clientY - start_event.clientY;
 
-            var p = dragger.move.call(target, event, offsetX, offsetY);
+            var offset = dragger.move.call(ownerControl, event, offsetX, offsetY);
 
-            if (p)
+            if (offset)
             {
-                offsetX = p.x || 0;
-                offsetY = p.y || 0;
+                offsetX = offset.x || 0;
+                offsetY = offset.y || 0;
             };
 
             ownerLayer.domLayer.style.left = offsetX + "px";
@@ -296,24 +276,24 @@
         if (ownerLayer)
         {
             //如果按下且移动过且可接受拖放时才触发停止方法
-            if (lastEvent && ownerLayer.domLayer.style.cursor != nodropCursor)
+            if (last_event && ownerLayer.domLayer.style.cursor != nodropCursor)
             {
-                dragger.stop.call(target, lastEvent, offsetX, offsetY);
+                dragger.stop.call(ownerControl, last_event, offsetX, offsetY);
             };
 
             ownerWindow.removeLayer(ownerLayer);
             ownerLayer = null;
 
             //处理捕获控件
-            ownerWindow["x:captureDelay"].registry([lastEvent]);
+            ownerWindow["x:captureDelay"].registry([last_event]);
         }
         else
         {
-            target.dispatchEvent(new $.MouseEvent("mousedown", target, startEvent));
+            ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event));
         };
 
         ownerWindow = ownerLayer = ownerControl = null;
-        startEvent = lastEvent = null;
+        start_event = last_event = null;
         dragger = dragTargets = dropTarget = dragging = null;
 
         return result;

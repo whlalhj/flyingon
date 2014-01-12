@@ -15,23 +15,31 @@
     <script type="text/javascript">
 
 
+        var w = new flyingon.Window();
 
-        var value = new flyingon.Control();
+        for (var i = 0; i < 10000; i++)
+        {
+            var control1 = new flyingon.Control();
 
-        value.setValue("中国", " v ");
-        value.setValue("key", 12345);
+            control1.storageValue("中国", " v ");
+            control1.storageValue("key", 12345);
+
+            var source = new flyingon.DataObject();
+            source.defineDataProperty("text", null);
+            source.text = "text2";
+            source["x:reference"] = true;
+
+            control1.setBinding("text", source);
+            w.children.append(control1);
+        }
+
 
 
 
         var date = new Date();
 
-        var data;
-
-        for (var i = 0; i < 10000; i++)
-        {
-            var writer = new flyingon.SerializeWriter();
-            data = writer.serialize(value);
-        }
+        var writer = new flyingon.SerializeWriter();
+        var data = writer.serialize(w);
 
         alert(new Date() - date);
 
@@ -39,108 +47,15 @@
 
         date = new Date();
 
-        for (var i = 0; i < 10000; i++)
-        {
-            var reader = new flyingon.SerializeReader();
-            reader.deserialize(data);
-        }
+        flyingon["x:window:host"] = host;
+
+        var reader = new flyingon.SerializeReader();
+        var target = reader.deserialize(data);
+
+        target.update();
 
         alert(new Date() - date);
 
-
-        var w = new flyingon.Window(host);
-
-        var source = new flyingon.DataObject();
-        source.data = { text: "12" };
-        source.setData("text", "t1");
-
-        w.setBinding("text", { source: source, expression: "text" });
-
-        source.text = "t2";
-        w.text = "text";
-        w.layoutSpaceX = 10;
-        w.layoutSpaceY = 10;
-
-
-
-
-        var button = new flyingon.Button();
-
-        button.onclick = function () {
-
-            var form = new flyingon.ChildWindow();
-
-            //form.padding = [10, 10, 10, 10];
-            form.layoutSpaceX = 10;
-            form.layoutSpaceY = 10;
-
-            for (var j = 0; j < 100; j++)
-            {
-                var text = new flyingon.ComboBox();
-
-                text.width = 190;
-                text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
-
-                form.children.append(text);
-            }
-
-
-
-            form.onclick = function (event) {
-
-                event.target.invalidate();
-            };
-
-            form.onmouseout = function (event) {
-
-                if (event.target instanceof flyingon.ScrollBase)
-                {
-                    event.target.invalidate();
-                }
-
-                message.innerHTML = "id:" + event.target.id + " background:" + event.target.background;
-
-                //var offset = event.target.controlToOffset(event.controlX, event.controlY);
-                //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
-            };
-
-
-            form.show(w);
-        };
-
-
-
-
-        //w.onmousemove = function (event) {
-
-        //    message.innerHTML = "id:" + event.target.id + " background:" + event.target.background;
-        //    //var offset = event.target.controlToOffset(event.controlX, event.controlY);
-        //    //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
-        //};
-
-        w.children.append(button);
-
-
-        var writer = new flyingon.SerializeWriter();
-        var data = writer.serialize(w);
-
-        data = '{"className":"Panel","text":"text","layoutSpaceX":10,"layoutSpaceY":10,"d:children":[{"className":"Button"}]}';
-
-
-        var date = new Date();
-
-        for (var i = 0; i < 10000; i++)
-        {
-            //flyingon.parseJson(data);
-            var reader = new flyingon.SerializeReader();
-            var obj = reader.deserialize(data);
-        }
-
-
-        alert(new Date() - date);
-
-        w.update();
-        var o = { className: "Window", "text": "text", "layoutSpaceX": 10, "layoutSpaceY": 10, "bindings": { "text": { "source": { className: "DataObject", "data": { "text": "text", "d:original": { "text": "12" } }, "schema": { "text": { "defaultValue": null } } }, "expression": "text", "d:binding": false } } }
 
     </script>
 

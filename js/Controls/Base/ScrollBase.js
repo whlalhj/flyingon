@@ -1,43 +1,52 @@
-﻿$.class("ScrollEvent", $.Event, function (Class, $) {
+﻿flyingon.class("ScrollEvent", flyingon.Event, function (Class, flyingon) {
 
+
+    Class.create = function (target) {
+
+        this.target = target;
+    };
+
+
+    this.type = "scroll";
+
+    //水平滚动条
+    this.horizontalScrollBar = null;
+
+    //竖起滚动条
+    this.verticalScrollBar = null;
+
+    //水平变化距离
+    this.changedX = 0;
+
+    //竖直变化距离
+    this.changedY = 0;
 
 });
 
 
 //滚动条控件
-$.class("ScrollBase", $.Control, function (Class, $) {
+flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
-
-    
     var timer,      //定时变更定时器
         dragger;    //拖拉者
-
-
-
-    Class.create = function () {
-
-        this.addEventListener("mousedown", this.handleMouseDown);
-        this.addEventListener("mousemove", this.handleMouseMove);
-        this.addEventListener("mouseup", this.handleMouseUp);
-    };
 
 
 
     //是否竖直滚动条
     this.defineProperty("isVertical", false, {
 
-        attributes: "measure|layout",
+        attributes: "locate",
         valueChangedCode: "var width = storage.width;\nstorage.width = storage.height;\nstorage.height = width;"
     });
 
 
 
-    this.setDefaultValue("focusable", false);
+    this.defaultValue("focusable", false);
 
-    this.setDefaultValue("width", 200);
+    this.defaultValue("width", 200);
 
-    this.setDefaultValue("height", 16);
+    this.defaultValue("height", 16);
 
 
 
@@ -80,13 +89,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
 
 
 
-    this.handleMouseDown = function (event) {
+    this["event:mousedown"] = function (event) {
 
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
+        timer && clearTimeout(timer);
+
 
         var storage = this["x:storage"],
             step,
@@ -121,14 +128,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         }
 
 
-        if (this.changeValue(step, limit))
-        {
-            this.changeValueTime(step, limit);
-        }
+        this.changeValue(step, limit) && this.changeValueTime(step, limit);
     };
 
 
-    this.handleMouseMove = function (event) {
+    this["event:mousemove"] = function (event) {
 
         if (dragger)
         {
@@ -136,14 +140,11 @@ $.class("ScrollBase", $.Control, function (Class, $) {
                 offset = storage.isVertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
                 value = Math.round(offset * (storage.maxValue - storage.minValue) / this["x:boxModel"].length);
 
-            if (value)
-            {
-                this.changeValue(0, dragger.value + value);
-            }
+            value && this.changeValue(0, dragger.value + value);
         }
     };
 
-    this.handleMouseUp = function (event) {
+    this["event:mouseup"] = function (event) {
 
         if (timer)
         {
@@ -154,6 +155,7 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         this.ownerWindow["x:captureControl"] = null;
         dragger = null;
     };
+
 
 
     //变更值
@@ -178,10 +180,7 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         }
 
 
-        if (!step || (step > 0 && value > limit) || (step < 0 && value < limit))
-        {
-            value = limit;
-        }
+        (!step || (step > 0 && value > limit) || (step < 0 && value < limit)) && (value = limit);
 
 
         step = value - storage.value;
@@ -195,19 +194,17 @@ $.class("ScrollBase", $.Control, function (Class, $) {
         storage.value = value;
 
 
-        var event = new $.ScrollEvent("scroll", this);
+        var event = new flyingon.ScrollEvent("scroll", this);
 
         if (storage.isVertical)
         {
             event.verticalScrollBar = this;
-            event.changedX = 0;
             event.changedY = step;
         }
         else
         {
             event.horizontalScrollBar = this;
             event.changedX = step;
-            event.changedY = 0;
         }
 
         this.dispatchEvent(event);
@@ -225,38 +222,25 @@ $.class("ScrollBase", $.Control, function (Class, $) {
 
         var self = this;
 
-        timer = setTimeout(function () {
+        var fn = function () {
 
             clearTimeout(timer);
+            self.changeValue(step, limit) && (timer = setTimeout(fn, 200));
+        };
 
-            if (timer && self.changeValue(step, limit))
-            {
-                timer = setTimeout(fn, 200);
-            }
-
-        }, 200);
+        timer = setTimeout(fn, 200);
     };
 
 
     //根据位置获取当前值
     this.getValueAt = function (x, y, exclueSlider) {
 
-
         var storage = this["x:storage"],
             boxModel = this["x:boxModel"],
-
             value = storage.isVertical ? y : x;
 
-
-        if (exclueSlider)
-        {
-            value -= boxModel.slider;
-        }
-
-        if (boxModel.thickness)
-        {
-            value -= boxModel.thickness;
-        }
+        exclueSlider && (value -= boxModel.slider);
+        boxModel.thickness && (value -= boxModel.thickness);
 
         return storage.minValue + Math.round(value * storage.maxValue / boxModel.length);
     };

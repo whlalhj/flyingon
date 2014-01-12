@@ -1,58 +1,52 @@
 ﻿//分隔条控件
-$.class("Splitter", $.ContentControl, function (Class, $) {
-
-
-
-    function handleMouseDown(e) {
-
-
-    };
-
-    function handleMouseMove(e) {
-
-    };
-
-    function handleMouseUp(e) {
-
-
-    };
+flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
 
 
     Class.create = function () {
 
         var storage = this["x:storage"];
-
-        storage.cursor = $.cursors["col-resize"];
+        storage.cursor = flyingon.cursors["col-resize"];
         storage.dock = "left";
         storage.draggable = true;
-
-
-        this.addEventListener("mousedown", handleMouseDown);
-        this.addEventListener("mousemove", handleMouseMove);
-        this.addEventListener("mouseup", handleMouseUp);
     };
 
 
 
-    this.setDefaultValue("draggable", true);
+    this.defaultValue("draggable", true);
 
+
+
+
+    this["event:mousedown"] = function (event) {
+
+
+    };
+
+    this["event:mousemove"] = function (event) {
+
+
+    };
+
+    this["event:mouseup"] = function (event) {
+
+
+    };
 
 
 
     this.dragger = {
 
-        allowdropCursor: $.cursors["col-Resize"],
+        allowdropCursor: flyingon.cursors["col-Resize"],
 
-        nodropCursor: $.cursors["no-drop"],
+        nodropCursor: flyingon.cursors["no-drop"],
 
-        paint: function (dragTargets) {
+        paint: function (context, dragTargets) {
 
-            var context = layer.context,
-                boxModel = this["x:boxModel"],
+            var boxModel = this["x:boxModel"],
                 r = boxModel.innerRect;
 
-            context.fillStyle = this.getStyleValue("dragColor") || "rgba(255,0,0,0.5)";
+            context.fillStyle = this.styleValue("dragColor") || "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context);
@@ -80,5 +74,5 @@ $.class("Splitter", $.ContentControl, function (Class, $) {
     };
 
 
-});
+}, true);
 

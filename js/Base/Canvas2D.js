@@ -7,7 +7,7 @@ Canvas2D绘图扩展
 
 */
 
-(function ($) {
+(function (flyingon) {
 
 
 
@@ -16,7 +16,7 @@ Canvas2D绘图扩展
     转成RGB颜色
 
     */
-    $.toRGBString = function (r, g, b, alpha) {
+    flyingon.toRGBString = function (r, g, b, alpha) {
 
         if (arguments.length <= 2)
         {
@@ -38,7 +38,7 @@ Canvas2D绘图扩展
     转成HSL颜色
 
     */
-    $.toHSLString = function (hue, saturation, lightness, alpha) {
+    flyingon.toHSLString = function (hue, saturation, lightness, alpha) {
 
         if (alpha == null)
         {
@@ -55,7 +55,7 @@ Canvas2D绘图扩展
     线性渐变
 
     */
-    $.LinearGradient = function (x0, y0, x1, y1, colorStops) {
+    var LinearGradient = flyingon.LinearGradient = function (x0, y0, x1, y1, colorStops) {
 
         this.x0 = x0;
         this.y0 = y0;
@@ -64,7 +64,7 @@ Canvas2D绘图扩展
         this.colorStops = colorStops;
     };
 
-    $.LinearGradient.prototype.createBrush = function (context) {
+    LinearGradient.prototype.createBrush = function (context) {
 
         var r = context.boxModel.innerRect,
 
@@ -92,7 +92,7 @@ Canvas2D绘图扩展
     径向渐变
 
     */
-    $.RadialGradient = function (x0, y0, r0, x1, y1, r1, colorStops) {
+    var RadialGradient = flyingon.RadialGradient = function (x0, y0, r0, x1, y1, r1, colorStops) {
 
         this.x0 = x0;
         this.y0 = y0;
@@ -103,7 +103,7 @@ Canvas2D绘图扩展
         this.colorStops = colorStops;
     };
 
-    $.RadialGradient.prototype.createBrush = function (context) {
+    RadialGradient.prototype.createBrush = function (context) {
 
         var r = context.boxModel.innerRect,
 
@@ -130,13 +130,13 @@ Canvas2D绘图扩展
     图像填充模式
 
     */
-    $.ImagePattern = function (image, repetition) {
+    var ImagePattern = flyingon.ImagePattern = function (image, repetition) {
 
         this.image = image;
         this.repetition = repetition;
     };
 
-    $.ImagePattern.prototype.createBrush = function (context) {
+    ImagePattern.prototype.createBrush = function (context) {
 
         return context.createPattern(this.image, this.repetition);
     };
@@ -148,25 +148,25 @@ Canvas2D绘图扩展
     加载主题
 
     */
-    $.loadTheme = function (themeName) {
+    flyingon.loadTheme = function (themeName) {
 
-        $.require("/themes/" + (themeName || $.setting.themeName || "default") + ".js");
-        ($.styles["Control"] || ($.styles["Control"] = {}))["x:cache"] = true; //缓存标记
+        flyingon.require("/themes/" + (themeName || flyingon.setting.themeName || "default") + ".js");
+        (flyingon.styles["Control"] || (flyingon.styles["Control"] = {}))["x:cache"] = true; //缓存标记
     };
 
-    $.loadTheme();
+    flyingon.loadTheme();
 
 
 
 
 
-    var colors = $.colors, //系统颜色
+    var colors = flyingon.colors, //系统颜色
 
-        fonts = $.fonts, //系统字体
+        fonts = flyingon.fonts, //系统字体
 
         radian = Math.PI / 180, //角度转弧度系数
 
-        p = CanvasRenderingContext2D.prototype;
+        prototype = CanvasRenderingContext2D.prototype;
 
 
 
@@ -187,14 +187,14 @@ Canvas2D绘图扩展
             return this;
         };
 
-    }, p);
+    }, prototype);
 
 
 
     /*    
     set_shadowColor(color) = "#000000"	设置或返回用于阴影的颜色 
     */
-    p.set_shadowColor = function (color) {
+    prototype.set_shadowColor = function (color) {
 
         this.shadowColor = color;
         return this;
@@ -203,7 +203,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowBlur(number) = 0	    设置或返回用于阴影的模糊级别 
     */
-    p.set_shadowBlur = function (value) {
+    prototype.set_shadowBlur = function (value) {
 
         this.shadowBlur = value;
         return this;
@@ -212,7 +212,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowOffsetX(number) = 0	设置或返回阴影距形状的水平距离 
     */
-    p.set_shadowOffsetX = function (value) {
+    prototype.set_shadowOffsetX = function (value) {
 
         this.shadowOffsetX = value;
         return this;
@@ -221,7 +221,7 @@ Canvas2D绘图扩展
     /* 
     set_shadowOffsetY(number) = 0	设置或返回阴影距形状的垂直距离 
     */
-    p.set_shadowOffsetY = function (value) {
+    prototype.set_shadowOffsetY = function (value) {
 
         this.shadowOffsetY = value;
         return this;
@@ -230,7 +230,7 @@ Canvas2D绘图扩展
     /* 
     set_lineCap("butt|round|square") = "butt"	    设置或返回线条的结束端点样式 
     */
-    p.set_lineCap = function (value) {
+    prototype.set_lineCap = function (value) {
 
         this.lineCap = value;
         return this;
@@ -239,7 +239,7 @@ Canvas2D绘图扩展
     /* 
     set_lineJoin("bevel|round|miter") = "miter"	    设置或返回两条线相交时 所创建的拐角类型 
     */
-    p.set_lineJoin = function (value) {
+    prototype.set_lineJoin = function (value) {
 
         this.lineJoin = value;
         return this;
@@ -248,7 +248,7 @@ Canvas2D绘图扩展
     /* 
     set_lineWidth(number) = 1	    设置或返回当前的线条宽度 
     */
-    p.set_lineWidth = function (value) {
+    prototype.set_lineWidth = function (value) {
 
         this.lineWidth = value;
         return this;
@@ -257,7 +257,7 @@ Canvas2D绘图扩展
     /* 
     set_miterLimit(number) = 10	    设置或返回最大斜接长度 
     */
-    p.set_miterLimit = function (value) {
+    prototype.set_miterLimit = function (value) {
 
         this.miterLimit = value;
         return this;
@@ -266,7 +266,7 @@ Canvas2D绘图扩展
     /* 
     set_font("italic small-caps bold 12px arial") = "10px sans-serif"	设置或返回文本内容的当前字体属性 
     */
-    p.set_font = function (value) {
+    prototype.set_font = function (value) {
 
         var font = fonts[value] || value;
 
@@ -277,7 +277,7 @@ Canvas2D绘图扩展
     /* 
     set_textAlign("center|end|left|right|start") = "start"	设置或返回文本内容的当前对齐方式 
     */
-    p.set_textAlign = function (value) {
+    prototype.set_textAlign = function (value) {
 
         this.textAlign = value;
         return this;
@@ -286,7 +286,7 @@ Canvas2D绘图扩展
     /* 
     set_textBaseline("alphabetic|top|hanging|middle|ideographic|bottom") = "alphabetic"	设置或返回在绘制文本时使用的当前文本基线
     */
-    p.set_textBaseline = function (value) {
+    prototype.set_textBaseline = function (value) {
 
         this.textBaseline = value;
         return this;
@@ -295,7 +295,7 @@ Canvas2D绘图扩展
     /* 
     set_globalAlpha(number)	透明值 必须介于0.0(完全透明)与1.0(不透明)之间
     */
-    p.set_globalAlpha = function (value) {
+    prototype.set_globalAlpha = function (value) {
 
         this.globalAlpha = value;
         return this;
@@ -316,7 +316,7 @@ Canvas2D绘图扩展
     copy	显示源图像 忽略目标图像 
     source-over	使用异或操作对源图像与目标图像进行组合 
     */
-    p.set_globalCompositeOperation = function (value) {
+    prototype.set_globalCompositeOperation = function (value) {
 
         this.globalCompositeOperation = value;
         return this;
@@ -424,7 +424,7 @@ Canvas2D绘图扩展
     /****************************以下为方法扩展********************************/
 
 
-    p.drawBorder = function (x, y, width, height, border) {
+    prototype.drawBorder = function (x, y, width, height, border) {
 
         this.beginPath();
 
@@ -438,7 +438,7 @@ Canvas2D绘图扩展
 
 
 
-    p.rectTo = function (x, y, width, height, anticlockwise) {
+    prototype.rectTo = function (x, y, width, height, anticlockwise) {
 
         var right = x + width,
             bottom = y + height;
@@ -470,7 +470,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.roundRect = function (x, y, width, height, radius, anticlockwise) {
+    prototype.roundRect = function (x, y, width, height, radius, anticlockwise) {
 
         var right = x + width,
             bottom = y + height;
@@ -517,7 +517,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.fillRoundRect = function (x, y, width, height, radius) {
+    prototype.fillRoundRect = function (x, y, width, height, radius) {
 
         this.beginPath();
         this.roundRect(x, y, width, height, radius);
@@ -532,7 +532,7 @@ Canvas2D绘图扩展
     * @param {Number} height The height of the rectangle
     * @param {Number} radius The corner radius. Defaults to 5;
     */
-    p.strokeRoundRect = function (x, y, width, height, radius) {
+    prototype.strokeRoundRect = function (x, y, width, height, radius) {
 
         this.beginPath();
         this.roundRect(x, y, width, height, radius);
@@ -541,7 +541,7 @@ Canvas2D绘图扩展
 
 
     //多边形
-    p.polygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.polygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         var delta = (anticlockwise ? -2 : 2) * Math.PI / sides;
 
@@ -556,14 +556,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillPolygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.fillPolygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         this.beginPath();
         this.polygon(sides, x, y, radius, angle, anticlockwise);
         this.fill();
     };
 
-    p.strokePolygon = function (sides, x, y, radius, angle, anticlockwise) {
+    prototype.strokePolygon = function (sides, x, y, radius, angle, anticlockwise) {
 
         this.beginPath();
         this.polygon(sides, x, y, radius, angle, anticlockwise);
@@ -572,7 +572,7 @@ Canvas2D绘图扩展
 
 
 
-    p.starPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.starPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         var delta = (anticlockwise ? -1 : 1) * Math.PI / vertexes;
 
@@ -590,14 +590,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.fillStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         this.beginPath();
         this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
         this.fill();
     };
 
-    p.strokeStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
+    prototype.strokeStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
 
         this.beginPath();
         this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
@@ -606,7 +606,7 @@ Canvas2D绘图扩展
 
 
 
-    p.ellipse = function (x, y, width, height, anticlockwise) {
+    prototype.ellipse = function (x, y, width, height, anticlockwise) {
 
         var controlX = width / 1.5,  //控制点x(width / 0.75) / 2
             controlY = height / 2;   //控制点y
@@ -625,14 +625,14 @@ Canvas2D绘图扩展
         }
     };
 
-    p.fillEllipse = function (x, y, width, height) {
+    prototype.fillEllipse = function (x, y, width, height) {
 
         this.beginPath();
         this.ellipse(x, y, width, height);
         this.fill();
     };
 
-    p.strokeEllipse = function (x, y, width, height) {
+    prototype.strokeEllipse = function (x, y, width, height) {
 
         this.beginPath();
         this.ellipse(x, y, width, height);
@@ -642,12 +642,9 @@ Canvas2D绘图扩展
 
 
     //画虚线
-    p.dashLine = function (x1, y1, x2, y2, dashArray) {
+    prototype.dashLine = function (x1, y1, x2, y2, dashArray) {
 
-        if (!dashArray)
-        {
-            dashArray = [10, 5];
-        }
+        !dashArray && (dashArray = [10, 5]);
 
 
         this.moveTo(x1, y1);
@@ -664,18 +661,12 @@ Canvas2D绘图扩展
         while (distRemaining >= 0.1)
         {
             var dashLength = dashArray[index++ % length];
+            dashLength > distRemaining && (dashLength = distRemaining);
 
-            if (dashLength > distRemaining)
-            {
-                dashLength = distRemaining;
-            }
 
             var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
 
-            if (width < 0)
-            {
-                step = -step;
-            }
+            width < 0 && (step = -step);
 
             x1 += step;
             y1 += slope * step;
@@ -696,7 +687,7 @@ Canvas2D绘图扩展
     var cache = document.createElement("canvas");
 
     //缓冲绘图
-    p.cache = function (width, height) {
+    prototype.cache = function (width, height) {
 
         cache.width = width;
         cache.height = height;
@@ -705,7 +696,7 @@ Canvas2D绘图扩展
     };
 
     //复制至指定目标
-    p.copyTo = function (target, x, y) {
+    prototype.copyTo = function (target, x, y) {
 
         var data = this.getImageData(0, 0, this.canvas.width, this.canvas.height);
         target.putImageData(data, x, y);

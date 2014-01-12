@@ -1,5 +1,5 @@
 ﻿//窗口基类
-$.class("WindowBase", $.Layer, function (Class, $) {
+flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
@@ -13,7 +13,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         //默认设置为初始化状态,在第一次渲染窗口后终止
-        $["x:initializing"] = true;
+        flyingon["x:initializing"] = true;
 
 
 
@@ -79,7 +79,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         this["x:windows"] = [];
 
         //创建控件捕获延迟执行器
-        this["x:captureDelay"] = new $.DelayExecutor(10, captureControl, this);
+        this["x:captureDelay"] = new flyingon.DelayExecutor(10, captureControl, this);
     };
 
 
@@ -87,22 +87,16 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
     //所属窗口
-    this.defineProperty("ownerWindow", undefined, {
+    this.defineProperty("ownerWindow", function () {
 
-        getter: function () {
-
-            return this;
-        }
-    }, true);
+        return this;
+    });
 
     //图层
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
-
-            return this;
-        }
-    }, true);
+        return this;
+    });
 
 
 
@@ -126,10 +120,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
         if (parentWindow)
         {
-            if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
-            {
-                activateWindow["y:deactivate"]();
-            }
+            deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]) && activateWindow["y:deactivate"]();
 
             parentWindow["x:activateWindow"] = this;
             this["y:activate"]();
@@ -191,21 +182,19 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
     */
 
-    this.appendLayer = function (zIndex) {
+    this.appendLayer = function (zIndex, layer) {
 
         var storage = this["x:storage"],
-            result = layer || new $.Layer();
+            result = layer || new flyingon.Layer();
 
 
-        if (zIndex)
-        {
-            result.domLayer.style.zIndex = zIndex;
-        }
+        zIndex && (result.domLayer.style.zIndex = zIndex);
 
         result.domCanvas.width = storage.width;
         result.domCanvas.height = storage.height;
 
-        result["x:boxModel"].setUsableRect(null, 0, 0, storage.width, storage.height);
+        result["x:boxModel"].measure(null, 0, 0, storage.width, storage.height);
+
         result["x:parent"] = this;
 
         result.domLayer["x:ownerWindow"] = result.domCanvas["x:ownerWindow"] = this;
@@ -230,7 +219,6 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
-
     this.getControlAt = function (x, y) {
 
         for (var i = this.layers.length - 1; i >= 0; i--)
@@ -239,14 +227,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
             {
-                return $.WindowBase.super.getControlAt.call(layer, x, y);
+                return flyingon.WindowBase.super.getControlAt.call(layer, x, y);
             }
         }
 
         return this;
     };
-
-
 
 
 
@@ -277,7 +263,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
     //触发带mouseDown的鼠标事件
     function dispatchEvent(type, target, domMouseEvent) {
 
-        var event = new $.MouseEvent(type, target, domMouseEvent);
+        var event = new flyingon.MouseEvent(type, target, domMouseEvent);
         event.mouseDown = mouseDown;
 
         target.dispatchEvent(event);
@@ -288,12 +274,14 @@ $.class("WindowBase", $.Layer, function (Class, $) {
     function captureControl(domMouseEvent) {
 
 
-        var source = $["x:mouseControl"],
+        var source = flyingon["x:mouseControl"],
             target = this.getControlAt(domMouseEvent["x:offsetX"], domMouseEvent["x:offsetY"]) || this;
 
         if (target != source)
         {
-            $["x:mouseControl"] = target;
+            document.title = target.id;
+
+            flyingon["x:mouseControl"] = target;
 
             if (source)
             {
@@ -326,15 +314,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.mainWindow.getActivateWindow()) //活动窗口不是当前点击窗口
-        {
-            ownerWindow.activate(true);
-        }
+        ownerWindow != ownerWindow.mainWindow.getActivateWindow() && ownerWindow.activate(true); //活动窗口不是当前点击窗口
 
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+        var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
         if (target && target["x:storage"].enabled)
         {
@@ -343,12 +328,12 @@ $.class("WindowBase", $.Layer, function (Class, $) {
             //如果可拖动
             if (dragging = target["x:storage"].draggable || ownerWindow["x:storage"].designMode)
             {
-                $.Dragdrop.start(ownerWindow, target, domMouseEvent, true);
+                flyingon.Dragdrop.start(ownerWindow, target, domMouseEvent, true);
             }
             else
             {
                 //分发事件
-                var event = new $.MouseEvent("mousedown", target, domMouseEvent);
+                var event = new flyingon.MouseEvent("mousedown", target, domMouseEvent);
                 target.dispatchEvent(event);
 
 
@@ -359,15 +344,8 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                 {
                     var validate = true;
 
-                    if (focusControl && focusControl != target && (validate = focusControl.validate()))
-                    {
-                        focusControl["y:blur"]();
-                    }
-
-                    if (validate)
-                    {
-                        target["y:focus"](event);
-                    }
+                    focusControl && focusControl != target && (validate = focusControl.validate()) && focusControl["y:blur"]();
+                    validate && target["y:focus"](event);
                 }
             }
 
@@ -393,23 +371,20 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
             if (dragging) //处理拖动
             {
-                $.Dragdrop.move(domMouseEvent);
+                flyingon.Dragdrop.move(domMouseEvent);
             }
             else if (target = ownerWindow["x:captureControl"]) //启用捕获
             {
-                if (target["x:storage"].enabled)
-                {
-                    dispatchEvent("mousemove", target, domMouseEvent);
-                }
+                target["x:storage"].enabled && dispatchEvent("mousemove", target, domMouseEvent);
             }
             else
             {
                 ownerWindow["x:captureDelay"].registry([domMouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = $["x:mouseControl"])
+        else if (target = flyingon["x:mouseControl"])
         {
-            $["x:mouseControl"] = null;
+            flyingon["x:mouseControl"] = null;
             target.switchState("hover-states", "leave-animate");
 
             dispatchEvent("mouseout", target, domMouseEvent);
@@ -424,7 +399,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+            var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
             if (target && target["x:storage"].enabled)
             {
@@ -434,13 +409,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                 {
                     dragging = false;
 
-                    if (!$.Dragdrop.stop())
+                    if (!flyingon.Dragdrop.stop())
                     {
                         return;
                     }
                 }
 
-                target.dispatchEvent(new $.MouseEvent("mouseup", target, domMouseEvent));
+                target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, domMouseEvent));
             }
 
 
@@ -459,13 +434,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
         var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute(),
-            target = ownerWindow["x:captureControl"] || $["x:mouseControl"];
+            target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
 
 
         if (target && target["x:storage"].enabled)
         {
             offset.call(ownerWindow, domMouseEvent);
-            target.dispatchEvent(new $.MouseEvent(type, target, domMouseEvent));
+            target.dispatchEvent(new flyingon.MouseEvent(type, target, domMouseEvent));
         }
 
         domMouseEvent.stopPropagation();
@@ -496,7 +471,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         //如果有输入焦点控件则发送事件至输入焦点控件
         if (focuseControl && focuseControl["x:storage"].enabled)
         {
-            target.dispatchEvent(new $.KeyEvent(domMouseEvent.type, target, domMouseEvent));
+            target.dispatchEvent(new flyingon.KeyEvent(domMouseEvent.type, target, domMouseEvent));
         }
         else //否则处理accessKey
         {
@@ -509,11 +484,9 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
 
-
-
     this["y:fill"] = function (storage) {
 
-        $["x:initializing"] = false;
+        flyingon["x:initializing"] = false;
 
         var domHost = this.domWindow.parentNode;
 
@@ -540,19 +513,13 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         this["x:boxModel"].invalidate();
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 0,
-            length = layers.length;
+        var layers = this.layers;
 
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            layers[i++].registryUpdate();
+            layers[i].registryUpdate();
         }
     };
-
-
-
-
 
 
 
@@ -580,10 +547,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         input.setAttribute("style", "position:absolute;z-index:-1;padding:0;border:0;width:1px;height:1px;top:100px;");
 
 
-        if (navigator.userAgent.match(/MSIE/))
-        {
-            input.style.width = 0;
-        }
+        navigator.userAgent.match(/MSIE/) && (input.style.width = 0);
 
 
         input.onselectstart = function (event) {
@@ -627,15 +591,8 @@ $.class("WindowBase", $.Layer, function (Class, $) {
                     height -= value
                 }
 
-                if ((value = y + height - r.windowY - r.height) > 0)
-                {
-                    height -= value;
-                }
-
-                if (height < 0)
-                {
-                    height = 0;
-                }
+                (value = y + height - r.windowY - r.height) > 0 && (height -= value);
+                height < 0 && (height = 0);
             }
 
             div.setAttribute("style", "visibility:visible;position:absolute;background-color:black;z-Index:9998;width:1px;left:" + x + "px;top:" + y + "px;height:" + height + "px;");
@@ -646,10 +603,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
         function update() {
 
 
-            if (timer)
-            {
-                clearInterval(timer);
-            }
+            timer && clearInterval(timer);
 
 
             var r = boxModel.innerRect,
@@ -657,32 +611,29 @@ $.class("WindowBase", $.Layer, function (Class, $) {
 
 
             //自动滚动调整
-            if (x < boxModel.scrollLeft)
+            if (x < boxModel.offsetX)
             {
-                boxModel.scrollLeft = x;
+                boxModel.offsetX = x;
             }
             else
             {
-                var right = boxModel.scrollLeft + r.width;
+                var right = boxModel.offsetX + r.width;
 
                 if (x > right)
                 {
-                    boxModel.scrollLeft = x - r.width;
+                    boxModel.offsetX = x - r.width;
                     x = right;
                 }
                 else if (right <= r.width)
                 {
-                    boxModel.scrollLeft = 0;
+                    boxModel.offsetX = 0;
                 }
             }
 
 
             //显示插入符
-            point = boxModel.targetToOffset(r.spaceX + x - boxModel.scrollLeft, r.spaceY);
-            if (x > 0)
-            {
-                point.x -= 1;
-            }
+            point = boxModel.targetToOffset(r.spaceX + x - boxModel.offsetX, r.spaceY);
+            x > 0 && (point.x -= 1);
 
 
             input.style.left = point.x + "px";
@@ -827,10 +778,7 @@ $.class("WindowBase", $.Layer, function (Class, $) {
             }
 
 
-            if (keyCode != 17 && !input.readOnly && input.value) //不处理ctrl键
-            {
-                oninput.call(this, input.value);
-            }
+            keyCode != 17 && !input.readOnly && input.value && oninput.call(this, input.value); //不处理ctrl键
         };
 
 

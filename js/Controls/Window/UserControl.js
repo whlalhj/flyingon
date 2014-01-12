@@ -1,7 +1,7 @@
 ﻿/*
 用户控件
 */
-$.class("UserControl", $.Panel, function (Class, $) {
+flyingon.class("UserControl", flyingon.Panel, function (Class, flyingon) {
 
 
 

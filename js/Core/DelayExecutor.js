@@ -16,10 +16,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
 
     this.registry = function (args) {
 
-        if (timer)
-        {
-            clearTimeout(timer);
-        };
+        timer && clearTimeout(timer);
 
         data = args;
         timer = setTimeout(this.execute, this.interval);

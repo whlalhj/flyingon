@@ -1,45 +1,42 @@
 ﻿
 
 //文本测量
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.TextMetrics = function (ownerControl) {
+    var prototype = (flyingon.TextMetrics = function (ownerControl) {
 
         this.ownerControl = ownerControl;
-    };
 
+    }).prototype = [];
 
-
-
-    var p = $.TextMetrics.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本
-    p.text = null;
+    prototype.text = null;
 
     //最大宽度
-    p.width = 0;
+    prototype.width = 0;
 
     //最大高度
-    p.height = 0;
+    prototype.height = 0;
 
     //是否多行
-    p.multiline = false;
+    prototype.multiline = false;
 
 
     //开始选中位置
-    p.selectionStart = 0;
+    prototype.selectionStart = 0;
 
     //结束选中位置
-    p.selectionEnd = 0;
+    prototype.selectionEnd = 0;
 
     //选中文本
-    p.selectedText = "";
+    prototype.selectedText = "";
 
 
 
@@ -48,10 +45,10 @@
 
     function initialize() {
 
-        var value1 = 0,
-            value2 = 0,
-            cache1 = this.cache1 = [0],
-            cache2 = this.cache2 = [0],
+        var value_1 = 0,
+            value_2 = 0,
+            cache_1 = this["x:cache:1"] = [0],
+            cache_2 = this["x:cache:2"] = [0],
             length = this.length - 1;
 
 
@@ -59,8 +56,8 @@
         {
             var line = this[i];
 
-            cache1.push(value1 += line.text.length);     //文本索引
-            cache2.push(value2 += line.height);          //位置
+            cache_1.push(value_1 += line.text.length);     //文本索引
+            cache_2.push(value_2 += line.height);          //位置
         }
 
         return this;
@@ -69,7 +66,7 @@
 
 
 
-    p.measureText = function (font, text, multiline) {
+    prototype.measureText = function (font, text, multiline) {
 
         this.font = font;
         this.text = text;
@@ -86,23 +83,16 @@
 
         if (text)
         {
-            var values = multiline ? text.split(/\r?\n/g) : [text.replace(/[\r\n]?/g, "")],
+            var values = multiline ? text.split(/\r?\n/g) : [text.replace(/[\r\n]?/g, "")];
 
-                i = 0,
-                length = values.length;
-
-
-            while (i < length)
+            for (var i = 0, length = values.length; i < length; i++)
             {
-                var piece = new $.TextPiece(font, values[i++]);
+                var piece = new flyingon.TextPiece(font, values[i]);
+
                 piece.measureText();
                 this.push(piece);
 
-                if (this.width < piece.width) //最大宽度
-                {
-                    this.width = piece.width;
-                }
-
+                this.width < piece.width && (this.width = piece.width); //最大宽度
                 this.height += piece.height;
             }
         }
@@ -115,17 +105,13 @@
 
 
     //获取指定索引的字符信息
-    p.locate = function (textIndex) {
+    prototype.find = function (textIndex) {
 
-        if (textIndex < 0)
-        {
-            textIndex = 0;
-        }
+        textIndex < 0 && (textIndex = 0);
 
-
-        var index = (this.cache1 || initialize.call(this).cache1).binaryBetween(textIndex),
-            start = this.cache1[index],
-            result = this[index].locate(textIndex - start);
+        var index = (this["x:cache:1"] || initialize.call(this)["x:cache:1"]).binaryBetween(textIndex),
+            start = this["x:cache:1"][index],
+            result = this[index].find(textIndex - start);
 
         result.pieceIndex = index;
         result.textIndex = start + result.columnIndex;
@@ -135,13 +121,13 @@
 
 
     //查找指定位置的字符信息
-    p.locateAt = function (x, y) {
+    prototype.findAt = function (x, y) {
 
-        var index = (this.cache2 || initialize.call(this).cache2).binaryBetween(y),
-            result = this[index].locateAt(x);
+        var index = (this["x:cache:2"] || initialize.call(this)["x:cache:2"]).binaryBetween(y),
+            result = this[index].findAt(x);
 
         result.pieceIndex = index;
-        result.textIndex = this.cache1[index] + result.columnIndex;
+        result.textIndex = this["x:cache:1"][index] + result.columnIndex;
 
         return result;
     };
@@ -169,38 +155,38 @@
 
 
     //移动至指定坐标
-    p.moveAt = function (x, y) {
+    prototype.moveAt = function (x, y) {
 
-        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.locateAt(x, y);
+        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.findAt(x, y);
         this.selectionStart = this.selectionEnd = this.caretStart.textIndex;
         this.selectedText = "";
     };
 
 
     //选择至指定坐标
-    p.selectionAt = function (x, y) {
+    prototype.selectionAt = function (x, y) {
 
-        this.caretEnd = this.caretMax = this.locateAt(x, y);
+        this.caretEnd = this.caretMax = this.findAt(x, y);
         selectionEnd.call(this);
     };
 
 
-    p.moveTo = function (textIndex) {
+    prototype.moveTo = function (textIndex) {
 
-        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.locate(textIndex);
+        this.caretStart = this.caretEnd = this.caretMin = this.caretMax = this.find(textIndex);
         this.selectionStart = this.selectionEnd = this.caretStart.textIndex;
         this.selectedText = "";
     };
 
 
-    p.selectionTo = function (textIndex) {
+    prototype.selectionTo = function (textIndex) {
 
-        this.caretEnd = this.caretMax = this.locate(textIndex);
+        this.caretEnd = this.caretMax = this.find(textIndex);
         selectionEnd.call(this);
     };
 
 
-    p.replace = function (text) {
+    prototype.replace = function (text) {
 
         var ownerControl = this.ownerControl;
 
@@ -219,7 +205,7 @@
             end = index2 + 1 < this.length ? this[index2 + 1].text : "";
 
 
-            var piece = new $.TextPiece(this.font, text);
+            var piece = new flyingon.TextPiece(this.font, text);
             piece.measureText();
 
             this.splice(index1, index2 - index1 + 1, piece);
@@ -237,13 +223,9 @@
     };
 
 
-    p.remove = function (length) {
+    prototype.remove = function (length) {
 
-        if (!this.selectedText) //未选择
-        {
-            this.selectionTo(this.selectionEnd + length);
-        }
-
+        !this.selectedText && this.selectionTo(this.selectionEnd + length); //未选择
         return this.replace("");
     };
 

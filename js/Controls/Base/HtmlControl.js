@@ -1,5 +1,5 @@
 ﻿//Html控件基类
-$.class("HtmlControl", $.Control, function (Class, $) {
+flyingon.class("HtmlControl", flyingon.Control, function (Class, flyingon) {
 
 
     Class.create = function () {
@@ -12,14 +12,14 @@ $.class("HtmlControl", $.Control, function (Class, $) {
 
     };
 
-});
+}, true);
 
 
 
-$.class("HtmlFrame", $.HtmlControl, function (Class, $) {
+flyingon.class("HtmlFrame", flyingon.HtmlControl, function (Class, flyingon) {
 
     var fn;
-    //if ($.Browser.IE) {
+    //if (flyingon.Browser.IE) {
     //
     //    fn = function (frame, html) {
     //        frame.contentWindow.contentHtml = html;
@@ -52,15 +52,8 @@ $.class("HtmlFrame", $.HtmlControl, function (Class, $) {
 
             frame.onload = null;
 
-            if (html)
-            {
-                fn(frame, html);
-            }
-
-            if (self.loaded)
-            {
-                self.loaded(frame);
-            }
+            html && fn(frame, html);
+            self.loaded && self.loaded(frame);
         };
 
         frame.src = "about:blank";

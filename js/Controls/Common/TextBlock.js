@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-$.class("TextBlock", $.Control, function (Class, $) {
+flyingon.class("TextBlock", flyingon.Control, function (Class, flyingon) {
 
 
 

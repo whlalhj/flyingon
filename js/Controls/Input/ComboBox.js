@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("ComboBox", $.TextButtonBase, function (Class, $) {
+flyingon.class("ComboBox", flyingon.TextButtonBase, function (Class, flyingon) {
 
 
 

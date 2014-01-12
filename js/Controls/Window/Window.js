@@ -1,5 +1,5 @@
 ﻿//主窗口
-$.class("Window", $.WindowBase, function (Class, $) {
+flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
@@ -15,12 +15,12 @@ $.class("Window", $.WindowBase, function (Class, $) {
         domHost.appendChild(this.domWindow);
 
         //添加至指定dom
-        (parentNode || document.body).appendChild(domHost);
+        (parentNode || flyingon["x:window:host"] || document.body).appendChild(domHost);
 
 
 
         //定义主窗口变更
-        $.defineVariable(this, "mainWindow", this, false, true);
+        flyingon.defineVariable(this, "mainWindow", this, false, true);
 
         //设为活动窗口
         this.activate();
@@ -46,21 +46,18 @@ $.class("Window", $.WindowBase, function (Class, $) {
             width = storage.width,
             height = storage.height,
 
-            layers = this.layers,
-            i = 0,
-            length = layers.length;
+            layers = this.layers;
 
-
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++],
+            var layer = layers[i],
                 box = layer["x:boxModel"];
 
             layer.unregistryUpdate();
             layer.domCanvas.width = width; //清空画布
             layer.domCanvas.height = height;
 
-            box.setUsableRect(null, 0, 0, width, height);
+            box.measure(null, 0, 0, width, height);
             box.render(layer.context);
         }
 
@@ -68,5 +65,5 @@ $.class("Window", $.WindowBase, function (Class, $) {
 
 
 
-});
+}, true);
 

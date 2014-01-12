@@ -17,8 +17,7 @@
 
         var match = text.match(regex_attr);
         
-        var $ = flyingon;
-
+        
         var data = 'dddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddd< br / >dddd<text line-height="12">text</text>ddddddddddddddddddddddd<br/>dddd<text line-height="12" >text</text>ddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddddddddddddddddddd<br/>dddd<text line-height="12">text</text>ddddddddddddddddddd';//.replace(//g, "<></");
 
 
@@ -27,7 +26,7 @@
 
         for (var i = 0; i < 10000; i++)
         {
-            var t = $.Xml.parse(data);
+            var t = flyingon.Xml.parse(data);
         }
 
 

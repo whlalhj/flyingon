@@ -1,41 +1,7 @@
 ﻿/*
 
 */
-$.class("Layer", $.UserControl, function (Class, $) {
-
-
-
-    function DelayUpdater(layer) {
-
-
-        var timer;
-
-
-        function execute() {
-
-            layer["x:boxModel"].update(layer.context);
-        };
-
-        layer.registryUpdate = function () {
-
-            if (timer)
-            {
-                //clearTimeout(timer);
-            };
-
-            timer = setTimeout(execute, 5);
-        };
-
-        layer.unregistryUpdate = function () {
-
-            if (timer)
-            {
-                //clearTimeout(timer);
-                timer = 0;
-            };
-        };
-    };
-
+flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
 
@@ -56,10 +22,9 @@ $.class("Layer", $.UserControl, function (Class, $) {
         this.context = canvas.getContext("2d");
         this.context.layer = this;
 
-        this["x:boxModel"]["x:layer"] = true;
 
         //注册延时更新
-        new DelayUpdater(this);
+        this["y:initialize:update"](this);
     };
 
 
@@ -70,32 +35,63 @@ $.class("Layer", $.UserControl, function (Class, $) {
     });
 
 
-    this.defineProperty("width", undefined, {
+    this.defineProperty("width", function () {
 
-        getter: function () {
+        return this.domCanvas.width;
+    });
 
-            return this.domCanvas.width;
-        }
-    }, true);
+    this.defineProperty("height", function () {
 
-    this.defineProperty("height", undefined, {
-
-        getter: function () {
-
-            return this.domCanvas.height;
-        }
-    }, true);
+        return this.domCanvas.height;
+    });
 
 
 
-    this.defineProperty("ownerLayer", undefined, {
+    this.defineProperty("ownerLayer", function () {
 
-        getter: function () {
+        return this;
+    });
 
-            return this;
-        }
-    }, true);
 
+
+    //初始化延时更新器
+    this["y:initialize:update"] = function (layer) {
+
+
+        var timer,
+            boxModel = layer["x:boxModel"];
+
+
+        boxModel["x:layer"] = true;
+
+
+        function execute() {
+
+            if (boxModel.innerRect)
+            {
+                boxModel.update(layer.context);
+            }
+        };
+
+        layer.registryUpdate = function () {
+
+            if (timer)
+            {
+                clearTimeout(timer);
+            };
+
+            timer = setTimeout(execute, 5);
+        };
+
+        layer.unregistryUpdate = function () {
+
+            if (timer)
+            {
+                clearTimeout(timer);
+                timer = 0;
+            };
+        };
+    };
 
 
 
@@ -110,6 +106,6 @@ $.class("Layer", $.UserControl, function (Class, $) {
 
 
 
-});
+}, true);
 
 

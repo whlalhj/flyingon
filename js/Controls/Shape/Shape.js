@@ -2,7 +2,7 @@
 形状基类
 
 */
-$.class("Shape", $.SerializableObject, function (Class, $) {
+flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) {
 
 
 
@@ -10,7 +10,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
     this.defineProperty("fillStyle", null);
 
     //边框色
-    this.defineProperty("strokeStyle", $.colors["control-border"]);
+    this.defineProperty("strokeStyle", flyingon.colors["control-border"]);
 
     //线宽
     this.defineProperty("lineWidth", 1);
@@ -46,17 +46,14 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
 
     function children(context, storage, borderRect) {
 
-        var i = 0,
-            children = storage.children,
-            length = children.length,
-            offset;
+        var items = storage.children;
 
-        while (i < length)
+        for (var i = 0, length = items.length; i < length; i++)
         {
-            var item = children[i++];
+            var item = items[i];
 
             storage = item["x:storage"];
-            offset = storage.offset;
+            var offset = storage.offset;
 
             item.buildPath(context,
                 borderRect.windowX + offset[3],
@@ -64,10 +61,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
                 storage.width <= 0 ? borderRect.width * storage.scaleX - offset[3] - offset[1] : storage.width,
                 storage.height <= 0 ? borderRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
 
-            if (storage.children)
-            {
-                children(context, storage, borderRect);
-            }
+            storage.children && children(context, storage, borderRect);
         }
     };
 
@@ -89,10 +83,7 @@ $.class("Shape", $.SerializableObject, function (Class, $) {
             storage.height <= 0 ? borderRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
 
 
-        if (storage.children)
-        {
-            children(context, storage, borderRect);
-        }
+        storage.children && children(context, storage, borderRect);
 
 
         if (storage.fillStyle)

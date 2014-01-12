@@ -1,6 +1,6 @@
 ﻿
 ///Ajax实现
-(function (global, $) {
+(function (global, flyingon) {
 
 
     var ajax_fn = null, //ajax创建函数
@@ -27,7 +27,7 @@
 
         if (!ajax_fn)
         {
-            items = [
+            var items = [
 
                 function () { return new XMLHttpRequest(); },
                 function () { return new ActiveXObject("Microsoft.XMLHTTP"); },
@@ -56,7 +56,7 @@
     };
 
 
-    $.encodeURL = function (url, json) {
+    flyingon.encodeURL = function (url, json) {
 
         if (url && json)
         {
@@ -96,7 +96,7 @@
                 switch (options.dataType || defaults.dataType)
                 {
                     case "json":
-                        options.response = $.parseJson(target.responseText);
+                        options.response = flyingon.parseJson(target.responseText);
                         break;
 
                     case "script":
@@ -112,24 +112,18 @@
                         break;
                 }
 
-                if (fn = options.success)
-                {
-                    fn(target, options.response);
-                }
+                (fn = options.success) && fn(target, options.response);
             }
             else
             {
                 (options["error"] || defaults["error"])(target);
             }
 
-            if (fn = options.complete)
-            {
-                fn(target, options.response);
-            }
+            (fn = options.complete) && fn(target, options.response);
         }
         else if (fn = options.progress)
         {
-            fn(++(options.progressValue || (options.progressValue = 0)));
+            fn(options.progressValue ? ++options.progressValue : (options.progressValue = 1));
         }
     };
 
@@ -173,7 +167,7 @@
 
     }
     */
-    $.ajax = function (options) {
+    flyingon.ajax = function (options) {
 
         var type = options.type || defaults.type,
             result = ajax_fn ? ajax_fn() : ajax(),
@@ -185,11 +179,7 @@
             options.timer = setTimeout(function () {
 
                 result.abort();
-
-                if (options.abort)
-                {
-                    options.abort(result);
-                }
+                options.abort && options.abort(result);
 
             }, options.timeout);
         }
@@ -198,10 +188,7 @@
         result.onreadystatechange = response;
         result.open(type, options.url, async, options.user, options.password);
 
-        if (type == "POST" || type == "PUT")
-        {
-            result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
-        }
+        (type == "POST" || type == "PUT") && result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
 
         if (options.headers)
         {
@@ -216,23 +203,23 @@
     };
 
 
-    $.get = function (url, options) {
+    flyingon.get = function (url, options) {
 
         (options || (options = {})).url = url;
         options.type = "GET";
 
-        return $.ajax(options);
+        return flyingon.ajax(options);
     };
 
-    $.post = function (url, options) {
+    flyingon.post = function (url, options) {
 
         (options || (options = {})).url = url;
         options.type = "POST";
 
-        return $.ajax(options);
+        return flyingon.ajax(options);
     };
 
-    $.require = function (url) {
+    flyingon.require = function (url) {
 
         if (url)
         {
@@ -244,7 +231,7 @@
                 async: false
             };
 
-            $.ajax(options);
+            flyingon.ajax(options);
             return options.response;
         };
     };

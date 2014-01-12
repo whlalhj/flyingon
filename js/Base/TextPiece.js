@@ -1,49 +1,44 @@
 ﻿//文本行
-(function ($) {
+(function (flyingon) {
 
 
-    $.TextPiece = function (font, text) {
+    var prototype = (flyingon.TextPiece = function (font, text) {
 
         this.font = font;
         this.text = text;
         this.height = font.lineHeight;
-    };
 
+    }).prototype = [];
 
-    var p = $.TextPiece.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文本行总宽度
-    p.width = 0;
+    prototype.width = 0;
 
     //文本行总高度
-    p.height = 0;
+    prototype.height = 0;
 
 
 
     function initialize() {
 
-        var value1 = 0,
-            value2 = 0,
-            cache1 = this.cache1 = [0],
-            cache2 = this.cache2 = [0],
+        var value_1 = 0,
+            value_2 = 0,
+            cache_1 = this["x:cache:1"] = [0],
+            cache_2 = this["x:cache:2"] = [0];
 
-            i = 0,
-            length = this.length - 1;
-
-
-        while (i < length)
+        for (var i = 0, length = this.length - 1; i < length; i++)
         {
-            var snippet = this[i++];
+            var snippet = this[i];
 
-            cache1.push(value1 += snippet.text.length);     //文本索引
-            cache2.push(value2 += snippet.width);           //位置
+            cache_1.push(value_1 += snippet.text.length);     //文本索引
+            cache_2.push(value_2 += snippet.width);           //位置
         }
 
         return this;
@@ -63,23 +58,20 @@
     //测量文字 以提升canvas的measureText方法性能较差的问题
     //请尽量使用相同的字体对象以获得较好的性能
     //需注意此方法对内存占用有一定的影响 在IE下可能存在一定的误差(IE的字体渲染有问题:分段测量值的和<>直接测量值???)
-    p.measureText = function () {
+    prototype.measureText = function () {
 
         var font = this.font,
             cache = font["x:cache"],
             context = font["x:context"],
             chinese = cache["汉"],
             values = this.text.match(regex_measure) || [""],
-            x = 0,
-
-            i = 0,
-            length = values.length;
+            x = 0;
 
 
-        while (i < length)
+        for (var i = 0, length = values.length; i < length; i++)
         {
-            var text = values[i++],
-                snippet = new $.TextSnippet(font, text);
+            var text = values[i],
+                snippet = new flyingon.TextSnippet(font, text);
 
 
             if (text[0] > "\u2e80") //东方字符类
@@ -106,11 +98,12 @@
 
 
     //获取指定索引的测量信息
-    p.locate = function (columnIndex) {
+    prototype.find = function (columnIndex) {
 
         if (columnIndex >= this.text.length)
         {
             return {
+
                 snippetIndex: this.length - 1,
                 charIndex: this[this.length - 1].text.length,
                 columnIndex: this.text.length,
@@ -119,29 +112,28 @@
         }
 
 
-        if (columnIndex < 0)
-        {
-            columnIndex = 0;
-        }
+        columnIndex < 0 && (columnIndex = 0);
 
-        var index = (this.cache1 || initialize.call(this).cache1).binaryBetween(columnIndex),
+
+        var index = (this["x:cache:1"] || initialize.call(this)["x:cache:1"]).binaryBetween(columnIndex),
             snippet = this[index],
-            charIndex = columnIndex - this.cache1[index];
+            charIndex = columnIndex - this["x:cache:1"][index];
 
 
         return {
+
             snippetIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this.cache2[index] + snippet.position(charIndex)
+            x: this["x:cache:2"][index] + snippet.position(charIndex)
         };
     };
 
 
     //查找指定位置的测量信息
-    p.locateAt = function (x) {
+    prototype.findAt = function (x) {
 
-        var index = (this.cache2 || initialize.call(this).cache2).binaryBetween(x),
+        var index = (this["x:cache:2"] || initialize.call(this)["x:cache:2"]).binaryBetween(x),
             snippet = this[index],
             charIndex,
             x;
@@ -154,15 +146,16 @@
         }
         else
         {
-            charIndex = snippet.charAt(x - this.cache2[index]);
-            x = this.cache2[index] + snippet.position(charIndex);
+            charIndex = snippet.charAt(x - this["x:cache:2"][index]);
+            x = this["x:cache:2"][index] + snippet.position(charIndex);
         }
 
 
         return {
+
             snippetIndex: index,
             charIndex: charIndex,
-            columnIndex: this.cache1[index] + charIndex,
+            columnIndex: this["x:cache:1"][index] + charIndex,
             x: x
         };
     };

@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="no-cache" />
+    <title></title>
+</head>
+<body style="background-color: yellow;">
+
+    <span id="message"></span>
+    <div id="host" style="width: 100%; height: 600px; border: 1px solid blue;">
+    </div>
+
+    <script src="../js/flyingon.js"></script>
+
+    <script type="text/javascript">
+
+
+        var w = new flyingon.Window();
+
+        var control = new flyingon.Control();
+
+        var source = new flyingon.DataObject();
+
+        source.defineDataProperty("text", null);
+        source.defineDataProperty("index", 0);
+
+        source.data = {
+            text: "text"
+        };
+
+
+        var binding = control.setBinding("text", source, "text");
+
+        control.setBinding("background", source, "if (@index % 2 == 0) return 'red'; return 'yello'; ");
+
+        source.index = 1;
+
+        control.text = "text1";
+        source.text = "text2";
+
+        control.clearBinding("text", true);
+
+
+        var date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var writer = new flyingon.SerializeWriter();
+            var text = writer.serialize(control);
+        }
+
+        alert(new Date() - date);
+
+
+        date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var reader = new flyingon.SerializeReader();
+            var result = reader.deserialize(text);
+        }
+
+        alert(new Date() - date);
+
+        w.children.append(control);
+        w.update();
+
+
+    </script>
+
+</body>
+</html>

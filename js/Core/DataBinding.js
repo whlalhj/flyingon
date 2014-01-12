@@ -2,73 +2,92 @@
 /// <reference path="SerializableObject.js" />
 
 
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.clearBindings = function (source) {
 
-        if (source = source["x:bindings:source"])
+    //正向绑定(绑定数据源至目标控件)
+    flyingon.bindingTo = function (source, name) {
+
+        var bindings = source["x:bindings"],
+            binding;
+
+        if (bindings && (bindings = bindings.push) && (binding = bindings[name]))
         {
-            var names = Object.getOwnPropertyNames(source),
-                name,
-                binding,
-                target;
+            var keys = Object.getOwnPropertyNames(binding),
+                length = keys.length;
 
-
-            for (var i = 0, length = names.length; i < length; i++)
+            if (length == 0)
             {
-                if ((name = names[i]) && (binding = source[name]))
+                delete bindings[name];
+            }
+            else
+            {
+                for (var i = 0; i < length; i++)
                 {
-                    delete source[name];
-
-                    if (target = binding["x:target"])
-                    {
-                        delete target[binding.propertyName];
-                    }
+                    binding[keys[i]].pull();
                 }
             }
         }
     };
 
 
+    var clearBindings = function (storage, dispose) {
 
+        var names = Object.getOwnPropertyNames(storage),
+            name,
+            bindings;
 
-    $.DataBinding = function (source, expression, formatter, setter) {
-
-        if (arguments.length > 0)
+        for (var i = 0, length = names.length; i < length; i++)
         {
-            if (expression == null)
+            if ((name = names[i]) && (bindings = source[name]))
             {
-                expression = source.expression;
-                formatter = source.formatter;
-                setter = source.setter;
-                source = source.source;
-            }
+                var keys = Object.getOwnPropertyNames(bindings);
 
-
-            this["x:source"] = source;
-            this["x:expression"] = "" + expression;
-
-            if (formatter != null)
-            {
-                this["x:formatter"] = "" + formatter;
-            }
-
-            if (setter != null)
-            {
-                this["x:setter"] = "" + setter;
+                for (var j = 0, count = keys.length; j < count; j++)
+                {
+                    bindings[keys[j]].clear(dispose);
+                }
             }
         }
     };
 
+    flyingon.clearBindings = function (source, dispose) {
 
-    var p = $.DataBinding.prototype;
+        if (source && (source = source["x:bindings"]))
+        {
+            var storage = source.pull;
+
+            storage && clearBindings(storage, dispose);
+            (storage = source.push) && clearBindings(storage, dispose);
+        }
+    };
+
+
+
+
+    var prototype = (flyingon.DataBinding = function (source, expression, setter) {
+
+        if (source)
+        {
+            if (!expression && (expression = source.expression))
+            {
+                setter = source.setter;
+                source = source.source;
+            }
+
+            this["x:source"] = source;
+            this["x:expression"] = expression;
+            this["x:setter"] = setter;
+        }
+
+    }).prototype;
 
 
     var defineProperty = function (name) {
 
-        $.defineProperty(p, name, function () {
+        flyingon.defineProperty(prototype, name, function () {
 
             return this["x:" + name];
         });
@@ -88,9 +107,6 @@
     //绑定表达式
     defineProperty("expression");
 
-    //格式化
-    defineProperty("formatter");
-
     //更新表达式
     defineProperty("setter");
 
@@ -98,22 +114,23 @@
 
 
     //是否正在处理绑定
-    p["x:binding"] = false;
+    prototype["x:binding"] = false;
 
     //获取值函数
-    p["y:getter"] = null;
+    prototype["y:getter"] = null;
 
     //设置值函数
-    p["y:setter"] = null;
+    prototype["y:setter"] = null;
 
 
 
     //初始化绑定关系
-    p["y:initialize"] = function (target, name) {
+    prototype["y:initialize"] = function (target, name) {
 
         var source = this["x:source"],
             expression = this["x:expression"],
-            bindings = source["x:bindings:source"] || (source["x:bindings:source"] = {}),
+            bindings = target["x:bindings"] || (target["x:bindings"] = {}),
+            id = target.id || (target.id = flyingon.newId()),
             cache;
 
 
@@ -122,62 +139,73 @@
 
 
         //缓存目标
-        if (cache = target["x:bindings"])
+        if (cache = bindings.pull)
         {
             //一个目标属性只能绑定一个
-            if (cache[name])
-            {
-                cache[name].clear();
-            }
-
+            cache[name] && cache[name].clear();
             cache[name] = this;
         }
         else
         {
-            (target["x:bindings"] = {})[name] = this;
+            (bindings.pull = {})[name] = this;
         }
 
 
 
+        bindings = source["x:bindings"] || (source["x:bindings"] = { push: {} });
+        bindings = bindings.push || (bindings.push = {});
+
         //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
         if (expression.match(/^\d|[^\w]/))
         {
-            cache = (this["y:getter"] = new $.Expression(expression)).variables;
+            cache = (this["y:getter"] = new flyingon.Expression(expression)).variables;
 
             for (var i = 0, length = cache.length; i < length; i++)
             {
-                bindings[cache[i]] = this;
+                expression = cache[i];
+                (bindings[expression] || (bindings[expression] = {}))[id] = this;
             }
         }
         else
         {
             this["y:getter"] = null;
-            bindings[expression] = this;
+            (bindings[expression] || (bindings[expression] = {}))[id] = this;
         }
 
 
         //处理更新
-        if (cache = this["x:setter"])
-        {
-            this["y:setter"] = new $.Expression(cache);
-        }
+        (cache = this["x:setter"]) && (this["y:setter"] = new flyingon.Expression(cache));
     };
 
 
-    //从数据源同步数据至目标属性
-    p.pull = function () {
 
-        var cache,
-            result = (cache = this["y:getter"]) ? cache.eval(this["x:source"]) : this["x:source"][this["x:expression"]];
+    //从数据源同步数据至目标属性
+    prototype.pull = function () {
+
+        var source = this["x:source"],
+            result;
+
+        if (result = this["y:getter"])
+        {
+            result = result.eval(source);
+        }
+        else
+        {
+            var name = this["x:expression"];
+            if ((result = source[name]) === undefined)
+            {
+                source instanceof flyingon.DataObject && (result = source.value(name));
+            }
+        }
 
         this["x:binding"] = true;
-        this["x:target"][this.name] = (cache = this["x:formatter"]) ? cache.format(result) : result;
+        this["x:target"][this["x:name"]] = result;
         this["x:binding"] = false;
     };
 
 
     //从目标属性同步数据至源
-    p.push = function () {
+    prototype.push = function () {
 
         var cache = this["x:expression"];
 
@@ -187,7 +215,11 @@
 
             if (!this["y:getter"]) //直接绑定字段
             {
-                this["x:source"][cache] = this["x:target"][this["x:name"]];
+                var target = this["x:target"],
+                    name = this["x:name"];
+
+                (result = target[name]) === undefined && target instanceof flyingon.DataObject && (result = target.value(name));
+                this["x:source"][cache] = result;
             }
             else if (cache = this["y:setter"]) //表达式需要自定义setter方法
             {
@@ -200,7 +232,7 @@
 
 
     //清除绑定关系
-    p.clear = function () {
+    prototype.clear = function (dispose) {
 
         var source = this["x:source"],
             target = this["x:target"],
@@ -229,36 +261,30 @@
 
             delete target["x:bindings"][this["x:name"]];
         }
+
+
+        if (dispose)
+        {
+            delete this["x:source"];
+            delete this["x:target"];
+            delete this["y:getter"];
+            delete this["y:setter"];
+        }
     };
 
 
-    p.serialize = function (writer) {
+    prototype.serialize = function (writer) {
 
-        writer.string("name", this["x:name"]);
-
-        //this["x:source"] = source;
+        writer.reference("source", this["x:source"]);
         writer.string("expression", this["x:expression"]);
-        writer.string("formatter", this["x:formatter"]);
         writer.string("setter", this["x:setter"]);
     };
 
-    p.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data) {
 
-        reader.string(this, "x:name", data["name"]);
-
-        //this["x:source"] = source;
+        reader.reference(this, "x:source", data["source"]);
         reader.string(this, "x:expression", data["expression"]);
-        reader.string(this, "x:formatter", data["formatter"]);
         reader.string(this, "x:setter", data["setter"]);
-    };
-
-
-    p.dispose = function () {
-
-        this["x:source"] = null;
-        this["x:target"] = null;
-        this["y:getter"] = null;
-        this["y:setter"] = null;
     };
 
 

@@ -16,23 +16,16 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 可通过使用getElementsByTagName(xPath)的方法对节点进行访问
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
 
-    $.Xml = function (data) {
+    var prototype = (flyingon.Xml = function (data) {
 
-        if (data)
-        {
-            this.parse(data);
-        }
-    };
+        data && this.parse(data);
 
-
-
-
-    var p = $.Xml.prototype;
+    }).prototype;
 
 
 
@@ -40,7 +33,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     //如果支持W3C DOM 则使用此方式创建
     if (document.implementation && document.implementation.createDocument)
     {
-        p.parse = function (data) {
+        prototype.parse = function (data) {
 
             this.dom = new DOMParser().parseFromString(data, "text/xml");
             this.root = this.dom.documentElement;
@@ -48,7 +41,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this;
         };
 
-        p.load = function (file) {
+        prototype.load = function (file) {
 
             this.dom = document.implementation.createDocument('', '', null);
             this.dom.load(file);
@@ -57,14 +50,14 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this;
         };
 
-        p.serialize = function () {
+        prototype.serialize = function () {
 
             return new XMLSerializer().serializeToString(this.dom);
         };
     }
     else if (window.ActiveXObject) //IE使用ActiveX方式创建
     {
-        p.parse = function (data) {
+        prototype.parse = function (data) {
 
             this.dom = new ActiveXObject("Microsoft.XMLDOM");
             this.dom.async = "false";
@@ -74,7 +67,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this.dom;
         };
 
-        p.load = function (file) {
+        prototype.load = function (file) {
 
             this.dom = new ActiveXObject('Microsoft.XMLDOM');
             this.dom.async = false;
@@ -84,7 +77,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             return this.dom;
         };
 
-        p.serialize = function () {
+        prototype.serialize = function () {
 
             return this.dom.xml;
         };
@@ -123,7 +116,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //编码
-    $.encodeXml = function (data) {
+    flyingon.encodeXml = function (data) {
 
         return data.replace(/[\<\>\"\' \&]/g, function (key) {
 
@@ -132,7 +125,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
     };
 
     //解码
-    $.decodeXml = function (data) {
+    flyingon.decodeXml = function (data) {
 
         return data.replace(/&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/g, function (key) {
 
@@ -146,7 +139,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
     //解析Xml数据为Json对象 根节点的名称忽略
-    $.parseXml = function (data) {
+    flyingon.parseXml = function (data) {
 
 
         if (!data)
@@ -159,7 +152,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
         data = data.replace(/^[^\<]+|[^>]+$/, "").replace(/\>\s+\</g, "><");
 
 
-        var decodeXml = $.decodeXml,              //解码方法
+        var decodeXml = flyingon.decodeXml,              //解码方法
             segments = data.match(/[^<>]+|\<\/?[^<>]+\/?>/g),
             escape = /&lt;|&gt;|&quot;|&apos;|&nbsp;|&amp;/.test(data),   //是否存在需解码的字符
 
@@ -263,7 +256,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             break;
                     }
 
-                    if (node.constructor == Array)
+                    if (Array.isArray(node) == Array)
                     {
                         node.push(value);
                     }

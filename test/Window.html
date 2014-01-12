@@ -22,7 +22,7 @@
         source.data = { text: "12" };
         source.setData("text", "t1");
 
-        w.setBinding("text", { source: source, expression: "text" });
+        w.setBinding("text", source, "text");
 
         source.text = "t2";
         w.text = "text";

@@ -34,11 +34,7 @@
 
 
 
-        var $ = flyingon;
-
-
-
-        var w = new $.Window(host);
+        var w = new flyingon.Window(host);
 
 
         function create() {
@@ -50,7 +46,7 @@
 
             for (var i = 0; i < 50; i++)
             {
-                var panel = new $.Panel();
+                var panel = new flyingon.Panel();
 
                 panel.width = 400;
 
@@ -60,7 +56,7 @@
 
                 for (var j = 0; j < 100; j++)
                 {
-                    var text = new $.ComboBox();
+                    var text = new flyingon.ComboBox();
 
                     text.width = 190;
                     text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
@@ -106,6 +102,7 @@
             var date = new Date();
 
             w.update();
+            
 
             alert(new Date() - date);
         };

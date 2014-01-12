@@ -23,44 +23,41 @@
 
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
 
-    $.StyleText = function () {
+    var prototype = (flyingon.StyleText = function () {
 
 
+    }).prototype;
+
+
+
+    var defineProperty = function (name, defaultValue, reparse, recompute) {
+
+        prototype[name = "$" + name] = defaultValue;
+
+        var body = "var name = '" + name + "';var oldValue = this[name];\nif (value != oldValue){\nthis[name] = value;";
+
+        if (reparse)
+        {
+            body += "this['x:reparse'] = true;\nthis['x:recompute'] = true;";
+        }
+        else if (recompute)
+        {
+            body += "this['x:recompute'] = true;";
+        }
+
+        body += "\n}";
+
+
+        var getter = new Function("return this['" + name + "']"),
+            setter = new Function("value", body);
+
+        flyingon.defineProperty(prototype, name, getter, setter);
     };
-
-
-
-
-    var p = $.StyleText.prototype,
-
-        defineProperty = function (name, defaultValue, reparse, recompute) {
-
-            p[name = "$" + name] = defaultValue;
-
-            var body = "var name = '" + name + "';var oldValue = this[name];\nif (value != oldValue){\nthis[name] = value;";
-
-            if (reparse)
-            {
-                body += "this['x:reparse'] = true;\nthis['x:recompute'] = true;";
-            }
-            else if (recompute)
-            {
-                body += "this['x:recompute'] = true;";
-            }
-
-            body += "\n}";
-
-
-            var getter = new Function("return this['" + name + "']"),
-                setter = new Function("value", body);
-
-            $.defineProperty(p, name, getter, setter);
-        };
 
 
     //文本内容
@@ -79,7 +76,7 @@
     defineProperty("height", 400, false, true);
 
 
-    $.defineProperty(p, "inlines", function () {
+    flyingon.defineProperty(prototype, "inlines", function () {
 
         return this["x:inlines"] || (this["x:inlines"] = []);
     });
@@ -87,11 +84,11 @@
 
 
 
-    var fonts = $.fonts,
-        colors = $.colors;
+    var fonts = flyingon.fonts,
+        colors = flyingon.colors;
 
 
-    p.render = function (context) {
+    prototype.render = function (context) {
 
         if (this["x:reparse"])
         {
@@ -111,7 +108,7 @@
 
 
     //计算出相关的渲染数据
-    p.compute = function () {
+    prototype.compute = function () {
 
 
     };
@@ -151,12 +148,8 @@
             }
         }
 
-        if (node.firstChild)
-        {
-            renderChildren.call(context, node, data);
-        }
 
-
+        node.firstChild && renderChildren.call(context, node, data);
 
 
         //如果需要绘制背景

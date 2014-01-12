@@ -12,7 +12,7 @@
     <div>
         <table>
             <tr>
-                <td ></td>
+                <td></td>
             </tr>
         </table>
         <div id="drag" style="background-color: yellow;">
@@ -42,24 +42,23 @@
     <script type="text/javascript">
 
 
+        var update;
+
+        var date = new Date();
+
+        for (var i = 0; i < 1000000; i++)
+        {
+            //new flyingon.TextBox();
+
+            //new flyingon.ListBoxItem();
+        }
+
+        alert(new Date() - date);
 
 
+        var w = new flyingon.Window(host);
 
-
-
-        var $ = flyingon;
-
-
-
-        var w = new $.Window(host);
-
-        w.layout = "column";
-
-
-
-        
-  
-
+        w.layout = "rows";
 
 
         function create() {
@@ -68,24 +67,24 @@
             var date = new Date();
 
             flyingon.beginInit();
-            //w.layout = "row";
+            w.layout = "rows";
 
 
             for (var k = 0; k < 20; k++)
             {
-                var panel = new $.Panel();
+                var panel = new flyingon.Panel();
 
                 for (var i = 0; i < 500; i++)
                 {
 
-                    var ctrl = new $.Button();
+                    var ctrl = new flyingon.Button();
 
                     ctrl.width = 20;
                     ctrl.height = 20;
                     ctrl["border"] = [1, 1, 1, 1];
-                    ctrl["borderColor"] = new $.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.background = new $.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    //ctrl.stretch = null;
+                    ctrl["borderColor"] = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
+                    ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.stretch = "all";
                     ctrl.horizontalAlign = "center";
                     ctrl.verticalAlign = "center";
 
@@ -116,11 +115,12 @@
 
                 }
 
+                panel.autoSize = "all";
                 panel.width = 600;
                 panel.height = 400;
                 panel["border"] = [10, 10, 10, 10];
                 panel.borderColor = "orange";
-                //panel.background = new $.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "row";
                 panel.layoutSpaceX = 5;
                 panel.layoutSpaceY = 5;
@@ -134,9 +134,11 @@
 
                 w.children.append(panel);
 
+                var win = panel.ownerWindow;
+
             }
 
-         
+
 
             flyingon.endInit();
             alert(new Date() - date);
@@ -158,7 +160,7 @@
 
             var date = new Date();
 
-            w.children[0]["border"] = [20, 20, 20, 20];
+            w.children.get(0)["border"] = [20, 20, 20, 20];
             w.update();
 
             alert(new Date() - date);
@@ -168,7 +170,7 @@
 
             var date = new Date();
 
-            var button = w.children[0].children[1];
+            var button = w.children.get(0).children.get(1);
             button.height = 200;
 
             w.update();
@@ -183,7 +185,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children[i];
+                var panel = w.children.get(i);
                 panel.layout = value;
             }
 
@@ -192,6 +194,45 @@
             alert(new Date() - date);
         };
 
+
+        function anonymous(value) {
+
+            var storage = this['x:storage'], cache, name = 'layout';
+            if (flyingon['x:initializing'])
+            {
+                storage[name] = value;
+                (cache = this['x:bindings']) && this['y:bindings'](name, cache);
+                return this;
+            }
+
+            var oldValue = storage[name];
+            if (oldValue !== value)
+            {
+                if ((cache = this['x:events']) && (cache = cache['change']) && cache.length > 0)
+                {
+                    var event = new flyingon.ChangeEvent(this, name, value, oldValue);
+                    if (!this.dispatchEvent(event)) return this;
+                    value = event.value;
+                }
+
+                storage[name] = value;
+                var boxModel = this['x:boxModel'];
+                boxModel.offsetX = 0;
+                boxModel.offsetY = 0;
+                (cache = this['x:bindings']) && this['y:bindings'](name, cache);
+                if (cache = boxModel.parent)
+                {
+                    cache['x:measure'] = true;
+                    cache.ownerControl.invalidate();
+                }
+                else
+                {
+                    boxModel['x:measure'] = true;
+                    this.invalidate();
+                }
+            }
+            return this;
+        }
 
     </script>
 

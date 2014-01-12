@@ -4,18 +4,19 @@
 
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.Font = function (style, variant, weight, size, family) {
+    var prototype = (flyingon.Font = function (style, variant, weight, size, family) {
 
         if (arguments.length > 0)
         {
             this["x:storage"] = [style, variant, weight, size, family];
             initialize.call(this);
         }
-    };
+
+    }).prototype;
 
 
 
@@ -46,15 +47,13 @@
 
 
 
-    var p = $.Font.prototype,
+    var defineProperty = function (name, index) {
 
-        defineProperty = function (name, index) {
+        flyingon.defineProperty(prototype, name, function () {
 
-            $.defineProperty(p, name, function () {
-
-                return this["x:storage"][index];
-            });
-        };
+            return this["x:storage"][index];
+        });
+    };
 
 
 
@@ -77,7 +76,7 @@
     defineProperty("value", 5);
 
     //行高
-    p.lineHeight = 12;
+    prototype.lineHeight = 12;
 
 
     ////start     文本在指定的位置开始
@@ -85,7 +84,7 @@
     ////center    文本的中心被放置在指定的位置
     ////left      文本左对齐
     ////right     文本右对齐
-    //p.align = "start";
+    //prototype.align = "start";
 
     ////alphabetic    文本基线是普通的字母基线
     ////top           文本基线是 em 方框的顶端
@@ -93,15 +92,15 @@
     ////middle        文本基线是 em 方框的正中
     ////ideographic   文本基线是表意基线
     ////bottom        文本基线是 em 方框的底端
-    //p.baseline = "alphabetic";
+    //prototype.baseline = "alphabetic";
 
 
 
 
     //以当前字体为原型衍生出新字体  properties : { style:XXX, variant:XXX, weight:XXX, size:XXX, family:XXX }
-    p.derive = function (properties) {
+    prototype.derive = function (properties) {
 
-        var result = new $.Font(),
+        var result = new flyingon.Font(),
             data = result["x:storage"] = this["x:storage"].slice(0, 4);
 
         data[0] = properties.style || data[0];
@@ -117,31 +116,24 @@
 
 
     //根据当前字体衍生出粗体
-    p.deriveBold = function () {
+    prototype.deriveBold = function () {
 
         return this["bold"] = this.derive({ weight: "bold" });
     };
 
     //根据当前字体衍生出斜体
-    p.deriveItalic = function () {
+    prototype.deriveItalic = function () {
 
         return this["italic"] = this.derive({ style: "italic" });
     };
 
     //根据当前字体衍生出粗斜体
-    p.deriveBoldItalic = function () {
+    prototype.deriveBoldItalic = function () {
 
         var result = this.derive({ weight: "bold", style: "italic" });
 
-        if (this["bold"])
-        {
-            this["bold"]["italic"] = result;
-        }
-
-        if (this["italic"])
-        {
-            this["italic"]["bold"] = result;
-        }
+        this["bold"] && (this["bold"]["italic"] = result);
+        this["italic"] && (this["italic"]["bold"] = result);
 
         return this["bold-italic"] = result;
     };

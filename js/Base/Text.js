@@ -1,20 +1,15 @@
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
 
-    $.Text = function () {
+    var prototype = (flyingon.Text = function () {
 
 
-    };
-
-
-
-
-    var p = $.Text.prototype;
+    }).prototype;
 
 
 

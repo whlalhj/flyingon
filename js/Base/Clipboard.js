@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-(function ($) {
+(function (flyingon) {
 
 
 
@@ -9,23 +9,23 @@
 
 
  
-    $.enableClipboard = function (enable) {
+    flyingon.enableClipboard = function (enable) {
 
         if (enable)
         {
             if (window.clipboardData)
             {
-                $.getClipboardText = function () {
+                flyingon.getClipboardText = function () {
 
                     return window.clipboardData.getData("text");
                 };
 
-                $.setClipboardText = function (value) {
+                flyingon.setClipboardText = function (value) {
 
                     window.clipboardData.setData("text", value);
                 };
 
-                $.clearClipboardText = function () {
+                flyingon.clearClipboardText = function () {
 
                     window.clipboardData.clearData("text");
                 };
@@ -35,17 +35,17 @@
         }
 
 
-        $.getClipboardText = function () {
+        flyingon.getClipboardText = function () {
 
             return data["text"];
         };
 
-        $.setClipboardText = function (value) {
+        flyingon.setClipboardText = function (value) {
 
             data["text"] = value;
         };
 
-        $.clearClipboardText = function () {
+        flyingon.clearClipboardText = function () {
 
             data["text"] = null;
         };
@@ -53,7 +53,7 @@
 
 
 
-    $.enableClipboard(true);
+    flyingon.enableClipboard(true);
 
 
 })(flyingon);

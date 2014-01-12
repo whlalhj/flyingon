@@ -1,31 +1,29 @@
 ﻿
 //文字片段
-(function ($) {
+(function (flyingon) {
 
 
 
-    $.TextSnippet = function (font, text) {
+    var prototype = (flyingon.TextSnippet = function (font, text) {
 
         this.font = font;
         this.text = text;
-    };
 
+    }).prototype = [];
 
-
-    var p = $.TextSnippet.prototype = [];
 
 
     //字体
-    p.font = null;
+    prototype.font = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文本内容
-    p.text = null;
+    prototype.text = null;
 
     //文字段宽度
-    p.width = 0;
+    prototype.width = 0;
 
 
     //测量单词中每一个字符占用的宽度
@@ -39,15 +37,12 @@
 
         var result = [],
             cache = font["x:cache"],
-            context = font["x:context"],
-
-            i = 0,
-            length = text.length;
+            context = font["x:context"];
 
 
-        while (i < length)
+        for (var i = 0, length = text.length; i < length; i++)
         {
-            var char = text[i++];
+            var char = text[i];
             result.push(cache[char] || (cache[char] = context.measureText(char).width));
         }
 
@@ -59,15 +54,12 @@
 
         var value = 0,
             chars = this.chars = measureText(this.font, this.text),
-            cache = this.cache = [0],
-
-            i = 0,
-            length = chars.length;
+            cache = this.cache = [0];
 
 
-        while (i < length)
+        for (var i = 0, length = chars.length; i < length; i++)
         {
-            cache.push(value += chars[i++]);
+            cache.push(value += chars[i]);
         }
 
         return cache;
@@ -77,26 +69,16 @@
 
 
     //获取指定位置的字符索引
-    p.charAt = function (x) {
+    prototype.charAt = function (x) {
 
-        if (this.unit) //等宽字体
-        {
-            return Math.round(x / this.unit);
-        }
-
-        return (this.cache || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this.cache || initialize.call(this)).binaryBetween(x);
     };
 
 
     //获取指定字符索引的相对位置
-    p.position = function (charIndex) {
+    prototype.position = function (charIndex) {
 
-        if (this.unit) //等宽字体
-        {
-            return charIndex * this.unit;
-        }
-
-        return (this.cache || initialize.call(this))[charIndex];
+        return this.unit ? charIndex * this.unit : (this.cache || initialize.call(this))[charIndex];
     };
 
 

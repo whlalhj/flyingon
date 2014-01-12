@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="no-cache" />
+    <title></title>
+</head>
+<body style="background-color: yellow;">
+
+    <span id="message"></span>
+    <div id="host" style="width: 100%; height: 600px; border: 1px solid blue;">
+    </div>
+
+    <script src="../js/flyingon.js"></script>
+
+    <script type="text/javascript">
+
+
+
+        var w = new flyingon.Window(host);
+
+
+        flyingon.templates["TemplateControl"] = {
+
+            className: "Panel",
+            children: [
+                {
+                    className: "Button",
+                    bindings: { height: "height" }
+                },
+                {
+                    className: "Button"
+                }]
+        };
+
+
+
+        var control = new flyingon.TemplateControl();
+
+
+        control.width = 200;
+        control.height = 200;
+        control.background = "yellow";
+
+        control.onclick = function (event) {
+
+            alert(event.target.id);
+        };
+
+
+        w.mousemove = function (event) {
+
+            document.title = event.target.id;
+        };
+
+
+        w.children.append(control);
+        w.update();
+
+
+    </script>
+
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="../js/flyingon.js"></script>
     <title></title>
 </head>
 <body>
@@ -15,6 +16,7 @@
     </div>
     <div id="host" style="width: 100%; height: 600px">
     </div>
+
 
 
     <script type="text/javascript">
@@ -33,7 +35,7 @@
 
             for (var i = 0; i < 1000000; i++)
             {
-                var a = new Button(1, 2);
+                var a = new flyingon.TextBox(); // new Button(1, 2);
             }
 
             alert(new Date() - date);

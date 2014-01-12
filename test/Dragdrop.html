@@ -33,42 +33,40 @@
 
 
 
-        var $ = flyingon;
-
-        var w = new $.Window(host);
+        var w = new flyingon.Window(host);
 
 
         function create() {
 
-            var p1 = new $.Panel();
+            var p1 = new flyingon.Panel();
 
             p1.width = 400;
             p1.height = 400;
-            p1.background = new $.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+            p1.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
             p1.draggable = true;
             p1.onmousedown = function (e) {
                 alert("mousedown");
             };
 
             p1.ondragstart = function (e) {
-                e.dragTargets.push(new $.Button());
+                e.dragTargets.push(new flyingon.Button());
             };
 
-            var p2 = new $.Panel();
+            var p2 = new flyingon.Panel();
 
             p2.width = 400;
             p2.height = 400;
-            p2.background = new $.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+            p2.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
             p2.ondrop = function (e) {
 
                 var c = e;
             };
 
-            var splitter = new $.Splitter();
+            var splitter = new flyingon.Splitter();
 
             splitter.width = 5;
 
-            w.children.appendRange([p1, splitter, p2]);
+            w.children.append(p1).append(splitter).append(p2);
 
             w.layout = "dock";
             w.update();

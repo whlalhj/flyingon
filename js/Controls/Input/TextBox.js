@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("TextBox", $.TextBoxBase, function (Class, $) {
+flyingon.class("TextBox", flyingon.TextBoxBase, function (Class, flyingon) {
 
 
 

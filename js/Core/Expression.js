@@ -1,18 +1,13 @@
 ﻿//表达式
-(function ($) {
+(function (flyingon) {
 
 
-    $.Expression = function (expression) {
+    var prototype = (flyingon.Expression = function (expression) {
 
-        if (expression)
-        {
-            this.expression = expression;
-        }
-    };
+        expression && (this.expression = expression);
 
+    }).prototype;
 
-
-    var p = $.Expression.prototype;
 
 
     var parse = function (expression, variables) {
@@ -24,15 +19,16 @@
         }
 
 
+        !expression.match(/return[\s;]/) && (expression = "return " + expression);
+
+
         var values = expression.match(/['"\\]|@\w+|[^'"\\@]+/g),
-            i = 0,
-            length = values.length,
             value,
             quote,  //引号
             escape, //转义
             body = "";
 
-        while (i < length)
+        for (var i = 0, length = values.length; i < length; i++)
         {
             switch (value = values[i])
             {
@@ -40,17 +36,7 @@
                 case "\"":
                     if (!escape)
                     {
-                        if (quote)
-                        {
-                            if (quote == value)
-                            {
-                                quote = null;
-                            }
-                        }
-                        else
-                        {
-                            quote = value;
-                        }
+                        quote ? ((quote == value) && (quote = null)) : (quote = value);
                     }
                     else
                     {
@@ -77,30 +63,26 @@
                     escape = false;
                     break;
             }
-
-            i++;
         }
 
 
-        i = 0;
-        length = variables.length;
-
-        while (i < length)
+        for (var i = 0, length = variables.length; i < length; i++)
         {
-            body += "var " + (value = variables[i++]) + " = this[\"" + value + "\"];\n";
+            body += "var " + (value = variables[i]) + " = this[\"" + value + "\"];\n";
         }
 
-        body += "return " + values.join("") + ";";
+
+        body += values.join("");
         return new Function(body);
     };
 
 
-    p["x:expression"] = "";
+    prototype["x:expression"] = "";
 
 
 
     //表达式内容
-    $.defineProperty(p, "expression",
+    flyingon.defineProperty(prototype, "expression",
 
         function () {
 
@@ -116,24 +98,24 @@
 
 
     //计算
-    p.eval = function (thisArg) {
+    prototype.eval = function (thisArg) {
 
         var fn = this["x:fn"];
 
         if (fn)
         {
-            fn.call(thisArg);
+            return fn.call(thisArg);
         }
     };
 
 
 
-    p.serialize = function (writer) {
+    prototype.serialize = function (writer) {
 
         writer.string("expression", this["x:expression"]);
     };
 
-    p.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data) {
 
         reader.string(this, "expression", data.expression);
     };

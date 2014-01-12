@@ -1,7 +1,7 @@
 ﻿
 
 //窗口标题栏
-$.class("WindowTitleBar", $.Panel, function (Class, $) {
+flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
 
     Class.create = function () {
@@ -24,35 +24,28 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
             this.ownerWindow.close();
         });
 
-
-        this.addEventListener("mousedown", mousedown);
-        this.addEventListener("mousemove", mousemove);
-        this.addEventListener("mouseup", mouseup);
     };
 
 
 
-    this.setDefaultValue("focusable", false);
+    this.defaultValue("focusable", false);
 
-    this.setDefaultValue("height", 25);
+    this.defaultValue("height", 25);
 
-    this.setDefaultValue("layout", "dock");
+    this.defaultValue("layout", "dock");
 
 
 
 
     function button(dock, styleKey, click) {
 
-        var result = new $.PictureBox();
+        var result = new flyingon.PictureBox();
 
         result.dock = dock;
         result.width = 20;
         result.styleKey = styleKey;
 
-        if (click)
-        {
-            result.onclick = click;
-        }
+        click && (result.onclick = click);
 
         this["x:children"].append(result);
         return result;
@@ -84,20 +77,22 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
         return { left: left, top: top };
     };
 
-    function mousedown(event) {
+
+
+    this["event:mousedown"] = function (event) {
 
         var ownerWindow = this.ownerWindow,
             storage = ownerWindow["x:storage"],
-            p = translate(ownerWindow.mainWindow, storage.left, storage.top);
+            offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
 
 
-        offsetX = p.left - event.clientX;
-        offsetY = p.top - event.clientY;
+        offsetX = offset.left - event.clientX;
+        offsetY = offset.top - event.clientY;
 
         ownerWindow["x:captureControl"] = this; //捕获鼠标
     };
 
-    function mousemove(event) {
+    this["event:mousemove"] = function (event) {
 
         if (event.mouseDown)
         {
@@ -109,26 +104,26 @@ $.class("WindowTitleBar", $.Panel, function (Class, $) {
             storage.left = event.clientX + offsetX,
             storage.top = event.clientY + offsetY;
 
-            var p = translate(ownerWindow.mainWindow, storage.left, storage.top);
+            var offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
 
-            style.left = p.left + "px";
-            style.top = p.top + "px";
+            style.left = offset.left + "px";
+            style.top = offset.top + "px";
         }
     };
 
-    function mouseup(event) {
+    this["event:mouseup"] = function (event) {
 
         this.ownerWindow["x:captureControl"] = null;
     };
 
 
-});
+}, true);
 
 
 
 
 //子窗口
-$.class("ChildWindow", $.WindowBase, function (Class, $) {
+flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
@@ -142,7 +137,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
         };
 
 
-        this.titleBar = this.createTitleBar() || new $.WindowTitleBar();
+        this.titleBar = this.createTitleBar() || new flyingon.WindowTitleBar();
         this.titleBar["x:parent"] = this;
     };
 
@@ -183,7 +178,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
             return this.titleBar.getControlAt(x, y);
         }
 
-        return $.ChildWindow.super.getControlAt.call(this, x, y);
+        return flyingon.ChildWindow.super.getControlAt.call(this, x, y);
     };
 
 
@@ -208,17 +203,14 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         children.push(this);
 
-        $.defineVariable(this, "parentWindow", parentWindow, true, true);
-        $.defineVariable(this, "mainWindow", parentWindow.mainWindow, true, true);
+        flyingon.defineVariable(this, "parentWindow", parentWindow, true, true);
+        flyingon.defineVariable(this, "mainWindow", parentWindow.mainWindow, true, true);
 
 
         var domHost = this.mainWindow.domHost;
 
         //如果是模式窗口则添加遮罩层
-        if (modalWindow)
-        {
-            domHost.appendChild(this.domMask);
-        }
+        modalWindow && domHost.appendChild(this.domMask);
 
         domHost.appendChild(this.domWindow);
 
@@ -246,14 +238,14 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["y:activate"].call(this);
+        flyingon.ChildWindow.super["y:activate"].call(this);
     };
 
     this["y:deactivate"] = function () {
 
         this.titleBar["x:boxModel"].render(this.context);
 
-        $.ChildWindow.super["y:deactivate"].call(this);
+        flyingon.ChildWindow.super["y:deactivate"].call(this);
     };
 
 
@@ -272,15 +264,12 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
                 domHost.removeChild(this.domWindow);
 
-                if (this.domMask.parentNode)
-                {
-                    domHost.removeChild(this.domMask);
-                }
+                this.domMask.parentNode && domHost.removeChild(this.domMask);
 
                 parentWindow["x:windows"].splice(index, 1);
 
-                $.defineVariable(this, "parentWindow", null, true, true);
-                $.defineVariable(this, "mainWindow", null, true, true);
+                flyingon.defineVariable(this, "parentWindow", null, true, true);
+                flyingon.defineVariable(this, "mainWindow", null, true, true);
 
                 this.dispatchEvent("closed");
 
@@ -295,7 +284,7 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
 
 
-    this["y:before:measure"] = function (boxModel) {
+    this.measure = function (boxModel) {
 
 
         var storage = this["x:storage"],
@@ -328,23 +317,25 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
 
         //处理标题栏
         boxModel.children = null;
-        titleBar["x:boxModel"].setUsableRect(boxModel, 0, 0, width, y, true);
+        titleBar["x:boxModel"].measure(boxModel, 0, 0, width, y, true);
 
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 0,
-            length = layers.length;
+        var layers = this.layers;
 
-        while (i < length)
+        for (var i = 0, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++];
+            var layer = layers[i];
 
-            layer["x:boxModel"].setUsableRect(null, 0, y, width, height - y);
+            layer["x:boxModel"].measure(null, 0, y, width, height - y);
 
             layer.domCanvas.width = width; //清空画布
             layer.domCanvas.height = height;
         }
+
+
+        //调用默认测量方法
+        boxModel.compute();
     };
 
 
@@ -353,23 +344,20 @@ $.class("ChildWindow", $.WindowBase, function (Class, $) {
     this.paint = function (context) {
 
         //绘制窗口内容
-        var layers = this.layers,
-            i = 1,
-            length = layers.length;
+        var layers = this.layers;
 
-
-        while (i < length)
+        for (var i = 1, length = layers.length; i < length; i++)
         {
-            var layer = layers[i++];
+            var layer = layers[i];
 
             layer.unregistryUpdate();
             layer["x:boxModel"].render(layer.context);
         }
 
-        $.ChildWindow.super.paint.call(this, context);
+        flyingon.ChildWindow.super.paint.call(this, context);
     };
 
 
 
-});
+}, true);
 

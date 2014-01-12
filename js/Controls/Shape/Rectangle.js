@@ -2,7 +2,7 @@
 矩形
 
 */
-$.class("Rectangle", $.Shape, function (Class, $) {
+flyingon.class("Rectangle", flyingon.Shape, function (Class, flyingon) {
 
 
 

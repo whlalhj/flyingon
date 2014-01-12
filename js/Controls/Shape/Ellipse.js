@@ -2,7 +2,7 @@
 椭圆
 
 */
-$.class("Ellipse", $.Shape, function (Class, $) {
+flyingon.class("Ellipse", flyingon.Shape, function (Class, flyingon) {
 
 
 

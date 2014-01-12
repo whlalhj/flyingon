@@ -5,7 +5,7 @@
 /*
 
 */
-$.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
+flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon) {
 
 
 
@@ -18,13 +18,15 @@ $.class("TextButtonBase", $.TextBoxBase, function (Class, $) {
 
     this.measure = function (boxModel) {
 
+
+        boxModel.compute();
+
+
         var innerRect = boxModel.innerRect,
             imageRect = boxModel.imageRect;
 
-        if (!imageRect)
-        {
-            imageRect = boxModel.imageRect = new $.Rect();
-        }
+
+        !imageRect && (imageRect = boxModel.imageRect = new flyingon.Rect());
 
         imageRect.x = innerRect.x;
         imageRect.y = innerRect.y;
