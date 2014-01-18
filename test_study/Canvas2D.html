@@ -30,7 +30,7 @@
             //    for (var j = 0; j < 100; j++)
             //    {
             //        context.beginPath();
-            //        this.borderRect(i * 20, j * 20, 18, 18, [2, 4, 6, 8]);
+            //        this.insideRect(i * 20, j * 20, 18, 18, [2, 4, 6, 8]);
             //        context.fillStyle = "red";
             //        context.fill();
             //    }
@@ -39,12 +39,12 @@
             //alert(new Date() - date);
 
             context.beginPath();
-            this.borderRect(100, 100, 100, 100, [2, 4, 6, 8]);
+            this.insideRect(100, 100, 100, 100, [2, 4, 6, 8]);
             context.fillStyle = "red";
             context.fill();
         };
 
-        function borderRect(x, y, width, height, border) {
+        function insideRect(x, y, width, height, border) {
 
             var context = canvas.getContext("2d");
 

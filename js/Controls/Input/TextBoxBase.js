@@ -17,7 +17,7 @@ flyingon.class("TextBoxBase", flyingon.Control, function (Class, flyingon) {
 
 
 
-    TextBase.call(this, false);
+    flyingon["text-painter"].call(this, false);
 
 
 });

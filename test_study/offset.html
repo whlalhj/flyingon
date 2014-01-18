@@ -39,7 +39,7 @@
         }
         function getOffset(e) {
             var target = e.target;
-            if (target.offsetLeft == undefined)
+            if (target.scrollLeft == undefined)
             {
                 target = target.parentNode;
             }
@@ -60,7 +60,7 @@
             var coord = { x: 0, y: 0 };
             while (element)
             {
-                coord.x += element.offsetLeft;
+                coord.x += element.scrollLeft;
                 coord.y += element.offsetTop;
                 element = element.offsetParent;
             }

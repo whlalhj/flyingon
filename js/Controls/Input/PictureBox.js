@@ -13,13 +13,13 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
 
 
     //绘制内框
-    this.paint = function (context) {
+    this.paint = function (context, boxModel) {
 
-        this.paintImage(context);
-        this.paintText(context);
+        this["paint-image"](context, boxModel.clientRect);
+        this["paint-text"](context, boxModel.clientRect);
     };
 
-    this.paintImage = function (context) {
+    this["paint-image"] = function (context, clientRect) {
 
         var image = this.image;
 
@@ -30,8 +30,7 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
                 return;
             }
 
-            var r = context.boxModel.innerRect;
-            context.drawImage(image, r.windowX, r.windowY);
+            context.drawImage(image, clientRect.windowX, clientRect.windowY);
         }
     };
 

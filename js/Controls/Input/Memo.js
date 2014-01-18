@@ -22,7 +22,7 @@ flyingon.class("Memo", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
-    TextBase.call(this, true);
+    flyingon["text-painter"].call(this, true);
 
 
 

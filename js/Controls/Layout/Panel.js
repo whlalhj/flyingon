@@ -38,7 +38,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     this.defineProperty("layout", "rows", {
 
         attributes: "locate",
-        valueChangedCode: "boxModel.offsetX = 0;\nboxModel.offsetY = 0;"
+        valueChangedCode: "boxModel.scrollLeft = 0;\nboxModel.scrollTop = 0;"
     });
 
     //布局x轴间隔 0-1之间表示间隔值为总宽度百分比
@@ -71,17 +71,11 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     //布局集
     var layouts = {};
 
-    function getLayoutSpace(value, total) {
-
-        return value > 0 ? (value > 1 ? value : Math.round(total * value)) : 0;
-    };
-
-
     //单行排列 layoutSpaceX verticalAlign
-    layouts.row = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.row = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var x = 0,
-            height = usableRect.height,
+            height = clientRect.height,
             scrollHeight = 0;
 
 
@@ -95,21 +89,24 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 box.measure(boxModel, x, 0, 0, height);
                 x = box.right + box.margin[3] + spaceX;
 
-                box.height > scrollHeight && (scrollHeight = box.height);
+                if (box.height > scrollHeight)
+                {
+                    scrollHeight = box.height;
+                }
             }
         }
 
 
-        boxModel.maxWidth = items[items.length - 1]["x:boxModel"].right;
-        scrollHeight > boxModel.maxHeight && (boxModel.maxHeight = scrollHeight);
+        boxModel.scrollWidth = items[items.length - 1]["x:boxModel"].right;
+        boxModel.scrollHeight = scrollHeight;
     };
 
 
     //单列排列 layoutSpaceY horizontalAlign
-    layouts.column = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.column = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var y = 0,
-            width = usableRect.width,
+            width = clientRect.width,
             scrollWidth = 0;
 
 
@@ -124,18 +121,21 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                 y = box.bottom + box.margin[2] + spaceY;
 
-                box.width > scrollWidth && (scrollWidth = box.width);
+                if (box.width > scrollWidth)
+                {
+                    scrollWidth = box.width;
+                }
             }
         }
 
 
-        scrollWidth > boxModel.maxWidth && (boxModel.maxWidth = scrollWidth);
-        boxModel.maxHeight = items[items.length - 1]["x:boxModel"].bottom;
+        boxModel.scrollWidth = scrollWidth;
+        boxModel.scrollHeight = items[items.length - 1]["x:boxModel"].bottom;
     };
 
 
     //多行排列 layoutSpaceX layoutSpaceY layoutRowHeight verticalAlign
-    layouts.rows = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.rows = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
@@ -143,7 +143,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             y = 0,
             cache,
 
-            maxWidth = usableRect.width,
+            maxWidth = clientRect.width,
             rowHeight = storage.layoutRowHeight > 0 ? storage.layoutRowHeight : 0,
             maxHeight = rowHeight,
 
@@ -168,19 +168,26 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                     cache = box.right + box.margin[1] + spaceX;
                 }
 
-                (x = cache) > scrollWidth && (scrollWidth = x);
-                (cache = box.height + box.margin[0] + box.margin[2]) > maxHeight && (maxHeight = cache);
+                if ((x = cache) > scrollWidth)
+                {
+                    scrollWidth = x;
+                }
+
+                if ((cache = box.height + box.margin[0] + box.margin[2]) > maxHeight)
+                {
+                    maxHeight = cache;
+                }
             }
         }
 
 
-        scrollWidth > boxModel.maxWidth && (boxModel.maxWidth = scrollWidth);
-        boxModel.maxHeight = items[items.length - 1]["x:boxModel"].bottom;
+        boxModel.scrollWidth = scrollWidth;
+        boxModel.scrollHeight = items[items.length - 1]["x:boxModel"].bottom;
     };
 
 
     //多列排列 layoutSpaceX layoutSpaceY layoutColumnWidth  horizontalAlign
-    layouts.columns = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.columns = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
@@ -190,7 +197,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             colWidth = storage.layoutColumnWidth > 0 ? storage.layoutColumnWidth : 0,
             maxWidth = colWidth,
-            maxHeight = usableRect.height,
+            maxHeight = clientRect.height,
 
             scrollHeight = 0;
 
@@ -213,26 +220,33 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                     cache = box.bottom + box.margin[2] + spaceY;
                 }
 
-                (y = cache) > scrollHeight && (scrollHeight = y);
-                (cache = box.width + box.margin[3] + box.margin[1]) > maxWidth && (maxWidth = cache);
+                if ((y = cache) > scrollHeight)
+                {
+                    scrollHeight = y;
+                }
+
+                if ((cache = box.width + box.margin[3] + box.margin[1]) > maxWidth)
+                {
+                    maxWidth = cache;
+                }
             }
         }
 
 
-        boxModel.maxWidth = items[items.length - 1]["x:boxModel"].right;
-        scrollHeight > boxModel.maxHeight && (boxModel.maxHeight = scrollHeight);
+        boxModel.scrollWidth = items[items.length - 1]["x:boxModel"].right;
+        boxModel.scrollHeight = scrollHeight;
     };
 
 
     //停靠 layoutSpaceX layoutSpaceY dock  horizontalAlign verticalAlign
-    layouts.dock = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.dock = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
 
             x = 0,
             y = 0,
-            width = usableRect.width,
-            height = usableRect.height,
+            width = clientRect.width,
+            height = clientRect.height,
 
             right = width,
             bottom = height,
@@ -266,7 +280,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                         case "top":
                             box.measure(boxModel, x, y, width, storage.height);
 
-                            y = storage.bottom + spaceY;
+                            y = box.bottom + spaceY;
                             height = bottom - y;
                             break;
 
@@ -307,7 +321,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //单页显示 layoutPage  horizontalAlign verticalAlign
-    layouts.page = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.page = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var index = this["x:storage"].layoutPageIndex || 0;
 
@@ -318,14 +332,14 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (i == index))
             {
-                box.measure(boxModel, 0, 0, usableRect.width, usableRect.height);
+                box.measure(boxModel, 0, 0, clientRect.width, clientRect.height);
             }
         }
     };
 
 
     //网格排列 layoutColumns layoutRows gridLineColor layoutSpaceX layoutSpaceY  horizontalAlign verticalAlign
-    layouts.grid = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.grid = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
             table = new flyingon.LayoutTable();
@@ -335,14 +349,14 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         table.spaceX = spaceX;
         table.spaceY = spaceY;
 
-        table.compute(usableRect.width, usableRect.height);
+        table.compute(clientRect.width, clientRect.height);
         table.sequenceLayout(items, boxModel);
     };
 
 
     //表格排列 layoutTable layoutSpaceX layoutSpaceY  horizontalAlign verticalAlign
     //示例: "T R* C* C* C* R* C* C* C* R* C* C* C* END"
-    layouts.table = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.table = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         var storage = this["x:storage"],
             table = storage.layoutTable;
@@ -356,13 +370,13 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         table.spaceX = spaceX;
         table.spaceY = spaceY;
 
-        table.compute(usableRect.width, usableRect.height);
+        table.compute(clientRect.width, clientRect.height);
         table.sequenceLayout(items, boxModel);
     };
 
 
     //绝对定位 left top
-    layouts.absolute = function (items, boxModel, usableRect, spaceX, spaceY) {
+    layouts.absolute = function (items, boxModel, clientRect, spaceX, spaceY) {
 
         for (var i = 0, length = items.length; i < length; i++)
         {
@@ -374,15 +388,22 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             {
                 box.measure(boxModel, storage.left, storage.top, storage.width, storage.height);
 
-                box.right > boxModel.maxWidth && (boxModel.maxWidth = box.right);
-                box.bottom > boxModel.maxHeight && (boxModel.maxHeight = box.bottom);
+                if (box.right > boxModel.scrollWidth)
+                {
+                    boxModel.scrollWidth = box.right;
+                }
+
+                if (box.bottom > boxModel.scrollHeight)
+                {
+                    boxModel.scrollHeight = box.bottom;
+                }
             }
         }
     };
 
 
 
-    //注册自定义布局 注意回调函数规范及设置盒模型的maxWidth及maxHeight值
+    //注册自定义布局 注意回调函数规范及设置盒模型的scrollWidth及scrollHeight值
     Class.registryLayout = function (name, layoutfn) {
 
         layouts[name] = layoutfn;
@@ -396,11 +417,11 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //排列子控件
-    this.arrange = function (boxModel, usableRect) {
+    this.arrange = function (boxModel, clientRect) {
 
 
         boxModel.children = null;
-        this["x:render:children"] = null;
+        this["x:render-children"] = null;
 
 
         var storage = this["x:storage"],
@@ -415,10 +436,10 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 var spaceX = storage.layoutSpaceX,
                     spaceY = storage.layoutSpaceY;
 
-                spaceX = spaceX > 0 ? (spaceX > 1 ? spaceX : Math.round(usableRect.width * spaceX)) : 0;
-                spaceY = spaceY > 0 ? (spaceY > 1 ? spaceY : Math.round(usableRect.height * spaceY)) : 0;
+                spaceX = spaceX > 0 ? (spaceX > 1 ? spaceX : Math.round(clientRect.width * spaceX)) : 0;
+                spaceY = spaceY > 0 ? (spaceY > 1 ? spaceY : Math.round(clientRect.height * spaceY)) : 0;
 
-                fn.call(this, items, boxModel, usableRect, spaceX, spaceY);
+                fn.call(this, items, boxModel, clientRect, spaceX, spaceY);
             }
         }
 
@@ -427,22 +448,22 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //获取当前可渲染的子项
-    this["y:render:children"] = function (boxModel) {
+    this["y:render-children"] = function (boxModel) {
 
-        var result = this["x:render:children"];
+        var result = this["x:render-children"];
 
         if (!result)
         {
             var clipToBounds = this["x:storage"].clipToBounds,
 
                 children = boxModel.children,
-                r = boxModel.innerRect,
-                x = boxModel.offsetX,
-                y = boxModel.offsetY,
+                r = boxModel.clientRect,
+                x = boxModel.scrollLeft,
+                y = boxModel.scrollTop,
                 right = x + r.width,
                 bottom = y + r.height;
 
-            result = this["x:render:children"] = [];
+            result = this["x:render-children"] = [];
 
             for (var i = 0, length = children.length; i < length; i++)
             {
@@ -472,7 +493,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         //判断滚动条
         var result = flyingon.Panel.super.getControlAt.call(this, x, y);
 
-        if (result)
+        if (result != this)
         {
             return result;
         }
@@ -480,11 +501,11 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
         var box = this["x:boxModel"],
-            r = box.innerRect;
+            r = box.clientRect;
 
 
-        x += box.offsetX - r.x;
-        y += box.offsetY - r.y;
+        x += box.scrollLeft - r.x;
+        y += box.scrollTop - r.y;
 
         //if (storage.transform)
         //{
@@ -492,7 +513,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         //}
 
 
-        var items = this["x:render:children"];
+        var items = this["x:render-children"];
 
         if (items && items.length > 0)
         {
@@ -549,7 +570,10 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         flyingon.Panel.super.serialize.call(this, writer);
 
         var items = this["x:children"]["x:items"];
-        items && items.length > 0 && writer.array("children", items);
+        if (items && items.length > 0)
+        {
+            writer.array("children", items);
+        }
     };
 
     this.deserialize = function (reader, data) {

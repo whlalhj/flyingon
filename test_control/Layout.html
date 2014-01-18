@@ -5,16 +5,16 @@
     <!--以IE的当前版本渲染,如果安装了ChromeFrame则优先使用-->
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <title></title>
-
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
 </head>
 <body style="margin: 0;">
 
-    <div>
-        <table>
-            <tr>
-                <td></td>
-            </tr>
-        </table>
+    <div style="width: 100%; height: 100%;">
         <div id="drag" style="background-color: yellow;">
             <input type="button" id="btnCreate" value="Create" onclick="create()" />
             <input type="button" id="btnPaint" value="Paint" onclick="paint()" />
@@ -31,7 +31,7 @@
             <input type="button" id="Button3" value="absolute" onclick="layout('absolute')" />
         </div>
 
-        <div id="host" style="width: 100%; height: 600px;">
+        <div id="host" style="width: 100%; height: 100%;">
         </div>
     </div>
 
@@ -40,7 +40,6 @@
 
 
     <script type="text/javascript">
-
 
         var update;
 
@@ -79,6 +78,9 @@
 
                     var ctrl = new flyingon.Button();
 
+                    ctrl.left = i % 20 * 100;
+                    ctrl.top = i / 20 * 30;
+
                     ctrl.width = 20;
                     ctrl.height = 20;
                     ctrl["border"] = [1, 1, 1, 1];
@@ -115,7 +117,8 @@
 
                 }
 
-                panel.autoSize = "all";
+
+                //panel.autoSize = "all";
                 panel.width = 600;
                 panel.height = 400;
                 panel["border"] = [10, 10, 10, 10];
@@ -160,7 +163,7 @@
 
             var date = new Date();
 
-            w.children.get(0)["border"] = [20, 20, 20, 20];
+            w.children.item(0)["border"] = [20, 20, 20, 20];
             w.update();
 
             alert(new Date() - date);
@@ -170,7 +173,7 @@
 
             var date = new Date();
 
-            var button = w.children.get(0).children.get(1);
+            var button = w.children.item(0).children.item(1);
             button.height = 200;
 
             w.update();
@@ -185,7 +188,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children.get(i);
+                var panel = w.children.item(i);
                 panel.layout = value;
             }
 
@@ -217,8 +220,8 @@
 
                 storage[name] = value;
                 var boxModel = this['x:boxModel'];
-                boxModel.offsetX = 0;
-                boxModel.offsetY = 0;
+                boxModel.scrollLeft = 0;
+                boxModel.scrollTop = 0;
                 (cache = this['x:bindings']) && this['y:bindings'](name, cache);
                 if (cache = boxModel.parent)
                 {

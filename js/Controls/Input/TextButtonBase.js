@@ -22,25 +22,28 @@ flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon
         boxModel.compute();
 
 
-        var innerRect = boxModel.innerRect,
+        var clientRect = boxModel.clientRect,
             imageRect = boxModel.imageRect;
 
 
-        !imageRect && (imageRect = boxModel.imageRect = new flyingon.Rect());
+        if (!imageRect)
+        {
+            imageRect = boxModel.imageRect = new flyingon.Rect();
+        }
 
-        imageRect.x = innerRect.x;
-        imageRect.y = innerRect.y;
+        imageRect.x = clientRect.x;
+        imageRect.y = clientRect.y;
 
 
         if (this["x:storage"].showButton)
         {
-            innerRect.width -= 16;
+            clientRect.width -= 16;
 
-            imageRect.canvasX = innerRect.canvasX + innerRect.width;
-            imageRect.canvasY = innerRect.canvasY;
+            imageRect.canvasX = clientRect.canvasX + clientRect.width;
+            imageRect.canvasY = clientRect.canvasY;
 
             imageRect.width = 16;
-            imageRect.height = innerRect.height;
+            imageRect.height = clientRect.height;
         }
         else
         {
@@ -52,15 +55,13 @@ flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon
 
 
     //绘制内框
-    this.paint = function (context) {
+    this.paint = function (context, boxModel) {
 
-        this.paintText(context);
-        this.paintImage(context);
+        this["paint-text"](context, boxModel.clientRect);
+        this["paint-image"](context, boxModel.imageRect);
     };
 
-    this.paintImage = function (context) {
-
-        var imageRect = context.boxModel.imageRect;
+    this["paint-image"] = function (context, imageRect) {
 
         if (imageRect.width > 0)
         {

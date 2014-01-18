@@ -17,18 +17,10 @@ flyingon.class("Collection", function (Class, flyingon) {
     });
 
 
-    this.get = function (index) {
+
+    this.item = function (index) {
 
         return this["x:items"][index];
-    };
-
-    this.set = function (index, item) {
-
-        var fn = this["y:validate"];
-
-        (!fn || (item = fn.call(this, item)) !== undefined) && (this["x:items"][index] = item);
-
-        return this;
     };
 
     this.indexOf = function (item) {
@@ -38,8 +30,13 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.append = function (item) {
 
-        var fn = this["y:validate"];
-        (!fn || (item = fn.call(this, item)) !== undefined) && this["x:items"].push(item);
+        var fn = this["y:validate"],
+            items = this["x:items"];
+
+        if (!fn || (item = fn.call(this, items.length, item)) !== false)
+        {
+            items.push(item);
+        }
 
         return this;
     };
@@ -47,21 +44,36 @@ flyingon.class("Collection", function (Class, flyingon) {
     this.insert = function (index, item) {
 
         var fn = this["y:validate"];
-        (!fn || (item = fn.call(this, item)) !== undefined) && this["x:items"].splice(index, 0, item);
+
+        if (!fn || (item = fn.call(this, index, item)) !== false)
+        {
+            this["x:items"].splice(index, 0, item);
+        }
 
         return this;
     };
 
+    this.replace = function (index, item) {
+
+        var fn = this["y:validate"];
+
+        if (!fn || (item = fn.call(this, index, item)) !== false)
+        {
+            this["x:items"][index] = item;
+        }
+
+        return this;
+    };
 
     this.remove = function (item) {
 
         var items = this["x:items"],
-            index = items.indexOf(item);
+            index = items.indexOf(item),
+            fn;
 
-        if (index >= 0)
+        if (index >= 0 && (!(fn = this["y:remove"]) || fn.call(this, index, item) !== false))
         {
-            var fn = this["y:remove"];
-            (!fn || fn.call(this, index) !== false) && items.splice(index, 1);
+            items.splice(index, 1);
         }
 
         return this;
@@ -69,12 +81,12 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.removeAt = function (index) {
 
-        var items = this["x:items"];
+        var items = this["x:items"],
+            fn;
 
-        if (items.length > index)
+        if (items.length > index && (!(fn = this["y:remove"]) || fn.call(this, index) !== false))
         {
-            var fn = this["y:remove"];
-            (!fn || fn.call(this, index) !== false) && items.splice(index, 1);
+            items.splice(index, 1);
         }
 
         return this;
@@ -82,12 +94,15 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.clear = function () {
 
-        var items = this["x:items"];
+        var items = this["x:items"],
+            fn;
 
         if (items.length > 0)
         {
-            var fn = this["y:clear"];
-            (!fn || fn.call(this, items) !== false) && (items.length = 0);
+            if (!(fn = this["y:clear"]) || fn.call(this, items) !== false)
+            {
+                items.length = 0;
+            }
         }
 
         return this;

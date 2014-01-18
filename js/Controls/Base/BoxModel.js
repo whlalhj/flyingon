@@ -37,15 +37,15 @@
     prototype["x:update"] = false;
 
     //子模型是否需要重绘
-    prototype["x:update:children"] = false;
+    prototype["x:update-children"] = false;
 
     //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
-    prototype["x:update:mode"] = 0;
+    prototype["x:update-mode"] = 0;
 
 
 
     //是否需要测量
-    prototype["x:measure"] = false;
+    prototype["x:measure"] = true;
 
     //是否图层
     prototype["x:layer"] = false;
@@ -79,16 +79,16 @@
 
 
     //x渲染偏移
-    prototype.offsetX = 0;
+    prototype.scrollLeft = 0;
 
     //y渲染偏移
-    prototype.offsetY = 0;
+    prototype.scrollTop = 0;
 
-    //最大可显示宽度
-    prototype.maxWidth = 0;
+    //滚动宽度
+    prototype.scrollWidth = 0;
 
-    //最大可显示高度
-    prototype.maxHeight = 0;
+    //滚动高度
+    prototype.scrollHeight = 0;
 
 
     //外边距
@@ -114,8 +114,8 @@
 
         while (parent = target.offsetParent)
         {
-            x += parent.offsetX;
-            y += parent.offsetY;
+            x += parent.scrollLeft;
+            y += parent.scrollTop;
 
             target = parent;
         }
@@ -143,14 +143,14 @@
         result.y += y;
 
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.offsetX && result.x < this.windowX + this.innerRect.right)
+        if (this.scrollLeft && result.x < this.windowX + this.clientRect.right)
         {
-            result.x += this.offsetX;
+            result.x += this.scrollLeft;
         }
 
-        if (this.offsetY && result.y < this.windowY + this.innerRect.bottom)
+        if (this.scrollTop && result.y < this.windowY + this.clientRect.bottom)
         {
-            result.y += this.offsetY;
+            result.y += this.scrollTop;
         }
 
         return result;
@@ -165,14 +165,14 @@
         result.y += y - this.windowY;
 
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.offsetX && result.x < this.innerRect.right)
+        if (this.scrollLeft && result.x < this.clientRect.right)
         {
-            result.x += this.offsetX;
+            result.x += this.scrollLeft;
         }
 
-        if (this.offsetY && result.y < this.innerRect.bottom)
+        if (this.scrollTop && result.y < this.clientRect.bottom)
         {
-            result.y += this.offsetY;
+            result.y += this.scrollTop;
         }
 
         return result;
@@ -199,14 +199,14 @@
         result.y = y - result.y;
 
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.offsetX && result.x <= this.windowX + this.offsetX + this.innerRect.right)
+        if (this.scrollLeft && result.x <= this.windowX + this.scrollLeft + this.clientRect.right)
         {
-            result.x -= this.offsetX;
+            result.x -= this.scrollLeft;
         }
 
-        if (this.offsetY && result.y <= this.windowY + this.offsetY + this.innerRect.bottom)
+        if (this.scrollTop && result.y <= this.windowY + this.scrollTop + this.clientRect.bottom)
         {
-            result.y -= this.offsetY;
+            result.y -= this.scrollTop;
         }
 
         return result;
@@ -221,14 +221,14 @@
         result.y = this.windowY + y - result.y;
 
         //如果控件自身有滚动动条且落在客户区内则加上滚动偏移
-        if (this.offsetX && result.x <= this.windowX + this.offsetX + this.innerRect.right)
+        if (this.scrollLeft && result.x <= this.windowX + this.scrollLeft + this.clientRect.right)
         {
-            result.x -= this.offsetX;
+            result.x -= this.scrollLeft;
         }
 
-        if (this.offsetY && result.y <= this.windowY + this.offsetY + this.innerRect.bottom)
+        if (this.scrollTop && result.y <= this.windowY + this.scrollTop + this.clientRect.bottom)
         {
-            result.y -= this.offsetY;
+            result.y -= this.scrollTop;
         }
 
         return result;
@@ -246,7 +246,7 @@
             this["x:update"] = true;
 
             var parent = this.parent,
-                update = this["x:update:mode"];
+                update = this["x:update-mode"];
 
 
             while (parent)
@@ -255,12 +255,16 @@
                 {
                     if (update == 0) //如果重绘模式为重绘自身
                     {
-                        parent["x:update:children"] = true;
+                        parent["x:update-children"] = true;
                     }
                     else
                     {
                         parent["x:update"] = true;
-                        update == 1 && (update = 0);
+
+                        if (update == 1)
+                        {
+                            update = 0;
+                        }
                     }
                 }
 
@@ -280,10 +284,19 @@
         {
             this.render(context);
         }
-        else if (this["x:update:children"]) //如果子控件需要更新
+        else if (this["x:update-children"]) //如果子控件需要更新
         {
-            this["y:render:children"](context, "update");
-            this["x:update:children"] = false;
+            this["x:update-children"] = false;
+
+            if (this.children)
+            {
+                this["y:render-children"](context, "update");
+            }
+
+            if (this.additions)
+            {
+                this["y:render-additions"](context, "update");
+            }
         }
 
         return this;
@@ -325,19 +338,6 @@
             }
         }
     };
-
-
-    ////初始化盒模型
-    //prototype.measure = function (parent, x, y, width, height, additions) {
-
-    //    this.x = x;
-    //    this.y = y;
-    //    this.width = width;
-    //    this.height = height;
-
-    //    this.locate(parent, additions);
-    //};
-
 
     //测量 传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
     //注:width, height <= 0 表示可使用无限大的空间 
@@ -413,7 +413,9 @@
             //测量
             this["y:measure"](ownerControl);
 
+            ownerControl.measureText(this); //自定义文字测量
             ownerControl.adjustAutoSize(this);
+
             position.call(this, storage, width, height);
 
             this.compute();
@@ -430,6 +432,7 @@
 
 
         this["x:update"] = true;
+        return this;
     };
 
 
@@ -443,6 +446,8 @@
         {
             this.compute();
         }
+
+        return this;
     };
 
 
@@ -451,47 +456,41 @@
 
         if (content)
         {
-            var r = this.innerRect,
+            var r = this.clientRect,
                 box = content["x:boxModel"],
                 margin = box.margin = content.styleValue("margin");
 
             box.measure(this, margin[3], margin[0], r.width - margin[3] - margin[1], r.height - margin[0] - margin[2]);
         }
+
+        return this;
     };
 
 
 
     prototype["y:measure"] = function (ownerControl) {
 
-        var fn;
-
         //测量
         this["x:measure"] = false;
-        this["x:update:mode"] = 0;
+        this["x:update-mode"] = 0;
 
 
-        //设置最大范围
-        this.maxWidth = this.width;
-        this.maxHeight = this.height;
+        //设置滚动范围
+        this.scrollWidth = 0;
+        this.scrollHeight = 0;
 
 
-        (fn = ownerControl.measure) ? fn.call(ownerControl, this) : this.compute();
-
-
-        if (fn = ownerControl.measureText) //自定义文字测量
+        var fn = ownerControl.measure;
+        if (fn)
         {
             fn.call(ownerControl, this);
         }
         else
         {
-            var storage = ownerControl["x:storage"];
-            if (storage.text != null && !ownerControl["x:textMetrics"])
-            {
-                var result = ownerControl["x:textMetrics"] = new flyingon.TextMetrics(this);
-                result.measureText(this.font, storage.text, storage.multiline);
-            }
+            this.compute();
         }
     };
+
 
 
     //计算盒模型
@@ -501,68 +500,49 @@
         var ownerControl = this.ownerControl,
             storage = ownerControl["x:storage"],
 
-            outerRect = this.outerRect = new flyingon.Rect(),
-            borderRect = this.borderRect = new flyingon.Rect(),
-            innerRect = this.innerRect = new flyingon.Rect(),
+            r = this.offsetParent && this.offsetParent.clientRect,
+            windowX = r ? r.windowX : 0,
+            windowY = r ? r.windowY : 0,
 
-            x = outerRect.x = this.x,
-            y = outerRect.y = this.y,
-            width = outerRect.width = this.width,
-            height = outerRect.height = this.height,
+            insideRect = this.insideRect = new flyingon.Rect(), //内部区域(除边框及滚动条外的区域,含padding)
+            clientRect = this.clientRect = new flyingon.Rect(), //客户区域(内容区,不含padding)
+
+            x = this.x,
+            y = this.y,
+            width = this.width,
+            height = this.height,
 
             border = this.border = ownerControl.styleValue("border"),
             padding = this.padding = ownerControl.styleValue("padding");
 
 
-        borderRect.x = x + border[3];
-        borderRect.y = y + border[0];
-        borderRect.width = width - (border[3] + border[1]);
-        borderRect.height = height - (border[0] + border[2]);
+        //圆角边框不能隐藏边线及不支持粗细不同的边线
+        if (border.border = border[0] > 0)
+        {
+            if (this.borderRadius = ownerControl.styleValue("borderRadius"))
+            {
+                border[1] = border[2] = border[3] = border[0];
+            }
+        }
+        else
+        {
+            border.border = border[1] > 0 || border[2] > 0 || border[3] > 0; //是否有边框线标志
+        }
 
-        innerRect.x = x + (innerRect.spaceX = border[3] + padding[3]);
-        innerRect.y = y + (innerRect.spaceY = border[0] + padding[0]);
-        innerRect.width = borderRect.width - (padding[3] + padding[1]);
-        innerRect.height = borderRect.height - (padding[0] + padding[2]);
+        this.windowX = x + windowX;
+        this.windowY = y + windowY;
 
+        insideRect.windowX = (insideRect.x = x + border[3]) + windowX;
+        insideRect.windowY = (insideRect.y = y + border[0]) + windowY;
+        insideRect.width = width - (border[3] + border[1]);
+        insideRect.height = height - (border[0] + border[2]);
 
-        //标记需计算绝对位置
-        this["x:initialize"] = true;
+        clientRect.windowX = (clientRect.x = x + (clientRect.spaceX = border[3] + padding[3])) + windowX;
+        clientRect.windowY = (clientRect.y = y + (clientRect.spaceY = border[0] + padding[0])) + windowY;
+        clientRect.width = insideRect.width - (padding[3] + padding[1]);
+        clientRect.height = insideRect.height - (padding[0] + padding[2]);
 
         return this;
-    };
-
-
-    //初始化(内部方法)
-    prototype["y:initialize"] = function () {
-
-        var ownerControl = this.ownerControl,
-
-            r = this.offsetParent && this.offsetParent.innerRect,
-            windowX = r ? r.windowX : 0,
-            windowY = r ? r.windowY : 0,
-
-            outerRect = this.outerRect,
-            borderRect = this.borderRect,
-            innerRect = this.innerRect,
-
-            border = this.border;
-
-
-        this["x:initialize"] = false;
-
-        outerRect.windowX = this.windowX = outerRect.x + windowX;
-        outerRect.windowY = this.windowY = outerRect.y + windowY;
-
-        borderRect.windowX = borderRect.x + windowX;
-        borderRect.windowY = borderRect.y + windowY;
-
-        innerRect.windowX = innerRect.x + windowX;
-        innerRect.windowY = innerRect.y + windowY;
-
-
-        border.border = (border[0] + border[1] + border[2] + border[3]) > 0; //是否有边框线
-
-        this.borderRadius = border[0] > 0 && ownerControl.styleValue("borderRadius"); //圆角边框不能隐藏边线及不支持粗细不同的边线
     };
 
 
@@ -577,12 +557,9 @@
         if (this["x:measure"])
         {
             this["y:measure"](ownerControl);
-        }
 
-        //初始化
-        if (this["x:initialize"])
-        {
-            this["y:initialize"]();
+            //自定义文字测量
+            ownerControl.measureText(this);
         }
 
 
@@ -590,16 +567,22 @@
         context.boxModel = this;
 
         //绘制背景
-        if (!ownerControl.paintBackground(context) || context.globalAlpha < 1)
+        if (!ownerControl["paint-background"](context, this) || context.globalAlpha < 1)
         {
-            this["x:update:mode"] = 1;
+            this["x:update-mode"] = 1;
         }
 
 
         //绘制子项
         if (this.children)
         {
-            this["y:render:children"](context, "render");
+            this["y:render-children"](context, "render");
+        }
+
+        //绘制附加内容
+        if (this.additions)
+        {
+            this["y:render-additions"](context, "render");
         }
 
 
@@ -607,17 +590,17 @@
         context.boxModel = this;
 
         //绘制内框
-        ownerControl.paint(context);
+        ownerControl.paint(context, this);
 
         //绘制外框
-        ownerControl.paintBorder(context);
+        ownerControl["paint-border"](context, this);
 
 
         //绘制装饰
         var decorates = ownerControl.styleValue("decorates");
         if (decorates && decorates.length > 0)
         {
-            this["y:paint:decorates"](context, decorates);
+            this["y:paint-decorates"](context, decorates);
         }
 
         //修改状态
@@ -628,10 +611,10 @@
 
 
     //渲染或更新子项
-    prototype["y:render:children"] = function (context, fn) {
+    prototype["y:render-children"] = function (context, fn) {
 
         var ownerControl = this.ownerControl,
-            items = ownerControl["y:render:children"],
+            items = ownerControl["y:render-children"],
             item,
             length;
 
@@ -642,17 +625,17 @@
         {
             context.save();
 
-            if (this.offsetX || this.offsetY)
+            if (this.scrollLeft || this.scrollTop)
             {
-                context.translate(-this.offsetX, -this.offsetY);
+                context.translate(-this.scrollLeft, -this.scrollTop);
             }
 
             if (ownerControl["x:storage"].clipToBounds)
             {
-                var r = this.innerRect;
+                var r = this.clientRect;
 
                 context.beginPath();
-                context.rect(r.x + this.offsetX, r.y + this.offsetY, r.width, r.height);
+                context.rect(r.x + this.scrollLeft, r.y + this.scrollTop, r.width, r.height);
                 context.clip();
             }
 
@@ -666,26 +649,30 @@
 
             context.restore();
         }
+    };
 
 
-        //绘制附加内容
-        if (this.additions)
+    //渲染或更新附加内容
+    prototype["y:render-additions"] = function (context, fn) {
+
+        var additions = this.additions,
+            item;
+
+        if (additions)
         {
-            items = this.additions;
-            length = items.length;
-
-            for (var i = 0; i < length; i++)
+            for (var i = 0, length = additions.length; i < length; i++)
             {
-                if ((item = items[i]) && item.visible)
+                if ((item = additions[i]) && item.visible)
                 {
-                    item[fn](context);
+                    item[fn](context, this);
                 }
             }
         }
     };
 
+
     //绘制装饰
-    prototype["y:paint:decorates"] = function (context, decorates) {
+    prototype["y:paint-decorates"] = function (context, decorates) {
 
         var reader;
 
@@ -696,18 +683,19 @@
             //未处理
             if (!(item instanceof flyingon.Shape))
             {
-                (item = decorates[i] = (reader || (reader = new flyingon.SerializeReader()))).deserialize(item);
+                item = decorates[i] = (reader || (reader = new flyingon.SerializeReader())).deserialize(item);
             }
 
             //重绘模式
-            if (item.updateMode > this["x:update:mode"])
+            if (item.updateMode > this["x:update-mode"])
             {
-                this["x:update:mode"] = item.updateMode;
+                this["x:update-mode"] = item.updateMode;
             }
 
-            item.paint(context);
+            item.paint(context, this);
         }
     };
+
 
 
 

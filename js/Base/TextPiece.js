@@ -30,8 +30,8 @@
 
         var value_1 = 0,
             value_2 = 0,
-            cache_1 = this["x:cache:1"] = [0],
-            cache_2 = this["x:cache:2"] = [0];
+            cache_1 = this["x:cache-1"] = [0],
+            cache_2 = this["x:cache-2"] = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
@@ -112,12 +112,15 @@
         }
 
 
-        columnIndex < 0 && (columnIndex = 0);
+        if (columnIndex < 0)
+        {
+            columnIndex = 0;
+        }
 
 
-        var index = (this["x:cache:1"] || initialize.call(this)["x:cache:1"]).binaryBetween(columnIndex),
+        var index = (this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(columnIndex),
             snippet = this[index],
-            charIndex = columnIndex - this["x:cache:1"][index];
+            charIndex = columnIndex - this["x:cache-1"][index];
 
 
         return {
@@ -125,7 +128,7 @@
             snippetIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this["x:cache:2"][index] + snippet.position(charIndex)
+            x: this["x:cache-2"][index] + snippet.position(charIndex)
         };
     };
 
@@ -133,7 +136,7 @@
     //查找指定位置的测量信息
     prototype.findAt = function (x) {
 
-        var index = (this["x:cache:2"] || initialize.call(this)["x:cache:2"]).binaryBetween(x),
+        var index = (this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(x),
             snippet = this[index],
             charIndex,
             x;
@@ -146,8 +149,8 @@
         }
         else
         {
-            charIndex = snippet.charAt(x - this["x:cache:2"][index]);
-            x = this["x:cache:2"][index] + snippet.position(charIndex);
+            charIndex = snippet.charAt(x - this["x:cache-2"][index]);
+            x = this["x:cache-2"][index] + snippet.position(charIndex);
         }
 
 
@@ -155,7 +158,7 @@
 
             snippetIndex: index,
             charIndex: charIndex,
-            columnIndex: this["x:cache:1"][index] + charIndex,
+            columnIndex: this["x:cache-1"][index] + charIndex,
             x: x
         };
     };

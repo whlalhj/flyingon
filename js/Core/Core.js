@@ -37,7 +37,6 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-
 //扩展函数
 (function (flyingon) {
 
@@ -60,7 +59,10 @@ var flyingon = this.flyingon = this.flyingon || {};
     prototype.remove = function (item) {
 
         var index = this.indexOf(item);
-        index >= 0 && this.splice(index, 1);
+        if (index >= 0)
+        {
+            this.splice(index, 1);
+        }
     };
 
 
@@ -74,8 +76,15 @@ var flyingon = this.flyingon = this.flyingon || {};
     //二分法搜索数据段
     prototype.binaryBetween = function (value, start, end) {
 
-        (start == null || start < 0) && (start = 0);
-        (end == null || end >= this.length) && (end = this.length - 1);
+        if (start == null || start < 0)
+        {
+            start = 0;
+        }
+
+        if (end == null || end >= this.length)
+        {
+            end = this.length - 1;
+        }
 
 
         if (this[start] >= value)
@@ -130,8 +139,15 @@ var flyingon = this.flyingon = this.flyingon || {};
     //二分法查找子项位置
     prototype.binaryIndexOf = function (value, start, end) {
 
-        (start == null || start < 0) && (start = 0);
-        (end == null || end >= this.length) && (end = this.length - 1);
+        if (start == null || start < 0)
+        {
+            start = 0;
+        }
+
+        if (end == null || end >= this.length)
+        {
+            end = this.length - 1;
+        }
 
 
         if (this[start] > value || this[end] < value)
@@ -166,8 +182,15 @@ var flyingon = this.flyingon = this.flyingon || {};
     //二分法搜索
     prototype.binarySearch = function (callbackfn, start, end) {
 
-        (start == null || start < 0) && (start = 0);
-        (end == null || end >= this.length) && (end = this.length - 1);
+        if (start == null || start < 0)
+        {
+            start = 0;
+        }
+
+        if (end == null || end >= this.length)
+        {
+            end = this.length - 1;
+        }
 
 
         var center, result;
@@ -208,7 +231,6 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 })(flyingon);
-
 
 
 
@@ -315,15 +337,29 @@ var flyingon = this.flyingon = this.flyingon || {};
             enumerable: true
         };
 
-        getter && (attributes.get = getter);
-        setter && (attributes.set = setter);
+        if (getter)
+        {
+            attributes.get = getter;
+        }
+
+        if (setter)
+        {
+            attributes.set = setter;
+        }
 
         Object.defineProperty(target, name, attributes);
 
     } : function (target, name, getter, setter) {
 
-        getter && target.__defineGetter__(name, getter);
-        setter && target.__defineSetter__(name, setter);
+        if (getter)
+        {
+            target.__defineGetter__(name, getter);
+        }
+
+        if (setter)
+        {
+            target.__defineSetter__(name, setter);
+        }
     };
 
 
@@ -332,7 +368,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
     //增加模板函数支持 以当前函数为模板动态创建新函数
-    flyingon["y:template:to"] = function (fn, values, names) {
+    flyingon["y:template-to"] = function (fn, values, names) {
 
         var body = fn.toString().replace(/"\{\w+\}"/g, function (value) {
 
@@ -346,7 +382,10 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if (index++ > 0)
                 {
                     var lastIndexOf = value.lastIndexOf("}");
-                    lastIndexOf > 0 && (value = value.substring(index, lastIndexOf));
+                    if (lastIndexOf > 0)
+                    {
+                        value = value.substring(index, lastIndexOf);
+                    }
                 }
             }
 
@@ -359,7 +398,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
     //浅复制源对象属性至目标属性(对象直接复制引用)
     //ignoreExists: 是否忽略已存在的属性
-    flyingon["y:simple:copy"] = function (source, target, ignoreExists) {
+    flyingon["simple-copy"] = function (source, target, ignoreExists) {
 
 
         var names = Object.getOwnPropertyNames(source);
@@ -375,12 +414,15 @@ var flyingon = this.flyingon = this.flyingon || {};
 
                 if (cache != null && typeof cache == "object")
                 {
-                    flyingon["y:simple:copy"](value, cache, ignoreExists);
+                    flyingon["simple-copy"](value, cache, ignoreExists);
                     continue;
                 }
             }
 
-            (!ignoreExists || !target.hasOwnProperty(name)) && (target[name] = value);
+            if (!ignoreExists || !target.hasOwnProperty(name))
+            {
+                target[name] = value;
+            }
         }
 
         return target;
@@ -389,7 +431,7 @@ var flyingon = this.flyingon = this.flyingon || {};
 
     //深度复制源对象属性至目标属性(创建新对象)
     //ignoreExists: 是否忽略已存在的属性
-    flyingon["y:deep:copy"] = function (source, target, ignoreExists) {
+    flyingon["deep-copy"] = function (source, target, ignoreExists) {
 
 
         var names = Object.getOwnPropertyNames(source);
@@ -406,7 +448,7 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if ((cache === undefined && (cache = target[name] = {})) ||
                     (cache !== null && typeof cache == "object"))
                 {
-                    flyingon["y:deep:copy"](value, cache, ignoreExists);
+                    flyingon["deep-copy"](value, cache, ignoreExists);
                 }
             }
             else if (!ignoreExists || !target.hasOwnProperty(name))
@@ -445,65 +487,6 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 })(flyingon);
-
-
-
-
-//名字空间
-(function (global, flyingon) {
-
-
-    //缓存命名空间
-    var cache = { "flyingon": flyingon };
-
-
-    //名字空间类
-    function Namespace(name) {
-
-        this.namespaceName = name;
-        cache[name] = this;
-    };
-
-
-
-    //创建或切换名字空间方法
-    flyingon.namespace = function (name, fn) {
-
-        var result = cache[name];
-
-        if (!result && name)
-        {
-            result = global;
-
-            var values = name.split(".");
-
-            for (var i = 0, length = values.length; i < length; i++)
-            {
-                var value = values[i];
-
-                if (value)
-                {
-                    name = i == 0 ? value : (name + "." + value);
-
-                    !result[value] && (result[value] = new Namespace(name));
-                    result = result[value];
-                }
-            }
-        }
-
-        flyingon.namespace.current = result || flyingon; //切换当前命名空间
-
-        fn && fn(flyingon, result);
-
-        return result;
-    };
-
-
-    //切换当前命名空间为默认命名空间
-    flyingon.namespace.current = flyingon;
-
-
-})(this, flyingon);
 
 
 
@@ -548,6 +531,90 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
+//名字空间
+(function (flyingon) {
+
+
+    //缓存命名空间
+    var cache = { "flyingon": flyingon },
+        global = this;
+
+
+    //名字空间类
+    var Class = function (name) {
+
+        this["x:name"] = name;
+        cache[name] = this;
+    };
+
+
+
+    //创建或切换名字空间方法
+    flyingon.namespace = function (namespace, fn) {
+
+        var result = namespace;
+
+        if (result)
+        {
+            if (result.constructor == String && !(result = cache[result]))
+            {
+                result = global;
+
+                var names = namespace.split("."),
+                    name,
+                    value;
+
+                for (var i = 0, length = names.length; i < length; i++)
+                {
+                    if (name = names[i])
+                    {
+                        value = (value && value + "." + name) || name;
+                        result = result[name] || (result[name] = new Class(value));
+                    }
+                }
+            }
+        }
+        else
+        {
+            result = flyingon;
+        }
+
+        result = flyingon["x:namespace"] = result; //切换当前命名空间
+
+        if (fn)
+        {
+            fn(result, flyingon);
+        }
+
+        return result;
+    };
+
+
+
+    //获取类全名
+    flyingon["y:classFullName"] = function (namespace, className, with_default) {
+
+        var name = namespace && namespace["x:name"];
+
+        if (name)
+        {
+            return name + "." + className;
+        }
+
+        return with_default ? "flyingon." + className : className;
+    };
+
+
+
+    //切换当前命名空间为默认命名空间
+    flyingon["x:namespace"] = flyingon;
+
+
+}).call(this, flyingon);
+
+
+
+
 //基类及继承实现
 (function (flyingon) {
 
@@ -572,13 +639,12 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-    flyingon["x:registryList"] = { "flyingon.RootObject": flyingon.RootObject };
+    flyingon["x:registryList"] = { "RootObject": flyingon.RootObject };
 
 
     flyingon.registryClass = function (Class, classFullName) {
 
-        var name = classFullName || Class.classFullName;
-        flyingon["x:registryList"][name] = Class;
+        flyingon["x:registryList"][classFullName || Class.classFullName] = Class;
     };
 
     flyingon.unregistryClass = function (classFullName) {
@@ -634,8 +700,8 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-        var namespace = flyingon.namespace.current, //当前名字空间
-            classFullName = (namespace.namespaceName ? namespace.namespaceName + "." : "") + className; //类全名
+        var namespace = flyingon["x:namespace"], //当前名字空间
+            classFullName = flyingon["y:classFullName"](namespace, className); //类全名
 
 
 
@@ -666,7 +732,6 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
         flyingon.registryClass(Class); //注册类
-
         namespace[className] = Class; //输出类
 
 
@@ -681,52 +746,55 @@ var flyingon = this.flyingon = this.flyingon || {};
         if (superClass_create)
         {
             var Class_create = Class.create,
-                constructor_chain = superClass["x:constructor-chain"];
+                create_chain = superClass["x:create-chain"];
 
             if (Class_create)
             {
                 //合并构造函数 注:已有构造链时不可以合并
-                if (!constructor_chain && constructor_merge) 
+                if (!create_chain && constructor_merge)
                 {
                     Class_create = new flyingon.MetaFunction(Class_create);
                     Class.create = Class_create.merge(superClass_create, true).fn;
                 }
                 else //生成构造链
                 {
-                    (Class["x:constructor-chain"] = (constructor_chain && constructor_chain.slice(0)) || [superClass_create]).push(Class_create);
+                    (Class["x:create-chain"] = (create_chain && create_chain.slice(0)) || [superClass_create]).push(Class_create);
 
                     Class.create = function () {
 
-                        var constructor_chain = Class["x:constructor-chain"];
-                        for (var i = 0, length = constructor_chain.length; i < length; i++)
+                        var create_chain = Class["x:create-chain"];
+                        for (var i = 0, length = create_chain.length; i < length; i++)
                         {
-                            constructor_chain[i].apply(this, arguments);
+                            create_chain[i].apply(this, arguments);
                         }
                     };
                 }
             }
             else
             {
-                constructor_chain && (Class["x:constructor-chain"] = constructor_chain);
+                if (create_chain)
+                {
+                    Class["x:constructor-chain"] = create_chain;
+                }
+
                 Class.create = superClass_create;
             }
         }
 
 
 
-        //初始化链
-        var initialize_chain = superClass["x:initialize-chain"],
-            initialize = Class.initialize;
-
-        if (initialize || initialize_chain)
+        //类初始化
+        var inherit_chain = [superClass, Class];
+        while (superClass = superClass.superClass)
         {
-            initialize_chain = Class["x:initialize-chain"] = initialize_chain ? initialize_chain.slice(0) : [];
+            inherit_chain.unshift(superClass);
+        }
 
-            initialize && initialize_chain.push(initialize);
-
-            for (var i = 0; i < initialize_chain.length; i++) //执行初始化类方法(从基类开始执行)
+        for (var i = 0, length = inherit_chain.length; i < length; i++)
+        {
+            if (inherit_chain[i].initialize)
             {
-                initialize_chain[i].call(Class, flyingon);
+                inherit_chain[i].initialize(Class, flyingon);
             }
         }
 

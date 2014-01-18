@@ -5,47 +5,48 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
     var host,                       //主容器
         dragging = false,           //是否处理拖动
-        mouseDown = false;          //鼠标是否按下
+        mousedown_cache = false;          //鼠标是否按下
 
 
 
     Class.create = function () {
 
 
-        //默认设置为初始化状态,在第一次渲染窗口后终止
-        flyingon["x:initializing"] = true;
+        var div = this["dom-window"] = document.createElement("div");
 
+        div.setAttribute("flyingon", "window");
+        div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
+        div.setAttribute("tabindex", "0");
+        div.appendChild(this["dom-layer"]);
 
-
-        var style = "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;";
-
-
-        var domMask = this.domMask = document.createElement("div");
-        domMask.setAttribute("flyingon", "window.mask");
-        domMask.setAttribute("style", style + "background-color:white;opacity:0.1;");
-
-
-        var domWindow = this.domWindow = document.createElement("div");
-
-        domWindow["x:ownerWindow"] = this.domLayer["x:ownerWindow"] = this.domCanvas["x:ownerWindow"] = this; //缓存当前对象
-
-        domWindow.setAttribute("flyingon", "window");
-        domWindow.setAttribute("style", style);
-        domWindow.setAttribute("tabindex", "0");
+        div["x:ownerWindow"] = this["dom-layer"]["x:ownerWindow"] = this["dom-canvas"]["x:ownerWindow"] = this; //缓存当前对象
 
         //IE禁止选中文本 其它浏览器使用样式控件 -moz-user-select:none;-webkit-user-select:none;
-        domWindow.onselectstart = domMask.onselectstart = function (event) {
-
-            return false;
-        };
-
-        //设置图层
-        domWindow.appendChild(this.domLayer);
-        this.layers = [this];
+        div.onselectstart = function (event) { return false; };
 
 
+        this.layers = [this]; //初始化图层
+        this["x:windows"] = [];   //子窗口集合
 
-        domWindow.addEventListener("mousedown", mousedown, true);
+
+        //默认设置为初始化状态,在渲染窗口后终止
+        flyingon["x:initializing"] = true;
+
+        //绑定dom事件
+        this["y:binging-event"](div);
+
+        //初始化输入符
+        flyingon["y:initialize-caret"].call(this, this["dom-window"]);
+    };
+
+
+
+    //绑定dom事件
+    this["y:binging-event"] = function (div) {
+
+
+        //绑定事件
+        div.addEventListener("mousedown", mousedown, true);
 
         //宿主
         if (!host)
@@ -60,30 +61,20 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         }
 
 
-        domWindow.addEventListener("click", click, true);
-        domWindow.addEventListener("dblclick", dblclick, true);
+        div.addEventListener("click", click, true);
+        div.addEventListener("dblclick", dblclick, true);
 
-        domWindow.addEventListener("mousewheel", mousewheel, true);
-        domWindow.addEventListener("DOMMouseScroll", mousewheel, true); //firefox
+        div.addEventListener("mousewheel", mousewheel, true);
+        div.addEventListener("DOMMouseScroll", mousewheel, true); //firefox
 
-        domWindow.addEventListener("keydown", keydown, true);
-        domWindow.addEventListener("keypress", keypress, true);
-        domWindow.addEventListener("keyup", keyup, true);
+        div.addEventListener("keydown", key_event, true);
+        div.addEventListener("keypress", key_event, true);
+        div.addEventListener("keyup", key_event, true);
 
-
-        //初始化插入符
-        caret.call(this, domWindow);
-
-
-        //子窗口集合
-        this["x:windows"] = [];
 
         //创建控件捕获延迟执行器
-        this["x:captureDelay"] = new flyingon.DelayExecutor(10, captureControl, this);
+        this["x:capture-delay"] = new flyingon.DelayExecutor(10, capture_control, this);
     };
-
-
-
 
 
     //所属窗口
@@ -120,7 +111,10 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         if (parentWindow)
         {
-            deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]) && activateWindow["y:deactivate"]();
+            if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
+            {
+                activateWindow["y:deactivate"]();
+            }
 
             parentWindow["x:activateWindow"] = this;
             this["y:activate"]();
@@ -144,16 +138,23 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     };
 
 
+
+    //定义活动状态
+    this.defineStates("activate-states", "activate");
+
+
     this["y:activate"] = function () {
 
-        this.domWindow.style.zIndex = 9991;
+        this["dom-window"].style.zIndex = 9991;
         this.dispatchEvent("activate");
+        this.switchState("activate-states", "activate");
     };
 
     this["y:deactivate"] = function () {
 
-        this.domWindow.style.zIndex = 9990;
+        this["dom-window"].style.zIndex = 9990;
         this.dispatchEvent("deactivate");
+        this.switchState("activate-states", "deactivate");
     };
 
 
@@ -185,21 +186,24 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     this.appendLayer = function (zIndex, layer) {
 
         var storage = this["x:storage"],
-            result = layer || new flyingon.Layer();
+            result = layer || new flyingon.Layer(),
+            dom_layer = result["dom-layer"],
+            dom_canvas = result["dom-canvas"];
 
 
-        zIndex && (result.domLayer.style.zIndex = zIndex);
+        if (zIndex)
+        {
+            dom_layer.style.zIndex = zIndex;
+        }
 
-        result.domCanvas.width = storage.width;
-        result.domCanvas.height = storage.height;
-
+        dom_canvas.width = storage.width;
+        dom_canvas.height = storage.height;
         result["x:boxModel"].measure(null, 0, 0, storage.width, storage.height);
-
         result["x:parent"] = this;
 
-        result.domLayer["x:ownerWindow"] = result.domCanvas["x:ownerWindow"] = this;
+        dom_layer["x:ownerWindow"] = dom_canvas["x:ownerWindow"] = this;
 
-        this.domWindow.appendChild(result.domLayer);
+        this["dom-window"].appendChild(dom_layer);
         this.layers.push(result);
 
         return result;
@@ -210,9 +214,9 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         if (layer)
         {
-            layer["x:parent"] = layer.domLayer["x:ownerWindow"] = layer.domCanvas["x:ownerWindow"] = null;
+            layer["x:parent"] = layer["dom-layer"]["x:ownerWindow"] = layer["dom-canvas"]["x:ownerWindow"] = null;
 
-            this.domWindow.removeChild(layer.domLayer);
+            this["dom-window"].removeChild(layer["dom-layer"]);
             this.layers.remove(layer);
         }
     };
@@ -243,109 +247,114 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         {
             var x = 0,
                 y = 0,
-                target = this.domWindow || event.target;
+                target = this["dom-window"] || event.target,
+                body = document.body;
 
             while (target)
             {
-                x += target.offsetLeft;
+                x += target.scrollLeft;
                 y += target.offsetTop;
 
                 target = target.offsetParent;
             }
 
             //不能使用offsetX 在IE下无法重赋值
-            event["x:offsetX"] = event.clientX - x;
-            event["x:offsetY"] = event.clientY - y;
+            event["x:offsetX"] = event.pageX - x;
+            event["x:offsetY"] = event.pageY - y;
         }
     };
 
 
-    //触发带mouseDown的鼠标事件
-    function dispatchEvent(type, target, domMouseEvent) {
+    //触发带mousedown的鼠标事件
+    function dispatchEvent(type, target, dom_MouseEvent) {
 
-        var event = new flyingon.MouseEvent(type, target, domMouseEvent);
-        event.mouseDown = mouseDown;
+        var event = new flyingon.MouseEvent(type, target, dom_MouseEvent);
+        event.mousedown = mousedown_cache;
 
         target.dispatchEvent(event);
     };
 
 
     //控件捕获
-    function captureControl(domMouseEvent) {
+    function capture_control(dom_MouseEvent) {
 
 
-        var source = flyingon["x:mouseControl"],
-            target = this.getControlAt(domMouseEvent["x:offsetX"], domMouseEvent["x:offsetY"]) || this;
+        var source = flyingon["x:hover-control"],
+            target = this.getControlAt(dom_MouseEvent["x:offsetX"], dom_MouseEvent["x:offsetY"]) || this;
 
         if (target != source)
         {
             document.title = target.id;
 
-            flyingon["x:mouseControl"] = target;
+            flyingon["x:hover-control"] = target;
 
             if (source)
             {
+                dispatchEvent("mouseout", source, dom_MouseEvent);
+
                 source.switchState("hover-states", "leave-animate");
-                dispatchEvent("mouseout", source, domMouseEvent);
             }
 
             if (target && target["x:storage"].enabled)
             {
-                this.domWindow.style.cursor = target["y:cursor"](domMouseEvent);
+                this["dom-window"].style.cursor = target["y:cursor"](dom_MouseEvent);
+
+                dispatchEvent("mouseover", target, dom_MouseEvent);
+                dispatchEvent("mousemove", target, dom_MouseEvent);
 
                 target.switchState("hover-states", "hover");
-
-                dispatchEvent("mouseover", target, domMouseEvent);
-                dispatchEvent("mousemove", target, domMouseEvent);
             }
         }
     };
 
 
-    function mousedown(domMouseEvent) {
+    function mousedown(dom_MouseEvent) {
 
 
-        var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute();
+        var ownerWindow = this["x:ownerWindow"]["x:capture-delay"].execute();
 
 
         //设置鼠标按下
-        mouseDown = true;
+        mousedown_cache = true;
 
 
 
         //处理弹出窗口
-        ownerWindow != ownerWindow.mainWindow.getActivateWindow() && ownerWindow.activate(true); //活动窗口不是当前点击窗口
-
+        if (ownerWindow != ownerWindow.mainWindow.getActivateWindow()) //活动窗口不是当前点击窗口
+        {
+            ownerWindow.activate(true);
+        }
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
+        var target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
 
         if (target && target["x:storage"].enabled)
         {
-            offset.call(ownerWindow, domMouseEvent);
+            offset.call(ownerWindow, dom_MouseEvent);
 
             //如果可拖动
             if (dragging = target["x:storage"].draggable || ownerWindow["x:storage"].designMode)
             {
-                flyingon.Dragdrop.start(ownerWindow, target, domMouseEvent, true);
+                flyingon.Dragdrop.start(ownerWindow, target, dom_MouseEvent, true);
             }
             else
             {
                 //分发事件
-                var event = new flyingon.MouseEvent("mousedown", target, domMouseEvent);
+                var event = new flyingon.MouseEvent("mousedown", target, dom_MouseEvent);
                 target.dispatchEvent(event);
 
 
                 //处理焦点
-                var focusControl = ownerWindow["x:focusControl"];
-
                 if (target["x:storage"].focusable)
                 {
-                    var validate = true;
+                    var focused = ownerWindow["x:focused-control"];
+                    if (focused && focused != target && focused.validate())
+                    {
+                        focused["y:blur"]();
+                    }
 
-                    focusControl && focusControl != target && (validate = focusControl.validate()) && focusControl["y:blur"]();
-                    validate && target["y:focus"](event);
+                    target["y:focus"](event);
                 }
             }
 
@@ -353,57 +362,60 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             //设置捕获(注:setCapture及releaseCapture仅IE支持,不能使用)
             host["x:ownerWindow"] = ownerWindow;
 
-            domMouseEvent.stopPropagation();
+            dom_MouseEvent.stopPropagation();
         }
     };
 
 
-    function mousemove(domMouseEvent) {
+    function mousemove(dom_MouseEvent) {
 
 
-        var ownerWindow = host["x:ownerWindow"] || domMouseEvent.target["x:ownerWindow"],
+        var ownerWindow = host["x:ownerWindow"] || dom_MouseEvent.target["x:ownerWindow"],
             target;
 
 
         if (ownerWindow)
         {
-            offset.call(ownerWindow, domMouseEvent);
+            offset.call(ownerWindow, dom_MouseEvent);
 
             if (dragging) //处理拖动
             {
-                flyingon.Dragdrop.move(domMouseEvent);
+                flyingon.Dragdrop.move(dom_MouseEvent);
             }
-            else if (target = ownerWindow["x:captureControl"]) //启用捕获
+            else if (target = ownerWindow["x:capture-control"]) //启用捕获
             {
-                target["x:storage"].enabled && dispatchEvent("mousemove", target, domMouseEvent);
+                if (target["x:storage"].enabled)
+                {
+                    dispatchEvent("mousemove", target, dom_MouseEvent);
+                }
             }
             else
             {
-                ownerWindow["x:captureDelay"].registry([domMouseEvent]); //启用延迟捕获
+                ownerWindow["x:capture-delay"].registry([dom_MouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = flyingon["x:mouseControl"])
+        else if (target = flyingon["x:hover-control"])
         {
-            flyingon["x:mouseControl"] = null;
-            target.switchState("hover-states", "leave-animate");
+            flyingon["x:hover-control"] = null;
 
-            dispatchEvent("mouseout", target, domMouseEvent);
+            dispatchEvent("mouseout", target, dom_MouseEvent);
+            target.switchState("hover-states", "leave-animate");
         }
     };
 
 
-    function mouseup(domMouseEvent) {
+    function mouseup(dom_MouseEvent) {
 
 
         var ownerWindow = host["x:ownerWindow"];
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
+            var target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
 
             if (target && target["x:storage"].enabled)
             {
-                offset.call(ownerWindow, domMouseEvent);
+                offset.call(ownerWindow, dom_MouseEvent);
 
                 if (dragging)
                 {
@@ -415,7 +427,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                     }
                 }
 
-                target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, domMouseEvent));
+                target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, dom_MouseEvent));
             }
 
 
@@ -423,55 +435,55 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             host["x:ownerWindow"] = null;
 
             //设置鼠标弹起
-            mouseDown = false;
+            mousedown_cache = false;
         }
     };
 
 
 
     //鼠标事件翻译方法
-    function translateMouseEvent(type, domMouseEvent) {
+    function translate_MouseEvent(type, dom_MouseEvent) {
 
 
-        var ownerWindow = this["x:ownerWindow"]["x:captureDelay"].execute(),
-            target = ownerWindow["x:captureControl"] || flyingon["x:mouseControl"];
+        var ownerWindow = this["x:ownerWindow"]["x:capture-delay"].execute(),
+            target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
 
 
         if (target && target["x:storage"].enabled)
         {
-            offset.call(ownerWindow, domMouseEvent);
-            target.dispatchEvent(new flyingon.MouseEvent(type, target, domMouseEvent));
+            offset.call(ownerWindow, dom_MouseEvent);
+            target.dispatchEvent(new flyingon.MouseEvent(type, target, dom_MouseEvent));
         }
 
-        domMouseEvent.stopPropagation();
+        dom_MouseEvent.stopPropagation();
     };
 
-    function click(domMouseEvent) {
+    function click(dom_MouseEvent) {
 
-        translateMouseEvent.call(this, "click", domMouseEvent);
+        translate_MouseEvent.call(this, "click", dom_MouseEvent);
     };
 
-    function dblclick(domMouseEvent) {
+    function dblclick(dom_MouseEvent) {
 
-        translateMouseEvent.call(this, "dblclick", domMouseEvent);
+        translate_MouseEvent.call(this, "dblclick", dom_MouseEvent);
     };
 
-    function mousewheel(domMouseEvent) {
+    function mousewheel(dom_MouseEvent) {
 
-        translateMouseEvent.call(this, "mousewheel", domMouseEvent);
+        translate_MouseEvent.call(this, "mousewheel", dom_MouseEvent);
     };
 
 
 
-    function keydown(domMouseEvent) {
+    function key_event(dom_KeyEvent) {
 
         var ownerWindow = this["x:ownerWindow"],
-            focuseControl = ownerWindow["x:focuseControl"];
+            focused = ownerWindow["x:focused-control"];
 
         //如果有输入焦点控件则发送事件至输入焦点控件
-        if (focuseControl && focuseControl["x:storage"].enabled)
+        if (focused && focused["x:storage"].enabled)
         {
-            target.dispatchEvent(new flyingon.KeyEvent(domMouseEvent.type, target, domMouseEvent));
+            focused.dispatchEvent(new flyingon.KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent));
         }
         else //否则处理accessKey
         {
@@ -480,31 +492,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
     };
 
-    var keypress = keydown, keyup = keydown;
 
-
-
-    this["y:fill"] = function (storage) {
-
-        flyingon["x:initializing"] = false;
-
-        var domHost = this.domWindow.parentNode;
-
-        if (domHost)
-        {
-            var r = domHost.getBoundingClientRect();
-
-            if (storage)
-            {
-                this["x:storage"].width = r.width;
-                this["x:storage"].height = r.height;
-            }
-
-            return r;
-        }
-
-        return { width: 0, height: 0 };
-    };
 
 
     //使区域无效
@@ -523,318 +511,43 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    ///插入符
-    function caret(parentNode) {
+    this["y:getBoundingClientRect"] = function (fullMode) {
 
+        flyingon["x:initializing"] = false;
 
-        var timer,
+        var r = this["dom-window"].getBoundingClientRect();
 
-            target,
-            boxModel,
-            textMetrics,
-            point,
+        if (fullMode) //画布充满窗口
+        {
+            this["x:storage"].width = r.width;
+            this["x:storage"].height = r.height;
+        }
 
-            div = document.createElement("div"),
-            input = document.createElement("input"), //输入助手
+        return r;
+    };
 
-            ime = 0; //对中文输入时有输入预览的浏览器进行特殊处理 chrome safari Opera
+    //重新调整窗口大小
+    this["y:resize"] = function (offsetX, offsetY, width, height) {
 
+        var layers = this.layers;
 
-        div.setAttribute("flyingon", "caret");
+        for (var i = 0, length = layers.length; i < length; i++)
+        {
+            var layer = layers[i],
+                canvas = layer["dom-canvas"],
+                box = layer["x:boxModel"];
 
-        input.type = "text";
-        input.setAttribute("flyingon", "input");
-        input.setAttribute("style", "position:absolute;z-index:-1;padding:0;border:0;width:1px;height:1px;top:100px;");
+            layer.unregistryUpdate();
 
+            canvas.width = width; //清空画布
+            canvas.height = height;
 
-        navigator.userAgent.match(/MSIE/) && (input.style.width = 0);
-
-
-        input.onselectstart = function (event) {
-
-            event.stopPropagation();
-            return true;
-        };
-
-
-        parentNode.appendChild(div);
-        parentNode.appendChild(input);
-
-
-
-
-
-
-        function toggle() {
-
-            div.style.visibility = div.style.visibility == "visible" ? "hidden" : "visible";
-        };
-
-
-        function show() {
-
-            var box = boxModel.parent,
-                x = point.x,
-                y = point.y,
-                height = textMetrics.font.lineHeight + 2;
-
-
-            //处理不完全显示
-            if (box)
-            {
-                var r = box.innerRect,
-                    value;
-
-                if ((value = r.windowY - y) > 0)
-                {
-                    y += value;
-                    height -= value
-                }
-
-                (value = y + height - r.windowY - r.height) > 0 && (height -= value);
-                height < 0 && (height = 0);
-            }
-
-            div.setAttribute("style", "visibility:visible;position:absolute;background-color:black;z-Index:9998;width:1px;left:" + x + "px;top:" + y + "px;height:" + height + "px;");
-        };
-
-
-        //更新控件
-        function update() {
-
-
-            timer && clearInterval(timer);
-
-
-            var r = boxModel.innerRect,
-                x = textMetrics.caretEnd.x;
-
-
-            //自动滚动调整
-            if (x < boxModel.offsetX)
-            {
-                boxModel.offsetX = x;
-            }
-            else
-            {
-                var right = boxModel.offsetX + r.width;
-
-                if (x > right)
-                {
-                    boxModel.offsetX = x - r.width;
-                    x = right;
-                }
-                else if (right <= r.width)
-                {
-                    boxModel.offsetX = 0;
-                }
-            }
-
-
-            //显示插入符
-            point = boxModel.targetToOffset(r.spaceX + x - boxModel.offsetX, r.spaceY);
-            x > 0 && (point.x -= 1);
-
-
-            input.style.left = point.x + "px";
-            input.style.top = point.y + "px";
-
-
-            show();
-            timer = setInterval(toggle, 500);
-
-
-            //更新控件
-            target.invalidate();
-        };
-
-
-        //输入字符
-        function oninput(text) {
-
-            if (ime >= 0) //输入法
-            {
-                var value = text.charAt(ime);
-
-                if (value >= "A" && value <= "z")
-                {
-                    return;
-                }
-
-                if (++ime >= text.length)
-                {
-                    ime = 0;
-                    input.value = "";
-                }
-
-                text = value;
-            }
-            else
-            {
-                ime = 0;
-                input.value = "";
-            }
-
-
-            textMetrics.replace(text);
-            update.call(this);
-        };
-
-        //移动
-        function move(selectionTo, textIndex, selected) {
-
-            if (selectionTo)
-            {
-                textMetrics.selectionTo(textIndex);
-                reset();
-            }
-            else
-            {
-                textMetrics.moveTo(selected && textMetrics.selectedText ? textMetrics.caretEnd.textIndex : textIndex);
-                update.call(this);
-            }
-        };
-
-
-        input.onkeypress = function (event) {
-
-            ime = -1; //开启输入法时不会触发
-            event.stopPropagation();
-        };
-
-        input.onkeyup = function (event) {
-
-            event.stopPropagation();
-
-
-            var keyCode = event.keyCode;
-
-            switch (keyCode)
-            {
-                case 8: //BackSpace
-                    textMetrics.remove(-1);
-                    update.call(this);
-                    return;
-
-                case 33: //Prior:
-                case 37: //Left:
-                    move.call(this, event.shiftKey, textMetrics.caretEnd.textIndex - 1, true);
-                    return;
-
-                case 34: //Next:
-                case 39: //Right:
-                    move.call(this, event.shiftKey, textMetrics.caretEnd.textIndex + 1, true);
-                    return;
-
-                case 35: //End:
-                    move.call(this, event.shiftKey, textMetrics.text.length);
-                    return;
-
-                case 36: //Home:
-                    move.call(this, event.shiftKey, 0);
-                    return;
-
-                case 38: //Up:
-                    return;
-
-                case 40: //Down:
-                    return;
-
-                case 46: //Delete
-                    textMetrics.remove(1);
-                    update.call(this);
-                    return;
-            }
-
-
-            if (event.ctrlKey)
-            {
-                switch (keyCode)
-                {
-
-                    case 65: //a A
-                        textMetrics.moveTo(0);
-                        textMetrics.selectionTo(textMetrics.text.length);
-                        reset();
-                        return;
-
-                    case 67: //c C
-                        return;
-
-                    case 86: //v V
-                        textMetrics.replace(input.value);
-                        input.value = "";
-                        update.call(this);
-                        return;
-
-                    case 88: //x X
-                        textMetrics.remove(0);
-                        update.call(this);
-                        return;
-
-                        //case 90: //z Z //undo redo 暂未实现
-                        //    return;
-                }
-            }
-
-
-            keyCode != 17 && !input.readOnly && input.value && oninput.call(this, input.value); //不处理ctrl键
-        };
-
-
-
-
-        //变更插入符位置
-        this["y:caret"] = function (changedX, changedY) {
-
-            if (boxModel)
-            {
-                point.x -= changedX;
-                point.y -= changedY;
-
-                show();
-            }
-        };
-
-
-        //打开输入助手
-        this["y:open:input"] = function (ownerControl, readOnly) {
-
-            target = ownerControl;
-            boxModel = ownerControl["x:boxModel"];
-            textMetrics = ownerControl["x:textMetrics"];
-
-            input.readOnly = readOnly;
-            reset();
-        };
-
-        //重置输入助手
-        var reset = this["y:input"] = function () {
-
-            input.focus();
-            input.value = textMetrics.selectedText;
-            input.select();
-
-            update.call(this);
-        };
-
-        //关闭输入助手
-        this["y:close:input"] = function () {
-
-            if (timer)
-            {
-                clearInterval(timer);
-                timer = null;
-            }
-
-            div.style.visibility = "hidden";
-            input.blur();
-        };
-
-
+            box.measure(null, offsetX, offsetY, width - offsetX, height - offsetY);
+            box.render(layer.context);
+        }
     };
 
 
 
-});
+}, true);
 

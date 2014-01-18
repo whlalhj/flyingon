@@ -5,7 +5,7 @@
 /*
 
 */
-flyingon.class("TextBox", flyingon.TextBoxBase, function (Class, flyingon) {
+flyingon.class("TextBox", flyingon.Control, function (Class, flyingon) {
 
 
 

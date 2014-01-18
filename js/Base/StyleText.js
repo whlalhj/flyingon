@@ -149,7 +149,10 @@
         }
 
 
-        node.firstChild && renderChildren.call(context, node, data);
+        if (node.firstChild)
+        {
+            renderChildren.call(context, node, data);
+        }
 
 
         //如果需要绘制背景

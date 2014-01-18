@@ -59,8 +59,15 @@
         {
             var storage = source.pull;
 
-            storage && clearBindings(storage, dispose);
-            (storage = source.push) && clearBindings(storage, dispose);
+            if (storage)
+            {
+                clearBindings(storage, dispose);
+            }
+
+            if (storage = source.push)
+            {
+                clearBindings(storage, dispose);
+            }
         }
     };
 
@@ -142,7 +149,11 @@
         if (cache = bindings.pull)
         {
             //一个目标属性只能绑定一个
-            cache[name] && cache[name].clear();
+            if (cache[name])
+            {
+                cache[name].clear();
+            }
+
             cache[name] = this;
         }
         else
@@ -174,7 +185,10 @@
 
 
         //处理更新
-        (cache = this["x:setter"]) && (this["y:setter"] = new flyingon.Expression(cache));
+        if (cache = this["x:setter"])
+        {
+            this["y:setter"] = new flyingon.Expression(cache);
+        }
     };
 
 
@@ -192,9 +206,9 @@
         else
         {
             var name = this["x:expression"];
-            if ((result = source[name]) === undefined)
+            if ((result = source[name]) === undefined && source instanceof flyingon.DataObject)
             {
-                source instanceof flyingon.DataObject && (result = source.value(name));
+                 result = source.value(name);
             }
         }
 
@@ -218,7 +232,11 @@
                 var target = this["x:target"],
                     name = this["x:name"];
 
-                (result = target[name]) === undefined && target instanceof flyingon.DataObject && (result = target.value(name));
+                if ((result = target[name]) === undefined && target instanceof flyingon.DataObject)
+                {
+                    result = target.value(name);
+                }
+
                 this["x:source"][cache] = result;
             }
             else if (cache = this["y:setter"]) //表达式需要自定义setter方法
@@ -239,7 +257,7 @@
             bindings,
             cache;
 
-        if (source && target && (bindings = source["x:bindings:source"]))
+        if (source && target && (bindings = source["x:bindings-source"]))
         {
             if (cache = this["x:getter"])
             {

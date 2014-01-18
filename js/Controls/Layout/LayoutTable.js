@@ -15,7 +15,7 @@
 
 
 
-    prototype.subtable = null;
+    prototype.table = null;
 
     prototype.x = 0;
 
@@ -195,13 +195,13 @@
 
                 if (cell.subtable)
                 {
-                    var t = cell.subtable;
+                    var table = cell.subtable;
 
-                    t.x = x;
-                    t.y = y;
-                    t.spaceX = spaceX;
-                    t.spaceY = spaceY;
-                    t.compute(cell.width, row.height);
+                    table.x = x;
+                    table.y = y;
+                    table.spaceX = spaceX;
+                    table.spaceY = spaceY;
+                    table.compute(cell.width, row.height);
                 }
 
                 x += cell.width + spaceX;
@@ -326,10 +326,14 @@
 
     };
 
-    prototype.getAllCells = function () {
+    prototype["y:cells"] = function (include_children, result) {
 
-        var result = [],
-            rows = this.rows;
+        var rows = this.rows;
+
+        if (!result)
+        {
+            result = [];
+        }
 
         for (var i = 0, length = rows.length; i < length; i++)
         {
@@ -339,7 +343,15 @@
             for (var j = 0, count = cells.length; j < count; j++)
             {
                 var cell = cells[j];
-                result.push((cell.subtable && cell.subtable.getAllCells()) || cell);
+
+                if (include_children && cell.subtable)
+                {
+                    cell.subtable["y:cells"](true, result);
+                }
+                else
+                {
+                    result.push(cell);
+                }
             }
         }
 
@@ -351,7 +363,7 @@
     //顺序排列子控件
     prototype.sequenceLayout = function (children, boxModel) {
 
-        var cells = this.getAllCells(),
+        var cells = this["y:cells"](true),
             length = cells.length,
             index = 0;
 
@@ -360,13 +372,10 @@
             var item = children[i],
                 box = item["x:boxModel"];
 
-            if (box.visible = (item["x:storage"].visibility != "collapsed"))
+            if (box.visible = index < length && item["x:storage"].visibility != "collapsed")
             {
-                if (box.visible = (index < length))
-                {
-                    var cell = cells[index++];
-                    box.measure(boxModel, cell.x, cell.y, cell.width, cell.height);
-                }
+                var cell = cells[index++];
+                box.measure(boxModel, cell.x, cell.row.y, cell.width, cell.row.height);
             }
         }
     };

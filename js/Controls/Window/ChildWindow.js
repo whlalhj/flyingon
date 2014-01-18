@@ -4,26 +4,26 @@
 flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
 
-    Class.create = function () {
+    Class.create = function (parent) {
+
+        var storage = this["x:storage"];
+
+        storage.horizontalScroll = "never";
+        storage.verticalScroll = "never";
+        storage.stretch = "all";
+        storage.dock = "top";
+
+        this["y:initialize-button"]();
+        this["x:parent"] = parent;
+    };
 
 
-        this["button:icon"] = button.call(this, "left", "window-icon");
+    this["y:initialize-button"] = function () {
 
-        this["button:close"] = button.call(this, "right", "window-close", function (event) {
-
-            this.ownerWindow.close();
-        });
-
-        this["button:maximize"] = button.call(this, "right", "window-maximize", function (event) {
-
-            this.ownerWindow.close();
-        });
-
-        this["button:minimize"] = button.call(this, "right", "window-minimize", function (event) {
-
-            this.ownerWindow.close();
-        });
-
+        button.call(this, "icon-button", "left", "window-icon");
+        button.call(this, "close-button", "right", "window-close", close);
+        button.call(this, "maximize-button", "right", "window-maximize", close);
+        button.call(this, "minimize-button", "right", "window-minimize", close);
     };
 
 
@@ -36,16 +36,27 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
 
 
+    function close() {
 
-    function button(dock, styleKey, click) {
+        this.ownerWindow.close();
+    };
 
-        var result = new flyingon.PictureBox();
+    function button(name, dock, styleKey, click) {
+
+        var result = this[name] = new flyingon.PictureBox();
 
         result.dock = dock;
+        result.stretch = "height";
         result.width = 20;
         result.styleKey = styleKey;
 
-        click && (result.onclick = click);
+        if (click)
+        {
+            result.onclick = function (event) {
+
+                click.call(this);
+            };
+        }
 
         this["x:children"].append(result);
         return result;
@@ -54,70 +65,82 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
     var offsetX, offsetY;
 
-    function translate(mainWindow, left, top) {
+    function translate(storage, left, top) {
 
         if (left < 0)
         {
             left = 0;
         }
-        else if (left > mainWindow["x:storage"].width)
+        else if (left >= storage.width)
         {
-            left = mainWindow["x:storage"].width - 4;
+            left = storage.width - 8;
         }
 
         if (top < 0)
         {
             top = 0;
         }
-        else if (top > mainWindow["x:storage"].height)
+        else if (top > storage.height)
         {
-            top = mainWindow["x:storage"].height - 4;
+            top = storage.height - 8;
         }
 
-        return { left: left, top: top };
+        return {
+
+            left: left,
+            top: top
+        };
     };
 
 
 
-    this["event:mousedown"] = function (event) {
+    this["event-mousedown"] = function (event) {
 
         var ownerWindow = this.ownerWindow,
             storage = ownerWindow["x:storage"],
-            offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
-
+            offset = translate(ownerWindow.mainWindow["x:storage"], storage.left, storage.top);
 
         offsetX = offset.left - event.clientX;
         offsetY = offset.top - event.clientY;
 
-        ownerWindow["x:captureControl"] = this; //捕获鼠标
+        ownerWindow["x:capture-control"] = this; //捕获鼠标
     };
 
-    this["event:mousemove"] = function (event) {
+    this["event-mousemove"] = function (event) {
 
-        if (event.mouseDown)
+        if (event.mousedown)
         {
             var ownerWindow = this.ownerWindow,
                 storage = ownerWindow["x:storage"],
-                style = ownerWindow.domWindow.style;
-
+                style = ownerWindow["dom-window"].style;
 
             storage.left = event.clientX + offsetX,
             storage.top = event.clientY + offsetY;
 
-            var offset = translate(ownerWindow.mainWindow, storage.left, storage.top);
-
+            var offset = translate(ownerWindow.mainWindow["x:storage"], storage.left, storage.top);
             style.left = offset.left + "px";
             style.top = offset.top + "px";
         }
     };
 
-    this["event:mouseup"] = function (event) {
+    this["event-mouseup"] = function (event) {
 
-        this.ownerWindow["x:captureControl"] = null;
+        this.ownerWindow["x:capture-control"] = null;
     };
 
 
-}, true);
+
+    this["y:measure"] = function (boxModel, width) {
+
+        var storage = this["x:storage"],
+            y = (storage.visibility == "visible" && storage.height) || 0;
+
+        this["x:boxModel"].measure(boxModel, 0, 0, width, y, true).compute();
+        return y;
+    };
+
+
+});
 
 
 
@@ -130,37 +153,40 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
     Class.create = function () {
 
-
-        this.onlocationchange = function (event) {
-
-            this.domWindow.style[event.name] = event.value + "px";
-        };
-
-
-        this.titleBar = this.createTitleBar() || new flyingon.WindowTitleBar();
-        this.titleBar["x:parent"] = this;
-    };
-
-
-    //创建标题栏
-    this.createTitleBar = function () {
-
-        return null;
+        this["title-bar"] = new flyingon.WindowTitleBar(this);
     };
 
 
 
+    this.defaultValue("stretch", "all");
+
+    this.defineProperty("stretch", function () {
+
+        return "all";
+    });
 
     this.defineProperty("width", 640);
 
     this.defineProperty("height", 480);
 
-    this.defineProperty("fullMode", false, "this['x:resize'] = true");
+    this.defineProperty("fullMode", false, "this.update();");
 
     //窗口起始位置 center:居中  manual:自定义
     this.defineProperty("startPosition", "center");
 
 
+
+
+    this["event-change"] = function (event) {
+
+        switch (event.name)
+        {
+            case "left":
+            case "top":
+                this["dom-window"].style[event.name] = event.value + "px";
+                break;
+        }
+    };
 
 
     this.defineEvent("closing");
@@ -173,9 +199,9 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
     this.getControlAt = function (x, y) {
 
         //判断滚动条
-        if (this.titleBar.hitTest(x, y))
+        if (this["title-bar"].hitTest(x, y))
         {
-            return this.titleBar.getControlAt(x, y);
+            return this["title-bar"].getControlAt(x, y);
         }
 
         return flyingon.ChildWindow.super.getControlAt.call(this, x, y);
@@ -183,16 +209,13 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-    var center;
-
-    function show(parentWindow, modalWindow) {
+    function show(parentWindow, showDialog) {
 
 
         if (!parentWindow)
         {
             throw new Error("parentWindow not allow null!");
         }
-
 
         var children = parentWindow["x:windows"];
         if (!children)
@@ -207,18 +230,20 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         flyingon.defineVariable(this, "mainWindow", parentWindow.mainWindow, true, true);
 
 
-        var domHost = this.mainWindow.domHost;
+        var host = this.mainWindow["dom-host"];
 
-        //如果是模式窗口则添加遮罩层
-        modalWindow && domHost.appendChild(this.domMask);
+        if (showDialog) //如果是模式窗口则添加遮罩层
+        {
+            var mask = this["dom-mask"] = document.createElement("div");
+            mask.setAttribute("flyingon", "mask");
+            mask.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;background-color:silver;opacity:0.1;");
+            host.appendChild(this["dom-mask"]);
+        }
 
-        domHost.appendChild(this.domWindow);
-
-
-        center = this["x:storage"].startPosition == "center";
+        host.appendChild(this["dom-window"]);
 
         this.activate(true);
-        this.update();
+        this.update(this["x:storage"].startPosition == "center");
     };
 
     this.show = function (parentWindow) {
@@ -234,21 +259,6 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-    this["y:activate"] = function () {
-
-        this.titleBar["x:boxModel"].render(this.context);
-
-        flyingon.ChildWindow.super["y:activate"].call(this);
-    };
-
-    this["y:deactivate"] = function () {
-
-        this.titleBar["x:boxModel"].render(this.context);
-
-        flyingon.ChildWindow.super["y:deactivate"].call(this);
-    };
-
-
 
     this.close = function () {
 
@@ -260,21 +270,22 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
-                var domHost = this.mainWindow.domHost;
+                var host = this.mainWindow["dom-host"];
 
-                domHost.removeChild(this.domWindow);
-
-                this.domMask.parentNode && domHost.removeChild(this.domMask);
-
+                host.removeChild(this["dom-window"]);
+                if (this["dom-mask"])
+                {
+                    host.removeChild(this["dom-mask"]);
+                }
+                   
                 parentWindow["x:windows"].splice(index, 1);
 
-                flyingon.defineVariable(this, "parentWindow", null, true, true);
-                flyingon.defineVariable(this, "mainWindow", null, true, true);
+                delete this["parentWindow"];
+                delete this["mainWindow"];
 
                 this.dispatchEvent("closed");
 
-
-                parentWindow.activate(false);
+                parentWindow.activate(true);
             }
         }
 
@@ -283,29 +294,23 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-
-    this.measure = function (boxModel) {
+    //刷新窗口
+    this.update = function (center) {
 
 
         var storage = this["x:storage"],
-            titleBar = this.titleBar,
 
-            y = titleBar["x:storage"].height,
-
+            r = this["y:getBoundingClientRect"](storage.fullMode),
             width = storage.width,
             height = storage.height,
 
-            style = this.domWindow.style;
+            style = this["dom-window"].style;
 
 
         if (center)
         {
-            var r = this["y:fill"](storage.fullMode);
-
             storage.left = Math.round((r.width - width) / 2);
             storage.top = Math.round((r.height - height) / 2);
-
-            center = false;
         }
 
 
@@ -315,46 +320,8 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         style.height = height + "px";
 
 
-        //处理标题栏
-        boxModel.children = null;
-        titleBar["x:boxModel"].measure(boxModel, 0, 0, width, y, true);
-
-
-        //绘制窗口内容
-        var layers = this.layers;
-
-        for (var i = 0, length = layers.length; i < length; i++)
-        {
-            var layer = layers[i];
-
-            layer["x:boxModel"].measure(null, 0, y, width, height - y);
-
-            layer.domCanvas.width = width; //清空画布
-            layer.domCanvas.height = height;
-        }
-
-
-        //调用默认测量方法
-        boxModel.compute();
-    };
-
-
-
-    //绘制内框
-    this.paint = function (context) {
-
-        //绘制窗口内容
-        var layers = this.layers;
-
-        for (var i = 1, length = layers.length; i < length; i++)
-        {
-            var layer = layers[i];
-
-            layer.unregistryUpdate();
-            layer["x:boxModel"].render(layer.context);
-        }
-
-        flyingon.ChildWindow.super.paint.call(this, context);
+        var y = this["title-bar"]["y:measure"](this["x:boxModel"], width);
+        this["y:resize"](0, y, width, height);
     };
 
 

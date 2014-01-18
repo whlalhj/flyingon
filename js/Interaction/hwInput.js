@@ -28,7 +28,7 @@ hw.getOffSet = function (C) {
     var B = 0;
     var A = 0;
     while (C.offsetParent) {
-        B += C.offsetLeft;
+        B += C.scrollLeft;
         A += C.offsetTop;
         C = C.offsetParent
     }

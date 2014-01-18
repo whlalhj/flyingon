@@ -89,16 +89,19 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
 
-    this["event:mousedown"] = function (event) {
+    this["event-mousedown"] = function (event) {
 
 
-        timer && clearTimeout(timer);
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
 
 
         var storage = this["x:storage"],
             step,
             limit,
-            type = this.getScrollTypeAt(event.windowX, event.windowY);
+            type = this.scrollType(event.windowX, event.windowY);
 
 
         switch (type)
@@ -122,7 +125,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
                 break;
 
             default: //slider
-                this.ownerWindow["x:captureControl"] = this;
+                this.ownerWindow["x:capture-control"] = this;
                 dragger = { x: event.offsetX, y: event.offsetY, value: storage.value };
                 return;
         }
@@ -132,7 +135,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
     };
 
 
-    this["event:mousemove"] = function (event) {
+    this["event-mousemove"] = function (event) {
 
         if (dragger)
         {
@@ -140,11 +143,14 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
                 offset = storage.isVertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
                 value = Math.round(offset * (storage.maxValue - storage.minValue) / this["x:boxModel"].length);
 
-            value && this.changeValue(0, dragger.value + value);
+            if (value)
+            {
+                this.changeValue(0, dragger.value + value);
+            }
         }
     };
 
-    this["event:mouseup"] = function (event) {
+    this["event-mouseup"] = function (event) {
 
         if (timer)
         {
@@ -152,7 +158,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
             timer = null;
         }
 
-        this.ownerWindow["x:captureControl"] = null;
+        this.ownerWindow["x:capture-control"] = null;
         dragger = null;
     };
 
@@ -180,7 +186,10 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
         }
 
 
-        (!step || (step > 0 && value > limit) || (step < 0 && value < limit)) && (value = limit);
+        if (!step || (step > 0 && value > limit) || (step < 0 && value < limit))
+        {
+            value = limit;
+        }
 
 
         step = value - storage.value;
@@ -194,7 +203,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
         storage.value = value;
 
 
-        var event = new flyingon.ScrollEvent("scroll", this);
+        var event = new flyingon.ScrollEvent(this);
 
         if (storage.isVertical)
         {
@@ -225,7 +234,11 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
         var fn = function () {
 
             clearTimeout(timer);
-            self.changeValue(step, limit) && (timer = setTimeout(fn, 200));
+
+            if (self.changeValue(step, limit))
+            {
+                timer = setTimeout(fn, 200);
+            }
         };
 
         timer = setTimeout(fn, 200);
@@ -239,8 +252,15 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
             boxModel = this["x:boxModel"],
             value = storage.isVertical ? y : x;
 
-        exclueSlider && (value -= boxModel.slider);
-        boxModel.thickness && (value -= boxModel.thickness);
+        if (exclueSlider)
+        {
+            value -= boxModel.slider;
+        }
+
+        if (boxModel.thickness)
+        {
+            value -= boxModel.thickness;
+        }
 
         return storage.minValue + Math.round(value * storage.maxValue / boxModel.length);
     };

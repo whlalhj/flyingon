@@ -34,7 +34,7 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
     //根据坐标获取当前滚动类型
-    this.getScrollTypeAt = function (x, y) {
+    this.scrollType = function (x, y) {
 
         var segments = this["x:boxModel"].segments,
             value = this["x:storage"].isVertical ? y : x;
@@ -64,7 +64,7 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
     };
 
 
-    function computeSliderLenth(storage, length) {
+    function slider_length(storage, length) {
 
         if (length <= 8)
         {
@@ -75,7 +75,7 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
         return result <= 8 ? 8 : result;
     };
 
-    function computeSliderStart(storage, length, slider) {
+    function slider_start(storage, length, slider) {
 
         if (length <= 0)
         {
@@ -107,25 +107,25 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
         if (storage.isVertical)
         {
-            var thickness = boxModel.thickness = width;
-            var length = boxModel.length = height - (thickness << 1);
-            var slider = boxModel.slider = computeSliderLenth(storage, length);
+            var thickness = boxModel.thickness = width,
+                length = boxModel.length = height - (thickness << 1),
+                slider = boxModel.slider = slider_length(storage, length),
 
-            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var r_2 = boxModel.sliderRect = [x, y + thickness + computeSliderStart(storage, length, slider), thickness, slider];
-            var r_3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
+                r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness],
+                r_2 = boxModel.sliderRect = [x, y + thickness + slider_start(storage, length, slider), thickness, slider],
+                r_3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
 
             boxModel.segments = [r_1[1] + thickness, r_2[1], r_2[1] + slider, r_3[1]]; //位置段坐标
         }
         else
         {
-            var thickness = boxModel.thickness = height;
-            var length = boxModel.length = width - (thickness << 1);
-            var slider = boxModel.slider = computeSliderLenth(storage, length);
+            var thickness = boxModel.thickness = height,
+                length = boxModel.length = width - (thickness << 1),
+                slider = boxModel.slider = slider_length(storage, length),
 
-            var r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness];
-            var r_2 = boxModel.sliderRect = [x + thickness + computeSliderStart(storage, length, slider), y, slider, thickness];
-            var r_3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
+                r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness],
+                r_2 = boxModel.sliderRect = [x + thickness + slider_start(storage, length, slider), y, slider, thickness],
+                r_3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
 
             boxModel.segments = [r_1[0] + thickness, r_2[0], r_2[0] + slider, r_3[0]]; //位置段坐标
         }
@@ -133,24 +133,18 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
 
-    this.paint = function (context) {
-
-
-        var boxModel = context.boxModel;
+    this.paint = function (context, boxModel) {
 
 
         context.save();
 
-
         context.fillStyle = "blue";
         context.fillRect.apply(context, boxModel.sliderRect);
-
 
         context.fillStyle = "red";
 
         context.fillRect.apply(context, boxModel.arrow1Rect);
         context.fillRect.apply(context, boxModel.arrow2Rect);
-
 
         context.restore();
     };

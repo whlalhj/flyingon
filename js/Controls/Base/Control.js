@@ -17,24 +17,29 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //初始化类方法
-    Class.initialize = function (flyingon) {
+    Class.initialize = function (Class, flyingon) {
 
 
-        var className = this.className,
+        var className = Class.className,
             styles = flyingon.styles,
             style = styles[className] || (styles[className] = {}),
             templates = flyingon.templates,
             template = templates[className] || (templates[className] = {});
 
 
-        className = this["superClass"].className;
+        className = Class["superClass"].className;
 
         //复制上级样式
-        styles.hasOwnProperty(className) && flyingon["y:simple:copy"](styles[className], style, true);
+        if (styles.hasOwnProperty(className))
+        {
+            flyingon["simple-copy"](styles[className], style, true);
+        }
 
         //复制上级模板
-        templates.hasOwnProperty(className) && flyingon["y:simple:copy"](templates[className], template, true);
-
+        if (templates.hasOwnProperty(className))
+        {
+            flyingon["simple-copy"](templates[className], template, true);
+        }
     };
 
 
@@ -61,8 +66,15 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (value != oldValue)
             {
-                oldValue && oldValue["x:children"].remove(this);
-                value && value["x:children"].append(this);
+                if (oldValue)
+                {
+                    oldValue["x:children"].remove(this);
+                }
+
+                if (value)
+                {
+                    value["x:children"].append(this);
+                }
             }
 
             return this;
@@ -75,8 +87,15 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var box = this["x:boxModel"];
 
-        box.parent && (box.parent["x:partition"] = true);
-        parent && (parent["x:boxModel"]["x:partition"] = true);
+        if (box.parent)
+        {
+            box.parent["x:partition"] = true;
+        }
+
+        if (parent)
+        {
+            parent["x:boxModel"]["x:partition"] = true;
+        }
 
         this["x:parent"] = parent;
         this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this["x:parent"]));
@@ -158,7 +177,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var parent = this["x:parent"];
 
-        parent && parent["x:children"].remove(this);
+        if (parent)
+        {
+            parent["x:children"].remove(this);
+        }
 
         return this;
     };
@@ -170,7 +192,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    flyingon["x:define:getter"] = function (name, options) {
+    flyingon["x:define-getter"] = function (name, options) {
 
         var body;
 
@@ -186,12 +208,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return new Function(body);
     };
 
-    flyingon["x:define:setter"] = function (name, attributes) {
+    flyingon["x:define-setter"] = function (name, attributes) {
 
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + flyingon["x:define:initialize"]
+            + flyingon["x:define-initialize"]
 
 
             + (attributes.style ? "var oldValue = this.styleValue(name);\n" : "var oldValue = storage[name];\n")
@@ -202,15 +224,18 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + flyingon["x:define:change"]
+            + flyingon["x:define-change"]
 
             + "storage[name] = value;\n"
             + "var boxModel = this['x:boxModel'];\n";
 
 
-        attributes.valueChangedCode && (body += attributes.valueChangedCode + "\n"); //自定义值变更代码
+        if (attributes.valueChangedCode)
+        {
+            body += attributes.valueChangedCode + "\n"; //自定义值变更代码
+        }
 
-        body += flyingon["x:define:binding"]; //处理绑定源
+        body += flyingon["x:define-binding"]; //处理绑定源
 
 
         //需要重新定位
@@ -237,7 +262,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
 
 
-        body += "}\nreturn this;"
+        body += "}\nreturn this;";
 
 
         return new Function("value", body);
@@ -267,7 +292,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         var states = this["x:states"] = this["x:states"].slice(0);
         states.splice(index || states.length - 2, 0, statesName);
 
-        defaultValue !== undefined && this.defaultValue(statesName, defaultValue);
+        if (defaultValue !== undefined)
+        {
+            this.defaultValue(statesName, defaultValue);
+        }
     };
 
     this.defaultValue("common-states", null);
@@ -463,7 +491,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     });
 
     //调整自动大小
-    this.adjustAutoSize = function (boxModel, size) {
+    this.adjustAutoSize = function (boxModel) {
 
     };
 
@@ -520,14 +548,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否为焦点控件
     this.defineProperty("focused", function () {
 
-        return this.ownerWindow && this.ownerWindow["x:focusControl"] == this;
+        return this.ownerWindow && this.ownerWindow["x:focused-control"] == this;
     });
 
     //是否为焦点控件或包含焦点控件
     this.defineProperty("containsFocused", function () {
 
-        var focusControl = this.ownerWindow && this.ownerWindow["x:focusControl"];
-        return focusControl && (focusControl == this || this.isParent(focusControl));
+        var focused = this.ownerWindow && this.ownerWindow["x:focused-control"];
+        return focused && (focused == this || this.isParent(focused));
     });
 
 
@@ -589,6 +617,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         if (result)
         {
             result["x:parent"] = this;
+            result["x:template"] = true;
             return result;
         }
     };
@@ -628,12 +657,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         {
             var ownerWindow = this.ownerWindow;
 
-            if (ownerWindow && ownerWindow["x:focusControl"] != this)
+            if (ownerWindow && ownerWindow["x:focused-control"] != this)
             {
-                ownerWindow["x:focusControl"] = this;
+                ownerWindow["x:focused-control"] = this;
 
-                this.dispatchEvent("focus");
-                this.switchState("focus-states", "focused");
+                if (this.dispatchEvent("focus"))
+                {
+                    this.switchState("focus-states", "focused");
+                }
             }
 
             return true;
@@ -647,12 +678,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow && ownerWindow["x:focusControl"] == this)
+        if (ownerWindow && ownerWindow["x:focused-control"] == this)
         {
-            ownerWindow["x:focusControl"] = null;
+            ownerWindow["x:focused-control"] = null;
 
-            this.dispatchEvent("blur");
-            this.switchState("focus-states", "leave-animate");
+            if (this.dispatchEvent("blur"))
+            {
+                this.switchState("focus-states", "leave-animate");
+            }
 
             return true;
         }
@@ -671,17 +704,24 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (ownerWindow)
         {
-            var layer = ownerWindow["x:popupLayer"];
+            var layer = ownerWindow["x:popup-layer"];
 
             if (!layer)
             {
-                layer = ownerWindow["x:popupLayer"] = ownerWindow.appendLayer(9997);
+                layer = ownerWindow["x:popup-layer"] = ownerWindow.appendLayer(9997);
                 layer.layout = "absolute";
-                layer.paintBackground = function () { };
+                layer["paint-background"] = function () { };
             }
 
-            x != null && (this["x:storage"].left = x);
-            y != null && (this["x:storage"].top = y);
+            if (x != null)
+            {
+                this["x:storage"].left = x;
+            }
+
+            if (y != null)
+            {
+                this["x:storage"].top = y;
+            }
 
             layer["x:children"].append(this);
             layer.invalidate();
@@ -692,7 +732,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.closePopup = function () {
 
         var ownerWindow = this.ownerWindow;
-        ownerWindow && ownerWindow.removeLayer(ownerWindow["x:popupLayer"]);
+
+        if (ownerWindow)
+        {
+            ownerWindow.removeLayer(ownerWindow["x:popup-layer"]);
+        }
     };
 
 
@@ -703,14 +747,22 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.setCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        ownerWindow && (ownerWindow["x:captureControl"] = this);
+
+        if (ownerWindow)
+        {
+            ownerWindow["x:capture-control"] = this;
+        }
     };
 
     //释放鼠标
     this.releaseCapture = function () {
 
         var ownerWindow = this.ownerWindow;
-        ownerWindow && (ownerWindow["x:captureControl"] = null);
+
+        if (ownerWindow)
+        {
+            ownerWindow["x:capture-control"] = null;
+        }
     };
 
 
@@ -768,8 +820,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     this.hitTest = function (x, y) {
 
-        var r = this["x:boxModel"].outerRect;
-        return x >= r.x && y >= r.y && x <= r.right && y <= r.bottom;
+        var box = this["x:boxModel"];
+        return x >= box.x && y >= box.y && x <= box.right && y <= box.bottom;
     };
 
 
@@ -780,7 +832,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         var layer = this.ownerLayer;
 
         this["x:boxModel"].invalidate();
-        layer && layer.registryUpdate();
+
+        if (layer)
+        {
+            layer.registryUpdate();
+        }
     };
 
 
@@ -800,11 +856,21 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    //绘制边框
-    this.paintBorder = function (context) {
 
-        var boxModel = this["x:boxModel"],
-            border = boxModel.border;
+    this.measureText = function (boxModel) {
+
+        var storage = this["x:storage"];
+        if (storage.text != null && !this["x:textMetrics"])
+        {
+            (this["x:textMetrics"] = new flyingon.TextMetrics()).measureText(this.font, storage.text, storage.multiline);
+        }
+    };
+
+
+    //绘制边框
+    this["paint-border"] = function (context, boxModel) {
+
+        var border = boxModel.border;
 
         if (border && border.border)
         {
@@ -812,20 +878,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (boxModel.borderRadius > 0)
             {
-                var r = boxModel.borderRect,
-                    lineWidth = border[0],
-                    offset = lineWidth / 2;
-
-                context.lineWidth = lineWidth;
+                context.lineWidth = border[0];
                 context.set_strokeStyle(color);
-                context.strokeRoundRect(r.windowX + offset, r.windowY + offset, r.width - lineWidth, r.height - lineWidth, boxModel.borderRadius);
+                context.strokeRoundRect(boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, boxModel.borderRadius);
             }
             else
             {
-                var r = boxModel.outerRect;
-
                 context.set_fillStyle(color);
-                context.drawBorder(r.windowX, r.windowY, r.width, r.height, border);
+                context["paint-border"](boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, border);
             }
         }
 
@@ -833,14 +893,13 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //绘制背景
-    this.paintBackground = function (context) {
+    this["paint-background"] = function (context, boxModel) {
 
-        var boxModel = context.boxModel,
-            background = this.background;
+        var background = this.background;
 
         if (background)
         {
-            var r = boxModel.borderRect;
+            var r = boxModel.insideRect;
 
             context.beginPath();
             context.set_fillStyle(background);
@@ -862,47 +921,46 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //绘制内框
-    this.paint = function (context) {
+    this.paint = function (context, boxModel) {
 
-        this.paintText(context);
+        this["paint-text"](context, boxModel.clientRect);
     };
 
 
     //绘制文字
-    this.paintText = function (context) {
+    this["paint-text"] = function (context, clientRect) {
 
-        var textMetrics = this["x:textMetrics"];
+        var textMetrics = this["x:textMetrics"],
+            cache;
 
         if (textMetrics)
         {
-            var boxModel = context.boxModel,
-                r = boxModel.innerRect,
-                font = textMetrics.font;
-
+            var font = textMetrics.font;
 
             context.save();
 
 
             //区域剪切
-            var cliped = this["x:storage"].clipToBounds;
-            if (cliped)
+            if (cache = this["x:storage"].clipToBounds)
             {
                 context.beginPath();
-                context.rect(r.windowX, r.windowY, r.width, r.height);
+                context.rect(clientRect.windowX, clientRect.windowY, clientRect.width, clientRect.height);
                 context.clip();
             }
 
 
-            this.paintTextBackground && this.paintTextBackground(context);
+            if (cache = this["paint-text-back"])
+            {
+                cache.call(this, context, clientRect, textMetrics);
+            }
 
 
             context.set_fillStyle(this.foreground);
             context.set_font(font);
 
 
-            var x = r.windowX - boxModel.offsetX,
-                y = r.windowY + textMetrics[0].height;
-
+            var x = clientRect.windowX,
+                y = clientRect.windowY + textMetrics[0].height;
 
             for (var i = 0, length = textMetrics.length; i < length; i++)
             {

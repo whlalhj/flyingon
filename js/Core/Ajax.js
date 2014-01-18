@@ -112,14 +112,20 @@
                         break;
                 }
 
-                (fn = options.success) && fn(target, options.response);
+                if (fn = options.success)
+                {
+                    fn(target, options.response);
+                }
             }
             else
             {
                 (options["error"] || defaults["error"])(target);
             }
 
-            (fn = options.complete) && fn(target, options.response);
+            if (fn = options.complete)
+            {
+                fn(target, options.response);
+            }
         }
         else if (fn = options.progress)
         {
@@ -179,7 +185,11 @@
             options.timer = setTimeout(function () {
 
                 result.abort();
-                options.abort && options.abort(result);
+
+                if (options.abort)
+                {
+                    options.abort(result);
+                }
 
             }, options.timeout);
         }
@@ -188,7 +198,10 @@
         result.onreadystatechange = response;
         result.open(type, options.url, async, options.user, options.password);
 
-        (type == "POST" || type == "PUT") && result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
+        if (type == "POST" || type == "PUT")
+        {
+            result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
+        }
 
         if (options.headers)
         {

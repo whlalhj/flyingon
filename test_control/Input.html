@@ -4,6 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
     <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
         #Text1 {
             height: 9px;
             width: 216px;
@@ -42,9 +47,10 @@
             //flyingon.beginInit();
             var date = new Date();
 
+            w.background = "silver";
             w.layout = "rows";
 
-            for (var i = 0; i < 50; i++)
+            for (var i = 0; i < 4; i++)
             {
                 var panel = new flyingon.Panel();
 
@@ -52,17 +58,24 @@
 
                 panel.height = 400;
                 //panel.layout = "columns"
-                panel["border"] = [10, 10, 10, 10];
+                panel["margin"] = [10, 20, 30, 40];
+                panel["border"] = [1, 1, 1, 1];
 
                 for (var j = 0; j < 100; j++)
                 {
-                    var text = new flyingon.ComboBox();
+                    var text = new flyingon.TextBoxBase();
 
                     text.width = 190;
                     text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
 
                     panel.children.append(text);
                 }
+
+                panel.onmousemove = function (event) {
+
+                    var items = this["x:render-children"];
+                    document.title += "  " + (items && items.length || "0") + " " + this["x:boxModel"].scrollTop;
+                };
 
                 w.children.append(panel);
             }
@@ -78,21 +91,21 @@
             //    alert(event.target.id);
             //};
 
-            w.onmousedown = function (event) {
+            //w.onmousedown = function (event) {
 
 
 
 
-                var p = event.target.offsetToControl(event.offsetX, event.offsetY);
+            //    var p = event.target.offsetToControl(event.offsetX, event.offsetY);
 
-                event.target.controlToOffset(p.x, p.y);
-            };
+            //    event.target.controlToOffset(p.x, p.y);
+            //};
 
-            w.onmousemove = function (event) {
+            //w.onmousemove = function (event) {
 
-                var offset = event.target.controlToOffset(event.controlX, event.controlY);
-                message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
-            };
+            //    var offset = event.target.controlToOffset(event.controlX, event.controlY);
+            //    message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
+            //};
         };
 
 
@@ -102,7 +115,7 @@
             var date = new Date();
 
             w.update();
-            
+
 
             alert(new Date() - date);
         };

@@ -3,17 +3,15 @@
 
 
 
-//文本框代码实现
-var TextBase = function (multiline) {
+//文本绘制辅助类
+flyingon["text-painter"] = function (multiline, readOnly) {
 
 
 
     this.defaultValue("text", "");
 
 
-    this.defineProperty("readOnly", false);
-
-
+    this.defineProperty("readOnly", readOnly || false);
 
 
     this.defineProperty("selectionStart", 0, {
@@ -25,7 +23,11 @@ var TextBase = function (multiline) {
 
         setter: function (value) {
 
-            this.ownerWindow && this.ownerWindow["x:focusControl"] == this && this["x:textMetrics"].moveTo(value);
+            if (this.ownerWindow && this.ownerWindow["x:focused-control"] == this)
+            {
+                this["x:textMetrics"].moveTo(value);
+            }
+
             return this;
         }
     });
@@ -41,11 +43,15 @@ var TextBase = function (multiline) {
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow["x:focusControl"] == this)
+            if (this.ownerWindow && this.ownerWindow["x:focused-control"] == this)
             {
                 var textMetrics = this["x:textMetrics"];
 
-                value < 0 && (value = 0);
+                if (value < 0)
+                {
+                    value = 0;
+                }
+
                 textMetrics.selectionTo(textMetrics.selectionStart + value);
             }
 
@@ -72,7 +78,7 @@ var TextBase = function (multiline) {
             var ownerWindow = this.ownerWindow,
                 textMetrics = this["x:textMetrics"];
 
-            if (event || !this.containsFocused || !textMetrics.caretEnd)
+            if (event || !this.containsFocused || !textMetrics.end)
             {
                 var x = event ? event.controlX : 0,
                     y = event ? event.controlY : 0;
@@ -82,32 +88,35 @@ var TextBase = function (multiline) {
 
 
             //开启输入助手
-            ownerWindow["y:open:input"](this, this["x:storage"].readOnly);
+            ownerWindow["y:open-ime"](this, this["x:storage"].readOnly);
         }
     };
 
     this["y:blur"] = function () {
 
-        this.blur() && this.ownerWindow["y:close:input"]();
+        if (this.blur())
+        {
+            this.ownerWindow["y:close-ime"]();
+        }
     };
 
 
 
 
-    this["event:mousedown"] = function (event) {
+    this["event-mousedown"] = function (event) {
 
-        this.ownerWindow["x:captureControl"] = this; //捕获鼠标
+        this.ownerWindow["x:capture-control"] = this; //捕获鼠标
     };
 
-    this["event:mousemove"] = function (event) {
+    this["event-mousemove"] = function (event) {
 
-        if (event.mouseDown && this.ownerWindow["x:focusControl"] == this)
+        if (event.mousedown && this.ownerWindow["x:focused-control"] == this)
         {
             var textMetrics = this["x:textMetrics"],
                 x = event.targetX;
 
 
-            if (x >= this["x:boxModel"].innerRect.right)
+            if (x >= this["x:boxModel"].clientRect.right)
             {
                 textMetrics.selectionTo(textMetrics.selectionEnd + 1, true);
             }
@@ -121,21 +130,20 @@ var TextBase = function (multiline) {
             }
 
 
-            this.ownerWindow["y:input"]();
+            this.ownerWindow["y:reset-ime"]();
         }
     };
 
-    this["event:mouseup"] = function (event) {
+    this["event-mouseup"] = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow)
+        if (ownerWindow["x:focused-control"] == this)
         {
-            ownerWindow["x:focusControl"] == this && ownerWindow["y:input"]();
-
-            //释放鼠标
-            ownerWindow["x:captureControl"] = null;
+            ownerWindow["y:reset-ime"]();
         }
+
+        ownerWindow["x:capture-control"] = null; //释放鼠标
     };
 
 
@@ -149,19 +157,15 @@ var TextBase = function (multiline) {
 
 
 
-    this.paintTextBackground = function (context) {
-
-        var textMetrics = this["x:textMetrics"];
+    this["paint-text-back"] = function (context, clientRect, textMetrics) {
 
         if (textMetrics.selectionEnd > textMetrics.selectionStart)
         {
-            var boxModel = context.boxModel,
-                r = boxModel.innerRect,
-                start = textMetrics.caretMin,
-                end = textMetrics.caretMax;
+            var start = textMetrics.start,
+                end = textMetrics.end;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(r.windowX + start.x - boxModel.offsetX, r.windowY, end.x - start.x, 16);
+            context.fillRect(clientRect.windowX + start.x, clientRect.windowY, end.x - start.x, textMetrics.font.lineHeight + 4);
         }
     };
 

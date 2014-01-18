@@ -52,8 +52,15 @@ flyingon.class("HtmlFrame", flyingon.HtmlControl, function (Class, flyingon) {
 
             frame.onload = null;
 
-            html && fn(frame, html);
-            self.loaded && self.loaded(frame);
+            if (html)
+            {
+                fn(frame, html);
+            }
+
+            if (self.loaded)
+            {
+                self.loaded(frame);
+            }
         };
 
         frame.src = "about:blank";

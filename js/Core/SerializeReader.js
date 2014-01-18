@@ -12,7 +12,10 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
         if (data)
         {
-            data.constructor == String && (data = data[0] == "<" ? flyingon.parseXml : this.parse(data));
+            if (data.constructor == String)
+            {
+                data = data[0] == "<" ? flyingon.parseXml : this.parse(data);
+            }
 
             var result = this[Array.isArray(data) ? "array" : "object"](null, null, data);
 
@@ -52,14 +55,20 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                         {
                             if (source = binding.source)
                             {
-                                source.constructor == String && (binding.source = (references && references[source]) || context);
+                                if (source.constructor == String)
+                                {
+                                    binding.source = (references && references[source]) || context;
+                                }
                             }
                             else
                             {
                                 binding.source = context;
                             }
 
-                            !(binding instanceof flyingon.DataBinding) && (binding = new flyingon.DataBinding(binding));
+                            if (!(binding instanceof flyingon.DataBinding))
+                            {
+                                binding = new flyingon.DataBinding(binding);
+                            }
                         }
 
                         binding["y:initialize"](item[0], name);
@@ -109,8 +118,15 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             if (!target || !(result = target[name]))
             {
-                result = value.className && (result = registryList[value.className]) ? new result() : {};
-                target && (target[name] = result);
+                if ((result = value.className) && (result = registryList[value.className]))
+                {
+                    result = (result && new result()) || {};
+                }
+
+                if (target)
+                {
+                    target[name] = result;
+                }
             }
 
 
@@ -164,7 +180,10 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             if (target)
             {
-                !(result = target[name]) && (result = target[name] = []);
+                if (!(result = target[name]))
+                {
+                    result = target[name] = [];
+                }
             }
             else
             {
@@ -232,7 +251,10 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
     this.bindings = function (target, data) {
 
-        target && (data = data["bindings"]) && (this["x:bindings"] || (this["x:bindings"] = [])).push([target, data]);
+        if (target && (data = data["bindings"]))
+        {
+            this["x:bindings"] || (this["x:bindings"] = []).push([target, data]);
+        }
     };
 
 });

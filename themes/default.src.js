@@ -536,7 +536,7 @@
 
         background: "window-back",
 
-        border: [1, 10, 1, 1],
+        border: [1, 1, 1, 1],
 
         cursor: "text",
 
@@ -550,7 +550,7 @@
 
                         className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
 
-                            className: "RoundRectangle", offset: [5, 5, 5, 5], anticlockwise: true
+                            className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
                         }]
                     }]
                 }
@@ -559,6 +559,16 @@
 
     };
 
+
+
+
+    //文本框样式
+    styles["ListBox"] = {
+
+        background: "window-back",
+
+        border: [1, 1, 1, 1]
+    };
 
 
     //文本框样式

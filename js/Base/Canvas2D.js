@@ -55,25 +55,25 @@ Canvas2D绘图扩展
     线性渐变
 
     */
-    var LinearGradient = flyingon.LinearGradient = function (x0, y0, x1, y1, colorStops) {
+    var LinearGradient = flyingon.LinearGradient = function (x1, y1, x2, y2, colorStops) {
 
-        this.x0 = x0;
-        this.y0 = y0;
         this.x1 = x1;
         this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
         this.colorStops = colorStops;
     };
 
     LinearGradient.prototype.createBrush = function (context) {
 
-        var r = context.boxModel.innerRect,
+        var r = context.boxModel.clientRect,
 
             x = r.windowX,
             y = r.windowY,
             width = r.width,
             height = r.height,
 
-            g = context.createLinearGradient(x + this.x0 * width, y + this.y0 * height, x + this.x1 * width, y + this.y1 * height),
+            g = context.createLinearGradient(x + this.x1 * width, y + this.y1 * height, x + this.x2 * width, y + this.y2 * height),
 
             colorStops = this.colorStops;
 
@@ -92,27 +92,27 @@ Canvas2D绘图扩展
     径向渐变
 
     */
-    var RadialGradient = flyingon.RadialGradient = function (x0, y0, r0, x1, y1, r1, colorStops) {
+    var RadialGradient = flyingon.RadialGradient = function (x1, y1, radius1, x2, y2, radius2, colorStops) {
 
-        this.x0 = x0;
-        this.y0 = y0;
-        this.r0 = r0;
         this.x1 = x1;
         this.y1 = y1;
-        this.r1 = r1;
+        this.radius1 = radius1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.radius2 = radius2;
         this.colorStops = colorStops;
     };
 
     RadialGradient.prototype.createBrush = function (context) {
 
-        var r = context.boxModel.innerRect,
+        var r = context.boxModel.clientRect,
 
             x = r.windowX,
             y = r.windowY,
             width = r.width,
             height = r.height,
 
-            g = context.createRadialGradient(x + this.x0 * width, y + this.y0 * height, this.r0, x + this.x1 * width, y + this.y1 * height, this.r1),
+            g = context.createRadialGradient(x + this.x1 * width, y + this.y1 * height, this.radius1, x + this.x2 * width, y + this.y2 * height, this.radius2),
 
             colorStops = this.colorStops;
 
@@ -424,7 +424,7 @@ Canvas2D绘图扩展
     /****************************以下为方法扩展********************************/
 
 
-    prototype.drawBorder = function (x, y, width, height, border) {
+    prototype["paint-border"] = function (x, y, width, height, border) {
 
         this.beginPath();
 
@@ -644,7 +644,11 @@ Canvas2D绘图扩展
     //画虚线
     prototype.dashLine = function (x1, y1, x2, y2, dashArray) {
 
-        !dashArray && (dashArray = [10, 5]);
+
+        if (!dashArray)
+        {
+            dashArray = [10, 5];
+        }
 
 
         this.moveTo(x1, y1);
@@ -661,12 +665,19 @@ Canvas2D绘图扩展
         while (distRemaining >= 0.1)
         {
             var dashLength = dashArray[index++ % length];
-            dashLength > distRemaining && (dashLength = distRemaining);
+
+            if (dashLength > distRemaining)
+            {
+                dashLength = distRemaining;
+            }
 
 
             var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
 
-            width < 0 && (step = -step);
+            if (width < 0) 
+            {
+                step = -step;
+            }
 
             x1 += step;
             y1 += slope * step;

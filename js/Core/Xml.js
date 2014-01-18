@@ -23,7 +23,10 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
     var prototype = (flyingon.Xml = function (data) {
 
-        data && this.parse(data);
+        if (data)
+        {
+            this.parse(data);
+        }
 
     }).prototype;
 

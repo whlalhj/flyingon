@@ -3,11 +3,17 @@
 <head>
     <meta http-equiv="Content-Type" content="no-cache" />
     <title></title>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
 </head>
 <body style="background-color: yellow;">
 
     <span id="message"></span>
-    <div id="host" style="width: 100%; height: 600px; border: 1px solid blue;">
+    <div id="host" style="width: 100%; height: 600px;">
     </div>
 
     <script src="../js/flyingon.js"></script>
@@ -26,42 +32,46 @@
         var button1 = new flyingon.Button();
         button1.width = 200;
         button1.height = 200;
+        button1.margin = [10, 20, 30, 40];
+        button1.border = [10, 20, 30, 40];
+        button1.padding = [10, 20, 30, 40];
         w.children.append(button1);
 
 
         var button2 = new flyingon.Button();
         button2.width = 200;
         button2.height = 200;
-        button2.margin = [0, 0, 0, 10];
+        button2.margin = [10, 20, 30, 40];
         button2.border = [2, 4, 6, 8];
         w.children.append(button2);
 
         var button3 = new flyingon.Button();
         button3.width = 200;
         button3.height = 200;
-        button3.margin = [0, 0, 0, 10];
-        button3.border = [2, 2, 2, 2];
-        button3.borderRadius = 8;
+        //button3.margin = [2, 4, 6, 8];
+        button3.border = [10, 10, 10, 10];
+        button3.borderRadius = 20;
         w.children.append(button3);
 
         w.update();
 
         [button1, button2, button3].forEach(function (item) {
 
-         
+
             (function (item) {
 
                 item.onclick = function (event) {
 
-                    item.invalidate();
-                    item.boxModel.measure();
-
                     var box = item.boxModel;
 
+                    w.context.strokeStyle = "red";
+                    w.context.strokeRect(box.windowX, box.windowY + 300, box.width, box.height);
+
+                    w.context.strokeStyle = "green";
+                    w.context.strokeRect(box.insideRect.windowX, box.insideRect.windowY + 300, box.insideRect.width, box.insideRect.height);
+
                     w.context.strokeStyle = "blue";
-                    w.context.strokeRect(box.outerRect.windowX, box.outerRect.windowY + 300, box.outerRect.width, box.outerRect.height);
-                    w.context.strokeRect(box.borderRect.windowX, box.borderRect.windowY + 300, box.borderRect.width, box.borderRect.height);
-                    w.context.strokeRect(box.innerRect.windowX, box.innerRect.windowY + 300, box.innerRect.width, box.innerRect.height);
+                    w.context.strokeRect(box.clientRect.windowX, box.clientRect.windowY + 300, box.clientRect.width, box.clientRect.height);
                 };
 
             })(item);

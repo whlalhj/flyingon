@@ -36,33 +36,33 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     });
 
 
-    flyingon["x:define:getter"] = function (name, attributes) {
+    flyingon["x:define-getter"] = function (name, attributes) {
 
         var body = "return this['x:storage']['" + name + "'];";
         return new Function(body);
     };
 
-    flyingon["x:define:binding"] = "(cache = this['x:bindings']) && this['y:bindings'](name, cache);\n"; //处理绑定源
+    flyingon["x:define-binding"] = "(cache = this['x:bindings']) && this['y:bindings'](name, cache);\n"; //处理绑定源
 
-    flyingon["x:define:initialize"] = "if (flyingon['x:initializing'])\n"
+    flyingon["x:define-initialize"] = "if (flyingon['x:initializing'])\n"
         + "{\n"
         + "storage[name] = value;\n"
-        + flyingon["x:define:binding"]
+        + flyingon["x:define-binding"]
         + "return this;\n"
         + "}\n";
 
-    flyingon["x:define:change"] = "if ((cache = this['x:events']) && (cache = cache['change']) && cache.length > 0)\n"
+    flyingon["x:define-change"] = "if ((cache = this['x:events']) && (cache = cache['change']) && cache.length > 0)\n"
         + "{\n"
         + "var event = new flyingon.ChangeEvent(this, name, value, oldValue);\n"
         + "if (this.dispatchEvent(event) === false) return this;\n"
         + "value = event.value;\n"
         + "}\n";
 
-    flyingon["x:define:setter"] = function (name, attributes) {
+    flyingon["x:define-setter"] = function (name, attributes) {
 
         var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
 
-            + flyingon["x:define:initialize"]
+            + flyingon["x:define-initialize"]
             + "var oldValue = storage[name];\n"
 
             + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -70,13 +70,13 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + flyingon["x:define:change"]
+            + flyingon["x:define-change"]
 
             + "storage[name] = value;\n"
 
             + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-            + flyingon["x:define:binding"]
+            + flyingon["x:define-binding"]
 
             + "}\n"
 
@@ -86,11 +86,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
 
-    flyingon["x:define:attributes"] = function (attributes) {
+    flyingon["x:define-attributes"] = function (attributes) {
 
         if (attributes)
         {
-            attributes.constructor == String && (attributes = { attributes: attributes });
+            if (attributes.constructor == String)
+            {
+                attributes = { attributes: attributes };
+            }
 
             if (attributes.attributes)
             {
@@ -120,16 +123,22 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
         }
         else
         {
-            defaultValue !== undefined && (this["x:defaults"][name] = defaultValue);
+            if (defaultValue !== undefined)
+            {
+                this["x:defaults"][name] = defaultValue;
+            }
 
-            attributes = flyingon["x:define:attributes"](attributes);
+            attributes = flyingon["x:define-attributes"](attributes);
 
-            var getter = attributes.getter || flyingon["x:define:getter"](name, attributes),
-                setter = !attributes.readOnly ? (attributes.setter || flyingon["x:define:setter"](name, attributes)) : null;
+            var getter = attributes.getter || flyingon["x:define-getter"](name, attributes),
+                setter = !attributes.readOnly ? (attributes.setter || flyingon["x:define-setter"](name, attributes)) : null;
 
             flyingon.defineProperty(this, name, getter, setter);
 
-            setter && attributes.autoset !== false && (this["set_" + name] = setter);
+            if (setter && attributes.autoset !== false)
+            {
+                this["set_" + name] = setter;
+            }
         }
     };
 
@@ -196,7 +205,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             else
             {
                 var index = events.indexOf(listener);
-                index >= 0 && events.splice(index, 1);
+                if (index >= 0)
+                {
+                    events.splice(index, 1);
+                }
             }
         }
 
@@ -220,10 +232,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         while (target)
         {
-            //处理默认事件 默认事件方法规定: "event:" + type
-            if ((events = target["event:" + type]) && events.call(target, event) === false)
+            //处理默认事件 默认事件方法规定: "event-" + type
+            if ((events = target["event-" + type]))
             {
-                result = false;
+                if (events.call(target, event) === false)
+                {
+                    result = false;
+                    break;
+                }
 
                 if (event.cancelBubble)
                 {
@@ -239,6 +255,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
                     if (events[i].call(target, event) === false)
                     {
                         result = false;
+                        break;
                     }
                 }
 
@@ -327,7 +344,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         if (name && source)
         {
-            !source.name && (source.name = "auto_name_" + (++auto_name));
+            if (!source.name)
+            {
+                source.name = "auto_name_" + (++auto_name);
+            }
 
             var binding = new flyingon.DataBinding(source, expression || name, setter);
 
@@ -342,7 +362,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
         if (name)
         {
             var bindings = this["x:bindings"];
-            bindings && (bindings = bindings[name]) && bindings.clear(dispose);
+            if (bindings && (bindings = bindings[name]))
+            {
+                bindings.clear(dispose);
+            }
         }
     };
 
@@ -351,8 +374,15 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         var bindings = storage.push;
 
-        bindings && bindings.hasOwnProperty(name) && flyingon.bindingTo(this, name);
-        (bindings = storage.pull) && (bindings = bindings[name]) && !bindings['x:binding'] && bindings.push();
+        if (bindings && bindings.hasOwnProperty(name))
+        {
+            flyingon.bindingTo(this, name);
+        }
+
+        if ((bindings = storage.pull) && (bindings = bindings[name]) && !bindings['x:binding'])
+        {
+            bindings.push();
+        }
     };
 
 
@@ -373,7 +403,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             var storage = reader.object(this, "x:storage", data["storage"]);
 
             reader.bindings(this, data);
-            storage && storage.name && ((reader.references || (reader.references = {}))[storage.name] = this);
+            if (storage && storage.name)
+            {
+                (reader.references || (reader.references = {}))[storage.name] = this;
+            }
         }
     };
 

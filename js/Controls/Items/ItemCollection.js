@@ -1,35 +1,70 @@
-﻿//子项集合
+﻿
+//var prototype = (flyingon.Item = function () {
+
+
+//}).prototype;
+
+
+////
+//prototype.y = 0;
+
+//prototype.height = 0;
+
+//prototype.text = null;
+
+//prototype.image = null;
+
+//prototype.selected = false;
+
+
+
+
+//
 flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon) {
 
 
-    this.value = function (index) {
+    Class.create = function (OwnerControl) {
 
-        var item = this["x:items"][index];
-        return item && item.value;
+        this["x:items-x"] = [];
+        this.OwnerControl = OwnerControl;
     };
 
 
- 
-    this["y:validate"] = function (item, index) {
 
-        if (item instanceof flyingon.Item)
+    this["y:validate"] = function (index, item) {
+
+        if (!flyingon['x:initializing'])
         {
-            return true;
+            this.ownerControl.invalidate();
         }
 
-        throw new Error("item not a Item!");
+        return item;
     };
 
     this["y:remove"] = function (index) {
 
-        return true;
+        var items = this["x:items-x"];
+        if (items.length > index)
+        {
+            items.splice(index, 1);
+        }
+
+        if (!flyingon['x:initializing'])
+        {
+            this.ownerControl.invalidate();
+        }
     };
 
-    this["y:clear"] = function () {
+    this["y:clear"] = function (items) {
 
-        return true;
+        this["x:items-x"].length = 0;
+
+        if (!flyingon['x:initializing'])
+        {
+            this.ownerControl.invalidate();
+        }
     };
 
+}, true);
 
-});
 

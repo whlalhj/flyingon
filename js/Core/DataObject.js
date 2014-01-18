@@ -17,7 +17,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         var body = "var storage = this['x:data'], cache, name = '" + name + "';\n"
 
-            + flyingon["x:define:initialize"]
+            + flyingon["x:define-initialize"]
             + "var oldValue = storage[name];\n"
 
             + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -25,7 +25,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + flyingon["x:define:change"]
+            + flyingon["x:define-change"]
 
             + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
             + "if (!original.hasOwnProperty(name))\n"
@@ -37,7 +37,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
             + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-            + flyingon["x:define:binding"]
+            + flyingon["x:define-binding"]
 
             + "}\n"
 
@@ -60,11 +60,14 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.defineDataProperty = function (name, defaultValue, attributes) {
 
 
-        defaultValue !== undefined && (this["x:defaults"][name] = defaultValue);
+        if (defaultValue !== undefined)
+        {
+            this["x:defaults"][name] = defaultValue;
+        }
 
         var schema = this["x:schema"] || (this["x:schema"] = {});
 
-        attributes = schema[name] = flyingon["x:define:attributes"](attributes);
+        attributes = schema[name] = flyingon["x:define-attributes"](attributes);
         attributes.defaultValue = defaultValue;
 
         flyingon.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
@@ -172,10 +175,10 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.serialize = function (writer) {
 
         flyingon.DataObject.super.serialize.call(this, writer);
-        this["y:serialize:data"](writer);
+        this["y:serialize-data"](writer);
     };
 
-    this["y:serialize:data"] = function (writer) {
+    this["y:serialize-data"] = function (writer) {
 
         writer.object("data", this["x:data"]);
     };
@@ -183,10 +186,10 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.deserialize = function (reader, data) {
 
         flyingon.DataObject.super.deserialize.call(this, reader, data);
-        this["y:deserialize:data"](reader, data);
+        this["y:deserialize-data"](reader, data);
     };
 
-    this["y:deserialize:data"] = function (reader, data) {
+    this["y:deserialize-data"] = function (reader, data) {
 
         reader.object(this, "x:data", data.data);
     };

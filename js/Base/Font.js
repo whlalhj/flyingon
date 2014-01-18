@@ -130,10 +130,18 @@
     //根据当前字体衍生出粗斜体
     prototype.deriveBoldItalic = function () {
 
-        var result = this.derive({ weight: "bold", style: "italic" });
+        var result = this.derive({ weight: "bold", style: "italic" }),
+            cache;
 
-        this["bold"] && (this["bold"]["italic"] = result);
-        this["italic"] && (this["italic"]["bold"] = result);
+        if (cache = this["bold"])
+        {
+            cache["italic"] = result;
+        }
+
+        if (cache = this["italic"])
+        {
+            cache["bold"] = result;
+        }
 
         return this["bold-italic"] = result;
     };

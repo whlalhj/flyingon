@@ -12,7 +12,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
 
 
-    this["y:validate"] = function (item, index) {
+    this["y:validate"] = function (index, item) {
 
         if (item instanceof flyingon.Control)
         {

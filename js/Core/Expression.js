@@ -4,7 +4,10 @@
 
     var prototype = (flyingon.Expression = function (expression) {
 
-        expression && (this.expression = expression);
+        if (expression)
+        {
+            this.expression = expression;
+        }
 
     }).prototype;
 
@@ -19,7 +22,10 @@
         }
 
 
-        !expression.match(/return[\s;]/) && (expression = "return " + expression);
+        if (!expression.match(/return[\s;]/))
+        {
+            expression = "return " + expression;
+        }
 
 
         var values = expression.match(/['"\\]|@\w+|[^'"\\@]+/g),
@@ -36,7 +42,7 @@
                 case "\"":
                     if (!escape)
                     {
-                        quote ? ((quote == value) && (quote = null)) : (quote = value);
+                        quote ? (quote == value && (quote = null)) : (quote = value);
                     }
                     else
                     {

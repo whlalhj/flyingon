@@ -63,7 +63,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     };
 
 
-    this.arrange = function (boxModel, usableRect) {
+    this.arrange = function (boxModel, clientRect) {
 
         boxModel.content(this["x:content"]);
     };

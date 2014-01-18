@@ -18,17 +18,17 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
 
 
-    this["event:mousedown"] = function (event) {
+    this["event-mousedown"] = function (event) {
 
 
     };
 
-    this["event:mousemove"] = function (event) {
+    this["event-mousemove"] = function (event) {
 
 
     };
 
-    this["event:mouseup"] = function (event) {
+    this["event-mouseup"] = function (event) {
 
 
     };
@@ -44,13 +44,13 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
         paint: function (context, dragTargets) {
 
             var boxModel = this["x:boxModel"],
-                r = boxModel.innerRect;
+                r = boxModel.clientRect;
 
             context.fillStyle = this.styleValue("dragColor") || "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
-            this.paint(context);
-            this.paintBorder(context);
+            this.paint(context, boxModel);
+            this["paint-border"](context, boxModel);
         },
 
         move: function (event, offsetX, offsetY) {
