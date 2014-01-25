@@ -1,10 +1,10 @@
 ﻿
-//文字片段
+//文本单词
 (function (flyingon) {
 
 
 
-    var prototype = (flyingon.TextSnippet = function (font, text) {
+    var prototype = (flyingon.TextWord = function (font, text) {
 
         this.font = font;
         this.text = text;
@@ -19,11 +19,15 @@
     //文本内容
     prototype.text = null;
 
-    //文本内容
-    prototype.text = null;
-
     //文字段宽度
     prototype.width = 0;
+
+    //起始文本索引
+    prototype.index = 0;
+
+    //起始x坐标
+    prototype.x = 0;
+
 
 
     //测量单词中每一个字符占用的宽度
@@ -54,7 +58,7 @@
 
         var value = 0,
             chars = this.chars = measureText(this.font, this.text),
-            cache = this.cache = [0];
+            cache = this["x:cache"] = [0];
 
 
         for (var i = 0, length = chars.length; i < length; i++)
@@ -69,16 +73,16 @@
 
 
     //获取指定位置的字符索引
-    prototype.charAt = function (x) {
+    prototype["char-at"] = function (x) {
 
-        return this.unit ? Math.round(x / this.unit) : (this.cache || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this["x:cache"] || initialize.call(this)).binaryBetween(x);
     };
 
 
     //获取指定字符索引的相对位置
     prototype.position = function (charIndex) {
 
-        return this.unit ? charIndex * this.unit : (this.cache || initialize.call(this))[charIndex];
+        return this.unit ? charIndex * this.unit : (this["x:cache"] || initialize.call(this))[charIndex];
     };
 
 

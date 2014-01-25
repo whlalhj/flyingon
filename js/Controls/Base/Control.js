@@ -16,35 +16,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    //初始化类方法
-    Class.initialize = function (Class, flyingon) {
-
-
-        var className = Class.className,
-            styles = flyingon.styles,
-            style = styles[className] || (styles[className] = {}),
-            templates = flyingon.templates,
-            template = templates[className] || (templates[className] = {});
-
-
-        className = Class["superClass"].className;
-
-        //复制上级样式
-        if (styles.hasOwnProperty(className))
-        {
-            flyingon["simple-copy"](styles[className], style, true);
-        }
-
-        //复制上级模板
-        if (templates.hasOwnProperty(className))
-        {
-            flyingon["simple-copy"](templates[className], template, true);
-        }
-    };
-
-
-
-
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
     this["x:reference"] = true;
@@ -400,33 +371,33 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //
-    this.defineProperties(["left", "top", "width", "height"], 0, "locate");
+    this.defineProperties(["left", "top", "width", "height"], 0, "locate|style");
 
 
 
 
     //是否显示 visible:显示 hidden:不显示但保留占位 collapsed:不显示也不占位 见枚举flyingon.Visibility对象
-    this.defineProperty("visibility", "visible", "locate");
+    this.defineProperty("visibility", "visible", "locate|style");
 
     //
-    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate");
+    this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate|style");
 
 
 
     //拉伸方式 no:不拉伸 width:宽度拉伸 height:高度拉伸 all:全部拉伸 见枚举flyingon.Stretch对象
-    this.defineProperty("stretch", "no", "locate");
+    this.defineProperty("stretch", "no", "locate|style");
 
     //水平对齐 left center right 见枚举flyingon.HorizontalAlign对象
-    this.defineProperty("horizontalAlign", "left", "locate");
+    this.defineProperty("horizontalAlign", "left", "locate|style");
 
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
-    this.defineProperty("verticalAlign", "top", "locate");
+    this.defineProperty("verticalAlign", "top", "locate|style");
 
     //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
-    this.defineProperty("dock", "left", "locate");
+    this.defineProperty("dock", "left", "locate|style");
 
     //表格布局时行及列索引 
-    this.defineProperties(["rowIndex", "columnIndex"], null, "locate");
+    this.defineProperties(["rowIndex", "columnIndex"], null, "locate|style");
 
 
 
@@ -968,10 +939,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
                 for (var j = 0, count = line.length; j < count; j++)
                 {
-                    var snippet = line[j];
-                    context.fillText(snippet.text, x, y);
+                    var element = line[j];
+                    context.fillText(element.text, x, y);
 
-                    x += snippet.width;
+                    x += element.width;
                 }
             }
 

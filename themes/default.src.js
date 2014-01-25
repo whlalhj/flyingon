@@ -1,700 +1,718 @@
-﻿
-/*
-定义系统光标
-*/
+﻿//样式定义
 (function (flyingon) {
 
 
-    flyingon.cursors = {
+    //结果对象
+    var result = {};
 
-        "none": "none",
 
-        "default": "default",
 
-        "crosshair": "crosshair",
+    /*
+    定义系统光标
+    */
+    (function (flyingon) {
 
-        "pointer": "pointer",
 
-        "text": "text",
+        result.cursors = {
 
-        "vertical-text": "vertical-text",
+            "none": "none",
 
-        "move": "move",
+            "default": "default",
 
-        "scroll": "all-scroll",
+            "crosshair": "crosshair",
 
-        "progress": "progress",
+            "pointer": "pointer",
 
-        "e-resize": "e-resize",
+            "text": "text",
 
-        "s-resize": "s-resize",
+            "vertical-text": "vertical-text",
 
-        "w-resize": "w-resize",
+            "move": "move",
 
-        "n-resize": "n-resize",
+            "scroll": "all-scroll",
 
-        "ne-resize": "ne-resize",
+            "progress": "progress",
 
-        "se-resize": "se-resize",
+            "e-resize": "e-resize",
 
-        "nw-resize": "nw-resize",
+            "s-resize": "s-resize",
 
-        "sw-resize": "sw-resize",
+            "w-resize": "w-resize",
 
-        "col-resize": "col-resize",
+            "n-resize": "n-resize",
 
-        "row-resize": "row-resize",
+            "ne-resize": "ne-resize",
 
-        "wait": "wait",
+            "se-resize": "se-resize",
 
-        "help": "help",
+            "nw-resize": "nw-resize",
 
-        "allow-drop": "move", //safari不支持copy
+            "sw-resize": "sw-resize",
 
-        "no-drop": "no-drop",
+            "col-resize": "col-resize",
 
-        "not-allowed": "not-allowed"
+            "row-resize": "row-resize",
 
-        //"zoom-in": "-webkit-zoom-in,-moz-zoom-in",
+            "wait": "wait",
 
-        //"zoom-out": "-webkit-zoom-out,-moz-zoom-out"
+            "help": "help",
 
-    };
+            "allow-drop": "move", //safari不支持copy
 
+            "no-drop": "no-drop",
 
-})(flyingon);
+            "not-allowed": "not-allowed"
 
+            //"zoom-in": "-webkit-zoom-in,-moz-zoom-in",
 
+            //"zoom-out": "-webkit-zoom-out,-moz-zoom-out"
 
+        };
 
-/*
-定义系统图片
-*/
-(function (flyingon) {
 
+    })(flyingon);
 
-    var images = flyingon.images = {
 
-        //窗口图标
-        "window-icon": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //窗口关闭按钮
-        "window-close": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时窗口关闭按钮
-        "window-close-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+    /*
+    定义系统图片
+    */
+    (function (flyingon) {
 
-        //窗口最小化按钮
-        "window-minimize": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时窗口最小化按钮
-        "window-minimize-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        var images = result.images = {
 
-        //窗口最大化按钮
-        "window-maximize": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //窗口图标
+            "window-icon": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时窗口最大化按钮
-        "window-maximize-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //窗口关闭按钮
+            "window-close": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //鼠标划过时窗口关闭按钮
+            "window-close-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
+            //窗口最小化按钮
+            "window-minimize": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //向左箭头图标
-        "arrow-left": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时窗口最小化按钮
+            "window-minimize-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时向左箭头图标
-        "arrow-left-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //窗口最大化按钮
+            "window-maximize": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //向上箭头图标
-        "arrow-up": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时窗口最大化按钮
+            "window-maximize-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时向上箭头图标
-        "arrow-up-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //向右箭头图标
-        "arrow-right": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时向右箭头图标
-        "arrow-right-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //向左箭头图标
+            "arrow-left": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //向下箭头图标
-        "arrow-down": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时向左箭头图标
+            "arrow-left-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时向下箭头图标
-        "arrow-down-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //向上箭头图标
+            "arrow-up": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //滚动条滑块图标
-        "scroll-slider": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时向上箭头图标
+            "arrow-up-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时滚动条滑块图标
-        "scroll-slider-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //向右箭头图标
+            "arrow-right": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //鼠标划过时向右箭头图标
+            "arrow-right-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
+            //向下箭头图标
+            "arrow-down": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //鼠标划过时向下箭头图标
+            "arrow-down-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //选择选中图标
-        "check-checked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //滚动条滑块图标
+            "scroll-slider": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //捕获焦点时选择选中图标
-        "check-checked-focus": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+            //鼠标划过时滚动条滑块图标
+            "scroll-slider-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时选择选中图标
-        "check-checked-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //选择未选中图标
-        "check-unchecked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //捕获焦点时选择未选中图标
-        "check-unchecked-focus": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时选择未选中图标
-        "check-unchecked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //选择选中图标
+            "check-checked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //选择未知选择图标
-        "check-unkown": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //捕获焦点时选择选中图标
+            "check-checked-focus": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //捕获焦点时选择未知选择图标
-        "check-unkown-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时选择选中图标
+            "check-checked-hover": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
-        //鼠标划过时选择未知选择图标
-        "check-unkown-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //选择未选中图标
+            "check-unchecked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //捕获焦点时选择未选中图标
+            "check-unchecked-focus": "data:image/gif;base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
 
+            //鼠标划过时选择未选中图标
+            "check-unchecked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //单选选中图标
-        "radio-checked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //选择未知选择图标
+            "check-unkown": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //捕获焦点时单选选中图标
-        "radio-checked-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //捕获焦点时选择未知选择图标
+            "check-unkown-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时单选选中图标
-        "radio-checked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时选择未知选择图标
+            "check-unkown-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //单选未选中图标
-        "radio-unchecked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //捕获焦点时单选未选中图标
-        "radio-unchecked-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时单选未选中图标
-        "radio-unchecked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //单选选中图标
+            "radio-checked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //单选未知选择图标
-        "radio-unkown": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //捕获焦点时单选选中图标
+            "radio-checked-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //捕获焦点时单选未知选择图标
-        "radio-unkown-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //鼠标划过时单选选中图标
+            "radio-checked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //鼠标划过时单选未知选择图标
-        "radio-unkown-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //单选未选中图标
+            "radio-unchecked": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //捕获焦点时单选未选中图标
+            "radio-unchecked-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //鼠标划过时单选未选中图标
+            "radio-unchecked-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //树收拢图标
-        "tree-collapse": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+            //单选未知选择图标
+            "radio-unkown": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-        //树展开图标
-        "tree-expand": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7"
+            //捕获焦点时单选未知选择图标
+            "radio-unkown-focus": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
-    };
+            //鼠标划过时单选未知选择图标
+            "radio-unkown-hover": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
 
 
-    //转成Image对象
-    for (var name in images)
-    {
-        var value = images[name];
-        (images[name] = new Image()).src = value;
-    }
+            //树收拢图标
+            "tree-collapse": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
 
+            //树展开图标
+            "tree-expand": "data:image/gif;base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7"
 
-})(flyingon);
+        };
 
 
 
-
-
-/*
-定义系统颜色
-1. 可使用flyingon.LinearGradient创建线性渐变色
-2. 可使用flyingon.RadialGradient创建径向渐变色
-3. 可使用flyingon.ImagePattern创建图像背景
-*/
-(function (flyingon) {
-
-
-    flyingon.colors = {
-
-
-        "control-back": "#888888",
-
-        "control-text": "#000000",
-
-        "control-border": "blue",
-
-
-        "window-back": "#FFFFFF",
-
-        "window-text": "#000000",
-
-        "window-border": "#CCCCCC",
-
-
-        "hover-back": "#FFFFFF",
-
-        "hover-text": "#000000",
-
-        "hover-border": "#CCCCCC",
-
-
-        "focused-back": "#FFFFFF",
-
-        "focused-text": "#000000",
-
-        "focused-border": "#CCCCCC",
-
-
-        "checked-back": "#FFFFFF",
-
-        "checked-text": "#000000",
-
-        "checked-border": "#CCCCCC",
-
-
-        "disabled-back": "#888888",
-
-        "disabled-text": "#222222",
-
-        "disabled-border": "#222222",
-
-
-        "dark-back": "#888888",
-
-        "dark-text": "#000000",
-
-        "dark-border": "#444444",
-
-
-        "hightlight-back": "#FFFFFF",
-
-        "hightlight-text": "#000000",
-
-        "hightlight-border": "#CCCCCC",
-
-        "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
-
-
-        "window-title-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
-
-    };
-
-
-})(flyingon);
-
-
-
-
-
-/*
-定义系统字体
-可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
-*/
-(function (flyingon) {
-
-
-    var fonts = flyingon.fonts = {};
-
-
-    //普通字体
-    var normal = fonts["normal"] = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
-
-    //粗体
-    fonts["bold"] = normal.deriveBold();
-
-    //斜体
-    fonts["italic"] = normal.deriveItalic();
-
-    //粗斜体
-    fonts["bold-italic"] = normal.deriveBoldItalic();
-
-
-})(flyingon);
-
-
-
-
-
-/*
-定义样式
-
-*/
-(function (flyingon) {
-
-
-    var styles = flyingon.styles = {};
-
-
-
-    //默认控件样式
-    styles["Control"] = {
-
-        //外边距 上->右->下-左
-        margin: [0, 0, 0, 0],
-
-        //边框 上->右->下-左
-        border: [0, 0, 0, 0],
-
-        //内边距 上->右->下-左
-        padding: [0, 0, 0, 0],
-
-        //字体
-        font: "normal",
-
-        //光标
-        cursor: "default",
-
-        //透明度
-        opacity: 1,
-
-        //背景色
-        background: null,
-
-        //前景色
-        foreground: "control-text",
-
-        //边框颜色
-        borderColor: "control-border",
-
-        //边框圆角
-        borderRadius: 0,
-
-        //装饰
-        decorates: null,
-
-
-        //状态组 同一组互斥 不同组属性叠加 按定义顺序后面冲前面
-        /*
-        common-states:  普通状态组(enter-animate disabled pressed)
-        check-states:   选中状态组(checked unchecked unkown)
-        focus-states:   焦点状态组(focused leave-animate)
-        hover-states:   鼠标悬停状态组(hover leave-animate)
-        */
-        states: {
-
-            "common-states": {
-
-                //状态切入时动画
-                "enter-animate": null,
-
-                //禁用状态
-                disabled: {
-
-                    background: null,
-
-                    foreground: "disabled-text",
-
-                    borderColor: "disabled-border",
-
-                    //状态切入时动画
-                    "enter-animate": null
-                },
-
-                //按下状态
-                pressed: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                }
-
-            },
-
-
-            "check-states": {
-
-                //选中时
-                checked: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                },
-
-                //未选中时
-                unchecked: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                },
-
-                //未知
-                unkown: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                }
-            },
-
-
-            "focus-states": {
-
-                //获取焦点时
-                focused: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                },
-
-                //失去焦点时动画
-                "leave-animate": null
-            },
-
-
-            "hover-states": {
-
-                //鼠标悬停时
-                hover: {
-
-                    //状态切入时动画
-                    "enter-animate": null
-                },
-
-                //鼠标离开时动画
-                "leave-animate": null
-            }
-
+        //转成Image对象
+        for (var name in images)
+        {
+            var value = images[name];
+            (images[name] = new Image()).src = value;
         }
 
-    };
+
+    })(flyingon);
 
 
 
-    //滚动条样式
-    styles["ScrollBase"] = {
-
-        //背景色
-        background: "dark-back",
-
-        //箭头背景
-        arrowBackground: "control-back",
-
-        //向左箭头图片
-        arrowLeftImage: null,
-
-        //向上箭头图片
-        arrowUpImage: null,
-
-        //向右箭头图片
-        arrowRightImage: null,
-
-        //向下箭头图片
-        arrowDownImage: null,
-
-        //滑块背景
-        sliderBackground: null,
-
-        //滑块图片
-        sliderImage: null,
 
 
-        states: {
+    /*
+    定义系统颜色
+    1. 可使用flyingon.LinearGradient创建线性渐变色
+    2. 可使用flyingon.RadialGradient创建径向渐变色
+    3. 可使用flyingon.ImagePattern创建图像背景
+    */
+    (function (flyingon) {
 
-            "hover-states": {
 
-                hover: {
+        result.colors = {
 
-                    background: "yellow",
 
-                    "enter-animate": null
+            "control-back": "#888888",
+
+            "control-text": "#000000",
+
+            "control-border": "blue",
+
+
+            "window-back": "#FFFFFF",
+
+            "window-text": "#000000",
+
+            "window-border": "#CCCCCC",
+
+
+            "hover-back": "#FFFFFF",
+
+            "hover-text": "#000000",
+
+            "hover-border": "#CCCCCC",
+
+
+            "focused-back": "#FFFFFF",
+
+            "focused-text": "#000000",
+
+            "focused-border": "#CCCCCC",
+
+
+            "checked-back": "#FFFFFF",
+
+            "checked-text": "#000000",
+
+            "checked-border": "#CCCCCC",
+
+
+            "disabled-back": "#888888",
+
+            "disabled-text": "#222222",
+
+            "disabled-border": "#222222",
+
+
+            "dark-back": "#888888",
+
+            "dark-text": "#000000",
+
+            "dark-border": "#444444",
+
+
+            "hightlight-back": "#FFFFFF",
+
+            "hightlight-text": "#000000",
+
+            "hightlight-border": "#CCCCCC",
+
+            "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
+
+
+            "window-title-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
+
+        };
+
+
+    })(flyingon);
+
+
+
+
+
+    /*
+    定义系统字体
+    可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
+    */
+    (function (flyingon) {
+
+
+        var fonts = result.fonts = {};
+
+
+        //普通字体
+        var normal = fonts["normal"] = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
+
+        //粗体
+        fonts["bold"] = normal.deriveBold();
+
+        //斜体
+        fonts["italic"] = normal.deriveItalic();
+
+        //粗斜体
+        fonts["bold-italic"] = normal.deriveBoldItalic();
+
+
+    })(flyingon);
+
+
+
+
+
+    /*
+    定义样式
+    
+    */
+    (function (flyingon) {
+
+
+        var styles = result.styles = {};
+
+
+
+        //默认控件样式
+        styles["Control"] = {
+
+            //外边距 上->右->下-左
+            margin: [0, 0, 0, 0],
+
+            //边框 上->右->下-左
+            border: [0, 0, 0, 0],
+
+            //内边距 上->右->下-左
+            padding: [0, 0, 0, 0],
+
+            //字体
+            font: "normal",
+
+            //光标
+            cursor: "default",
+
+            //透明度
+            opacity: 1,
+
+            //背景色
+            background: null,
+
+            //前景色
+            foreground: "control-text",
+
+            //边框颜色
+            borderColor: "control-border",
+
+            //边框圆角
+            borderRadius: 0,
+
+            //装饰
+            decorates: null,
+
+
+            //状态组 同一组互斥 不同组属性叠加 按定义顺序后面冲前面
+            /*
+            common-states:  普通状态组(enter-animate disabled pressed)
+            check-states:   选中状态组(checked unchecked unkown)
+            focus-states:   焦点状态组(focused leave-animate)
+            hover-states:   鼠标悬停状态组(hover leave-animate)
+            */
+            states: {
+
+                "common-states": {
+
+                    //状态切入时动画
+                    "enter-animate": null,
+
+                    //禁用状态
+                    disabled: {
+
+                        background: null,
+
+                        foreground: "disabled-text",
+
+                        borderColor: "disabled-border",
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    },
+
+                    //按下状态
+                    pressed: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    }
+
                 },
 
-                "leave-animate": null
+
+                "check-states": {
+
+                    //选中时
+                    checked: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    },
+
+                    //未选中时
+                    unchecked: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    },
+
+                    //未知
+                    unkown: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    }
+                },
+
+
+                "focus-states": {
+
+                    //获取焦点时
+                    focused: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    },
+
+                    //失去焦点时动画
+                    "leave-animate": null
+                },
+
+
+                "hover-states": {
+
+                    //鼠标悬停时
+                    hover: {
+
+                        //状态切入时动画
+                        "enter-animate": null
+                    },
+
+                    //鼠标离开时动画
+                    "leave-animate": null
+                }
+
             }
-        }
 
-    };
-
+        };
 
 
 
-    //内容控件样式
-    styles["ContentControl"] = {
+        //滚动条样式
+        styles["ScrollBase"] = {
 
-        
-    };
+            //背景色
+            background: "dark-back",
+
+            //箭头背景
+            arrowBackground: "control-back",
+
+            //向左箭头图片
+            arrowLeftImage: null,
+
+            //向上箭头图片
+            arrowUpImage: null,
+
+            //向右箭头图片
+            arrowRightImage: null,
+
+            //向下箭头图片
+            arrowDownImage: null,
+
+            //滑块背景
+            sliderBackground: null,
+
+            //滑块图片
+            sliderImage: null,
+
+
+            states: {
+
+                "hover-states": {
+
+                    hover: {
+
+                        background: "yellow",
+
+                        "enter-animate": null
+                    },
+
+                    "leave-animate": null
+                }
+            }
+
+        };
 
 
 
-    //面板控件样式
-    styles["Panel"] = {
+
+        //内容控件样式
+        styles["ContentControl"] = {
 
 
-    };
+        };
+
+
+
+        //面板控件样式
+        styles["Panel"] = {
+
+
+        };
 
 
 
 
-    //文本框样式
-    styles["TextBoxBase"] = {
+        //文本框样式
+        styles["TextBoxBase"] = {
 
-        background: "window-back",
+            background: "window-back",
 
-        border: [1, 1, 1, 1],
+            border: [1, 1, 1, 1],
 
-        cursor: "text",
+            cursor: "text",
 
-        states: {
+            states: {
 
-            "hover-states": {
+                "hover-states": {
 
-                hover: {
+                    hover: {
 
-                    decorates: [{
+                        decorates: [{
 
-                        className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
+                            className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
 
-                            className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
+                                className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
+                            }]
                         }]
-                    }]
+                    }
                 }
             }
-        }
 
-    };
-
-
-
-
-    //文本框样式
-    styles["ListBox"] = {
-
-        background: "window-back",
-
-        border: [1, 1, 1, 1]
-    };
-
-
-    //文本框样式
-    styles["Button"] = {
-
-        background: "button-background",
-
-        border: [1, 1, 1, 1],
-
-        borderRadius: 0,
-
-        cursor: "pointer"
-
-    };
-
-
-
-    styles["Window"] = {
-
-
-        background: "window-back"
-
-    };
+        };
 
 
 
 
-    styles["window-icon"] = {
+        //文本框样式
+        styles["ListBox"] = {
 
-        image: "window-icon"
-    };
+            background: "window-back",
 
-    styles["window-close"] = {
+            border: [1, 1, 1, 1]
+        };
 
-        image: "window-close",
 
-        states: {
+        //文本框样式
+        styles["Button"] = {
 
-            "hover-states": {
+            background: "button-background",
 
-                hover: {
+            border: [1, 1, 1, 1],
 
-                    background: "white",
+            borderRadius: 0,
 
-                    image: "window-close-hover"
+            cursor: "pointer"
+
+        };
+
+
+
+        styles["Window"] = {
+
+
+            background: "window-back"
+
+        };
+
+
+
+
+        styles["window-icon"] = {
+
+            image: "window-icon"
+        };
+
+        styles["window-close"] = {
+
+            image: "window-close",
+
+            states: {
+
+                "hover-states": {
+
+                    hover: {
+
+                        background: "white",
+
+                        image: "window-close-hover"
+                    }
                 }
             }
-        }
-    };
+        };
 
-    styles["window-maximize"] = {
+        styles["window-maximize"] = {
 
-        image: "window-maximize",
+            image: "window-maximize",
 
-        states: {
+            states: {
 
-            "hover-states": {
+                "hover-states": {
 
-                hover: {
+                    hover: {
 
-                    background: "white",
+                        background: "white",
 
-                    image: "window-maximize-hover"
+                        image: "window-maximize-hover"
+                    }
                 }
             }
-        }
-    };
+        };
 
-    styles["window-minimize"] = {
+        styles["window-minimize"] = {
 
-        image: "window-minimize",
+            image: "window-minimize",
 
-        states: {
+            states: {
 
-            "hover-states": {
+                "hover-states": {
 
-                hover: {
+                    hover: {
 
-                    background: "white",
+                        background: "white",
 
-                    image: "window-minimize-hover"
+                        image: "window-minimize-hover"
+                    }
                 }
             }
-        }
-    };
+        };
 
-    styles["WindowTitleBar"] = {
-
-
-        background: "window-title-background",
-
-        border: [1, 1, 1, 1],
-
-    };
+        styles["WindowTitleBar"] = {
 
 
-    styles["ChildWindow"] = {
+            background: "window-title-background",
+
+            border: [1, 1, 1, 1],
+
+        };
 
 
-        background: "window-back",
+        styles["ChildWindow"] = {
 
-        border: [1, 1, 1, 1],
 
-    };
+            background: "window-back",
 
+            border: [1, 1, 1, 1],
+
+        };
 
 
 
-})(flyingon);
 
+    })(flyingon);
 
 
 
 
 
-/*
-定义模板
 
-*/
-(function (flyingon) {
-
-
-    var templates = flyingon.templates = {};
+    /*
+    定义模板
+    
+    */
+    (function (flyingon) {
 
 
+        var templates = result.templates = {};
 
+
+
+
+
+    })(flyingon);
+
+
+
+
+
+    //返回结果
+    return result;
 
 
 })(flyingon);

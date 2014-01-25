@@ -439,12 +439,46 @@
     //移动至指定位置(大小不变)
     prototype.moveTo = function (x, y) {
 
-        this.right = (this.x += x - this.x) + this.width;
-        this.bottom = (this.y += y - this.y) + this.height;
+        x -= this.x;
+        y -= this.y;
 
-        if (!this["x:measure"])
+        if (this.clientRect)
         {
-            this.compute();
+            if (x)
+            {
+                this.windowX += x;
+                this.right = (this.x += x) + this.width;
+
+                this.insideRect.x += x;
+                this.clientRect.x += x;
+
+                this.insideRect.windowX += x;
+                this.clientRect.windowX += x;
+            }
+
+            if (y)
+            {
+                this.windowY += y;
+                this.bottom = (this.y += y) + this.height;
+
+                this.insideRect.y += y;
+                this.clientRect.y += y;
+
+                this.insideRect.windowY += y;
+                this.clientRect.windowY += y;
+            }
+        }
+        else
+        {
+            if (x) //x变化值
+            {
+                this.right = (this.x += x) + this.width;
+            }
+
+            if (y) //y变化值
+            {
+                this.bottom = (this.y += y) + this.height;
+            }
         }
 
         return this;
@@ -473,11 +507,6 @@
         //测量
         this["x:measure"] = false;
         this["x:update-mode"] = 0;
-
-
-        //设置滚动范围
-        this.scrollWidth = 0;
-        this.scrollHeight = 0;
 
 
         var fn = ownerControl.measure;

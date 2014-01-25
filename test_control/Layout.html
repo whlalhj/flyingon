@@ -16,19 +16,31 @@
 
     <div style="width: 100%; height: 100%;">
         <div id="drag" style="background-color: yellow;">
-            <input type="button" id="btnCreate" value="Create" onclick="create()" />
-            <input type="button" id="btnPaint" value="Paint" onclick="paint()" />
-            <input type="button" id="btnChangeBoxModel" value="changeBoxModel" onclick="changeBoxModel()" />
-            <input type="button" id="btnResize" value="resize" onclick="resize()" />
-            <input type="button" id="btnResize0" value="row" onclick="layout('row')" />
-            <input type="button" id="btnResize1" value="column" onclick="layout('column')" />
-            <input type="button" id="btnResize2" value="rows" onclick="layout('rows')" />
-            <input type="button" id="btnResize3" value="columns" onclick="layout('columns')" />
-            <input type="button" id="btnResize4" value="dock" onclick="layout('dock')" />
-            <input type="button" id="btnResize5" value="page" onclick="layout('page')" />
-            <input type="button" id="Button1" value="grid" onclick="layout('grid')" />
-            <input type="button" id="Button2" value="table" onclick="layout('table')" />
-            <input type="button" id="Button3" value="absolute" onclick="layout('absolute')" />
+
+
+            <input type="button" value="Create" onclick="create()" />
+            <input type="button" value="Paint" onclick="paint()" />
+            <input type="button" value="changeBoxModel" onclick="changeBoxModel()" />
+            <input type="button" value="resize" onclick="resize()" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="line" onclick="layout('line')" />
+            <input type="button" value="flow" onclick="layout('flow')" />
+            <input type="button" value="single" onclick="layout('single')" />
+            <input type="button" value="dock" onclick="layout('dock')" />
+            <input type="button" value="queue" onclick="layout('queue')" />
+            <input type="button" value="grid" onclick="layout('grid')" />
+            <input type="button" value="absolute" onclick="layout('absolute')" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="horizontal" onclick="direction('horizontal')" />
+            <input type="button" value="vertical" onclick="direction('vertical')" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="mirror-none" onclick="mirror('none')" />
+            <input type="button" value="mirror-x-axis" onclick="mirror('x-axis')" />
+            <input type="button" value="mirror-y-axis" onclick="mirror('y-axis')" />
+            <input type="button" value="mirror-origin" onclick="mirror('origin')" />
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
@@ -41,23 +53,11 @@
 
     <script type="text/javascript">
 
-        var update;
-
-        var date = new Date();
-
-        for (var i = 0; i < 1000000; i++)
-        {
-            //new flyingon.TextBox();
-
-            //new flyingon.ListBoxItem();
-        }
-
-        alert(new Date() - date);
 
 
         var w = new flyingon.Window(host);
 
-        w.layout = "rows";
+        w.layout = "flow";
 
 
         function create() {
@@ -66,20 +66,20 @@
             var date = new Date();
 
             flyingon.beginInit();
-            w.layout = "rows";
+            w.layout = "flow";
 
 
-            for (var k = 0; k < 20; k++)
+            for (var k = 0; k < 200; k++)
             {
                 var panel = new flyingon.Panel();
 
-                for (var i = 0; i < 500; i++)
+                for (var i = 0; i < 50; i++)
                 {
 
                     var ctrl = new flyingon.Button();
 
-                    ctrl.left = i % 20 * 100;
-                    ctrl.top = i / 20 * 30;
+                    ctrl.left = i % 5 * 100;
+                    ctrl.top = i / 5 * 30;
 
                     ctrl.width = 20;
                     ctrl.height = 20;
@@ -124,14 +124,14 @@
                 panel["border"] = [10, 10, 10, 10];
                 panel.borderColor = "orange";
                 //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                panel.layout = "row";
-                panel.layoutSpaceX = 5;
-                panel.layoutSpaceY = 5;
-                panel.layoutRowHeight = 50;
-                panel.layoutColumnWidth = 60;
-                panel.layoutRows = 10;
-                panel.layoutColumns = 10;
-                panel.layoutTable = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+                panel.layout = "line";
+                panel.spaceX = 5;
+                panel.spaceY = 5;
+                panel["line-height"] = 50;
+                panel["line-width"] = 60;
+                panel.rows = 10;
+                panel.columns = 10;
+                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
                 //panel.scrollLeft = 100;
 
 
@@ -198,44 +198,19 @@
         };
 
 
-        function anonymous(value) {
+        function mirror(value) {
 
-            var storage = this['x:storage'], cache, name = 'layout';
-            if (flyingon['x:initializing'])
-            {
-                storage[name] = value;
-                (cache = this['x:bindings']) && this['y:bindings'](name, cache);
-                return this;
-            }
+            var panel = w.children.item(0);
+            panel.mirror = value;
+        };
 
-            var oldValue = storage[name];
-            if (oldValue !== value)
-            {
-                if ((cache = this['x:events']) && (cache = cache['change']) && cache.length > 0)
-                {
-                    var event = new flyingon.ChangeEvent(this, name, value, oldValue);
-                    if (!this.dispatchEvent(event)) return this;
-                    value = event.value;
-                }
 
-                storage[name] = value;
-                var boxModel = this['x:boxModel'];
-                boxModel.scrollLeft = 0;
-                boxModel.scrollTop = 0;
-                (cache = this['x:bindings']) && this['y:bindings'](name, cache);
-                if (cache = boxModel.parent)
-                {
-                    cache['x:measure'] = true;
-                    cache.ownerControl.invalidate();
-                }
-                else
-                {
-                    boxModel['x:measure'] = true;
-                    this.invalidate();
-                }
-            }
-            return this;
-        }
+        function direction(value) {
+
+            var panel = w.children.item(0);
+            panel.direction = value;
+        };
+
 
     </script>
 

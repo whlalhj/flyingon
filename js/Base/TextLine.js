@@ -2,11 +2,11 @@
 (function (flyingon) {
 
 
-    var prototype = (flyingon.TextPiece = function (font, text) {
+    var prototype = (flyingon.TextLine = function (font, text) {
 
         this.font = font;
         this.text = text;
-        this.height = font.lineHeight;
+        this.height = font.height;
 
     }).prototype = [];
 
@@ -18,6 +18,12 @@
     //文本内容
     prototype.text = null;
 
+    //起始文本索引
+    prototype.index = 0;
+
+    //起始y坐标
+    prototype.y = 0;
+
     //文本行总宽度
     prototype.width = 0;
 
@@ -28,17 +34,16 @@
 
     function initialize() {
 
-        var value_1 = 0,
-            value_2 = 0,
-            cache_1 = this["x:cache-1"] = [0],
+        var cache_1 = this["x:cache-1"] = [0],
             cache_2 = this["x:cache-2"] = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
-            var snippet = this[i];
+            var word_0 = this[i],
+                word_1 = this[i + 1];
 
-            cache_1.push(value_1 += snippet.text.length);     //文本索引
-            cache_2.push(value_2 += snippet.width);           //位置
+            cache_1.push(word_1.index = word_0.index + word_0.text.length); //文本索引
+            cache_2.push(word_1.x = word_0.x + word_0.width);               //位置
         }
 
         return this;
@@ -71,23 +76,23 @@
         for (var i = 0, length = values.length; i < length; i++)
         {
             var text = values[i],
-                snippet = new flyingon.TextSnippet(font, text);
+                word = new flyingon.TextWord(font, text);
 
 
             if (text[0] > "\u2e80") //东方字符类
             {
-                snippet.width = text.length * chinese;
-                snippet.unit = chinese; //每个字符的宽度(汉字)
+                word.width = text.length * chinese;
+                word.unit = chinese; //每个字符的宽度(汉字)
             }
             else //类英文单词及其它符号类
             {
-                snippet.width = cache[text] || (cache[text] = context.measureText(text).width); //总宽
+                word.width = cache[text] || (cache[text] = context.measureText(text).width); //总宽
             }
 
 
-            this.push(snippet);
+            this.push(word);
 
-            x += snippet.width;
+            x += word.width;
         }
 
 
@@ -97,17 +102,18 @@
 
 
 
-    //获取指定索引的测量信息
-    prototype.find = function (columnIndex) {
+    //获取指定索引的文字信息
+    prototype["char-by"] = function (columnIndex) {
 
         if (columnIndex >= this.text.length)
         {
             return {
 
-                snippetIndex: this.length - 1,
+                wordIndex: this.length - 1,
                 charIndex: this[this.length - 1].text.length,
                 columnIndex: this.text.length,
-                x: this.width
+                x: this.width,
+                y: this.y
             };
         }
 
@@ -119,47 +125,49 @@
 
 
         var index = (this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(columnIndex),
-            snippet = this[index],
+            word = this[index],
             charIndex = columnIndex - this["x:cache-1"][index];
 
 
         return {
 
-            snippetIndex: index,
+            wordIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this["x:cache-2"][index] + snippet.position(charIndex)
+            x: this["x:cache-2"][index] + word.position(charIndex),
+            y: this.y
         };
     };
 
 
-    //查找指定位置的测量信息
-    prototype.findAt = function (x) {
+    //查找指定位置的文字信息
+    prototype["char-at"] = function (x) {
 
         var index = (this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(x),
-            snippet = this[index],
+            word = this[index],
             charIndex,
             x;
 
 
         if (x >= this.width) //末尾
         {
-            charIndex = snippet.text.length;
+            charIndex = word.text.length;
             x = this.width;
         }
         else
         {
-            charIndex = snippet.charAt(x - this["x:cache-2"][index]);
-            x = this["x:cache-2"][index] + snippet.position(charIndex);
+            charIndex = word["char-at"](x - this["x:cache-2"][index]);
+            x = this["x:cache-2"][index] + word.position(charIndex);
         }
 
 
         return {
 
-            snippetIndex: index,
+            wordIndex: index,
             charIndex: charIndex,
             columnIndex: this["x:cache-1"][index] + charIndex,
-            x: x
+            x: x,
+            y: this.y
         };
     };
 

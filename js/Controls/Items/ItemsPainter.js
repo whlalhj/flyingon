@@ -1,5 +1,5 @@
 ﻿//绘制型多子项控件基础服务
-flyingon["items-painter"] = function (Class, flyingon) {
+flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
 
 
@@ -18,19 +18,19 @@ flyingon["items-painter"] = function (Class, flyingon) {
 
 
 
-    flyingon.defineProperty(this, "items",
+    flyingon.defineProperty(this, items_name || "items",
 
         function () {
 
-            return this["x:storage"]["items"];
+            return this["x:storage"]["x:items"];
         },
 
         function (value) {
 
-            var oldValue = this["x:storage"]["items"]["x:items"];
+            var oldValue = this["x:storage"]["x:items"];
             if (oldValue != value)
             {
-                this["x:storage"]["items"] = value;
+                this["x:storage"]["x:items"] = value;
 
                 //
             }
@@ -77,7 +77,7 @@ flyingon["items-painter"] = function (Class, flyingon) {
 
         var result = [],
 
-            items = this["items"],
+            items = this["x:items"],
             items_1 = items["x:items"],
             items_2 = items["x:items-x"],
 
@@ -120,21 +120,17 @@ flyingon["items-painter"] = function (Class, flyingon) {
 
         flyingon.SerializableObject.prototype.serialize.call(this, writer);
 
-        var items = this["items"]["x:items"];
+        var items = this["x:items"]["x:items"];
         if (items && items.length > 0)
         {
-            writer.array("items", items);
+            writer.array(items_name, items);
         }
     };
 
     this.deserialize = function (reader, data) {
 
-        if (data)
-        {
-            flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
-
-            reader.array(this["items"] || (this["items"] = new flyingon.ItemCollection()), "x:items", data["items"]);
-        }
+        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
+        reader.array(this["x:items"] || (this["x:items"] = new flyingon.ItemCollection()), "x:items", data[items_name]);
     };
 
 };

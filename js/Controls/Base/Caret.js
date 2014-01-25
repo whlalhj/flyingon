@@ -56,7 +56,7 @@ flyingon["y:initialize-caret"] = function (parentNode) {
         var box = _boxModel.parent,
             x = location.x,
             y = location.y,
-            height = _textMetrics.font.lineHeight + 2;
+            height = _textMetrics.font.height + 2;
 
 
         //处理不完全显示
@@ -71,8 +71,15 @@ flyingon["y:initialize-caret"] = function (parentNode) {
                 height -= value
             }
 
-            (value = y + height - r.windowY - r.height) > 0 && (height -= value);
-            height < 0 && (height = 0);
+            if ((value = y + height - r.windowY - r.height) > 0)
+            {
+                height -= value;
+            }
+
+            if (height < 0)
+            {
+                height = 0;
+            }
         }
 
         caret.setAttribute("style", "visibility:visible;position:absolute;background-color:black;z-Index:9998;width:1px;left:" + x + "px;top:" + y + "px;height:" + height + "px;");
@@ -90,10 +97,11 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
 
         var r = _boxModel.clientRect,
-            x = _textMetrics.caret.x;
+            x = _textMetrics.x + _textMetrics.caret.x,
+            y = _textMetrics.y + _textMetrics.caret.y;
 
 
-        //自动滚动调整
+        //自动滚动调整["line-at"](y)
         if (x < _boxModel.scrollTop)
         {
             _boxModel.scrollLeft = x;
@@ -113,15 +121,17 @@ flyingon["y:initialize-caret"] = function (parentNode) {
             }
         }
 
-
-        //显示插入符
-        location = _boxModel.targetToOffset(r.spaceX + x - _boxModel.scrollLeft, r.spaceY);
+        x = r.spaceX + x - _boxModel.scrollLeft;
+        y = r.spaceY + y - _boxModel.scrollTop;
 
         if (x > 0)
         {
-            location.x -= 1;
+            x -= 1;
         }
 
+
+        //显示插入符
+        location = _boxModel.targetToOffset(x, y);
 
         input.style.left = location.x + "px";
         input.style.top = location.y + "px";
@@ -141,7 +151,7 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
         if (ime >= 0) //输入法
         {
-            var value = text.charAt(ime);
+            var value = text["char-at"](ime);
 
             if (value >= "A" && value <= "z")
             {
@@ -172,12 +182,12 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
         if (selectionTo)
         {
-            _textMetrics.selectionTo(textIndex);
+            _textMetrics["selection-to"](textIndex);
             reset();
         }
         else
         {
-            _textMetrics.moveTo(selected && _textMetrics.selectedText ? _textMetrics.caret.textIndex : textIndex);
+            _textMetrics["move-to"](selected && _textMetrics.selectedText ? _textMetrics.caret.textIndex : textIndex);
             update.call(this);
         }
     };
@@ -240,8 +250,8 @@ flyingon["y:initialize-caret"] = function (parentNode) {
             {
 
                 case 65: //a A
-                    _textMetrics.moveTo(0);
-                    _textMetrics.selectionTo(_textMetrics.text.length);
+                    _textMetrics["move-to"](0);
+                    _textMetrics["selection-to"](_textMetrics.text.length);
                     reset();
                     return;
 

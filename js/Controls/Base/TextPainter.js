@@ -25,7 +25,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
             if (this.ownerWindow && this.ownerWindow["x:focused-control"] == this)
             {
-                this["x:textMetrics"].moveTo(value);
+                this["x:textMetrics"]["move-to"](value);
             }
 
             return this;
@@ -52,7 +52,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
                     value = 0;
                 }
 
-                textMetrics.selectionTo(textMetrics.selectionStart + value);
+                textMetrics["selection-to"](textMetrics.selectionStart + value);
             }
 
             return this;
@@ -83,7 +83,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
                 var x = event ? event.controlX : 0,
                     y = event ? event.controlY : 0;
 
-                textMetrics.moveAt(x, y);
+                textMetrics["move-at"](x, y);
             }
 
 
@@ -118,15 +118,15 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
             if (x >= this["x:boxModel"].clientRect.right)
             {
-                textMetrics.selectionTo(textMetrics.selectionEnd + 1, true);
+                textMetrics["selection-to"](textMetrics.selectionEnd + 1, true);
             }
             else if (x <= 0)
             {
-                textMetrics.selectionTo(textMetrics.selectionStart - 1, true);
+                textMetrics["selection-to"](textMetrics.selectionStart - 1, true);
             }
             else
             {
-                textMetrics.selectionAt(event.controlX, event.controlY, true);
+                textMetrics["selection-at"](event.controlX, event.controlY, true);
             }
 
 
@@ -165,7 +165,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
                 end = textMetrics.end;
 
             context.fillStyle = "#A9E2F3";// "#E6E6E6";
-            context.fillRect(clientRect.windowX + start.x, clientRect.windowY, end.x - start.x, textMetrics.font.lineHeight + 4);
+            context.fillRect(clientRect.windowX + start.x, clientRect.windowY, end.x - start.x, textMetrics.font.height + 4);
         }
     };
 

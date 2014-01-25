@@ -1,6 +1,6 @@
 ﻿
 ///Ajax实现
-(function (global, flyingon) {
+(function (flyingon) {
 
 
     var ajax_fn = null, //ajax创建函数
@@ -24,52 +24,81 @@
 
     function ajax() {
 
-
         if (!ajax_fn)
         {
-            var items = [
-
-                function () { return new XMLHttpRequest(); },
-                function () { return new ActiveXObject("Microsoft.XMLHTTP"); },
-                function () { return new ActiveXObject("MSXML2.XMLHTTP.3.0"); },
-                function () { return new ActiveXObject("MSXML2.XMLHTTP"); }
-            ];
-
-            for (var i = 0, length = items.length; i < length; i++)
+            if (typeof XMLHttpRequest !== "undefined")
             {
-                try
+                return (ajax_fn = function () { return new XMLHttpRequest(); })();
+            }
+
+            if (typeof ActiveXObject !== "undefined")
+            {
+                var items = [
+
+                    "MSXML2.XMLHTTP.4.0",
+                    "MSXML2.XMLHTTP",
+                    "Microsoft.XMLHTTP"
+
+                ], result;
+
+                for (var i = 0; i < items.length; i++)
                 {
-                    var result = (ajax_fn = items[i])();
-                    if (result)
+                    try
                     {
-                        return result;
+                        if (result = (ajax_fn = function () { return new ActiveXObject(items[i]); })())
+                        {
+                            return result;
+                        }
+                    }
+                    catch (error)
+                    {
                     }
                 }
-                catch (e)
-                {
-                }
             }
-        }
 
+            if (window.createRequest)
+            {
+                return (ajax_fn = window.createRequest)();
+            }
+
+            throw new Error('XMLHttpRequest is not available!');
+        }
 
         return ajax_fn();
     };
 
 
-    flyingon.encodeURL = function (url, json) {
+    flyingon.encode = function (data) {
 
-        if (url && json)
+        if (data)
         {
-            var values = [];
+            var values = [],
+                encode = encodeURIComponent;
 
-            for (var name in json)
+            for (var name in data)
             {
-                values.push(encodeURIComponent(name).replace(/%20/g, "+"));
-                values.push("=");
-                values.push(encodeURIComponent((json[name].toString()).replace(/%20/g, "+")));
+                values.push(encode(name) + "=" + encode((data[name].toString())));
             }
 
-            return url + "?" + values.join("&");
+            return values.length > 0 ? values.join("&") : data.toString();
+        }
+
+        return data;
+    };
+
+    flyingon.encodeURL = function (url, data) {
+
+        if (url && data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
         }
 
         return url;
@@ -77,11 +106,9 @@
 
 
 
-    function response(event) {
+    function response(target, options) {
 
-        var fn,
-            target = event.target,
-            options = target.options;
+        var fn;
 
         if (target.readyState == 4)
         {
@@ -96,14 +123,19 @@
                 switch (options.dataType || defaults.dataType)
                 {
                     case "json":
+                    case "text/json":
                         options.response = flyingon.parseJson(target.responseText);
                         break;
 
                     case "script":
+                    case "javascript":
+                    case "text/script":
+                    case "text/javascript":
                         options.response = eval(target.responseText);
                         break;
 
                     case "xml":
+                    case "text/xml":
                         options.response = target.responseXML;
                         break;
 
@@ -135,47 +167,49 @@
 
     /*
     {
-
+    
         url: "http://www.xxx.com"
-
+    
         type: "GET",
-
+    
         dataType: "text/plain" || "json" || "script" || "xml"
-
+    
         contentType: "application/x-www-form-urlencoded",
-
+    
         async: true,
-
+    
         user: undefined,
-
+    
         password: undefined,
-
+    
         timeout: 0,
-
+    
         data: null,
-
+    
         success: function(request, response) {
-
+    
         },
-
+    
         error: function (request) {
-
+    
             alert(request.status + ":" + request.statusText);
         },
-
+    
         abort: function(request) {
-
+    
         },
-
+    
         complete: function(request) {
-
+    
         }
-
+    
     }
     */
     flyingon.ajax = function (options) {
 
-        var type = options.type || defaults.type,
+        var url = options.url,
+            type = options.type || defaults.type,
+            data = options.data,
             result = ajax_fn ? ajax_fn() : ajax(),
             async = options.async !== false;
 
@@ -194,13 +228,44 @@
             }, options.timeout);
         }
 
-        result.options = options;
-        result.onreadystatechange = response;
-        result.open(type, options.url, async, options.user, options.password);
 
-        if (type == "POST" || type == "PUT")
+        result.onreadystatechange = function (event) {
+
+            response(result, options);
+        };
+
+        var post;
+
+        switch (type)
+        {
+            case "POST":
+            case "post":
+            case "PUT":
+            case "put":
+                post = true;
+                break;
+
+            default:
+                if (data)
+                {
+                    url = flyingon.encodeURL(url, data);
+                    data = null;
+                }
+                break;
+        }
+
+
+        result.open(type, url, async, options.user, options.password);
+
+        if (post)
         {
             result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
+
+            if (data && typeof data == "object")
+            {
+                data = flyingon.encode(data);
+                result.setRequestHeader("Content-Length", data.length);
+            }
         }
 
         if (options.headers)
@@ -211,23 +276,38 @@
             }
         }
 
-        result.send(options.data);
+        result.send(data);
         return async ? result : options.response;
     };
 
+    //get方式提交
+    //注:未传入options则默认使用同步提交
+    flyingon.get = function (url, dataType, options) {
 
-    flyingon.get = function (url, options) {
+        (options || (options = { async: false })).url = url;
 
-        (options || (options = {})).url = url;
         options.type = "GET";
+
+        if (dataType)
+        {
+            options.dataType = dataType;
+        }
 
         return flyingon.ajax(options);
     };
 
-    flyingon.post = function (url, options) {
+    //post提交 在IE6时会可能会出错 服务端可实现IHttpAsyncHandler接口解决些问题 
+    //注:未传入options则默认使用同步提交
+    flyingon.post = function (url, dataType, options) {
 
-        (options || (options = {})).url = url;
+        (options || (options = { async: false })).url = url;
+
         options.type = "POST";
+
+        if (dataType)
+        {
+            options.dataType = dataType;
+        }
 
         return flyingon.ajax(options);
     };
@@ -251,10 +331,4 @@
 
 
 
-
-})(this, flyingon);
-
-
-
-
-
+})(flyingon);

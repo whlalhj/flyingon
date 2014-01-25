@@ -271,7 +271,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
             }
             else //否则是文本内容
             {
-                value = escape && segment.charAt("&") >= 0 ? decodeXml(segment) : segment;
+                value = escape && segment["char-at"]("&") >= 0 ? decodeXml(segment) : segment;
             }
         }
 

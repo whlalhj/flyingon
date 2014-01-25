@@ -73,18 +73,13 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     this.serialize = function (writer) {
 
         flyingon.ContentControl.super.serialize.call(this, writer);
-
         writer.object("content", this["x:content"]);
     };
 
     this.deserialize = function (reader, data) {
 
-        if (data)
-        {
-            flyingon.ContentControl.super.deserialize.call(this, reader, data);
-
-            reader.object(this, "x:content", data["content"]);
-        }
+        flyingon.ContentControl.super.deserialize.call(this, reader, data);
+        reader.object(this, "x:content", data["content"]);
     };
 
 

@@ -6,6 +6,10 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     Class.create = function (parentNode) {
 
 
+        //自动初始化系统
+        flyingon.initialize();
+
+
         var div = this["dom-host"] = document.createElement("div");
 
         div.setAttribute("flyingon", "window-host");
@@ -37,12 +41,14 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     };
 
 
+
     //刷新窗口
     this.update = function () {
 
         var r = this["y:getBoundingClientRect"](true);
         this["y:resize"](0, 0, r.width, r.height);
     };
+
 
 }, true);
 

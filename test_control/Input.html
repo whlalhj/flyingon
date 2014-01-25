@@ -36,7 +36,10 @@
 
 
     <script type="text/javascript">
+       
 
+        //加载自定义样式
+        //flyingon.style("/themes/sample.js");
 
 
         var w = new flyingon.Window(host);
@@ -48,7 +51,7 @@
             var date = new Date();
 
             w.background = "silver";
-            w.layout = "rows";
+            w.layout = "flow";
 
             for (var i = 0; i < 4; i++)
             {
@@ -57,7 +60,7 @@
                 panel.width = 400;
 
                 panel.height = 400;
-                //panel.layout = "columns"
+                //panel.layout = "flow"
                 panel["margin"] = [10, 20, 30, 40];
                 panel["border"] = [1, 1, 1, 1];
 

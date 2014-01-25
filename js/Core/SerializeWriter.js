@@ -22,6 +22,12 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.value = function (name, value) {
 
+        if (value == null)
+        {
+            this.null(name);
+            return;
+        }
+
         switch (typeof value)
         {
             case "boolean":
@@ -37,26 +43,27 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                 break;
 
             case "object":
-                if (value == null)
+                switch (value.constructor)
                 {
-                    this.null(name);
-                }
-                else
-                {
-                    var cache = value.constructor;
+                    case Boolean:
+                        this.boolean(name, value);
+                        break;
+                        
+                    case Number:
+                        this.number(name, value);
+                        break;
 
-                    if (cache == String)
-                    {
+                    case String:
                         this.string(name, value);
-                    }
-                    else if (cache == Array) //数组
-                    {
+                        break;
+
+                    case Array:
                         this.array(name, value);
-                    }
-                    else //对象
-                    {
+                        break;
+
+                    default:
                         this.object(name, value);
-                    }
+                        break;
                 }
                 break;
 

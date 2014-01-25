@@ -60,11 +60,11 @@
     //        }
     //        else if (hw.input.selectionStart || hw.input.selectionStart > -1) {
     //            var start = hw.input.selectionStart;
-    //            var end = hw.input.selectionEnd;
+    //            var end = hw.input.selection_end;
 
     //            hw.input.value = hw.input.value.substring(0, start) + value + hw.input.value.substring(end, hw.input.value.length);
     //            hw.input.selectionStart = start + value.length;
-    //            hw.input.selectionEnd = hw.input.selectionStart;
+    //            hw.input.selection_end = hw.input.selectionStart;
 
     //            if (isFirefox) {
     //                hw.input.focus()

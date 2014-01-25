@@ -398,15 +398,12 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //自定义反序列化
     this.deserialize = function (reader, data) {
 
-        if (data)
-        {
-            var storage = reader.object(this, "x:storage", data["storage"]);
+        var storage = reader.object(this, "x:storage", data["storage"]);
 
-            reader.bindings(this, data);
-            if (storage && storage.name)
-            {
-                (reader.references || (reader.references = {}))[storage.name] = this;
-            }
+        reader.bindings(this, data);
+        if (storage && storage.name)
+        {
+            (reader.references || (reader.references = {}))[storage.name] = this;
         }
     };
 

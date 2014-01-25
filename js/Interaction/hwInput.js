@@ -197,9 +197,9 @@ hw.charSelect = function (I, C) {
     else {
         if (!H.selection && (F.selectionStart || F.selectionStart > -1) && hw.hasF) {
             var G = F.selectionStart;
-            var B = F.selectionEnd;
+            var B = F.selection_end;
             var J = F.value = F.value.substring(0, G) + E + F.value.substring(B, F.value.length);
-            F.selectionStart = G + E.length; F.selectionEnd = G + E.length;
+            F.selectionStart = G + E.length; F.selection_end = G + E.length;
             var A = navigator.userAgent;
             if (A.indexOf("Firefox") != -1) {
                 F.focus()

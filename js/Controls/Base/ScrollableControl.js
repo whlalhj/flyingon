@@ -125,8 +125,8 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
         var r = boxModel.clientRect,
-            width = r.width,
-            height = r.height;
+            width = boxModel.scrollWidth = r.width,
+            height = boxModel.scrollHeight = r.height;
 
 
         //初始化滚动条
@@ -143,6 +143,19 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         }
 
 
+        if (boxModel.scrollWidth < r.width)
+        {
+            boxModel.scrollLeft = 0;
+            boxModel.scrollWidth = r.width;
+        }
+
+        if (boxModel.scrollHeight < r.height)
+        {
+            boxModel.scrollTop = 0;
+            boxModel.scrollHeight = r.height;
+        }
+
+
         var horizontalScrollBar = this["x:horizontalScrollBar"],
             verticalScrollBar = this["x:verticalScrollBar"];
 
@@ -156,10 +169,10 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
     this.adjustAutoSize = function (boxModel) {
 
-        var clientRect = boxModel.clientRect;
+        var r = boxModel.clientRect;
 
-        boxModel.width = boxModel.scrollWidth + boxModel.width - clientRect.width;
-        boxModel.height = boxModel.scrollHeight + boxModel.height - clientRect.height;
+        boxModel.width = boxModel.scrollWidth + boxModel.width - r.width;
+        boxModel.height = boxModel.scrollHeight + boxModel.height - r.height;
     };
 
 

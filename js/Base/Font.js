@@ -26,12 +26,12 @@
 
         if (typeof storage[3] == "number")
         {
-            this.lineHeight = storage[3];
+            this.height = storage[3];
             storage[3] += "px";
         }
         else
         {
-            this.lineHeight = parseInt(storage[3]);
+            this.height = parseInt(storage[3]);
         }
 
         var cache = this["x:cache"] = {},
@@ -75,8 +75,8 @@
     //字体值
     defineProperty("value", 5);
 
-    //行高
-    prototype.lineHeight = 12;
+    //字体高度
+    prototype.height = 12;
 
 
     ////start     文本在指定的位置开始

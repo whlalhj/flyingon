@@ -37,9 +37,9 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
     this.dragger = {
 
-        allowdropCursor: flyingon.cursors["col-Resize"],
+        drop_cursor: "col-Resize",
 
-        nodropCursor: flyingon.cursors["no-drop"],
+        nodrop_cursor: "no-drop",
 
         paint: function (context, dragTargets) {
 

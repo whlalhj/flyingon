@@ -144,27 +144,7 @@ Canvas2D绘图扩展
 
 
 
-    /*
-    加载主题
-
-    */
-    flyingon.loadTheme = function (themeName) {
-
-        flyingon.require("/themes/" + (themeName || flyingon.setting.themeName || "default") + ".js");
-        (flyingon.styles["Control"] || (flyingon.styles["Control"] = {}))["x:cache"] = true; //缓存标记
-    };
-
-    flyingon.loadTheme();
-
-
-
-
-
-    var colors = flyingon.colors, //系统颜色
-
-        fonts = flyingon.fonts, //系统字体
-
-        radian = Math.PI / 180, //角度转弧度系数
+    var radian = Math.PI / 180, //角度转弧度系数
 
         prototype = CanvasRenderingContext2D.prototype;
 
@@ -181,7 +161,7 @@ Canvas2D绘图扩展
 
         this["set_" + name] = function (value) {
 
-            var color = value && (colors[value] || value);
+            var color = value && (flyingon.colors[value] || value);
 
             this[name] = color && color.createBrush ? color.createBrush(this) : color;
             return this;
@@ -268,7 +248,7 @@ Canvas2D绘图扩展
     */
     prototype.set_font = function (value) {
 
-        var font = fonts[value] || value;
+        var font = flyingon.fonts[value] || value;
 
         this.font = font && (font.value || font);
         return this;
@@ -674,7 +654,7 @@ Canvas2D绘图扩展
 
             var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
 
-            if (width < 0) 
+            if (width < 0)
             {
                 step = -step;
             }

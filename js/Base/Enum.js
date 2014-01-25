@@ -117,36 +117,26 @@
     //布局方式
     flyingon.Layout = {
 
-        //单行排列
-        row: "row",
+        //线性布局
+        line: "line",
 
-        //单列排列
-        column: "column",
+        //流式布局
+        flow: "rows",
 
-        //多行排列
-        rows: "rows",
+        //单个显示
+        single: "single",
 
-        //多列排列
-        columns: "columns",
-
-        //停靠
+        //停靠布局
         dock: "dock",
 
-        //单页显示
-        page: "page",
+        //队列布局
+        queue: "queue",
 
-        //风格排列
+        //网格布局
         grid: "grid",
 
-        //表格排列
-        table: "table",
-
-        //绝对定义
-        absolute: "absolute",
-
-        //自定义
-        custom: "custom"
-
+        //绝对定位
+        absolute: "absolute"
     };
 
 

@@ -23,11 +23,10 @@
         dragTargets,        //拖动目标
         dropTarget,         //接收目标
 
-        allowdropCursor,    //允许拖放时的光标
-        nodropCursor,       //禁止拖放时的光标
+        dragging,           //是否正在拖动
+        droppable,          //是否可放下
 
-        dragging,   //是否正在拖动
-        start_event,         //原始事件
+        start_event,        //原始事件
         last_event,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
         offsetX,    //X方向因移动造成的修正距离
         offsetY;    //Y方向因移动造成的修正距离
@@ -56,7 +55,7 @@
         var style = ownerLayer["dom-layer"].style;
 
         style.overflow = "visible";
-        style.cursor = dragger.allowdropCursor;
+        style.cursor = flyingon.cursors[dragger.drop_cursor || "allow-drop"];
         style.opacity = dragger.opacity || 0.5;
 
         ownerWindow.appendLayer(9999, ownerLayer);
@@ -68,14 +67,6 @@
     //默认拖拉者
     Dragdrop.dragger = {
 
-        //允许拖放地显示光标
-        allowdropCursor: flyingon.cursors["allow-drop"],
-
-        //不允许拖放时显示光标
-        nodropCursor: flyingon.cursors["no-drop"],
-
-        //透明度
-        opacity: 0.5,
 
         //默认开始行为
         start: function (event) {
@@ -112,8 +103,6 @@
 
             if (dropTarget != target)
             {
-                ownerLayer["dom-layer"].style.cursor = target == null ? nodropCursor : allowdropCursor;
-
                 if (dropTarget)
                 {
                     event = new_event("dragleave", dom_MouseEvent);
@@ -121,17 +110,27 @@
                 }
 
 
+                droppable = false;
+
                 if (target && target["x:storage"].droppable)
                 {
                     dropTarget = target;
 
                     event = new_event("dragenter", dom_MouseEvent);
-                    target.dispatchEvent(event);
+
+                    if (target.dispatchEvent(event))
+                    {
+                        droppable = true;
+                    }
                 }
                 else
                 {
                     dropTarget = target = null;
                 }
+
+
+                var cursor = droppable ? (dragger.drop_cursor || "allow-drop") : (dragger.nodrop_cursor || "no-drop");
+                ownerLayer["dom-layer"].style.cursor = flyingon.cursors[cursor];
             }
 
 
@@ -176,10 +175,7 @@
 
 
         //拖动者
-        dragger = ownerControl.dragger || Dragdrop.dragger;
-
-        allowdropCursor = dragger.allowdropCursor || Dragdrop.dragger.allowdropCursor;
-        nodropCursor = dragger.nodropCursor || Dragdrop.dragger.nodropCursor;
+        dragger = Dragdrop.dragger;
 
 
         //拖动目标
@@ -295,7 +291,7 @@
         if (ownerLayer)
         {
             //如果按下且移动过且可接受拖放时才触发停止方法
-            if (last_event && ownerLayer["dom-layer"].style.cursor != nodropCursor)
+            if (last_event && droppable)
             {
                 dragger.stop.call(ownerControl, last_event, offsetX, offsetY);
             };

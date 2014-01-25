@@ -17,7 +17,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                 data = data[0] == "<" ? flyingon.parseXml : this.parse(data);
             }
 
-            var result = this[Array.isArray(data) ? "array" : "object"](null, null, data);
+            var result = this[data instanceof Array ? "array" : "object"](null, null, data);
 
             this["y:complete"](this, context || result);
             return result;
@@ -148,7 +148,14 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                         switch (typeof item)
                         {
                             case "object":
-                                item = this[Array.isArray(item) ? "array" : "object"](null, null, item);
+                                if (item instanceof Array)
+                                {
+                                    item = this.array(null, null, item);
+                                }
+                                else if (flyingon.isObject)
+                                {
+                                    item = this.object(null, null, item);
+                                }
                                 break;
 
                             case "function":
@@ -200,7 +207,14 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                     switch (typeof item)
                     {
                         case "object":
-                            item = this[Array.isArray(item) ? "array" : "object"](null, null, item);
+                            if (item instanceof Array)
+                            {
+                                item = this.array(null, null, item);
+                            }
+                            else if (flyingon.isObject)
+                            {
+                                item = this.object(null, null, item);
+                            }
                             break;
 
                         case "function":

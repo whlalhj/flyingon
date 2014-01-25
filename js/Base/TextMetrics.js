@@ -17,6 +17,12 @@
     //文本
     prototype.text = null;
 
+    //初始x
+    prototype.x = 0;
+
+    //初始y
+    prototype.y = 0;
+
     //最大宽度
     prototype.width = 0;
 
@@ -43,19 +49,16 @@
 
     function initialize() {
 
-        var value_1 = 0,
-            value_2 = 0,
-            cache_1 = this["x:cache-1"] = [0],
-            cache_2 = this["x:cache-2"] = [0],
-            length = this.length - 1;
+        var cache_1 = this["x:cache-1"] = [0],
+            cache_2 = this["x:cache-2"] = [0];
 
-
-        for (var i = 0; i < length; i++)
+        for (var i = 0, length = this.length - 1; i < length; i++)
         {
-            var line = this[i];
+            var line_0 = this[i],
+                line_1 = this[i + 1];
 
-            cache_1.push(value_1 += line.text.length);     //文本索引
-            cache_2.push(value_2 += line.height);          //位置
+            cache_1.push(line_1.index = line_0.index + line_0.text.length); //文本索引
+            cache_2.push(line_1.y = line_0.y + line_0.height);              //位置
         }
 
         return this;
@@ -85,29 +88,42 @@
 
             for (var i = 0, length = values.length; i < length; i++)
             {
-                var piece = new flyingon.TextPiece(font, values[i]);
+                var line = new flyingon.TextLine(font, values[i]);
 
-                piece.measureText();
-                this.push(piece);
+                line.measureText();
+                this.push(line);
 
-                if (this.width < piece.width)
+                if (this.width < line.width)
                 {
-                    this.width = piece.width; //最大宽度
+                    this.width = line.width; //最大宽度
                 }
 
-                this.height += piece.height;
+                this.height += line.height;
             }
         }
     };
 
 
 
+    //获取指定索引的行信息
+    prototype["line-by"] = function (textIndex) {
 
+        if (textIndex < 0)
+        {
+            textIndex = 0;
+        }
 
+        return this[(this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(textIndex)];
+    };
 
+    //查找指定位置的行信息
+    prototype["line-at"] = function (y) {
+
+        return this[(this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(y)];
+    };
 
     //获取指定索引的字符信息
-    prototype.find = function (textIndex) {
+    prototype["char-by"] = function (textIndex) {
 
         if (textIndex < 0)
         {
@@ -116,22 +132,21 @@
 
         var index = (this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(textIndex),
             start = this["x:cache-1"][index],
-            result = this[index].find(textIndex - start);
+            result = this[index]["char-by"](textIndex - start);
 
-        result.pieceIndex = index;
+        result.lineIndex = index;
         result.textIndex = start + result.columnIndex;
 
         return result;
     };
 
-
     //查找指定位置的字符信息
-    prototype.findAt = function (x, y) {
+    prototype["char-at"] = function (x, y) {
 
         var index = (this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(y),
-            result = this[index].findAt(x);
+            result = this[index]["char-at"](x);
 
-        result.pieceIndex = index;
+        result.lineIndex = index;
         result.textIndex = this["x:cache-1"][index] + result.columnIndex;
 
         return result;
@@ -153,33 +168,33 @@
 
 
     //移动至指定坐标
-    prototype.moveAt = function (x, y) {
+    prototype["move-at"] = function (x, y) {
 
-        this.start = this.end = this.caret = this["x:start"] = this.findAt(x, y);
+        this.start = this.end = this.caret = this["x:start"] = this["char-at"](x, y);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };
 
 
     //选择至指定坐标
-    prototype.selectionAt = function (x, y) {
+    prototype["selection-at"] = function (x, y) {
 
-        this.end = this.caret = this.findAt(x, y);
+        this.end = this.caret = this["char-at"](x, y);
         selectionEnd.call(this);
     };
 
 
-    prototype.moveTo = function (textIndex) {
+    prototype["move-to"] = function (textIndex) {
 
-        this.start = this.end = this.caret = this["x:start"] = this.find(textIndex);
+        this.start = this.end = this.caret = this["x:start"] = this["char-by"](textIndex);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };
 
 
-    prototype.selectionTo = function (textIndex) {
+    prototype["selection-to"] = function (textIndex) {
 
-        this.end = this.caret = this.find(textIndex);
+        this.end = this.caret = this["char-by"](textIndex);
         selectionEnd.call(this);
     };
 
@@ -189,8 +204,8 @@
         var start = this.start,
             end = this.end,
             textIndex = start.textIndex + text.length,
-            index_1 = start.pieceIndex,
-            index_2 = end.pieceIndex;
+            index_1 = start.lineIndex,
+            index_2 = end.lineIndex;
 
 
         text = this[index_1].text.substring(0, start.columnIndex) + (text || "") + this[index_2].text.substring(end.columnIndex);
@@ -199,14 +214,14 @@
         end = index_2 + 1 < this.length ? this[index_2 + 1].text : "";
 
 
-        var piece = new flyingon.TextPiece(this.font, text);
-        piece.measureText();
+        var line = new flyingon.TextLine(this.font, text);
+        line.measureText();
 
-        this.splice(index_1, index_2 - index_1 + 1, piece);
+        this.splice(index_1, index_2 - index_1 + 1, line);
 
         this.text = start + text + end;
 
-        this.moveTo(textIndex);
+        this["move-to"](textIndex);
     };
 
 
@@ -214,7 +229,7 @@
 
         if (!this.selectedText)
         {
-            this.selectionTo(this.selectionEnd + length); //未选择
+            this["selection-to"](this.selectionEnd + length); //未选择
         }
 
         this.replace("");

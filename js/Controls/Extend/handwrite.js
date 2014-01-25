@@ -41,11 +41,11 @@ flyingon.class("HandWirte", flyingon.HtmlFrame, function (Class, flyingon) {
             else if (input.selectionStart || input.selectionStart > -1)
             {
                 var start = input.selectionStart;
-                var end = input.selectionEnd;
+                var end = input.selection_end;
 
                 input.value = input.value.substring(0, start) + value + input.value.substring(end, input.value.length);
                 input.selectionStart = start + value.length;
-                input.selectionEnd = input.selectionStart;
+                input.selection_end = input.selectionStart;
 
                 if (isFirefox)
                 {

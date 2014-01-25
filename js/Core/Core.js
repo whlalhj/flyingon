@@ -13,26 +13,32 @@
 
 
 //根命名空间
-var flyingon = this.flyingon = this.flyingon || {};
+var flyingon = this.flyingon = function () {
+
+};
 
 
+//全局设定
+//可以加载此脚本前使用 var flyingon_setting = { xxx }; 的方式设置参数
+//也可以在加载此脚本后直接修改属性值
+var flyingon_setting = this.flyingon_setting = flyingon_setting || {};
 
 
-//全局变量
-(function (flyingon) {
+//默认全局设定 初始化设定值
+var flyingon_defaults = {
 
 
     //版本
-    flyingon.version = "0.0.0.1";
+    version: "0.0.0.1",
 
     //语言
-    flyingon.language = "zh-CHS";
+    language: "zh-CHS",
 
-    //系统设置 记录当前用户样式语言等信息
-    flyingon.setting = flyingon.setting || {};
+    //默认样式
+    default_style: "/themes/default.js"
 
+};
 
-})(flyingon);
 
 
 
@@ -310,11 +316,10 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
 
-//通用函数
+//通用函数区
 (function (flyingon) {
 
-
-
+    //定义变量
     flyingon.defineVariable = function (target, name, value, configurable, enumerable) {
 
         //target[name] = value;
@@ -327,8 +332,7 @@ var flyingon = this.flyingon = this.flyingon || {};
         });
     };
 
-
-
+    //定义属性
     flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
 
         var attributes = {
@@ -363,10 +367,6 @@ var flyingon = this.flyingon = this.flyingon || {};
     };
 
 
-
-
-
-
     //增加模板函数支持 以当前函数为模板动态创建新函数
     flyingon["y:template-to"] = function (fn, values, names) {
 
@@ -396,32 +396,119 @@ var flyingon = this.flyingon = this.flyingon || {};
     };
 
 
-    //浅复制源对象属性至目标属性(对象直接复制引用)
-    //ignoreExists: 是否忽略已存在的属性
-    flyingon["simple-copy"] = function (source, target, ignoreExists) {
+    //判断目标是否对象或数组(除undefined null boolean number string function外的数据类型)
+    flyingon.isObjectOrArray = function (target) {
 
+        if (target != null && typeof target == "object")
+        {
+            switch (target.constructor)
+            {
+                case Boolean:
+                case Number:
+                case String:
+                    return false;
 
-        var names = Object.getOwnPropertyNames(source);
+                default:
+                    return true;
+            }
+        }
+
+        return false;
+    };
+
+    //判断目标是否对象(除undefined null boolean number string function及数组外的数据类型)
+    flyingon.isObject = function (target) {
+
+        if (target != null && typeof target == "object")
+        {
+            switch (target.constructor)
+            {
+                case Boolean:
+                case Number:
+                case String:
+                case Array:
+                    return false;
+
+                default:
+                    return !(target instanceof Array);
+            }
+        }
+
+        return false;
+    };
+
+    //复制对象
+    flyingon.copy = function (source, ignore_check) {
+
+        var isObject = flyingon.isObjectOrArray;
+
+        if (ignore_check === true || isObject(source))
+        {
+            var result = new source.constructor(),
+                cache;
+
+            if (result instanceof Array)
+            {
+                for (var i = 0, length = source.length; i < length; i++)
+                {
+                    result[i] = isObject(cache = source[i]) ? flyingon.copy(cache, true) : cache;
+                }
+            }
+            else
+            {
+                var names = Object.getOwnPropertyNames(source);
+
+                for (var i = 0, length = names.length; i < length; i++)
+                {
+                    result[cache = names[i]] = isObject(cache = source[cache]) ? flyingon.copy(cache, true) : cache;
+                }
+            }
+
+            return result;
+        }
+
+        return source;
+    };
+
+    //合并源对象属性至目标对象
+    //ignore_exist: 是否忽略已存在的属性
+    flyingon.mearge = function (source, target, ignore_exist) {
+
+        var names = Object.getOwnPropertyNames(source),
+            isObject = flyingon.isObject;
 
         for (var i = 0, length = names.length; i < length; i++)
         {
             var name = names[i],
-                value = source[name];
+                source_value = source[name],
+                target_value;
 
-            if (value != null && typeof value == "object")
+            if (isObject(source_value)) //源是对象且不是数组
             {
-                var cache = target[name];
-
-                if (cache != null && typeof cache == "object")
+                if ((target_value = target[name]) && isObject(target_value))
                 {
-                    flyingon["simple-copy"](value, cache, ignoreExists);
-                    continue;
+                    flyingon.mearge(source_value, target_value, ignore_exist);
+                }
+                else if (!ignore_exist)
+                {
+                    target[name] = flyingon.copy(source_value);
                 }
             }
-
-            if (!ignoreExists || !target.hasOwnProperty(name))
+            else if (!ignore_exist || (target_value = target[name]) === undefined)
             {
-                target[name] = value;
+                if (source_value instanceof Array) //源是数组
+                {
+                    target_value = target[name] = new source_value.constructor();
+
+                    for (var j = 0, count = source_value.length; j < count; j++)
+                    {
+                        target_value.push(flyingon.copy(source_value[j]));
+                    }
+                }
+                else //简单对象
+                {
+                    target[name] = source_value;
+                }
             }
         }
 
@@ -429,45 +516,11 @@ var flyingon = this.flyingon = this.flyingon || {};
     };
 
 
-    //深度复制源对象属性至目标属性(创建新对象)
-    //ignoreExists: 是否忽略已存在的属性
-    flyingon["deep-copy"] = function (source, target, ignoreExists) {
-
-
-        var names = Object.getOwnPropertyNames(source);
-
-        for (var i = 0, length = names.length; i < length; i++)
-        {
-            var name = names[i],
-                value = source[name];
-
-            if (value != null && typeof value == "object")
-            {
-                var cache = target[name];
-
-                if ((cache === undefined && (cache = target[name] = {})) ||
-                    (cache !== null && typeof cache == "object"))
-                {
-                    flyingon["deep-copy"](value, cache, ignoreExists);
-                }
-            }
-            else if (!ignoreExists || !target.hasOwnProperty(name))
-            {
-                target[name] = value instanceof Array ? value.slice(0) : value;
-            }
-        }
-
-        return target;
-    };
-
-
-
+    //解析json数据
     flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
 
-        return (new Function("return " + data))();
+        return ("(" + data + ")");
     };
-
-
 
 
     //开始初始化
@@ -484,6 +537,10 @@ var flyingon = this.flyingon = this.flyingon || {};
         return this;
     };
 
+
+
+    //合并全局设定
+    flyingon.mearge(flyingon_defaults, flyingon_setting, false);
 
 
 })(flyingon);
@@ -672,7 +729,7 @@ var flyingon = this.flyingon = this.flyingon || {};
     //定义类方法
     //extension: 类扩展 必须为函数
     //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.class = function (className, superClass, extension, constructor_merge) {
+    flyingon.class = function (className, superclass, extension, constructor_merge) {
 
 
         //处理参数
@@ -684,12 +741,12 @@ var flyingon = this.flyingon = this.flyingon || {};
         if (extension == null || typeof extension != "function")
         {
             constructor_merge = extension;
-            extension = superClass;
-            superClass = flyingon.RootObject;
+            extension = superclass;
+            superclass = flyingon.RootObject;
         }
-        else if (!superClass) //没有指定基类
+        else if (!superclass) //没有指定基类
         {
-            superClass = flyingon.RootObject;
+            superclass = flyingon.RootObject;
         }
 
         if (typeof extension != "function") //扩展不是函数
@@ -719,16 +776,18 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
         //创建类原型
-        var prototype = Class.prototype = Object.create(superClass.prototype);
+        var prototype = Class.prototype = Object.create(superclass.prototype);
 
 
         defineProperty(Class, prototype, "className", className);           //类名
         defineProperty(Class, prototype, "classFullName", classFullName);   //类全名
 
-        Class["superClass"] = superClass;                                   //父类
-        Class["super"] = superClass.prototype;                              //父类原型
-        prototype["constructor"] = Class;                                   //构造函数
-        prototype["x:defaults"] = Class["x:defaults"] = Object.create(superClass["x:defaults"] || Object.prototype);  //默认值
+        Class.superclass = superclass;          //父类
+        Class.super = superclass.prototype;     //父类原型
+        (superclass.subclasses || (superclass.subclasses = [])).push(Class);  //子类集合
+
+        prototype.constructor = Class;                                   //构造函数
+        prototype["x:defaults"] = Class["x:defaults"] = Object.create(superclass["x:defaults"] || Object.prototype);  //默认值
 
 
         flyingon.registryClass(Class); //注册类
@@ -742,11 +801,11 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 
         //处理构造函数
-        var superClass_create = superClass.create;
-        if (superClass_create)
+        var superclass_create = superclass.create;
+        if (superclass_create)
         {
             var Class_create = Class.create,
-                create_chain = superClass["x:create-chain"];
+                create_chain = superclass["x:create-chain"];
 
             if (Class_create)
             {
@@ -754,11 +813,11 @@ var flyingon = this.flyingon = this.flyingon || {};
                 if (!create_chain && constructor_merge)
                 {
                     Class_create = new flyingon.MetaFunction(Class_create);
-                    Class.create = Class_create.merge(superClass_create, true).fn;
+                    Class.create = Class_create.merge(superclass_create, true).fn;
                 }
                 else //生成构造链
                 {
-                    (Class["x:create-chain"] = (create_chain && create_chain.slice(0)) || [superClass_create]).push(Class_create);
+                    (Class["x:create-chain"] = (create_chain && create_chain.slice(0)) || [superclass_create]).push(Class_create);
 
                     Class.create = function () {
 
@@ -777,27 +836,9 @@ var flyingon = this.flyingon = this.flyingon || {};
                     Class["x:constructor-chain"] = create_chain;
                 }
 
-                Class.create = superClass_create;
+                Class.create = superclass_create;
             }
         }
-
-
-
-        //类初始化
-        var inherit_chain = [superClass, Class];
-        while (superClass = superClass.superClass)
-        {
-            inherit_chain.unshift(superClass);
-        }
-
-        for (var i = 0, length = inherit_chain.length; i < length; i++)
-        {
-            if (inherit_chain[i].initialize)
-            {
-                inherit_chain[i].initialize(Class, flyingon);
-            }
-        }
-
 
 
         return Class;
@@ -808,3 +849,109 @@ var flyingon = this.flyingon = this.flyingon || {};
 
 })(flyingon);
 
+
+
+
+
+//系统初始化方法
+(function (flyingon) {
+
+
+    var style_loaded = false;
+
+
+    //加载默认样式
+    function default_style() {
+
+        if (!style_loaded)
+        {
+            var data = flyingon.require(flyingon_setting.default_style || "themes/default.js");
+
+            if (data)
+            {
+                flyingon.fonts = data.fonts || {};
+                flyingon.cursors = data.cursors || {};
+                flyingon.images = data.images || {};
+                flyingon.colors = data.colors || {};
+                flyingon.fonts = data.fonts || {};
+                flyingon.styles = data.styles || {};
+                flyingon.templates = data.templates || {};
+            }
+
+            style_loaded = true;
+        }
+    };
+
+    //复制样式
+    function initialize_style(Class) {
+
+        var subclasses = Class.subclasses;
+        if (subclasses)
+        {
+            var styles = flyingon.styles,
+                templates = flyingon.templates;
+
+            for (var i = 0, length = subclasses.length; i < length; i++)
+            {
+                var target = subclasses[i],
+                    className = target.className,
+                    style = styles[className] || (styles[className] = {}),
+                    template = templates[className] || (templates[className] = {});
+
+
+                className = Class.className;
+
+                //复制上级样式
+                if (className in styles)
+                {
+                    flyingon.mearge(styles[className], style, true);
+                }
+
+                //复制上级模板
+                if (className in templates)
+                {
+                    flyingon.mearge(templates[className], template, true);
+                }
+
+
+                //递归
+                initialize_style(target);
+            }
+        }
+    };
+
+
+
+    //加载样式
+    flyingon.style = function (url) {
+
+        if (url)
+        {
+            default_style();
+
+            var data = flyingon.require(url);
+
+            if (data)
+            {
+                flyingon.mearge(data, flyingon);
+            }
+        }
+    };
+
+
+
+    //初始化系统
+    flyingon.initialize = function (reset) {
+
+        if (flyingon.Control)
+        {
+            //加载默认样式
+            default_style();
+
+            //初始化控件样式
+            initialize_style(flyingon.Control);
+        }
+    };
+
+
+})(flyingon);
