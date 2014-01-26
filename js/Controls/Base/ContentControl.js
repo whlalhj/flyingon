@@ -15,28 +15,28 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
         function () {
 
-            return this["x:content"];
+            return this.__content__;
         },
 
         function (value) {
 
-            var oldValue = this["x:content"];
+            var oldValue = this.__content__;
 
             if (oldValue != value)
             {
-                if (flyingon["x:initializing"])
+                if (flyingon.__initializing__)
                 {
-                    this["x:content"] = value;
+                    this.__content__ = value;
                 }
                 else
                 {
                     if (oldValue instanceof flyingon.Control)
                     {
-                        oldValue["y:parent"](null);
+                        oldValue.__fn_parent__(null);
                     }
 
-                    this["x:content"] = value;
-                    this["x:boxModel"]["x:measure"] = true;
+                    this.__content__ = value;
+                    this.__boxModel__.__measure__ = true;
                     this.dispatchEvent(new flyingon.ChangeEvent(this, "content", parent, oldValue));
 
                     this.invalidate();
@@ -52,7 +52,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     //获取指定位置的控件
     this.getControlAt = function (x, y) {
 
-        var content = this["x:content"];
+        var content = this.__content__;
 
         if (content && content.hitTest(x, y))
         {
@@ -65,7 +65,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
     this.arrange = function (boxModel, clientRect) {
 
-        boxModel.content(this["x:content"]);
+        boxModel.content(this.__content__);
     };
 
 
@@ -73,13 +73,13 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     this.serialize = function (writer) {
 
         flyingon.ContentControl.super.serialize.call(this, writer);
-        writer.object("content", this["x:content"]);
+        writer.object("content", this.__content__);
     };
 
     this.deserialize = function (reader, data) {
 
         flyingon.ContentControl.super.deserialize.call(this, reader, data);
-        reader.object(this, "x:content", data["content"]);
+        reader.object(this, "__content__", data["content"]);
     };
 
 

@@ -3,7 +3,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
 
 
-    var registryList = flyingon["x:registryList"];
+    var registryList = flyingon.__registry_list__;
 
 
 
@@ -19,7 +19,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             var result = this[data instanceof Array ? "array" : "object"](null, null, data);
 
-            this["y:complete"](this, context || result);
+            this.__fn_complete__(this, context || result);
             return result;
         }
 
@@ -28,11 +28,11 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
 
     //序列化完毕后执行方法(内部方法)
-    this["y:complete"] = function (reader, context) {
+    this.__fn_complete__ = function (reader, context) {
 
         //缓存的资源
         var references = reader.references,
-            items = reader["x:bindings"],
+            items = reader.__bindings__,
             binding,
             source;
 
@@ -71,7 +71,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                             }
                         }
 
-                        binding["y:initialize"](item[0], name);
+                        binding.__fn_initialize__(item[0], name);
                         binding.pull();
                     }
                 }
@@ -136,12 +136,12 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
             }
             else
             {
-                var names = Object.getOwnPropertyNames(value);
+                var keys = Object.keys(value);
 
-                for (var i = 0, length = names.length; i < length; i++)
+                for (var i = 0, length = keys.length; i < length; i++)
                 {
-                    var name = names[i],
-                        item = value[name];
+                    var key = keys[i],
+                        item = value[key];
 
                     if (item != null)
                     {
@@ -164,7 +164,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                         }
                     }
 
-                    result[name] = item;
+                    result[key] = item;
                 }
             }
 
@@ -267,7 +267,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
         if (target && (data = data["bindings"]))
         {
-            this["x:bindings"] || (this["x:bindings"] = []).push([target, data]);
+            this.__bindings__ || (this.__bindings__ = []).push([target, data]);
         }
     };
 

@@ -25,15 +25,15 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
     Class.create = function (OwnerControl) {
 
-        this["x:items-x"] = [];
+        this.__items_x__ = [];
         this.OwnerControl = OwnerControl;
     };
 
 
 
-    this["y:validate"] = function (index, item) {
+    this.__fn_validate__ = function (index, item) {
 
-        if (!flyingon['x:initializing'])
+        if (!flyingon.__initializing__)
         {
             this.ownerControl.invalidate();
         }
@@ -41,25 +41,25 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
         return item;
     };
 
-    this["y:remove"] = function (index) {
+    this.__fn_remove__ = function (index) {
 
-        var items = this["x:items-x"];
+        var items = this.__items_x__;
         if (items.length > index)
         {
             items.splice(index, 1);
         }
 
-        if (!flyingon['x:initializing'])
+        if (!flyingon.__initializing__)
         {
             this.ownerControl.invalidate();
         }
     };
 
-    this["y:clear"] = function (items) {
+    this.__fn_clear__ = function (items) {
 
-        this["x:items-x"].length = 0;
+        this.__items_x__.length = 0;
 
-        if (!flyingon['x:initializing'])
+        if (!flyingon.__initializing__)
         {
             this.ownerControl.invalidate();
         }

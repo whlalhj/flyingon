@@ -83,7 +83,7 @@
     };
 
 
-    prototype["x:expression"] = "";
+    prototype.__expression__ = "";
 
 
 
@@ -92,21 +92,21 @@
 
         function () {
 
-            return this["x:expression"];
+            return this.__expression__;
         },
 
         function (value) {
 
-            this["x:expression"] = "" + value;
+            this.__expression__ = "" + value;
             this.variables = [];
-            this["x:fn"] = parse(this["x:expression"], this.variables);
+            this.__function__ = parse(this.__expression__, this.variables);
         });
 
 
     //计算
     prototype.eval = function (thisArg) {
 
-        var fn = this["x:fn"];
+        var fn = this.__function__;
 
         if (fn)
         {
@@ -118,12 +118,12 @@
 
     prototype.serialize = function (writer) {
 
-        writer.string("expression", this["x:expression"]);
+        writer.string("expression", this.__expression__);
     };
 
     prototype.deserialize = function (reader, data) {
 
-        reader.string(this, "expression", data.expression);
+        reader.string(this, "__expression__", data.expression);
     };
 
 

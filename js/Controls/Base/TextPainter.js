@@ -18,14 +18,14 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         getter: function () {
 
-            return (this["x:textMetrics"] && this["x:textMetrics"].selectionStart) || 0;
+            return (this.__textMetrics__ && this.__textMetrics__.selectionStart) || 0;
         },
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow["x:focused-control"] == this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control__ == this)
             {
-                this["x:textMetrics"]["move-to"](value);
+                this.__textMetrics__.moveTo(value);
             }
 
             return this;
@@ -37,22 +37,22 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         getter: function () {
 
-            var textMetrics = this["x:textMetrics"];
+            var textMetrics = this.__textMetrics__;
             return textMetrics ? textMetrics.selectionEnd - textMetrics.selectionStart : 0;
         },
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow["x:focused-control"] == this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control__ == this)
             {
-                var textMetrics = this["x:textMetrics"];
+                var textMetrics = this.__textMetrics__;
 
                 if (value < 0)
                 {
                     value = 0;
                 }
 
-                textMetrics["selection-to"](textMetrics.selectionStart + value);
+                textMetrics.selectionTo(textMetrics.selectionStart + value);
             }
 
             return this;
@@ -62,7 +62,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
     this.defineProperty("selectedText", function () {
 
-        return this["x:textMetrics"].selectedText;
+        return this.__textMetrics__.selectedText;
     });
 
 
@@ -71,79 +71,79 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
 
-    this["y:focus"] = function (event) {
+    this.__fn_focus__ = function (event) {
 
         if (this.focus())
         {
             var ownerWindow = this.ownerWindow,
-                textMetrics = this["x:textMetrics"];
+                textMetrics = this.__textMetrics__;
 
             if (event || !this.containsFocused || !textMetrics.end)
             {
                 var x = event ? event.controlX : 0,
                     y = event ? event.controlY : 0;
 
-                textMetrics["move-at"](x, y);
+                textMetrics.moveAt(x, y);
             }
 
 
             //开启输入助手
-            ownerWindow["y:open-ime"](this, this["x:storage"].readOnly);
+            ownerWindow.__fn_open_ime__(this, this.readOnly);
         }
     };
 
-    this["y:blur"] = function () {
+    this.__fn_blur__ = function () {
 
         if (this.blur())
         {
-            this.ownerWindow["y:close-ime"]();
+            this.ownerWindow.__fn_close_ime__();
         }
     };
 
 
 
 
-    this["event-mousedown"] = function (event) {
+    this.__event_mousedown__ = function (event) {
 
-        this.ownerWindow["x:capture-control"] = this; //捕获鼠标
+        this.ownerWindow.__capture_control__ = this; //捕获鼠标
     };
 
-    this["event-mousemove"] = function (event) {
+    this.__event_mousemove__ = function (event) {
 
-        if (event.mousedown && this.ownerWindow["x:focused-control"] == this)
+        if (event.mousedown && this.ownerWindow.__focused_control__ == this)
         {
-            var textMetrics = this["x:textMetrics"],
+            var textMetrics = this.__textMetrics__,
                 x = event.targetX;
 
 
-            if (x >= this["x:boxModel"].clientRect.right)
+            if (x >= this.__boxModel__.clientRect.right)
             {
-                textMetrics["selection-to"](textMetrics.selectionEnd + 1, true);
+                textMetrics.selectionTo(textMetrics.selectionEnd + 1, true);
             }
             else if (x <= 0)
             {
-                textMetrics["selection-to"](textMetrics.selectionStart - 1, true);
+                textMetrics.selectionTo(textMetrics.selectionStart - 1, true);
             }
             else
             {
-                textMetrics["selection-at"](event.controlX, event.controlY, true);
+                textMetrics.selectionAt(event.controlX, event.controlY, true);
             }
 
 
-            this.ownerWindow["y:reset-ime"]();
+            this.ownerWindow.__fn_reset_ime__();
         }
     };
 
-    this["event-mouseup"] = function (event) {
+    this.__event_mouseup__ = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow["x:focused-control"] == this)
+        if (ownerWindow.__focused_control__ == this)
         {
-            ownerWindow["y:reset-ime"]();
+            ownerWindow.__fn_reset_ime__();
         }
 
-        ownerWindow["x:capture-control"] = null; //释放鼠标
+        ownerWindow.__capture_control__ = null; //释放鼠标
     };
 
 
@@ -157,7 +157,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
 
-    this["paint-text-back"] = function (context, clientRect, textMetrics) {
+    this.paint_text_back = function (context, clientRect, textMetrics) {
 
         if (textMetrics.selectionEnd > textMetrics.selectionStart)
         {

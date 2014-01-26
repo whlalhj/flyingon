@@ -16,8 +16,7 @@ flyingon.class("Polygon", flyingon.Shape, function (Class, flyingon) {
 
     this.buildPath = function (context, x, y, width, height) {
 
-        var storage = this["x:storage"];
-        context.polygon(storage.sides, x + width / 2, y + height / 2, storage.radius, storage.angle, storage.anticlockwise);
+        context.polygon(this.sides, x + width / 2, y + height / 2, this.radius, this.angle, this.anticlockwise);
     };
 
 

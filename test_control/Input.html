@@ -76,8 +76,8 @@
 
                 panel.onmousemove = function (event) {
 
-                    var items = this["x:render-children"];
-                    document.title += "  " + (items && items.length || "0") + " " + this["x:boxModel"].scrollTop;
+                    var items = this.__render_children__;
+                    document.title += "  " + (items && items.length || "0") + " " + this.__boxModel__.scrollTop;
                 };
 
                 w.children.append(panel);

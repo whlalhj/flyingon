@@ -11,14 +11,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
         //盒模型
-        this["x:boxModel"] = new flyingon.BoxModel(this);
+        this.__boxModel__ = new flyingon.BoxModel(this);
     };
 
 
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
-    this["x:reference"] = true;
+    this.__reference__ = true;
 
 
 
@@ -28,23 +28,23 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         getter: function () {
 
-            return this["x:parent"];
+            return this.__parent__;
         },
 
         setter: function (value) {
 
-            var oldValue = this["x:parent"];
+            var oldValue = this.__parent__;
 
             if (value != oldValue)
             {
                 if (oldValue)
                 {
-                    oldValue["x:children"].remove(this);
+                    oldValue.__children__.remove(this);
                 }
 
                 if (value)
                 {
-                    value["x:children"].append(this);
+                    value.__children__.append(this);
                 }
             }
 
@@ -54,22 +54,22 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //触发父控件变更
-    this["y:parent"] = function (parent) {
+    this.__fn_parent__ = function (parent) {
 
-        var box = this["x:boxModel"];
+        var box = this.__boxModel__;
 
         if (box.parent)
         {
-            box.parent["x:partition"] = true;
+            box.parent.__partition__ = true;
         }
 
         if (parent)
         {
-            parent["x:boxModel"]["x:partition"] = true;
+            parent.__boxModel__.__partition__ = true;
         }
 
-        this["x:parent"] = parent;
-        this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this["x:parent"]));
+        this.__parent__ = parent;
+        this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this.__parent__));
     };
 
 
@@ -87,14 +87,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //所属窗口
     this.defineProperty("ownerWindow", function () {
 
-        var parent = this["x:parent"];
+        var parent = this.__parent__;
         return parent && parent.ownerWindow;
     });
 
     //所属图层
     this.defineProperty("ownerLayer", function () {
 
-        var parent = this["x:parent"];
+        var parent = this.__parent__;
         return parent && parent.ownerLayer;
     });
 
@@ -107,7 +107,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             return false;
         }
 
-        var target = control["x:parent"];
+        var target = control.__parent__;
 
         while (target)
         {
@@ -116,7 +116,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
                 return true;
             }
 
-            target = target["x:parent"];
+            target = target.__parent__;
         }
 
         return false;
@@ -132,12 +132,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.getParentList = function () {
 
         var result = [],
-            parent = this["x:parent"];
+            parent = this.__parent__;
 
         while (parent)
         {
             result.unshift(parent);
-            parent = parent["x:parent"];
+            parent = parent.__parent__;
         }
 
         return result;
@@ -146,11 +146,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //从父控件中移除自身
     this.remove = function () {
 
-        var parent = this["x:parent"];
+        var parent = this.__parent__;
 
         if (parent)
         {
-            parent["x:children"].remove(this);
+            parent.__children__.remove(this);
         }
 
         return this;
@@ -163,7 +163,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    flyingon["x:define-getter"] = function (name, options) {
+    flyingon.__define_getter__ = function (name, options) {
 
         var body;
 
@@ -173,18 +173,18 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
         else
         {
-            body = "return this['x:storage']['" + name + "'];"
+            body = "return this.__storage__['" + name + "'];"
         }
 
         return new Function(body);
     };
 
-    flyingon["x:define-setter"] = function (name, attributes) {
+    flyingon.__define_setter__ = function (name, attributes) {
 
 
-        var body = "var storage = this['x:storage'], cache, name = '" + name + "';\n"
+        var body = "var storage = this.__storage__, cache, name = '" + name + "';\n"
 
-            + flyingon["x:define-initialize"]
+            + flyingon.__define_initialize__
 
 
             + (attributes.style ? "var oldValue = this.styleValue(name);\n" : "var oldValue = storage[name];\n")
@@ -195,10 +195,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + flyingon["x:define-change"]
+            + flyingon.__define_change__
 
             + "storage[name] = value;\n"
-            + "var boxModel = this['x:boxModel'];\n";
+            + "var boxModel = this.__boxModel__;\n";
 
 
         if (attributes.valueChangedCode)
@@ -206,7 +206,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             body += attributes.valueChangedCode + "\n"; //自定义值变更代码
         }
 
-        body += flyingon["x:define-binding"]; //处理绑定源
+        body += flyingon.__define_binding__; //处理绑定源
 
 
         //需要重新定位
@@ -214,18 +214,18 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         {
             body += "if (cache = boxModel.parent)\n"
                 + "{\n"
-                + "cache['x:measure'] = true;\n"
+                + "cache.__measure__ = true;\n"
                 + "cache.ownerControl.invalidate();\n"
                 + "}\n"
                 + "else\n"
                 + "{\n"
-                + "boxModel['x:measure'] = true;\n"
+                + "boxModel.__measure__ = true;\n"
                 + "this.invalidate();\n"
                 + "}\n";
         }
         else if (attributes.measure) //需要重新测量
         {
-            body += "boxModel['x:measure'] = true;\nthis.invalidate();\n";
+            body += "boxModel.__measure__ = true;\nthis.invalidate();\n";
         }
         else if (attributes.invalidate)  //需要重新绘制
         {
@@ -255,12 +255,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     focus-states:   焦点状态组(focused leaver-animate)
     hover-states:   鼠标悬停状态组(hover leaver-animate)
     */
-    this["x:states"] = ["common-states", "focus-states", "hover-states"];
+    this.__states__ = ["common-states", "focus-states", "hover-states"];
 
     //自定义状态组
     this.defineStates = function (statesName, defaultValue, index) {
 
-        var states = this["x:states"] = this["x:states"].slice(0);
+        var states = this.__states__ = this.__states__.slice(0);
         states.splice(index || states.length - 2, 0, statesName);
 
         if (defaultValue !== undefined)
@@ -280,11 +280,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (statesName && stateName)
         {
-            this["x:storage"][statesName] = (stateName == "enter-animate" || stateName == "leave-animate") ? null : stateName;
+            this.__storage__[statesName] = (stateName == "enter-animate" || stateName == "leave-animate") ? null : stateName;
 
             //记录最后变更的状态组以作为状态变更动画依据
-            this["x:statesName"] = statesName;
-            this["x:stateName"] = stateName;
+            this.__statesName__ = statesName;
+            this.__stateName__ = stateName;
 
             this.invalidate();
         }
@@ -293,8 +293,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     function styleValue(style, name) {
 
-        var storage = this["x:storage"],
-            states = this["x:states"],
+        var storage = this.__storage__,
+            states = this.__states__,
             i = states.length - 1,
             statesName,
             stateName,
@@ -321,7 +321,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.styleValue = function (name) {
 
 
-        var storage = this["x:storage"];
+        var storage = this.__storage__;
 
         if (storage.hasOwnProperty(name))
         {
@@ -346,7 +346,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
 
 
-        styleKey = this["x:className"];
+        styleKey = this.__className__;
         style = styles[styleKey];
 
         if ((style = styleValue.call(this, style, name)) != undefined)
@@ -354,7 +354,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             return style;
         }
 
-        return storage[name] || null;
+
+        return (style = this.__defaults__[name]) || (style === undefined ? null : style);
     };
 
 
@@ -365,27 +366,28 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //盒式模型
     this.defineProperty("boxModel", function () {
 
-        return this["x:boxModel"];
+        return this.__boxModel__;
     });
 
 
 
-    //
-    this.defineProperties(["left", "top", "width", "height"], 0, "locate|style");
+    //控件左上角x及y坐标 仅绝对定位时有效
+    this.defineProperties(["left", "top"], 0, "locate|style");
 
+    //控件宽度及高度 可选值: 数字|数字+"%"|"fill"|"auto"
+    //数字: 固定大小
+    //数字+"%":占客户区域百分比
+    //fill: 充满可用区域
+    //auto: 根据内容自动计算
+    this.defineProperties(["width", "height"], 100, "locate|style");
 
 
 
     //是否显示 visible:显示 hidden:不显示但保留占位 collapsed:不显示也不占位 见枚举flyingon.Visibility对象
     this.defineProperty("visibility", "visible", "locate|style");
 
-    //
+    //最小最大宽度 最小最大高度
     this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate|style");
-
-
-
-    //拉伸方式 no:不拉伸 width:宽度拉伸 height:高度拉伸 all:全部拉伸 见枚举flyingon.Stretch对象
-    this.defineProperty("stretch", "no", "locate|style");
 
     //水平对齐 left center right 见枚举flyingon.HorizontalAlign对象
     this.defineProperty("horizontalAlign", "left", "locate|style");
@@ -393,11 +395,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
     this.defineProperty("verticalAlign", "top", "locate|style");
 
+    //流式布局 auto:自动 inline:同行 block:新行
+    this.defineProperty("flow", 0, "locate|style");
+
     //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
     this.defineProperty("dock", "left", "locate|style");
-
-    //表格布局时行及列索引 
-    this.defineProperties(["rowIndex", "columnIndex"], null, "locate|style");
 
 
 
@@ -444,8 +446,24 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             return flyingon.fonts[this.styleValue("font") || "normal"] || flyingon.fonts["normal"];
         }
 
-    }, "this['x:textMetrics'] = null;");
+    }, "this.__textMetrics__ = null;");
 
+
+
+
+    //鼠标样式
+    this.defineProperty("cursor", "default", "style");
+
+
+    this.__fn_cursor__ = function (event) {
+
+        var cursor = this.styleValue("cursor") || "default";
+        return flyingon.cursors[cursor] || cursor;
+    };
+
+
+    //是否只绘制有效范围
+    this.defineProperty("clipToBounds", true, "measure|style");
 
 
 
@@ -453,13 +471,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("decorates", null, "invalidate|style");
 
 
-
-
-    //自动调整大小方式(根据内容大小自动变化)  no:不调整 width:宽度调整 height:高度调整 all:全部调整见枚举flyingon.AutoSize对象
-    this.defineProperty("autoSize", "no", {
-
-        valueChangedCode: "value && value != 'no' && this.adjustAutoSize(this['x:boxModel']);"
-    });
 
     //调整自动大小
     this.adjustAutoSize = function (boxModel) {
@@ -472,33 +483,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         attributes: "measure",
         valueChangingCode: "value += '';",
-        valueChangedCode: "this['x:textMetrics'] = null;"
+        valueChangedCode: "this.__textMetrics__ = null;"
     });
-
-    this.defineProperty("textHorizontalAlign", "left", "measure");
-
-    this.defineProperty("textVerticalAlign", "center", "measure");
-
-
-
-
-    this.defineProperty("cursor", null);
-
-    this["y:cursor"] = function (event) {
-
-        var cursor = this.styleValue("cursor") || "default";
-        return flyingon.cursors[cursor] || cursor;
-    };
 
 
 
     /*********************************************/
-
-
-
-    //是否只绘制有效范围
-    this.defineProperty("clipToBounds", true, "measure");
-
 
 
     //快捷键(按下alt+accesskey)
@@ -519,13 +509,13 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否为焦点控件
     this.defineProperty("focused", function () {
 
-        return this.ownerWindow && this.ownerWindow["x:focused-control"] == this;
+        return this.ownerWindow && this.ownerWindow.__focused_control__ == this;
     });
 
     //是否为焦点控件或包含焦点控件
     this.defineProperty("containsFocused", function () {
 
-        var focused = this.ownerWindow && this.ownerWindow["x:focused-control"];
+        var focused = this.ownerWindow && this.ownerWindow.__focused_control__;
         return focused && (focused == this || this.isParent(focused));
     });
 
@@ -569,14 +559,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         getter: function () {
 
-            var storage = this["x:storage"];
+            var storage = this.__storage__;
 
             if (storage.hasOwnProperty("template"))
             {
                 return storage.template;
             }
 
-            return flyingon.templates[this["x:className"]] || storage.template;
+            return flyingon.templates[this.__className__] || this.__defaults__.template;
         }
     });
 
@@ -587,8 +577,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (result)
         {
-            result["x:parent"] = this;
-            result["x:template"] = true;
+            result.__parent__ = this;
+            result.__template__ = true;
             return result;
         }
     };
@@ -609,12 +599,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return this.dispatchEvent("validate");
     };
 
-    this["y:focus"] = function (event) {
+    this.__fn_focus__ = function (event) {
 
         return this.focus();
     };
 
-    this["y:blur"] = function () {
+    this.__fn_blur__ = function () {
 
         return this.blur();
     };
@@ -624,13 +614,13 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //注:需此控件focusable为true时才可设为焦点控件
     this.focus = function () {
 
-        if (this["x:storage"].focusable)
+        if (this.focusable)
         {
             var ownerWindow = this.ownerWindow;
 
-            if (ownerWindow && ownerWindow["x:focused-control"] != this)
+            if (ownerWindow && ownerWindow.__focused_control__ != this)
             {
-                ownerWindow["x:focused-control"] = this;
+                ownerWindow.__focused_control__ = this;
 
                 if (this.dispatchEvent("focus"))
                 {
@@ -649,9 +639,9 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow && ownerWindow["x:focused-control"] == this)
+        if (ownerWindow && ownerWindow.__focused_control__ == this)
         {
-            ownerWindow["x:focused-control"] = null;
+            ownerWindow.__focused_control__ = null;
 
             if (this.dispatchEvent("blur"))
             {
@@ -675,26 +665,26 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (ownerWindow)
         {
-            var layer = ownerWindow["x:popup-layer"];
+            var layer = ownerWindow.__popup_layer__;
 
             if (!layer)
             {
-                layer = ownerWindow["x:popup-layer"] = ownerWindow.appendLayer(9997);
+                layer = ownerWindow.__popup_layer__ = ownerWindow.appendLayer(9997);
                 layer.layout = "absolute";
-                layer["paint-background"] = function () { };
+                layer.paint_background = function () { };
             }
 
             if (x != null)
             {
-                this["x:storage"].left = x;
+                this.left = x;
             }
 
             if (y != null)
             {
-                this["x:storage"].top = y;
+                this.top = y;
             }
 
-            layer["x:children"].append(this);
+            layer.__children__.append(this);
             layer.invalidate();
         }
     };
@@ -706,7 +696,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (ownerWindow)
         {
-            ownerWindow.removeLayer(ownerWindow["x:popup-layer"]);
+            ownerWindow.removeLayer(ownerWindow.__popup_layer__);
         }
     };
 
@@ -721,7 +711,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (ownerWindow)
         {
-            ownerWindow["x:capture-control"] = this;
+            ownerWindow.__capture_control__ = this;
         }
     };
 
@@ -732,7 +722,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (ownerWindow)
         {
-            ownerWindow["x:capture-control"] = null;
+            ownerWindow.__capture_control__ = null;
         }
     };
 
@@ -752,38 +742,38 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //偏移坐标转窗口坐标
     this.offsetToWindow = function (x, y) {
 
-        return this["x:boxModel"].offsetToWindow(x, y);
+        return this.__boxModel__.offsetToWindow(x, y);
     };
 
     //偏移坐标转目标坐标
     this.offsetToTarget = function (x, y) {
 
-        return this["x:boxModel"].offsetToTarget(x, y);
+        return this.__boxModel__.offsetToTarget(x, y);
     };
 
     //偏移坐标转控件坐标
     this.offsetToControl = function (x, y) {
 
-        return this["x:boxModel"].offsetToControl(x, y);
+        return this.__boxModel__.offsetToControl(x, y);
     };
 
 
     //目标坐标转偏移坐标
     this.targetToOffset = function (x, y) {
 
-        return this["x:boxModel"].targetToOffset(x, y);
+        return this.__boxModel__.targetToOffset(x, y);
     };
 
     //窗口坐标转偏移坐标
     this.windowToOffset = function (x, y) {
 
-        return this["x:boxModel"].windowToOffset(x, y);
+        return this.__boxModel__.windowToOffset(x, y);
     };
 
     //控件坐标转偏移坐标
     this.controlToOffset = function (x, y) {
 
-        return this["x:boxModel"].controlToOffset(x, y);
+        return this.__boxModel__.controlToOffset(x, y);
     };
 
 
@@ -791,7 +781,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     this.hitTest = function (x, y) {
 
-        var box = this["x:boxModel"];
+        var box = this.__boxModel__;
         return x >= box.x && y >= box.y && x <= box.right && y <= box.bottom;
     };
 
@@ -802,7 +792,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var layer = this.ownerLayer;
 
-        this["x:boxModel"].invalidate();
+        this.__boxModel__.invalidate();
 
         if (layer)
         {
@@ -816,12 +806,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var layer = this.ownerLayer;
 
-        this["x:boxModel"].invalidate();
+        this.__boxModel__.invalidate();
 
         if (layer)
         {
             layer.unregistryUpdate();
-            layer["x:boxModel"].render(layer.context);
+            layer.__boxModel__.render(layer.context);
         }
     };
 
@@ -830,16 +820,17 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     this.measureText = function (boxModel) {
 
-        var storage = this["x:storage"];
-        if (storage.text != null && !this["x:textMetrics"])
+        var text = this.text;
+
+        if (text != null && !this.__textMetrics__)
         {
-            (this["x:textMetrics"] = new flyingon.TextMetrics()).measureText(this.font, storage.text, storage.multiline);
+            (this.__textMetrics__ = new flyingon.TextMetrics()).measureText(this.font, text, this.multiline);
         }
     };
 
 
     //绘制边框
-    this["paint-border"] = function (context, boxModel) {
+    this.paint_border = function (context, boxModel) {
 
         var border = boxModel.border;
 
@@ -856,7 +847,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             else
             {
                 context.set_fillStyle(color);
-                context["paint-border"](boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, border);
+                context.paint_border(boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, border);
             }
         }
 
@@ -864,7 +855,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //绘制背景
-    this["paint-background"] = function (context, boxModel) {
+    this.paint_background = function (context, boxModel) {
 
         var background = this.background;
 
@@ -894,14 +885,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //绘制内框
     this.paint = function (context, boxModel) {
 
-        this["paint-text"](context, boxModel.clientRect);
+        this.paint_text(context, boxModel.clientRect);
     };
 
 
     //绘制文字
-    this["paint-text"] = function (context, clientRect) {
+    this.paint_text = function (context, clientRect) {
 
-        var textMetrics = this["x:textMetrics"],
+        var textMetrics = this.__textMetrics__,
             cache;
 
         if (textMetrics)
@@ -912,7 +903,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
             //区域剪切
-            if (cache = this["x:storage"].clipToBounds)
+            if (cache = this.clipToBounds)
             {
                 context.beginPath();
                 context.rect(clientRect.windowX, clientRect.windowY, clientRect.width, clientRect.height);
@@ -920,7 +911,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             }
 
 
-            if (cache = this["paint-text-back"])
+            if (cache = this.paint_text_back)
             {
                 cache.call(this, context, clientRect, textMetrics);
             }

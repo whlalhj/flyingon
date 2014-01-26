@@ -12,17 +12,17 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
 
 
-    this["y:validate"] = function (index, item) {
+    this.__fn_validate__ = function (index, item) {
 
         if (item instanceof flyingon.Control)
         {
-            if (flyingon["x:initializing"])
+            if (flyingon.__initializing__)
             {
-                item["x:parent"] = this.ownerControl;
+                item.__parent__ = this.ownerControl;
             }
             else
             {
-                item["y:parent"](this.ownerControl);
+                item.__fn_parent__(this.ownerControl);
             }
 
             return item;
@@ -31,16 +31,16 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
         throw new Error("item not a Control!");
     };
 
-    this["y:remove"] = function (index) {
+    this.__fn_remove__ = function (index) {
 
-        this["x:items"][index]["y:parent"](null);
+        this.__items__[index].__fn_parent__(null);
     };
 
-    this["y:clear"] = function (items) {
+    this.__fn_clear__ = function (items) {
 
         for (var i = 0, length = items.length; i < length; i++)
         {
-            items[i]["y:parent"](null);
+            items[i].__fn_parent__(null);
         }
     };
 

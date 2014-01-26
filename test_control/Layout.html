@@ -59,6 +59,8 @@
 
         w.layout = "flow";
 
+       
+
 
         function create() {
 
@@ -81,12 +83,11 @@
                     ctrl.left = i % 5 * 100;
                     ctrl.top = i / 5 * 30;
 
-                    ctrl.width = 20;
+                    ctrl.width = 60;
                     ctrl.height = 20;
                     ctrl["border"] = [1, 1, 1, 1];
                     ctrl["borderColor"] = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
                     ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    ctrl.stretch = "all";
                     ctrl.horizontalAlign = "center";
                     ctrl.verticalAlign = "center";
 
@@ -118,7 +119,6 @@
                 }
 
 
-                //panel.autoSize = "all";
                 panel.width = 600;
                 panel.height = 400;
                 panel["border"] = [10, 10, 10, 10];
@@ -127,8 +127,8 @@
                 panel.layout = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;
-                panel["line-height"] = 50;
-                panel["line-width"] = 60;
+                panel.lineHeight = 50;
+                panel.lineWidth = 60;
                 panel.rows = 10;
                 panel.columns = 10;
                 panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";

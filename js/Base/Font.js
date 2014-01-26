@@ -12,7 +12,7 @@
 
         if (arguments.length > 0)
         {
-            this["x:storage"] = [style, variant, weight, size, family];
+            this.__storage__ = [style, variant, weight, size, family];
             initialize.call(this);
         }
 
@@ -22,7 +22,7 @@
 
     function initialize() {
 
-        var storage = this["x:storage"];
+        var storage = this.__storage__;
 
         if (typeof storage[3] == "number")
         {
@@ -34,8 +34,8 @@
             this.height = parseInt(storage[3]);
         }
 
-        var cache = this["x:cache"] = {},
-            context = this["x:context"] = document.createElement("canvas").getContext("2d"),
+        var cache = this.__cache__ = {},
+            context = this.__context__ = document.createElement("canvas").getContext("2d"),
             text = "a b";
 
         context.font = storage[5] = storage.join(" ");
@@ -51,7 +51,7 @@
 
         flyingon.defineProperty(prototype, name, function () {
 
-            return this["x:storage"][index];
+            return this.__storage__[index];
         });
     };
 
@@ -101,7 +101,7 @@
     prototype.derive = function (properties) {
 
         var result = new flyingon.Font(),
-            data = result["x:storage"] = this["x:storage"].slice(0, 4);
+            data = result.__storage__ = this.__storage__.slice(0, 4);
 
         data[0] = properties.style || data[0];
         data[1] = properties.variant || data[1];
@@ -118,13 +118,13 @@
     //根据当前字体衍生出粗体
     prototype.deriveBold = function () {
 
-        return this["bold"] = this.derive({ weight: "bold" });
+        return this.bold = this.derive({ weight: "bold" });
     };
 
     //根据当前字体衍生出斜体
     prototype.deriveItalic = function () {
 
-        return this["italic"] = this.derive({ style: "italic" });
+        return this.italic = this.derive({ style: "italic" });
     };
 
     //根据当前字体衍生出粗斜体
@@ -133,17 +133,17 @@
         var result = this.derive({ weight: "bold", style: "italic" }),
             cache;
 
-        if (cache = this["bold"])
+        if (cache = this.bold)
         {
-            cache["italic"] = result;
+            cache.italic = result;
         }
 
-        if (cache = this["italic"])
+        if (cache = this.italic)
         {
-            cache["bold"] = result;
+            cache.bold = result;
         }
 
-        return this["bold-italic"] = result;
+        return this.bold_italic = result;
     };
 
 

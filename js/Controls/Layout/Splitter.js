@@ -5,7 +5,7 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
     Class.create = function () {
 
-        var storage = this["x:storage"];
+        var storage = this.__storage__;
         storage.cursor = flyingon.cursors["col-resize"];
         storage.dock = "left";
         storage.draggable = true;
@@ -15,20 +15,23 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
     this.defaultValue("draggable", true);
 
+    this.defaultValue("dock", "left");
 
 
 
-    this["event-mousedown"] = function (event) {
+
+
+    this.__event_mousedown__ = function (event) {
 
 
     };
 
-    this["event-mousemove"] = function (event) {
+    this.__event_mousemove__ = function (event) {
 
 
     };
 
-    this["event-mouseup"] = function (event) {
+    this.__event_mouseup__ = function (event) {
 
 
     };
@@ -43,19 +46,19 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
         paint: function (context, dragTargets) {
 
-            var boxModel = this["x:boxModel"],
+            var boxModel = this.__boxModel__,
                 r = boxModel.clientRect;
 
             context.fillStyle = this.styleValue("dragColor") || "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context, boxModel);
-            this["paint-border"](context, boxModel);
+            this.paint_border(context, boxModel);
         },
 
         move: function (event, offsetX, offsetY) {
 
-            switch (this["x:storage"].dock)
+            switch (this.dock)
             {
                 case "left":
                 case "right":

@@ -5,16 +5,16 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     Class.create = function () {
 
-        this["x:data"] = [];
+        this.__data__ = [];
     };
 
 
 
-    this["x:root"] = null;
+    this.__root__ = null;
 
     this.serialize = function (target) {
 
-        this[Array.isArray(target) ? "array" : "object"](this["x:root"], target);
+        this[Array.isArray(target) ? "array" : "object"](this.__root__, target);
         return this.toString();
     };
 
@@ -93,7 +93,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.null = function (name) {
 
-        var data = this["x:data"];
+        var data = this.__data__;
 
         if (name)
         {
@@ -107,7 +107,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this["x:data"];
+            var data = this.__data__;
 
             if (name)
             {
@@ -122,7 +122,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this["x:data"];
+            var data = this.__data__;
 
             if (name)
             {
@@ -137,7 +137,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this["x:data"];
+            var data = this.__data__;
 
             if (name)
             {
@@ -152,7 +152,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this["x:data"];
+            var data = this.__data__;
 
             if (name)
             {
@@ -174,16 +174,16 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                 }
                 else
                 {
-                    var names = Object.getOwnPropertyNames(value);
+                    var keys = Object.keys(value);
 
-                    for (var i = 0, length = names.length; i < length; i++)
+                    for (var i = 0, length = keys.length; i < length; i++)
                     {
                         if (i > 0 || name)
                         {
                             data.push(",");
                         }
 
-                        data.push("\"" + (name = names[i]) + "\":");
+                        data.push("\"" + (name = keys[i]) + "\":");
                         this.value(null, value[name]);
                     }
                 }
@@ -202,7 +202,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this["x:data"];
+            var data = this.__data__;
 
             if (name)
             {
@@ -246,7 +246,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
         if (value != null)
         {
             //未设置名称则直接序列化
-            if (!value["x:reference"])
+            if (!value.__reference__)
             {
                 this[Array.isArray(value) ? "array" : "object"](name, value);
             }
@@ -264,7 +264,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.bindings = function (target) {
 
-        if (target && (target = target["x:bindings"]) && (target = target.pull))
+        if (target && (target = target.__bindings__) && (target = target.pull))
         {
             this.object("bindings", target);
         }
@@ -273,7 +273,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.toString = this.toLocaleString = function () {
 
-        return this["x:data"].join("");
+        return this.__data__.join("");
     };
 
 });
@@ -285,19 +285,19 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, flyingon) {
 
 
-    this["x:root"] = "xml";
+    this.__root__ = "xml";
 
 
     this.null = function (name) {
 
-        this["x:data"].push("<" + name + " type=\"null\"/>");
+        this.__data__.push("<" + name + " type=\"null\"/>");
     };
 
     this.boolean = function (name, value) {
 
         if (value !== undefined)
         {
-            this["x:data"].push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
+            this.__data__.push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
         }
     };
 
@@ -305,7 +305,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
 
         if (value !== undefined)
         {
-            this["x:data"].push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
+            this.__data__.push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
         }
     };
 
@@ -316,7 +316,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             if (value != null)
             {
                 value.indexOf("&") >= 0 && (value = flyingon.decodeXml(value));
-                this["x:data"].push("<" + name + " type=\"string\">" + value + "</" + name + ">");
+                this.__data__.push("<" + name + " type=\"string\">" + value + "</" + name + ">");
             }
             else
             {
@@ -333,7 +333,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         }
 
 
-        var data = this["x:data"];
+        var data = this.__data__;
 
         if (data != null)
         {
@@ -345,12 +345,12 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             }
             else
             {
-                var names = Object.getOwnPropertyNames(value),
+                var keys = Object.keys(value),
                     key;
 
-                for (var i = 0, length = names.length; i < length; i++)
+                for (var i = 0, length = keys.length; i < length; i++)
                 {
-                    this.value(key = names[i], value[key]);
+                    this.value(key = keys[i], value[key]);
                 }
             }
 
@@ -370,7 +370,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         }
 
 
-        var data = this["x:data"];
+        var data = this.__data__;
 
         if (value != null)
         {

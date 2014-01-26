@@ -40,8 +40,8 @@
 
 
         var result = [],
-            cache = font["x:cache"],
-            context = font["x:context"];
+            cache = font.__cache__,
+            context = font.__context__;
 
 
         for (var i = 0, length = text.length; i < length; i++)
@@ -58,7 +58,7 @@
 
         var value = 0,
             chars = this.chars = measureText(this.font, this.text),
-            cache = this["x:cache"] = [0];
+            cache = this.__cache__ = [0];
 
 
         for (var i = 0, length = chars.length; i < length; i++)
@@ -73,16 +73,16 @@
 
 
     //获取指定位置的字符索引
-    prototype["char-at"] = function (x) {
+    prototype.charAt = function (x) {
 
-        return this.unit ? Math.round(x / this.unit) : (this["x:cache"] || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binaryBetween(x);
     };
 
 
     //获取指定字符索引的相对位置
     prototype.position = function (charIndex) {
 
-        return this.unit ? charIndex * this.unit : (this["x:cache"] || initialize.call(this))[charIndex];
+        return this.unit ? charIndex * this.unit : (this.__cache__ || initialize.call(this))[charIndex];
     };
 
 

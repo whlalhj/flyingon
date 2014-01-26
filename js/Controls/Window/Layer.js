@@ -7,8 +7,8 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
     Class.create = function () {
 
-        var div = this["dom-layer"] = document.createElement("div"),
-            canvas = this["dom-canvas"] = document.createElement("canvas");
+        var div = this.dom_layer = document.createElement("div"),
+            canvas = this.dom_canvas = document.createElement("canvas");
 
 
         div.setAttribute("flyingon", "layer");
@@ -24,25 +24,25 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
         //注册延时更新
-        this["y:initialize-update"](this);
+        this.__fn_initialize_update__(this);
     };
 
 
 
     this.defineProperty("opacity", 1, {
 
-        valueChangedCode: "this['dom-layer'].style.opacity = value;"
+        valueChangedCode: "this.dom_layer.style.opacity = value;"
     });
 
 
     this.defineProperty("width", function () {
 
-        return this["dom-canvas"].width;
+        return this.dom_canvas.width;
     });
 
     this.defineProperty("height", function () {
 
-        return this["dom-canvas"].height;
+        return this.dom_canvas.height;
     });
 
 
@@ -55,14 +55,14 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
     //初始化延时更新器
-    this["y:initialize-update"] = function (layer) {
+    this.__fn_initialize_update__ = function (layer) {
 
 
         var timer,
-            boxModel = layer["x:boxModel"];
+            boxModel = layer.__boxModel__;
 
 
-        boxModel["x:layer"] = true;
+        boxModel.layer = true;
 
 
         function execute() {
@@ -97,8 +97,8 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
         this.unregistryUpdate();
 
-        this["x:boxModel"].invalidate();
-        this["x:boxModel"].update(this.context);
+        this.__boxModel__.invalidate();
+        this.__boxModel__.update(this.context);
     };
 
 

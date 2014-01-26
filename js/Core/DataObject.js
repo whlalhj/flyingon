@@ -8,16 +8,16 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
     function getter(name, attributes) {
 
-        var body = "var name = \"" + name + "\";\nreturn this['x:data'][name] || this.defaultValue(name);";
+        var body = "var name = \"" + name + "\";\nreturn this.__data__[name] || this.defaultValue(name);";
 
         return new Function(body);
     };
 
     function setter(name, attributes) {
 
-        var body = "var storage = this['x:data'], cache, name = '" + name + "';\n"
+        var body = "var storage = this.__data__, cache, name = '" + name + "';\n"
 
-            + flyingon["x:define-initialize"]
+            + flyingon.__define_initialize__
             + "var oldValue = storage[name];\n"
 
             + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
@@ -25,9 +25,9 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
             + "if (oldValue !== value)\n"
             + "{\n"
 
-            + flyingon["x:define-change"]
+            + flyingon.__define_change__
 
-            + "var original = storage['x:original'] || (storage['x:original'] = {});\n"
+            + "var original = storage.__original__ || (storage.__original__ = {});\n"
             + "if (!original.hasOwnProperty(name))\n"
             + "{\n"
             + "original[name] = oldValue;\n"
@@ -37,7 +37,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
             + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-            + flyingon["x:define-binding"]
+            + flyingon.__define_binding__
 
             + "}\n"
 
@@ -52,7 +52,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
     Class.create = function () {
 
-        this["x:data"] = {};
+        this.__data__ = {};
     };
 
 
@@ -62,12 +62,12 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         if (defaultValue !== undefined)
         {
-            this["x:defaults"][name] = defaultValue;
+            this.__defaults__[name] = defaultValue;
         }
 
-        var schema = this["x:schema"] || (this["x:schema"] = {});
+        var schema = this.__schema__ || (this.__schema__ = {});
 
-        attributes = schema[name] = flyingon["x:define-attributes"](attributes);
+        attributes = schema[name] = flyingon.__define_attributes__(attributes);
         attributes.defaultValue = defaultValue;
 
         flyingon.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
@@ -76,9 +76,9 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
     this.removeDataProperty = function (name) {
 
-        delete this["x:data"][name];
+        delete this.__data__[name];
 
-        var schema = this["x:schema"];
+        var schema = this.__schema__;
         if (schema)
         {
             delete schema[name];
@@ -97,15 +97,15 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         function () {
 
-            return this["x:data"];
+            return this.__data__;
         },
 
         function (value) {
 
-            var oldValue = this["x:data"];
+            var oldValue = this.__data__;
             if (oldValue != value)
             {
-                this["x:data"] = value;
+                this.__data__ = value;
                 this.dispatchEvent("change", "name", value, oldValue);
             }
         });
@@ -116,17 +116,17 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         if (value === undefined)
         {
-            return this["x:storage"][name];
+            return this.__storage__[name];
         }
 
-        this["x:storage"][name] = value;
+        this.__storage__[name] = value;
         return this;
     };
 
     //获取或设值
     this.value = function (name, value) {
 
-        var data = this["x:data"];
+        var data = this.__data__;
 
         if (value === undefined)
         {
@@ -140,32 +140,32 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     //获取原始值
     this.originalValue = function (name) {
 
-        var data = this["x:data"],
-            original = data["x:original"];
+        var data = this.__data__,
+            original = data.__original__;
 
         return (original && original[name]) || data[name];
     };
 
     this.hasChanged = function (name) {
 
-        var data = this["x:data"]["x:original"];
+        var data = this.__data__.__original__;
         return data && (!name || data.hasOwnProperty(name));
     };
 
     this.acceptChanges = function () {
 
-        this["x:data"]["x:original"] = null;
+        this.__data__.__original__ = null;
     };
 
     this.rejectChanges = function () {
 
-        var data = this["x:data"],
-            original = data["x:original"];
+        var data = this.__data__,
+            original = data.__original__;
 
         if (original)
         {
-            data["x:original"] = null;
-            this["x:data"] = original;
+            data.__original__ = null;
+            this.__data__ = original;
         }
     };
 
@@ -175,23 +175,23 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.serialize = function (writer) {
 
         flyingon.DataObject.super.serialize.call(this, writer);
-        this["y:serialize-data"](writer);
+        this.__fn_serialize_data__(writer);
     };
 
-    this["y:serialize-data"] = function (writer) {
+    this.__fn_serialize_data__ = function (writer) {
 
-        writer.object("data", this["x:data"]);
+        writer.object("data", this.__data__);
     };
 
     this.deserialize = function (reader, data) {
 
         flyingon.DataObject.super.deserialize.call(this, reader, data);
-        this["y:deserialize-data"](reader, data);
+        this.__fn_deserialize_data__(reader, data);
     };
 
-    this["y:deserialize-data"] = function (reader, data) {
+    this.__fn_deserialize_data__ = function (reader, data) {
 
-        reader.object(this, "x:data", data.data);
+        reader.object(this, "__data__", data.data);
     };
 
 }, true);
@@ -223,7 +223,7 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
     //数据结构
     this.defineProperty("schema", function () {
 
-        return this["x:schema"];
+        return this.__schema__;
     });
 
 

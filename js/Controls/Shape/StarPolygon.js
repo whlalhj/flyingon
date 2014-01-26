@@ -18,8 +18,7 @@ flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
 
     this.buildPath = function (context, x, y, width, height) {
 
-        var storage = this["x:storage"];
-        context.starPolygon(storage.vertexes, x + width / 2, y + height / 2, storage.radius1, storage.radius2, storage.angle, storage.anticlockwise);
+        context.starPolygon(this.vertexes, x + width / 2, y + height / 2, this.radius1, this.radius2, this.angle, this.anticlockwise);
     };
 
 

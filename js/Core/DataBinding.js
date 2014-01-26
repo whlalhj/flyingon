@@ -10,12 +10,12 @@
     //正向绑定(绑定数据源至目标控件)
     flyingon.bindingTo = function (source, name) {
 
-        var bindings = source["x:bindings"],
+        var bindings = source.__bindings__,
             binding;
 
         if (bindings && (bindings = bindings.push) && (binding = bindings[name]))
         {
-            var keys = Object.getOwnPropertyNames(binding),
+            var keys = Object.keys(binding),
                 length = keys.length;
 
             if (length == 0)
@@ -35,19 +35,19 @@
 
     var clearBindings = function (storage, dispose) {
 
-        var names = Object.getOwnPropertyNames(storage),
-            name,
+        var keys = Object.keys(storage),
+            key,
             bindings;
 
-        for (var i = 0, length = names.length; i < length; i++)
+        for (var i = 0, length = keys.length; i < length; i++)
         {
-            if ((name = names[i]) && (bindings = source[name]))
+            if ((key = keys[i]) && (bindings = source[key]))
             {
-                var keys = Object.getOwnPropertyNames(bindings);
+                var keys_2 = Object.keys(bindings);
 
-                for (var j = 0, count = keys.length; j < count; j++)
+                for (var j = 0, length_2 = keys_2.length; j < length_2; j++)
                 {
-                    bindings[keys[j]].clear(dispose);
+                    bindings[keys_2[j]].clear(dispose);
                 }
             }
         }
@@ -55,7 +55,7 @@
 
     flyingon.clearBindings = function (source, dispose) {
 
-        if (source && (source = source["x:bindings"]))
+        if (source && (source = source.__bindings__))
         {
             var storage = source.pull;
 
@@ -84,9 +84,9 @@
                 source = source.source;
             }
 
-            this["x:source"] = source;
-            this["x:expression"] = expression;
-            this["x:setter"] = setter;
+            this.__source__ = source;
+            this.__expression__ = expression;
+            this.__setter__ = setter;
         }
 
     }).prototype;
@@ -96,7 +96,7 @@
 
         flyingon.defineProperty(prototype, name, function () {
 
-            return this["x:" + name];
+            return this["__" + name + "__"];
         });
     };
 
@@ -121,28 +121,28 @@
 
 
     //是否正在处理绑定
-    prototype["x:binding"] = false;
+    prototype.__binding__ = false;
 
     //获取值函数
-    prototype["y:getter"] = null;
+    prototype.__fn_getter__ = null;
 
     //设置值函数
-    prototype["y:setter"] = null;
+    prototype.__fn_setter__ = null;
 
 
 
     //初始化绑定关系
-    prototype["y:initialize"] = function (target, name) {
+    prototype.__fn_initialize__ = function (target, name) {
 
-        var source = this["x:source"],
-            expression = this["x:expression"],
-            bindings = target["x:bindings"] || (target["x:bindings"] = {}),
+        var source = this.__source__,
+            expression = this.__expression__,
+            bindings = target.__bindings__ || (target.__bindings__ = {}),
             id = target.id || (target.id = flyingon.newId()),
             cache;
 
 
-        this["x:target"] = target;
-        this["x:name"] = name;
+        this.__target__ = target;
+        this.__name__ = name;
 
 
         //缓存目标
@@ -163,13 +163,13 @@
 
 
 
-        bindings = source["x:bindings"] || (source["x:bindings"] = { push: {} });
+        bindings = source.__bindings__ || (source.__bindings__ = { push: {} });
         bindings = bindings.push || (bindings.push = {});
 
         //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
         if (expression.match(/^\d|[^\w]/))
         {
-            cache = (this["y:getter"] = new flyingon.Expression(expression)).variables;
+            cache = (this.__fn_getter__ = new flyingon.Expression(expression)).variables;
 
             for (var i = 0, length = cache.length; i < length; i++)
             {
@@ -179,15 +179,15 @@
         }
         else
         {
-            this["y:getter"] = null;
+            this.__fn_getter__ = null;
             (bindings[expression] || (bindings[expression] = {}))[id] = this;
         }
 
 
         //处理更新
-        if (cache = this["x:setter"])
+        if (cache = this.__setter__)
         {
-            this["y:setter"] = new flyingon.Expression(cache);
+            this.__fn_setter__ = new flyingon.Expression(cache);
         }
     };
 
@@ -196,55 +196,55 @@
     //从数据源同步数据至目标属性
     prototype.pull = function () {
 
-        var source = this["x:source"],
+        var source = this.__source__,
             result;
 
-        if (result = this["y:getter"])
+        if (result = this.__fn_getter__)
         {
             result = result.eval(source);
         }
         else
         {
-            var name = this["x:expression"];
+            var name = this.__expression__;
             if ((result = source[name]) === undefined && source instanceof flyingon.DataObject)
             {
                  result = source.value(name);
             }
         }
 
-        this["x:binding"] = true;
-        this["x:target"][this["x:name"]] = result;
-        this["x:binding"] = false;
+        this.__binding__ = true;
+        this.__target__[this.__name__] = result;
+        this.__binding__ = false;
     };
 
 
     //从目标属性同步数据至源
     prototype.push = function () {
 
-        var cache = this["x:expression"];
+        var cache = this.__expression__;
 
         if (cache)
         {
-            this["x:binding"] = true;
+            this.__binding__ = true;
 
-            if (!this["y:getter"]) //直接绑定字段
+            if (!this.__fn_getter__) //直接绑定字段
             {
-                var target = this["x:target"],
-                    name = this["x:name"];
+                var target = this.__target__,
+                    name = this.__name__;
 
                 if ((result = target[name]) === undefined && target instanceof flyingon.DataObject)
                 {
                     result = target.value(name);
                 }
 
-                this["x:source"][cache] = result;
+                this.__source__[cache] = result;
             }
-            else if (cache = this["y:setter"]) //表达式需要自定义setter方法
+            else if (cache = this.__fn_setter__) //表达式需要自定义setter方法
             {
-                cache.call(this["x:target"]);
+                cache.call(this.__target__);
             }
 
-            this["x:binding"] = false;
+            this.__binding__ = false;
         }
     };
 
@@ -252,14 +252,14 @@
     //清除绑定关系
     prototype.clear = function (dispose) {
 
-        var source = this["x:source"],
-            target = this["x:target"],
+        var source = this.__source__,
+            target = this.__target__,
             bindings,
             cache;
 
-        if (source && target && (bindings = source["x:bindings-source"]))
+        if (source && target && (bindings = source.__bindings_source__))
         {
-            if (cache = this["x:getter"])
+            if (cache = this.__getter__)
             {
                 var variables = cache.variables;
 
@@ -271,38 +271,38 @@
                     }
                 }
             }
-            else if ((cache = this["x:expression"]) && (cache = bindings[cache]))
+            else if ((cache = this.__expression__) && (cache = bindings[cache]))
             {
                 delete cache[target.id];
             }
 
 
-            delete target["x:bindings"][this["x:name"]];
+            delete target.__bindings__[this.__name__];
         }
 
 
         if (dispose)
         {
-            delete this["x:source"];
-            delete this["x:target"];
-            delete this["y:getter"];
-            delete this["y:setter"];
+            delete this.__source__;
+            delete this.__target__;
+            delete this.__fn_getter__;
+            delete this.__fn_setter__;
         }
     };
 
 
     prototype.serialize = function (writer) {
 
-        writer.reference("source", this["x:source"]);
-        writer.string("expression", this["x:expression"]);
-        writer.string("setter", this["x:setter"]);
+        writer.reference("source", this.__source__);
+        writer.string("expression", this.__expression__);
+        writer.string("setter", this.__setter__);
     };
 
     prototype.deserialize = function (reader, data) {
 
-        reader.reference(this, "x:source", data["source"]);
-        reader.string(this, "x:expression", data["expression"]);
-        reader.string(this, "x:setter", data["setter"]);
+        reader.reference(this, "__source__", data["source"]);
+        reader.string(this, "__expression__", data["expression"]);
+        reader.string(this, "__setter__", data["setter"]);
     };
 
 

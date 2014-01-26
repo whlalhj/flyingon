@@ -12,6 +12,7 @@
         <input type="button" value="json Object" onclick="createJsonObject()" />
         <input type="button" value="id Property" onclick="idProperty()" />
         <input type="button" value="name Property" onclick="nameProperty()" />
+        <input type="button" value="defineProperty" onclick="define_Property()" />
         <span id="message"></span>
     </div>
     <div id="host" style="width: 100%; height: 600px">
@@ -96,6 +97,71 @@
 
             alert(new Date() - date);
         }
+
+
+
+
+        var defineProperty = ((function () {
+
+            var obj = {};
+            Object.defineProperty(obj, "fn", { get: function () { return true; } });
+            return obj.fn;
+
+        })()) ? function (target, name, getter, setter) {
+
+            var attributes = {
+
+                configurable: true,
+                enumerable: true
+            };
+
+            if (getter)
+            {
+                attributes.get = getter;
+            }
+
+            if (setter)
+            {
+                attributes.set = setter;
+            }
+
+            Object.defineProperty(target, name, attributes);
+
+        } : function (target, name, getter, setter) {
+
+            if (getter)
+            {
+                target.__defineGetter__(name, getter);
+            }
+
+            if (setter)
+            {
+                target.__defineSetter__(name, setter);
+            }
+        };
+
+
+
+        function define_Property() {
+
+            var obj = {};
+
+            defineProperty(obj, "value", function () {
+
+                return 1;
+            });
+
+
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var v = obj.value;
+            }
+
+            alert(new Date() - date);
+        };
 
 
 

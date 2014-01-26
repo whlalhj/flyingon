@@ -49,8 +49,8 @@
 
     function initialize() {
 
-        var cache_1 = this["x:cache-1"] = [0],
-            cache_2 = this["x:cache-2"] = [0];
+        var cache_1 = this.__cache1__ = [0],
+            cache_2 = this.__cache2__ = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
@@ -113,26 +113,26 @@
             textIndex = 0;
         }
 
-        return this[(this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(textIndex)];
+        return this[(this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex)];
     };
 
     //查找指定位置的行信息
     prototype["line-at"] = function (y) {
 
-        return this[(this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(y)];
+        return this[(this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y)];
     };
 
     //获取指定索引的字符信息
-    prototype["char-by"] = function (textIndex) {
+    prototype.charBy = function (textIndex) {
 
         if (textIndex < 0)
         {
             textIndex = 0;
         }
 
-        var index = (this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(textIndex),
-            start = this["x:cache-1"][index],
-            result = this[index]["char-by"](textIndex - start);
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex),
+            start = this.__cache1__[index],
+            result = this[index].charBy(textIndex - start);
 
         result.lineIndex = index;
         result.textIndex = start + result.columnIndex;
@@ -141,13 +141,13 @@
     };
 
     //查找指定位置的字符信息
-    prototype["char-at"] = function (x, y) {
+    prototype.charAt = function (x, y) {
 
-        var index = (this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(y),
-            result = this[index]["char-at"](x);
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y),
+            result = this[index].charAt(x);
 
         result.lineIndex = index;
-        result.textIndex = this["x:cache-1"][index] + result.columnIndex;
+        result.textIndex = this.__cache1__[index] + result.columnIndex;
 
         return result;
     };
@@ -156,10 +156,10 @@
 
     function selectionEnd() {
 
-        if ((this.selectionEnd = this.end.textIndex) < (this.selectionStart = (this.start = this["x:start"]).textIndex))
+        if ((this.selectionEnd = this.end.textIndex) < (this.selectionStart = (this.start = this.__start__).textIndex))
         {
             this.selectionStart = (this.start = this.end).textIndex;
-            this.selectionEnd = (this.end = this["x:start"]).textIndex;
+            this.selectionEnd = (this.end = this.__start__).textIndex;
         }
 
         this.selectedText = this.text.substring(this.selectionStart, this.selectionEnd);
@@ -168,33 +168,33 @@
 
 
     //移动至指定坐标
-    prototype["move-at"] = function (x, y) {
+    prototype.moveAt = function (x, y) {
 
-        this.start = this.end = this.caret = this["x:start"] = this["char-at"](x, y);
+        this.start = this.end = this.caret = this.__start__ = this.charAt(x, y);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };
 
 
     //选择至指定坐标
-    prototype["selection-at"] = function (x, y) {
+    prototype.selectionAt = function (x, y) {
 
-        this.end = this.caret = this["char-at"](x, y);
+        this.end = this.caret = this.charAt(x, y);
         selectionEnd.call(this);
     };
 
 
-    prototype["move-to"] = function (textIndex) {
+    prototype.moveTo = function (textIndex) {
 
-        this.start = this.end = this.caret = this["x:start"] = this["char-by"](textIndex);
+        this.start = this.end = this.caret = this.__start__ = this.charBy(textIndex);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };
 
 
-    prototype["selection-to"] = function (textIndex) {
+    prototype.selectionTo = function (textIndex) {
 
-        this.end = this.caret = this["char-by"](textIndex);
+        this.end = this.caret = this.charBy(textIndex);
         selectionEnd.call(this);
     };
 
@@ -221,7 +221,7 @@
 
         this.text = start + text + end;
 
-        this["move-to"](textIndex);
+        this.moveTo(textIndex);
     };
 
 
@@ -229,7 +229,7 @@
 
         if (!this.selectedText)
         {
-            this["selection-to"](this.selectionEnd + length); //未选择
+            this.selectionTo(this.selectionEnd + length); //未选择
         }
 
         this.replace("");

@@ -50,9 +50,9 @@
 
         ownerLayer = new flyingon.Layer();
         ownerLayer.disableGetControlAt = true;
-        ownerLayer["x:storage"].clipToBounds = false;
+        ownerLayer.clipToBounds = false;
 
-        var style = ownerLayer["dom-layer"].style;
+        var style = ownerLayer.dom_layer.style;
 
         style.overflow = "visible";
         style.cursor = flyingon.cursors[dragger.drop_cursor || "allow-drop"];
@@ -80,7 +80,7 @@
 
             for (var i = 0; i < dragTargets.length; i++)
             {
-                var box = dragTargets[i]["x:boxModel"];
+                var box = dragTargets[i].__boxModel__;
                 if (box)
                 {
                     box.render(context);
@@ -98,7 +98,7 @@
 
             if (target == ownerControl)
             {
-                target = ownerControl["x:parent"];
+                target = ownerControl.__parent__;
             }
 
             if (dropTarget != target)
@@ -112,7 +112,7 @@
 
                 droppable = false;
 
-                if (target && target["x:storage"].droppable)
+                if (target && target.droppable)
                 {
                     dropTarget = target;
 
@@ -130,7 +130,7 @@
 
 
                 var cursor = droppable ? (dragger.drop_cursor || "allow-drop") : (dragger.nodrop_cursor || "no-drop");
-                ownerLayer["dom-layer"].style.cursor = flyingon.cursors[cursor];
+                ownerLayer.dom_layer.style.cursor = flyingon.cursors[cursor];
             }
 
 
@@ -265,8 +265,8 @@
                 offsetY = offset.y || 0;
             };
 
-            ownerLayer["dom-layer"].style.left = offsetX + "px";
-            ownerLayer["dom-layer"].style.top = offsetY + "px";
+            ownerLayer.dom_layer.style.left = offsetX + "px";
+            ownerLayer.dom_layer.style.top = offsetY + "px";
 
             return true;
         };
@@ -300,7 +300,7 @@
             ownerLayer = null;
 
             //处理捕获控件
-            ownerWindow["x:capture-delay"].registry([last_event]);
+            ownerWindow.__capture_delay__.registry([last_event]);
         }
         else
         {

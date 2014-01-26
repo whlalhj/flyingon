@@ -404,7 +404,7 @@ Canvas2D绘图扩展
     /****************************以下为方法扩展********************************/
 
 
-    prototype["paint-border"] = function (x, y, width, height, border) {
+    prototype.paint_border = function (x, y, width, height, border) {
 
         this.beginPath();
 

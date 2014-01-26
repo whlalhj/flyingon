@@ -1,6 +1,6 @@
 ﻿
 ///初始化插入符
-flyingon["y:initialize-caret"] = function (parentNode) {
+flyingon.__fn_initialize_caret__ = function (parentNode) {
 
 
     var timer,
@@ -151,7 +151,7 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
         if (ime >= 0) //输入法
         {
-            var value = text["char-at"](ime);
+            var value = text.charAt(ime);
 
             if (value >= "A" && value <= "z")
             {
@@ -182,12 +182,12 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
         if (selectionTo)
         {
-            _textMetrics["selection-to"](textIndex);
+            _textMetrics.selectionTo(textIndex);
             reset();
         }
         else
         {
-            _textMetrics["move-to"](selected && _textMetrics.selectedText ? _textMetrics.caret.textIndex : textIndex);
+            _textMetrics.moveTo(selected && _textMetrics.selectedText ? _textMetrics.caret.textIndex : textIndex);
             update.call(this);
         }
     };
@@ -250,8 +250,8 @@ flyingon["y:initialize-caret"] = function (parentNode) {
             {
 
                 case 65: //a A
-                    _textMetrics["move-to"](0);
-                    _textMetrics["selection-to"](_textMetrics.text.length);
+                    _textMetrics.moveTo(0);
+                    _textMetrics.selectionTo(_textMetrics.text.length);
                     reset();
                     return;
 
@@ -285,7 +285,7 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
 
     //变更插入符位置
-    this["y:change-caret"] = function (changedX, changedY) {
+    this.__fn_change_caret__ = function (changedX, changedY) {
 
         if (_boxModel)
         {
@@ -298,18 +298,18 @@ flyingon["y:initialize-caret"] = function (parentNode) {
 
 
     //打开输入法
-    this["y:open-ime"] = function (ownerControl, readOnly, textMetrics) {
+    this.__fn_open_ime__ = function (ownerControl, readOnly, textMetrics) {
 
         _ownerControl = ownerControl;
-        _boxModel = ownerControl["x:boxModel"];
-        _textMetrics = textMetrics || ownerControl["x:textMetrics"];
+        _boxModel = ownerControl.__boxModel__;
+        _textMetrics = textMetrics || ownerControl.__textMetrics__;
 
         input.readOnly = readOnly;
         reset();
     };
 
     //重置输入法
-    var reset = this["y:reset-ime"] = function () {
+    var reset = this.__fn_reset_ime__ = function () {
 
         input.focus();
         input.value = _textMetrics.selectedText;
@@ -319,7 +319,7 @@ flyingon["y:initialize-caret"] = function (parentNode) {
     };
 
     //关闭输入法
-    this["y:close-ime"] = function () {
+    this.__fn_close_ime__ = function () {
 
         if (timer)
         {

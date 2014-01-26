@@ -5,23 +5,23 @@ flyingon.class("ListControl", flyingon.TemplateControl, function (Class, flyingo
 
   
 
-    this["y:create-item"] = function () {
+    this.__fn_create_item__ = function () {
 
     };
 
     this.clearTemplate = function () {
 
-        var items = this["x:items"],
+        var items = this.__items__,
             length = items && items.length;
 
         for (var i = 0; i < length; i++)
         {
             var item = items[i],
-                control = item["x:control"];
+                control = item.__control__;
 
             if (control)
             {
-                item["x:control"] = null;
+                item.__control__ = null;
                 control.dispose();
             }
         }
@@ -30,13 +30,12 @@ flyingon.class("ListControl", flyingon.TemplateControl, function (Class, flyingo
     //排列子项
     this.arrange = function (boxModel, clientRect) {
 
-        var items = this["x:items"],
-            children = this["x:render-children"] = [],
+        var items = this.__items__,
+            children = this.__render_children__ = [],
 
-            storage = this["x:storage"],
-            maxIndex = storage.maxIndex,
-            itemHeight = storage.itemHeight,
-            visibleIndex = storage.visibleIndex,
+            maxIndex = this.maxIndex,
+            lineHeight = this.lineHeight,
+            visibleIndex = this.visibleIndex,
 
             y = 0,
             width = clientRect.width,
@@ -51,25 +50,25 @@ flyingon.class("ListControl", flyingon.TemplateControl, function (Class, flyingo
 
             if (item.visible)
             {
-                var control = item["x:control"];
+                var control = item.__control__;
 
                 if (!control)
                 {
                     if (template || (template = this.template))
                     {
-                        control = item["x:control"] = this.createTemplateControl(template, item);
+                        control = item.__control__ = this.createTemplateControl(template, item);
                     }
                     else
                     {
-                        control = item["x:control"] = this["y:create-item"]();
+                        control = item.__control__ = this.__fn_create_item__();
                     }
                 }
 
 
                 if (control)
                 {
-                    var box = control["x:boxModel"];
-                    box.measure(boxModel, 0, y, width, itemHeight);
+                    var box = control.__boxModel__;
+                    box.measure(boxModel, 0, y, width, lineHeight);
 
                     children.push(control);
 

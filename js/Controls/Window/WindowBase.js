@@ -12,37 +12,37 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     Class.create = function () {
 
 
-        var div = this["dom-window"] = document.createElement("div");
+        var div = this.dom_window = document.createElement("div");
 
         div.setAttribute("flyingon", "window");
         div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
         div.setAttribute("tabindex", "0");
-        div.appendChild(this["dom-layer"]);
+        div.appendChild(this.dom_layer);
 
-        div["x:ownerWindow"] = this["dom-layer"]["x:ownerWindow"] = this["dom-canvas"]["x:ownerWindow"] = this; //缓存当前对象
+        div.__ownerWindow__ = this.dom_layer.__ownerWindow__ = this.dom_canvas.__ownerWindow__ = this; //缓存当前对象
 
         //IE禁止选中文本 其它浏览器使用样式控件 -moz-user-select:none;-webkit-user-select:none;
         div.onselectstart = function (event) { return false; };
 
 
         this.layers = [this]; //初始化图层
-        this["x:windows"] = [];   //子窗口集合
+        this.__windows__ = [];   //子窗口集合
 
 
         //默认设置为初始化状态,在渲染窗口后终止
-        flyingon["x:initializing"] = true;
+        flyingon.__initializing__ = true;
 
         //绑定dom事件
-        this["y:binging-event"](div);
+        this.__fn_binging_event__(div);
 
         //初始化输入符
-        flyingon["y:initialize-caret"].call(this, this["dom-window"]);
+        flyingon.__fn_initialize_caret__.call(this, this.dom_window);
     };
 
 
 
     //绑定dom事件
-    this["y:binging-event"] = function (div) {
+    this.__fn_binging_event__ = function (div) {
 
 
         //绑定事件
@@ -73,7 +73,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //创建控件捕获延迟执行器
-        this["x:capture-delay"] = new flyingon.DelayExecutor(10, capture_control, this);
+        this.__capture_delay__ = new flyingon.DelayExecutor(10, capture_control, this);
     };
 
 
@@ -111,13 +111,13 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         if (parentWindow)
         {
-            if (deactivate !== false && (activateWindow = parentWindow["x:activateWindow"]))
+            if (deactivate !== false && (activateWindow = parentWindow.__activateWindow__))
             {
-                activateWindow["y:deactivate"]();
+                activateWindow.__fn_deactivate__();
             }
 
-            parentWindow["x:activateWindow"] = this;
-            this["y:activate"]();
+            parentWindow.__activateWindow__ = this;
+            this.__fn_activate__();
         }
     };
 
@@ -129,7 +129,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             activateWindow;
 
 
-        while (activateWindow = result["x:activateWindow"])
+        while (activateWindow = result.__activateWindow__)
         {
             result = activateWindow;
         }
@@ -143,16 +143,16 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     this.defineStates("activate-states", "activate");
 
 
-    this["y:activate"] = function () {
+    this.__fn_activate__ = function () {
 
-        this["dom-window"].style.zIndex = 9991;
+        this.dom_window.style.zIndex = 9991;
         this.dispatchEvent("activate");
         this.switchState("activate-states", "activate");
     };
 
-    this["y:deactivate"] = function () {
+    this.__fn_deactivate__ = function () {
 
-        this["dom-window"].style.zIndex = 9990;
+        this.dom_window.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
         this.switchState("activate-states", "deactivate");
     };
@@ -185,10 +185,9 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
     this.appendLayer = function (zIndex, layer) {
 
-        var storage = this["x:storage"],
-            result = layer || new flyingon.Layer(),
-            dom_layer = result["dom-layer"],
-            dom_canvas = result["dom-canvas"];
+        var result = layer || new flyingon.Layer(),
+            dom_layer = result.dom_layer,
+            dom_canvas = result.dom_canvas;
 
 
         if (zIndex)
@@ -196,14 +195,15 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             dom_layer.style.zIndex = zIndex;
         }
 
-        dom_canvas.width = storage.width;
-        dom_canvas.height = storage.height;
-        result["x:boxModel"].measure(null, 0, 0, storage.width, storage.height);
-        result["x:parent"] = this;
+        dom_canvas.width = this.width;
+        dom_canvas.height = this.height;
 
-        dom_layer["x:ownerWindow"] = dom_canvas["x:ownerWindow"] = this;
+        result.__boxModel__.measure(null, 0, 0, dom_canvas.width, dom_canvas.height);
+        result.__parent__ = this;
 
-        this["dom-window"].appendChild(dom_layer);
+        dom_layer.__ownerWindow__ = dom_canvas.__ownerWindow__ = this;
+
+        this.dom_window.appendChild(dom_layer);
         this.layers.push(result);
 
         return result;
@@ -214,9 +214,9 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         if (layer)
         {
-            layer["x:parent"] = layer["dom-layer"]["x:ownerWindow"] = layer["dom-canvas"]["x:ownerWindow"] = null;
+            layer.__parent__ = layer.dom_layer.__ownerWindow__ = layer.dom_canvas.__ownerWindow__ = null;
 
-            this["dom-window"].removeChild(layer["dom-layer"]);
+            this.dom_window.removeChild(layer.dom_layer);
             this.layers.remove(layer);
         }
     };
@@ -243,11 +243,11 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     //计算偏移,处理firefox没有offsetX及offsetY的问题
     function offset(event) {
 
-        if (!event["x:offsetX"])
+        if (!event.__offsetX__)
         {
             var x = 0,
                 y = 0,
-                target = this["dom-window"] || event.target,
+                target = this.dom_window || event.target,
                 body = document.body;
 
             while (target)
@@ -259,8 +259,8 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             }
 
             //不能使用offsetX 在IE下无法重赋值
-            event["x:offsetX"] = event.pageX - x;
-            event["x:offsetY"] = event.pageY - y;
+            event.__offsetX__ = event.pageX - x;
+            event.__offsetY__ = event.pageY - y;
         }
     };
 
@@ -279,14 +279,14 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     function capture_control(dom_MouseEvent) {
 
 
-        var source = flyingon["x:hover-control"],
-            target = this.getControlAt(dom_MouseEvent["x:offsetX"], dom_MouseEvent["x:offsetY"]) || this;
+        var source = flyingon.__hover_control__,
+            target = this.getControlAt(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
 
         if (target != source)
         {
             document.title = target.id;
 
-            flyingon["x:hover-control"] = target;
+            flyingon.__hover_control__ = target;
 
             if (source)
             {
@@ -295,9 +295,9 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 source.switchState("hover-states", "leave-animate");
             }
 
-            if (target && target["x:storage"].enabled)
+            if (target && target.enabled)
             {
-                this["dom-window"].style.cursor = target["y:cursor"](dom_MouseEvent);
+                this.dom_window.style.cursor = target.__fn_cursor__(dom_MouseEvent);
 
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
@@ -311,7 +311,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     function mousedown(dom_MouseEvent) {
 
 
-        var ownerWindow = this["x:ownerWindow"]["x:capture-delay"].execute();
+        var ownerWindow = this.__ownerWindow__.__capture_delay__.execute();
 
 
         //设置鼠标按下
@@ -327,14 +327,14 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //处理鼠标按下事件
-        var target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
+        var target = ownerWindow.__capture_control__ || flyingon.__hover_control__;
 
-        if (target && target["x:storage"].enabled)
+        if (target && target.enabled)
         {
             offset.call(ownerWindow, dom_MouseEvent);
 
             //如果可拖动
-            if (dragging = target["x:storage"].draggable || ownerWindow["x:storage"].designMode)
+            if (dragging = target.draggable || ownerWindow.designMode)
             {
                 flyingon.Dragdrop.start(ownerWindow, target, dom_MouseEvent, true);
             }
@@ -346,21 +346,21 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
                 //处理焦点
-                if (target["x:storage"].focusable)
+                if (target.focusable)
                 {
-                    var focused = ownerWindow["x:focused-control"];
+                    var focused = ownerWindow.__focused_control__;
                     if (focused && focused != target && focused.validate())
                     {
-                        focused["y:blur"]();
+                        focused.__fn_blur__();
                     }
 
-                    target["y:focus"](event);
+                    target.__fn_focus__(event);
                 }
             }
 
 
             //设置捕获(注:setCapture及releaseCapture仅IE支持,不能使用)
-            host["x:ownerWindow"] = ownerWindow;
+            host.__ownerWindow__ = ownerWindow;
 
             dom_MouseEvent.stopPropagation();
         }
@@ -370,7 +370,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     function mousemove(dom_MouseEvent) {
 
 
-        var ownerWindow = host["x:ownerWindow"] || dom_MouseEvent.target["x:ownerWindow"],
+        var ownerWindow = host.__ownerWindow__ || dom_MouseEvent.target.__ownerWindow__,
             target;
 
 
@@ -382,21 +382,21 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             {
                 flyingon.Dragdrop.move(dom_MouseEvent);
             }
-            else if (target = ownerWindow["x:capture-control"]) //启用捕获
+            else if (target = ownerWindow.__capture_control__) //启用捕获
             {
-                if (target["x:storage"].enabled)
+                if (target.enabled)
                 {
                     dispatchEvent("mousemove", target, dom_MouseEvent);
                 }
             }
             else
             {
-                ownerWindow["x:capture-delay"].registry([dom_MouseEvent]); //启用延迟捕获
+                ownerWindow.__capture_delay__.registry([dom_MouseEvent]); //启用延迟捕获
             }
         }
-        else if (target = flyingon["x:hover-control"])
+        else if (target = flyingon.__hover_control__)
         {
-            flyingon["x:hover-control"] = null;
+            flyingon.__hover_control__ = null;
 
             dispatchEvent("mouseout", target, dom_MouseEvent);
             target.switchState("hover-states", "leave-animate");
@@ -407,13 +407,13 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     function mouseup(dom_MouseEvent) {
 
 
-        var ownerWindow = host["x:ownerWindow"];
+        var ownerWindow = host.__ownerWindow__;
 
         if (ownerWindow)
         {
-            var target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
+            var target = ownerWindow.__capture_control__ || flyingon.__hover_control__;
 
-            if (target && target["x:storage"].enabled)
+            if (target && target.enabled)
             {
                 offset.call(ownerWindow, dom_MouseEvent);
 
@@ -432,7 +432,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
             //取消捕获
-            host["x:ownerWindow"] = null;
+            host.__ownerWindow__ = null;
 
             //设置鼠标弹起
             mousedown_cache = false;
@@ -445,11 +445,11 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     function translate_MouseEvent(type, dom_MouseEvent) {
 
 
-        var ownerWindow = this["x:ownerWindow"]["x:capture-delay"].execute(),
-            target = ownerWindow["x:capture-control"] || flyingon["x:hover-control"];
+        var ownerWindow = this.__ownerWindow__.__capture_delay__.execute(),
+            target = ownerWindow.__capture_control__ || flyingon.__hover_control__;
 
 
-        if (target && target["x:storage"].enabled)
+        if (target && target.enabled)
         {
             offset.call(ownerWindow, dom_MouseEvent);
             target.dispatchEvent(new flyingon.MouseEvent(type, target, dom_MouseEvent));
@@ -477,11 +477,11 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
     function key_event(dom_KeyEvent) {
 
-        var ownerWindow = this["x:ownerWindow"],
-            focused = ownerWindow["x:focused-control"];
+        var ownerWindow = this.__ownerWindow__,
+            focused = ownerWindow.__focused_control__;
 
         //如果有输入焦点控件则发送事件至输入焦点控件
-        if (focused && focused["x:storage"].enabled)
+        if (focused && focused.enabled)
         {
             focused.dispatchEvent(new flyingon.KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent));
         }
@@ -498,7 +498,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
     //使区域无效
     this.invalidate = function () {
 
-        this["x:boxModel"].invalidate();
+        this.__boxModel__.invalidate();
 
         //绘制窗口内容
         var layers = this.layers;
@@ -511,31 +511,31 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    this["y:getBoundingClientRect"] = function (fullMode) {
+    this.__fn_getBoundingClientRect__ = function (fill) {
 
-        flyingon["x:initializing"] = false;
+        flyingon.__initializing__ = false;
 
-        var r = this["dom-window"].getBoundingClientRect();
+        var r = this.dom_window.getBoundingClientRect();
 
-        if (fullMode) //画布充满窗口
+        if (fill) //画布充满窗口
         {
-            this["x:storage"].width = r.width;
-            this["x:storage"].height = r.height;
+            this.__storage__.width = this.dom_canvas.width = r.width;
+            this.__storage__.height = this.dom_canvas.height = r.height;
         }
 
         return r;
     };
 
     //重新调整窗口大小
-    this["y:resize"] = function (offsetX, offsetY, width, height) {
+    this.__fn_resize__ = function (offsetX, offsetY, width, height) {
 
         var layers = this.layers;
 
         for (var i = 0, length = layers.length; i < length; i++)
         {
             var layer = layers[i],
-                canvas = layer["dom-canvas"],
-                box = layer["x:boxModel"];
+                canvas = layer.dom_canvas,
+                box = layer.__boxModel__;
 
             layer.unregistryUpdate();
 

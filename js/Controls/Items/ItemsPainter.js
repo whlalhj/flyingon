@@ -5,7 +5,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
     Class.create = function () {
 
-        this["x:storage"]["items"] = new flyingon.ItemCollection(this);
+        this.__storage__.__items__ = new flyingon.ItemCollection(this);
     };
 
 
@@ -22,22 +22,22 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         function () {
 
-            return this["x:storage"]["x:items"];
+            return this.__storage__.__items__;
         },
 
         function (value) {
 
-            var oldValue = this["x:storage"]["x:items"];
+            var oldValue = this.__storage__.__items__;
             if (oldValue != value)
             {
-                this["x:storage"]["x:items"] = value;
+                this.__storage__.__items__ = value;
 
                 //
             }
         });
 
 
-    //this["x:selected-list"] = 
+    //this.__selected_list__ = 
 
 
     //定义索引状态(根据不同的索引状态显示不同的值)
@@ -49,11 +49,11 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
 
     //是否固定高度
-    this["fixed-height"] = true;
+    this.fixed_height = true;
 
 
     //子项默认高度
-    this.defineProperty("item-height", 16, "invalidate");
+    this.defineProperty("lineHeight", 16, "invalidate");
 
     //开始显示索引号
     this.defineProperty("visibleIndex", 0, "invalidate");
@@ -61,41 +61,40 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
 
     //移动开始显示索引至指定坐标
-    this["y:visible-to"] = function (y) {
+    this.__fn_visible_to__ = function (y) {
 
-        if (this["fixed-height"]) //固定高度直接算出
+        if (this.fixed_height) //固定高度直接算出
         {
-            var item_height = this["x:storage"]["item-height"] || 16;
-            return Math.floor(y / item_height);
+            var lineHeight = this.lineHeight || 16;
+            return Math.floor(y / lineHeight);
         }
 
-        return this["y:visibli-items"](y, 0);
+        return this.__fn_visible_items__(y, 0);
     };
 
     //获取可视项集合
-    this["y:visible-items"] = function (height, visibleIndex) {
+    this.__fn_visible_items__ = function (height, visibleIndex) {
 
         var result = [],
 
-            items = this["x:items"],
-            items_1 = items["x:items"],
-            items_2 = items["x:items-x"],
+            items = this.__items__,
+            items_1 = items.__items__,
+            items_2 = items.__items_x__,
 
-            storage = this["x:storage"],
-            item_height = storage.item - height || 16,
+            lineHeight = this.lineHeight || 16,
 
             top = 0;
 
         if (visibleIndex == null)
         {
-            visibleIndex = storage.visibleIndex || 0;
+            visibleIndex = this.visibleIndex || 0;
         }
 
         for (var i = visibleIndex, length = items_1.length; i < length; i++)
         {
             var item = items_2[i] || (items_2[i] = new flyingon.Rect());
 
-            if ((top += item.height || item_height) >= height)
+            if ((top += item.height || lineHeight) >= height)
             {
                 break;
             }
@@ -120,7 +119,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         flyingon.SerializableObject.prototype.serialize.call(this, writer);
 
-        var items = this["x:items"]["x:items"];
+        var items = this.__items__.__items__;
         if (items && items.length > 0)
         {
             writer.array(items_name, items);
@@ -130,7 +129,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
     this.deserialize = function (reader, data) {
 
         flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
-        reader.array(this["x:items"] || (this["x:items"] = new flyingon.ItemCollection()), "x:items", data[items_name]);
+        reader.array(this.__items__ || (this.__items__ = new flyingon.ItemCollection()), "__items__", data[items_name]);
     };
 
 };

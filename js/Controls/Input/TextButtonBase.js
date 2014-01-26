@@ -35,7 +35,7 @@ flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon
         imageRect.y = clientRect.y;
 
 
-        if (this["x:storage"].showButton)
+        if (this.showButton)
         {
             clientRect.width -= 16;
 
@@ -57,11 +57,11 @@ flyingon.class("TextButtonBase", flyingon.TextBoxBase, function (Class, flyingon
     //绘制内框
     this.paint = function (context, boxModel) {
 
-        this["paint-text"](context, boxModel.clientRect);
-        this["paint-image"](context, boxModel.imageRect);
+        this.paint_text(context, boxModel.clientRect);
+        this.paint_image(context, boxModel.imageRect);
     };
 
-    this["paint-image"] = function (context, imageRect) {
+    this.paint_image = function (context, imageRect) {
 
         if (imageRect.width > 0)
         {

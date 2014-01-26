@@ -44,24 +44,22 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
 
 
 
-    function children(context, storage, insideRect) {
-
-        var items = storage.children;
+    function children(context, items, insideRect) {
 
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                offset = (storage = item["x:storage"]).offset;
+                offset = item.offset;
 
             item.buildPath(context,
                 insideRect.windowX + offset[3],
                 insideRect.windowY + offset[0],
-                storage.width <= 0 ? insideRect.width * storage.scaleX - offset[3] - offset[1] : storage.width,
-                storage.height <= 0 ? insideRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
+                item.width <= 0 ? insideRect.width * item.scaleX - offset[3] - offset[1] : item.width,
+                item.height <= 0 ? insideRect.height * item.scaleY - offset[0] - offset[2] : item.height);
 
-            if (storage.children)
+            if (item = item.children)
             {
-                children(context, storage, insideRect);
+                children(context, item, insideRect);
             }
         }
     };
@@ -71,8 +69,10 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
 
 
         var insideRect = boxModel.insideRect,
-            storage = this["x:storage"],
-            offset = storage.offset;
+            width = this.width,
+            height = this.height,
+            offset = this.offset,
+            cache;
 
 
         context.beginPath();
@@ -80,25 +80,25 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
         this.buildPath(context,
             insideRect.windowX + offset[3],
             insideRect.windowY + offset[0],
-            storage.width <= 0 ? insideRect.width * storage.scaleX - offset[3] - offset[1] : storage.width,
-            storage.height <= 0 ? insideRect.height * storage.scaleY - offset[0] - offset[2] : storage.height);
+            width <= 0 ? insideRect.width * this.scaleX - offset[3] - offset[1] : width,
+            height <= 0 ? insideRect.height * this.scaleY - offset[0] - offset[2] : height);
 
 
-        if (storage.children)
+        if (cache = this.children)
         {
-            children(context, storage, insideRect);
+            children(context, cache, insideRect);
         }
 
-        if (storage.fillStyle)
+        if (cache = this.fillStyle)
         {
-            context.set_fillStyle(storage.fillStyle);
+            context.set_fillStyle(cache);
             context.fill();
         }
 
-        if (storage.strokeStyle)
+        if (cache = this.strokeStyle)
         {
-            context.lineWidth = storage.lineWidth;
-            context.set_strokeStyle(storage.strokeStyle);
+            context.lineWidth = this.lineWidth;
+            context.set_strokeStyle(cache);
             context.stroke();
         }
     };
@@ -113,20 +113,20 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
     //自定义序列化
     this.serialize = function (writer) {
 
-        var storage = this["x:storage"],
-            names = Object.getOwnPropertyNames(storage),
-            name;
+        var storage = this.__storage__,
+            keys = Object.keys(storage),
+            key;
 
-        for (var i = 0, length = names.length; i < length; i++)
+        for (var i = 0, length = keys.length; i < length; i++)
         {
-            writer.object(name = names[i], storage[name]);
+            writer.object(key = keys[i], storage[key]);
         }
     };
 
     //自定义反序列化
     this.deserialize = function (reader, data) {
 
-        reader.object(this, "x:storage", data);
+        reader.object(this, "__storage__", data);
     };
 
 

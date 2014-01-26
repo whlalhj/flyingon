@@ -34,21 +34,21 @@
 
 
     //是否需要重绘
-    prototype["x:update"] = false;
+    prototype.__update__ = false;
 
     //子模型是否需要重绘
-    prototype["x:update-children"] = false;
+    prototype.__update_children__ = false;
 
     //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
-    prototype["x:update-mode"] = 0;
+    prototype.__update_mode__ = 0;
 
 
 
     //是否需要测量
-    prototype["x:measure"] = true;
+    prototype.__measure__ = true;
 
     //是否图层
-    prototype["x:layer"] = false;
+    prototype.layer = null;
 
 
 
@@ -241,25 +241,25 @@
     //使当前盒模型无效
     prototype.invalidate = function () {
 
-        if (!this["x:update"])
+        if (!this.__update__)
         {
-            this["x:update"] = true;
+            this.__update__ = true;
 
             var parent = this.parent,
-                update = this["x:update-mode"];
+                update = this.__update_mode__;
 
 
             while (parent)
             {
-                if (!parent["x:update"])
+                if (!parent.__update__)
                 {
                     if (update == 0) //如果重绘模式为重绘自身
                     {
-                        parent["x:update-children"] = true;
+                        parent.__update_children__ = true;
                     }
                     else
                     {
-                        parent["x:update"] = true;
+                        parent.__update__ = true;
 
                         if (update == 1)
                         {
@@ -268,7 +268,7 @@
                     }
                 }
 
-                parent = !parent["x:layer"] && parent.parent;
+                parent = !parent.layer && parent.parent;
             }
         }
 
@@ -280,22 +280,22 @@
     //更新
     prototype.update = function (context) {
 
-        if (this["x:update"]) //如果需要更新
+        if (this.__update__) //如果需要更新
         {
             this.render(context);
         }
-        else if (this["x:update-children"]) //如果子控件需要更新
+        else if (this.__update_children__) //如果子控件需要更新
         {
-            this["x:update-children"] = false;
+            this.__update_children__ = false;
 
             if (this.children)
             {
-                this["y:render-children"](context, "update");
+                this.__fn_render_children__(context, "update");
             }
 
             if (this.additions)
             {
-                this["y:render-additions"](context, "update");
+                this.__fn_render_additions__(context, "update");
             }
         }
 
@@ -306,13 +306,13 @@
 
 
     //计算位置
-    var position = function (storage, width, height) {
+    var position = function (ownerControl, width, height) {
 
         var value;
 
         if (width > 0 && (value = (width - this.width)))
         {
-            switch (storage.horizontalAlign)
+            switch (ownerControl.horizontalAlign)
             {
                 case "center":
                     this.x += value >> 1;
@@ -326,7 +326,7 @@
 
         if (height > 0 && (value = (height - this.height)))
         {
-            switch (storage.verticalAlign)
+            switch (ownerControl.verticalAlign)
             {
                 case "center":
                     this.y += value >> 1;
@@ -339,50 +339,109 @@
         }
     };
 
-    //测量 传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
-    //注:width, height <= 0 表示可使用无限大的空间 
-    prototype.measure = function (parent, x, y, width, height, additions) {
 
+    //计算大小
+    prototype.compute_size = function (parent, width, height) {
 
         var ownerControl = this.ownerControl,
-            storage = ownerControl["x:storage"],
+            margin = this.margin = ownerControl.styleValue("margin"),
 
-            margin = this.margin = ownerControl.styleValue("margin");
+            width_value = ownerControl.styleValue("width"),
+            height_value = ownerControl.styleValue("height"),
+
+            cache;
+
+
+        //处理宽度 如果有效宽度小于0则等于父容器可用宽度
+        if ((width -= margin[3] + margin[1]) < 0)
+        {
+            width = 0;
+        }
+
+        switch (width_value)
+        {
+            case "fill": //充满可用区域
+                this.__auto_width__ = false;
+                break;
+
+            case "auto": //自动大小
+                this.__auto_width__ = true;
+                break;
+
+            default:  //固定或百分比
+                this.__auto_width__ = false;
+                width = typeof width_value == "number" ? width_value : flyingon.parseInt(width_value, parent.clientRect.width);
+                break;
+        }
+
+        if ((cache = ownerControl.minWidth) > 0 && width < cache)
+        {
+            width = cache;
+        }
+        else if ((cache = ownerControl.maxWidth) > 0 && width > cache)
+        {
+            width = cache;
+        }
+
+        this.width = width;
+
+
+
+        //处理高度 如果有效高度小于0则等于父容器可用高度
+        if ((height -= margin[0] + margin[2]) < 0)
+        {
+            height = 0;
+        }
+
+        switch (height_value)
+        {
+            case "fill": //充满可用区域
+                this.__auto_height__ = false;
+                break;
+
+            case "auto": //自动大小
+                this.__auto_height__ = true;
+                break;
+
+            default:  //固定或百分比
+                this.__auto_height__ = false;
+                height = typeof height_value == "number" ? height_value : flyingon.parseInt(height_value, parent.clientRect.height);
+                break;
+        }
+
+        if ((cache = ownerControl.minHeight) > 0 && height < cache)
+        {
+            height = cache;
+        }
+        else if ((cache = ownerControl.maxHeight) > 0 && height > cache)
+        {
+            height = cache;
+        }
+
+        this.height = height;
+    };
+
+
+    //测量 注:请先调用size方法计算大小
+    //传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
+    prototype.measure = function (parent, x, y, width, height, additions, compute_size) {
+
+
+        var ownerControl = this.ownerControl;
+
+
+        if (compute_size !== false)
+        {
+            this.compute_size(parent, width, height);
+        }
 
 
         //减去外框
-        this.x = x + margin[3];
-        this.y = y + margin[0];
-
-
-        //先测量大小
-        switch (width > 0 && ((width -= margin[3] + margin[1]) > 0 || (width = 0)) && storage.stretch)
-        {
-            case "width":
-            case "all":
-                this.width = width < storage.minWidth ? storage.minWidth : (storage.maxWidth > 0 && width > storage.maxWidth ? storage.maxWidth : (width || storage.width));
-                break;
-
-            default: //no或无限宽度
-                this.width = storage.width;
-                break;
-        }
-
-        switch (height > 0 && ((height -= margin[0] + margin[2]) > 0 || (height = 0)) && storage.stretch)
-        {
-            case "height":
-            case "all":
-                this.height = height < storage.minHeight ? storage.minHeight : (storage.maxHeight > 0 && height > storage.maxHeight ? storage.maxHeight : (height || storage.height));
-                break;
-
-            default: //no或无限宽度
-                this.height = storage.height;
-                break;
-        }
-
+        this.x = x + this.margin[3];
+        this.y = y + this.margin[0];
 
         //计算位置
-        position.call(this, storage, width, height);
+        position.call(this, ownerControl, width, height);
 
 
         //处理父模型
@@ -408,21 +467,21 @@
 
 
         //处理自动大小
-        if (storage.autoSize != "no")
+        if (this.__auto_width__ || this.__auto_height__)
         {
             //测量
-            this["y:measure"](ownerControl);
+            this.__fn_measure__(ownerControl);
 
             ownerControl.measureText(this); //自定义文字测量
             ownerControl.adjustAutoSize(this);
 
-            position.call(this, storage, width, height);
+            position.call(this, ownerControl, width, height);
 
             this.compute();
         }
         else //延迟测量
         {
-            this["x:measure"] = true;
+            this.__measure__ = true;
         }
 
 
@@ -431,7 +490,7 @@
         this.bottom = this.y + this.height;
 
 
-        this["x:update"] = true;
+        this.__update__ = true;
         return this;
     };
 
@@ -491,7 +550,7 @@
         if (content)
         {
             var r = this.clientRect,
-                box = content["x:boxModel"],
+                box = content.__boxModel__,
                 margin = box.margin = content.styleValue("margin");
 
             box.measure(this, margin[3], margin[0], r.width - margin[3] - margin[1], r.height - margin[0] - margin[2]);
@@ -502,11 +561,11 @@
 
 
 
-    prototype["y:measure"] = function (ownerControl) {
+    prototype.__fn_measure__ = function (ownerControl) {
 
         //测量
-        this["x:measure"] = false;
-        this["x:update-mode"] = 0;
+        this.__measure__ = false;
+        this.__update_mode__ = 0;
 
 
         var fn = ownerControl.measure;
@@ -527,7 +586,6 @@
 
 
         var ownerControl = this.ownerControl,
-            storage = ownerControl["x:storage"],
 
             r = this.offsetParent && this.offsetParent.clientRect,
             windowX = r ? r.windowX : 0,
@@ -583,9 +641,9 @@
 
 
         //测量
-        if (this["x:measure"])
+        if (this.__measure__)
         {
-            this["y:measure"](ownerControl);
+            this.__fn_measure__(ownerControl);
 
             //自定义文字测量
             ownerControl.measureText(this);
@@ -596,22 +654,22 @@
         context.boxModel = this;
 
         //绘制背景
-        if (!ownerControl["paint-background"](context, this) || context.globalAlpha < 1)
+        if (!ownerControl.paint_background(context, this) || context.globalAlpha < 1)
         {
-            this["x:update-mode"] = 1;
+            this.__update_mode__ = 1;
         }
 
 
         //绘制子项
         if (this.children)
         {
-            this["y:render-children"](context, "render");
+            this.__fn_render_children__(context, "render");
         }
 
         //绘制附加内容
         if (this.additions)
         {
-            this["y:render-additions"](context, "render");
+            this.__fn_render_additions__(context, "render");
         }
 
 
@@ -622,28 +680,28 @@
         ownerControl.paint(context, this);
 
         //绘制外框
-        ownerControl["paint-border"](context, this);
+        ownerControl.paint_border(context, this);
 
 
         //绘制装饰
         var decorates = ownerControl.styleValue("decorates");
         if (decorates && decorates.length > 0)
         {
-            this["y:paint-decorates"](context, decorates);
+            this.__fn_paint_decorates__(context, decorates);
         }
 
         //修改状态
-        this["x:update"] = false;
+        this.__update__ = false;
 
         return this;
     };
 
 
     //渲染或更新子项
-    prototype["y:render-children"] = function (context, fn) {
+    prototype.__fn_render_children__ = function (context, fn) {
 
         var ownerControl = this.ownerControl,
-            items = ownerControl["y:render-children"],
+            items = ownerControl.__fn_render_children__,
             item,
             length;
 
@@ -659,7 +717,7 @@
                 context.translate(-this.scrollLeft, -this.scrollTop);
             }
 
-            if (ownerControl["x:storage"].clipToBounds)
+            if (ownerControl.clipToBounds)
             {
                 var r = this.clientRect;
 
@@ -682,7 +740,7 @@
 
 
     //渲染或更新附加内容
-    prototype["y:render-additions"] = function (context, fn) {
+    prototype.__fn_render_additions__ = function (context, fn) {
 
         var additions = this.additions,
             item;
@@ -701,7 +759,7 @@
 
 
     //绘制装饰
-    prototype["y:paint-decorates"] = function (context, decorates) {
+    prototype.__fn_paint_decorates__ = function (context, decorates) {
 
         var reader;
 
@@ -716,9 +774,9 @@
             }
 
             //重绘模式
-            if (item.updateMode > this["x:update-mode"])
+            if (item.updateMode > this.__update_mode__)
             {
-                this["x:update-mode"] = item.updateMode;
+                this.__update_mode__ = item.updateMode;
             }
 
             item.paint(context, this);

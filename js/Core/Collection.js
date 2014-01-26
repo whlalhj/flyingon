@@ -4,7 +4,7 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     Class.create = function () {
 
-        this["x:items"] = [];
+        this.__items__ = [];
     };
 
 
@@ -13,25 +13,25 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     flyingon.defineProperty(this, "length", function () {
 
-        return this["x:items"].length;
+        return this.__items__.length;
     });
 
 
 
     this.item = function (index) {
 
-        return this["x:items"][index];
+        return this.__items__[index];
     };
 
     this.indexOf = function (item) {
 
-        return this["x:items"].indexOf(item);
+        return this.__items__.indexOf(item);
     };
 
     this.append = function (item) {
 
-        var fn = this["y:validate"],
-            items = this["x:items"];
+        var fn = this.__fn_validate__,
+            items = this.__items__;
 
         if (!fn || (item = fn.call(this, items.length, item)) !== false)
         {
@@ -43,11 +43,11 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.insert = function (index, item) {
 
-        var fn = this["y:validate"];
+        var fn = this.__fn_validate__;
 
         if (!fn || (item = fn.call(this, index, item)) !== false)
         {
-            this["x:items"].splice(index, 0, item);
+            this.__items__.splice(index, 0, item);
         }
 
         return this;
@@ -55,11 +55,11 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.replace = function (index, item) {
 
-        var fn = this["y:validate"];
+        var fn = this.__fn_validate__;
 
         if (!fn || (item = fn.call(this, index, item)) !== false)
         {
-            this["x:items"][index] = item;
+            this.__items__[index] = item;
         }
 
         return this;
@@ -67,11 +67,11 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.remove = function (item) {
 
-        var items = this["x:items"],
+        var items = this.__items__,
             index = items.indexOf(item),
             fn;
 
-        if (index >= 0 && (!(fn = this["y:remove"]) || fn.call(this, index, item) !== false))
+        if (index >= 0 && (!(fn = this.__fn_remove__) || fn.call(this, index, item) !== false))
         {
             items.splice(index, 1);
         }
@@ -81,10 +81,10 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.removeAt = function (index) {
 
-        var items = this["x:items"],
+        var items = this.__items__,
             fn;
 
-        if (items.length > index && (!(fn = this["y:remove"]) || fn.call(this, index) !== false))
+        if (items.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index) !== false))
         {
             items.splice(index, 1);
         }
@@ -94,12 +94,12 @@ flyingon.class("Collection", function (Class, flyingon) {
 
     this.clear = function () {
 
-        var items = this["x:items"],
+        var items = this.__items__,
             fn;
 
         if (items.length > 0)
         {
-            if (!(fn = this["y:clear"]) || fn.call(this, items) !== false)
+            if (!(fn = this.__fn_clear__) || fn.call(this, items) !== false)
             {
                 items.length = 0;
             }
@@ -113,13 +113,13 @@ flyingon.class("Collection", function (Class, flyingon) {
     //自定义序列化
     this.serialize = function (writer) {
 
-        writer.array("items", this["x:items"]);
+        writer.array("items", this.__items__);
     };
 
     //自定义反序列化
     this.deserialize = function (reader, data) {
 
-        reader.array(this, "x:items", data["items"]);
+        reader.array(this, "__items__", data["items"]);
     };
 
 

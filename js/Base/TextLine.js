@@ -34,8 +34,8 @@
 
     function initialize() {
 
-        var cache_1 = this["x:cache-1"] = [0],
-            cache_2 = this["x:cache-2"] = [0];
+        var cache_1 = this.__cache1__ = [0],
+            cache_2 = this.__cache2__ = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
@@ -66,8 +66,8 @@
     prototype.measureText = function () {
 
         var font = this.font,
-            cache = font["x:cache"],
-            context = font["x:context"],
+            cache = font.__cache__,
+            context = font.__context__,
             chinese = cache["汉"],
             values = this.text.match(regex_measure) || [""],
             x = 0;
@@ -103,7 +103,7 @@
 
 
     //获取指定索引的文字信息
-    prototype["char-by"] = function (columnIndex) {
+    prototype.charBy = function (columnIndex) {
 
         if (columnIndex >= this.text.length)
         {
@@ -124,9 +124,9 @@
         }
 
 
-        var index = (this["x:cache-1"] || initialize.call(this)["x:cache-1"]).binaryBetween(columnIndex),
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(columnIndex),
             word = this[index],
-            charIndex = columnIndex - this["x:cache-1"][index];
+            charIndex = columnIndex - this.__cache1__[index];
 
 
         return {
@@ -134,16 +134,16 @@
             wordIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this["x:cache-2"][index] + word.position(charIndex),
+            x: this.__cache2__[index] + word.position(charIndex),
             y: this.y
         };
     };
 
 
     //查找指定位置的文字信息
-    prototype["char-at"] = function (x) {
+    prototype.charAt = function (x) {
 
-        var index = (this["x:cache-2"] || initialize.call(this)["x:cache-2"]).binaryBetween(x),
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(x),
             word = this[index],
             charIndex,
             x;
@@ -156,8 +156,8 @@
         }
         else
         {
-            charIndex = word["char-at"](x - this["x:cache-2"][index]);
-            x = this["x:cache-2"][index] + word.position(charIndex);
+            charIndex = word.charAt(x - this.__cache2__[index]);
+            x = this.__cache2__[index] + word.position(charIndex);
         }
 
 
@@ -165,7 +165,7 @@
 
             wordIndex: index,
             charIndex: charIndex,
-            columnIndex: this["x:cache-1"][index] + charIndex,
+            columnIndex: this.__cache1__[index] + charIndex,
             x: x,
             y: this.y
         };

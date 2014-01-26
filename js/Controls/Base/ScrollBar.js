@@ -3,10 +3,6 @@
 flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
-    this.defaultValue("maxStep", 200);
-
-    this.defaultValue("minStep", 20);
-
 
     //箭头背景
     this.defineProperty("arrowBackground", "black", "style");
@@ -24,6 +20,12 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
     this.defineProperty("arrowDown", null, "style");
 
 
+    //最大步长
+    this.defineProperty("max-step", 200);
+
+    //最小步长
+    this.defineProperty("min-step", 20);
+
 
 
 
@@ -36,9 +38,9 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
     //根据坐标获取当前滚动类型
     this.scrollType = function (x, y) {
 
-        var segments = this["x:boxModel"].segments,
-            value = this["x:storage"].isVertical ? y : x;
-    
+        var segments = this.__boxModel__.segments,
+            value = this.isVertical ? y : x;
+
 
         if (value <= segments[0])
         {
@@ -64,30 +66,31 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
     };
 
 
-    function slider_length(storage, length) {
+    function slider_length(length) {
 
         if (length <= 8)
         {
             return 0;
         }
 
-        var result = Math.round(length * storage.viewportSize / (storage.maxValue - storage.minValue));
+        var result = Math.round(length * this.viewportSize / (this.maxValue - this.minValue));
         return result <= 8 ? 8 : result;
     };
 
-    function slider_start(storage, length, slider) {
+    function slider_start(length, slider) {
 
         if (length <= 0)
         {
             return 0;
         }
 
-        if (storage.value >= storage.maxValue - storage.viewportSize)
+
+        if (this.value >= this.maxValue - this.viewportSize)
         {
             return length - slider;
         }
 
-        return Math.round((storage.value - storage.minValue) * length / storage.maxValue, 0);
+        return Math.round((this.value - this.minValue) * length / this.maxValue, 0);
     };
 
 
@@ -98,21 +101,20 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
         boxModel.compute();
 
 
-        var storage = this["x:storage"],
-            x = boxModel.x,
+        var x = boxModel.x,
             y = boxModel.y,
             width = boxModel.width,
             height = boxModel.height;
 
 
-        if (storage.isVertical)
+        if (this.isVertical)
         {
             var thickness = boxModel.thickness = width,
                 length = boxModel.length = height - (thickness << 1),
-                slider = boxModel.slider = slider_length(storage, length),
+                slider = boxModel.slider = slider_length.call(this, length),
 
                 r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness],
-                r_2 = boxModel.sliderRect = [x, y + thickness + slider_start(storage, length, slider), thickness, slider],
+                r_2 = boxModel.sliderRect = [x, y + thickness + slider_start.call(this, length, slider), thickness, slider],
                 r_3 = boxModel.arrow2Rect = [x, y + Math.max(height - thickness, 0), thickness, thickness];
 
             boxModel.segments = [r_1[1] + thickness, r_2[1], r_2[1] + slider, r_3[1]]; //位置段坐标
@@ -121,10 +123,10 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
         {
             var thickness = boxModel.thickness = height,
                 length = boxModel.length = width - (thickness << 1),
-                slider = boxModel.slider = slider_length(storage, length),
+                slider = boxModel.slider = slider_length.call(this, length),
 
                 r_1 = boxModel.arrow1Rect = [x, y, thickness, thickness],
-                r_2 = boxModel.sliderRect = [x + thickness + slider_start(storage, length, slider), y, slider, thickness],
+                r_2 = boxModel.sliderRect = [x + thickness + slider_start.call(this, length, slider), y, slider, thickness],
                 r_3 = boxModel.arrow2Rect = [x + Math.max(width - thickness, 0), y, thickness, thickness];
 
             boxModel.segments = [r_1[0] + thickness, r_2[0], r_2[0] + slider, r_3[0]]; //位置段坐标

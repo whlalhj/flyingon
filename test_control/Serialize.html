@@ -33,7 +33,7 @@
             var source = new flyingon.DataObject();
             source.defineDataProperty("text", null);
             source.text = "text2";
-            source["x:reference"] = true;
+            source.__reference__ = true;
 
             control1.setBinding("text", source);
             w.children.append(control1);
@@ -53,7 +53,7 @@
 
         date = new Date();
 
-        flyingon["x:window-host"] = host;
+        flyingon.__window_host__ = host;
 
         var reader = new flyingon.SerializeReader();
         var target = reader.deserialize(data);

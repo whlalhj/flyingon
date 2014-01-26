@@ -10,21 +10,21 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         flyingon.initialize();
 
 
-        var div = this["dom-host"] = document.createElement("div");
+        var div = this.dom_host = document.createElement("div");
 
         div.setAttribute("flyingon", "window-host");
         div.setAttribute("style", "position:relative;width:100%;height:100%;overflow:hidden;");
 
         //添加窗口
-        div.appendChild(this["dom-window"]);
+        div.appendChild(this.dom_window);
 
         //添加至指定dom
-        (parentNode || flyingon["x:window-host"] || document.body).appendChild(div);
+        (parentNode || flyingon.__window_host__ || document.body).appendChild(div);
 
 
 
         //定义主窗口变更
-        flyingon.defineVariable(this, "mainWindow", this, false, true);
+        flyingon.defineVariable(this, "mainWindow", this);
 
         //设为活动窗口
         this.activate();
@@ -45,8 +45,8 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     //刷新窗口
     this.update = function () {
 
-        var r = this["y:getBoundingClientRect"](true);
-        this["y:resize"](0, 0, r.width, r.height);
+        var r = this.__fn_getBoundingClientRect__(true);
+        this.__fn_resize__(0, 0, r.width, r.height);
     };
 
 

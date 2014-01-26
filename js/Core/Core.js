@@ -320,19 +320,20 @@ var flyingon_defaults = {
 (function (flyingon) {
 
     //定义变量
-    flyingon.defineVariable = function (target, name, value, configurable, enumerable) {
+    flyingon.defineVariable = function (target, name, value) {
 
         //target[name] = value;
         Object.defineProperty(target, name, {
 
             value: value,
             writable: false,
-            configurable: configurable === undefined ? false : configurable,
-            enumerable: enumerable === undefined ? true : enumerable
+            configurable: true,
+            enumerable: true
         });
     };
 
     //定义属性
+    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
     flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
 
         var attributes = {
@@ -368,7 +369,7 @@ var flyingon_defaults = {
 
 
     //增加模板函数支持 以当前函数为模板动态创建新函数
-    flyingon["y:template-to"] = function (fn, values, names) {
+    flyingon.__fn_template_to__ = function (fn, values, names) {
 
         var body = fn.toString().replace(/"\{\w+\}"/g, function (value) {
 
@@ -393,6 +394,18 @@ var flyingon_defaults = {
         });
 
         return new Function(names, "return (" + body + ")")()
+    };
+
+
+    //转换字符串为整数 支持"%"
+    flyingon.parseInt = function (value, total) {
+
+        if (value[value.length - 1] == "%")
+        {
+            return Math.floor(parseFloat(value) * total);
+        }
+
+        return parseInt(value);
     };
 
 
@@ -456,11 +469,11 @@ var flyingon_defaults = {
             }
             else
             {
-                var names = Object.getOwnPropertyNames(source);
+                var keys = Object.keys(source);
 
-                for (var i = 0, length = names.length; i < length; i++)
+                for (var i = 0, length = keys.length; i < length; i++)
                 {
-                    result[cache = names[i]] = isObject(cache = source[cache]) ? flyingon.copy(cache, true) : cache;
+                    result[cache = keys[i]] = isObject(cache = source[cache]) ? flyingon.copy(cache, true) : cache;
                 }
             }
 
@@ -474,31 +487,31 @@ var flyingon_defaults = {
     //ignore_exist: 是否忽略已存在的属性
     flyingon.mearge = function (source, target, ignore_exist) {
 
-        var names = Object.getOwnPropertyNames(source),
+        var keys = Object.keys(source),
             isObject = flyingon.isObject;
 
-        for (var i = 0, length = names.length; i < length; i++)
+        for (var i = 0, length = keys.length; i < length; i++)
         {
-            var name = names[i],
-                source_value = source[name],
+            var key = keys[i],
+                source_value = source[key],
                 target_value;
 
             if (isObject(source_value)) //源是对象且不是数组
             {
-                if ((target_value = target[name]) && isObject(target_value))
+                if ((target_value = target[key]) && isObject(target_value))
                 {
                     flyingon.mearge(source_value, target_value, ignore_exist);
                 }
                 else if (!ignore_exist)
                 {
-                    target[name] = flyingon.copy(source_value);
+                    target[key] = flyingon.copy(source_value);
                 }
             }
-            else if (!ignore_exist || (target_value = target[name]) === undefined)
+            else if (!ignore_exist || (target_value = target[key]) === undefined)
             {
                 if (source_value instanceof Array) //源是数组
                 {
-                    target_value = target[name] = new source_value.constructor();
+                    target_value = target[key] = new source_value.constructor();
 
                     for (var j = 0, count = source_value.length; j < count; j++)
                     {
@@ -507,7 +520,7 @@ var flyingon_defaults = {
                 }
                 else //简单对象
                 {
-                    target[name] = source_value;
+                    target[key] = source_value;
                 }
             }
         }
@@ -526,14 +539,14 @@ var flyingon_defaults = {
     //开始初始化
     flyingon.beginInit = function () {
 
-        flyingon["x:initializing"] = true;
+        flyingon.__initializing__ = true;
         return this;
     };
 
     //结束初始化
     flyingon.endInit = function () {
 
-        flyingon["x:initializing"] = false;
+        flyingon.__initializing__ = false;
         return this;
     };
 
@@ -600,7 +613,7 @@ var flyingon_defaults = {
     //名字空间类
     var Class = function (name) {
 
-        this["x:name"] = name;
+        this.__name__ = name;
         cache[name] = this;
     };
 
@@ -636,7 +649,7 @@ var flyingon_defaults = {
             result = flyingon;
         }
 
-        result = flyingon["x:namespace"] = result; //切换当前命名空间
+        result = flyingon.__namespace__ = result; //切换当前命名空间
 
         if (fn)
         {
@@ -649,9 +662,9 @@ var flyingon_defaults = {
 
 
     //获取类全名
-    flyingon["y:classFullName"] = function (namespace, className, with_default) {
+    flyingon.__fn_classFullName__ = function (namespace, className, with_default) {
 
-        var name = namespace && namespace["x:name"];
+        var name = namespace && namespace.__name__;
 
         if (name)
         {
@@ -664,7 +677,7 @@ var flyingon_defaults = {
 
 
     //切换当前命名空间为默认命名空间
-    flyingon["x:namespace"] = flyingon;
+    flyingon.__namespace__ = flyingon;
 
 
 }).call(this, flyingon);
@@ -696,22 +709,22 @@ var flyingon_defaults = {
 
 
 
-    flyingon["x:registryList"] = { "RootObject": flyingon.RootObject };
+    flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
 
 
     flyingon.registryClass = function (Class, classFullName) {
 
-        flyingon["x:registryList"][classFullName || Class.classFullName] = Class;
+        flyingon.__registry_list__[classFullName || Class.classFullName] = Class;
     };
 
     flyingon.unregistryClass = function (classFullName) {
 
-        delete flyingon["x:registryList"][classFullName];
+        delete flyingon.__registry_list__[classFullName];
     };
 
     flyingon.getRegistryClass = function (classFullName) {
 
-        return flyingon["x:registryList"][classFullName];
+        return flyingon.__registry_list__[classFullName];
     };
 
 
@@ -721,8 +734,8 @@ var flyingon_defaults = {
         defineProperty = function (Class, prototype, name, value) {
 
             Class[name] = value;
-            prototype["x:" + name] = value;
-            flyingon.defineVariable(prototype, name, value, false, true);
+            prototype["__" + name + "__"] = value;
+            flyingon.defineVariable(prototype, name, value);
         };
 
 
@@ -757,8 +770,8 @@ var flyingon_defaults = {
 
 
 
-        var namespace = flyingon["x:namespace"], //当前名字空间
-            classFullName = flyingon["y:classFullName"](namespace, className); //类全名
+        var namespace = flyingon.__namespace__, //当前名字空间
+            classFullName = flyingon.__fn_classFullName__(namespace, className); //类全名
 
 
 
@@ -787,7 +800,7 @@ var flyingon_defaults = {
         (superclass.subclasses || (superclass.subclasses = [])).push(Class);  //子类集合
 
         prototype.constructor = Class;                                   //构造函数
-        prototype["x:defaults"] = Class["x:defaults"] = Object.create(superclass["x:defaults"] || Object.prototype);  //默认值
+        prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || Object.prototype);  //默认值
 
 
         flyingon.registryClass(Class); //注册类
@@ -805,7 +818,7 @@ var flyingon_defaults = {
         if (superclass_create)
         {
             var Class_create = Class.create,
-                create_chain = superclass["x:create-chain"];
+                create_chain = superclass.__create_chain__;
 
             if (Class_create)
             {
@@ -817,11 +830,11 @@ var flyingon_defaults = {
                 }
                 else //生成构造链
                 {
-                    (Class["x:create-chain"] = (create_chain && create_chain.slice(0)) || [superclass_create]).push(Class_create);
+                    (Class.__create_chain__ = (create_chain && create_chain.slice(0)) || [superclass_create]).push(Class_create);
 
                     Class.create = function () {
 
-                        var create_chain = Class["x:create-chain"];
+                        var create_chain = Class.__create_chain__;
                         for (var i = 0, length = create_chain.length; i < length; i++)
                         {
                             create_chain[i].apply(this, arguments);
@@ -833,7 +846,7 @@ var flyingon_defaults = {
             {
                 if (create_chain)
                 {
-                    Class["x:constructor-chain"] = create_chain;
+                    Class.__create_chain__ = create_chain;
                 }
 
                 Class.create = superclass_create;
