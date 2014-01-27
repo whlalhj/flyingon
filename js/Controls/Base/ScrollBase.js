@@ -63,10 +63,10 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
     this.defineProperty("viewportSize", 10, "measure");
 
     //最大步进
-    this.defineProperty("maxStep", 10);
+    this.defineProperty("max_step", 10);
 
     //最小步进
-    this.defineProperty("minStep", 1);
+    this.defineProperty("min_step", 1);
 
 
 

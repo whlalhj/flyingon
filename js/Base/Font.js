@@ -12,7 +12,7 @@
 
         if (arguments.length > 0)
         {
-            this.__storage__ = [style, variant, weight, size, family];
+            this.__fields__ = [style, variant, weight, size, family];
             initialize.call(this);
         }
 
@@ -22,23 +22,23 @@
 
     function initialize() {
 
-        var storage = this.__storage__;
+        var fields = this.__fields__;
 
-        if (typeof storage[3] == "number")
+        if (typeof fields[3] == "number")
         {
-            this.height = storage[3];
-            storage[3] += "px";
+            this.height = fields[3];
+            fields[3] += "px";
         }
         else
         {
-            this.height = parseInt(storage[3]);
+            this.height = parseInt(fields[3]);
         }
 
         var cache = this.__cache__ = {},
             context = this.__context__ = document.createElement("canvas").getContext("2d"),
             text = "a b";
 
-        context.font = storage[5] = storage.join(" ");
+        context.font = fields[5] = fields.join(" ");
 
         cache["汉"] = context.measureText("汉").width;
         cache[" "] = context.measureText(" ").width;
@@ -51,7 +51,7 @@
 
         flyingon.defineProperty(prototype, name, function () {
 
-            return this.__storage__[index];
+            return this.__fields__[index];
         });
     };
 
@@ -101,7 +101,7 @@
     prototype.derive = function (properties) {
 
         var result = new flyingon.Font(),
-            data = result.__storage__ = this.__storage__.slice(0, 4);
+            data = result.__fields__ = this.__fields__.slice(0, 4);
 
         data[0] = properties.style || data[0];
         data[1] = properties.variant || data[1];

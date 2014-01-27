@@ -31,13 +31,13 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
     };
 
 
-    this.arrange = function (boxModel, clientRect) {
+    this.arrange = function (clientRect) {
 
         var content = this.__content__ || (this.__content__ = this.createTemplateControl(this.template));
 
         if (content)
         {
-            boxModel.content(content);
+            this.__boxModel__.content(content);
         }
     };
 

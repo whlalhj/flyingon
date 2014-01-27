@@ -144,7 +144,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                 key(data, name);
             }
 
-            data.push(value != null ? "\"" + value.replace("\"", "\\\"") + "\"" : "null");
+            data.push(value != null ? "\"" + value.replace(/\"/g, "\\\"") + "\"" : "null");
         }
     };
 

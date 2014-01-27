@@ -34,16 +34,16 @@
 
     function initialize() {
 
-        var cache_1 = this.__cache1__ = [0],
-            cache_2 = this.__cache2__ = [0];
+        var cache1 = this.__cache1__ = [0],
+            cache2 = this.__cache2__ = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
             var word_0 = this[i],
                 word_1 = this[i + 1];
 
-            cache_1.push(word_1.index = word_0.index + word_0.text.length); //文本索引
-            cache_2.push(word_1.x = word_0.x + word_0.width);               //位置
+            cache1.push(word_1.index = word_0.index + word_0.text.length); //文本索引
+            cache2.push(word_1.x = word_0.x + word_0.width);               //位置
         }
 
         return this;

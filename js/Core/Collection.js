@@ -84,7 +84,7 @@ flyingon.class("Collection", function (Class, flyingon) {
         var items = this.__items__,
             fn;
 
-        if (items.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index) !== false))
+        if (items.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index, items[index]) !== false))
         {
             items.splice(index, 1);
         }

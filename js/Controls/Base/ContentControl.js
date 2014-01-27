@@ -24,21 +24,40 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
             if (oldValue != value)
             {
-                if (flyingon.__initializing__)
+                var box = this.__boxModel__,
+                    reset = !flyingon.__initializing__;
+
+
+                if (box.children)
                 {
-                    this.__content__ = value;
+                    box.children.length = 0;
                 }
                 else
                 {
-                    if (oldValue instanceof flyingon.Control)
-                    {
-                        oldValue.__fn_parent__(null);
-                    }
+                    box.children = [];
+                }
 
+                if (value instanceof flyingon.Control)
+                {
+                    value.__boxModel__.initialize(box);
                     this.__content__ = value;
-                    this.__boxModel__.__measure__ = true;
-                    this.dispatchEvent(new flyingon.ChangeEvent(this, "content", parent, oldValue));
 
+                    if (reset)
+                    {
+                        value.__fn_parent__(null);
+                    }
+                }
+
+                if (oldValue instanceof flyingon.Control)
+                {
+                    box = oldValue.__boxModel__;
+                    box.parent = box.offsetParent = null;
+                    oldValue.__fn_parent__(null);
+                }
+
+                if (reset)
+                {
+                    this.dispatchEvent(new flyingon.ChangeEvent(this, "content", value, oldValue));
                     this.invalidate();
                 }
             }
@@ -63,9 +82,10 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     };
 
 
-    this.arrange = function (boxModel, clientRect) {
 
-        boxModel.content(this.__content__);
+    this.arrange = function (clientRect) {
+
+        this.__boxModel__.content(this.__content__);
     };
 
 

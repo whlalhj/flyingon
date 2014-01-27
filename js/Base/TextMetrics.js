@@ -49,16 +49,16 @@
 
     function initialize() {
 
-        var cache_1 = this.__cache1__ = [0],
-            cache_2 = this.__cache2__ = [0];
+        var cache1 = this.__cache1__ = [0],
+            cache2 = this.__cache2__ = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
             var line_0 = this[i],
                 line_1 = this[i + 1];
 
-            cache_1.push(line_1.index = line_0.index + line_0.text.length); //文本索引
-            cache_2.push(line_1.y = line_0.y + line_0.height);              //位置
+            cache1.push(line_1.index = line_0.index + line_0.text.length); //文本索引
+            cache2.push(line_1.y = line_0.y + line_0.height);              //位置
         }
 
         return this;
@@ -204,20 +204,20 @@
         var start = this.start,
             end = this.end,
             textIndex = start.textIndex + text.length,
-            index_1 = start.lineIndex,
-            index_2 = end.lineIndex;
+            index1 = start.lineIndex,
+            index2 = end.lineIndex;
 
 
-        text = this[index_1].text.substring(0, start.columnIndex) + (text || "") + this[index_2].text.substring(end.columnIndex);
+        text = this[index1].text.substring(0, start.columnIndex) + (text || "") + this[index2].text.substring(end.columnIndex);
 
-        start = index_1 > 0 ? this[index_1 - 1].text : "";
-        end = index_2 + 1 < this.length ? this[index_2 + 1].text : "";
+        start = index1 > 0 ? this[index1 - 1].text : "";
+        end = index2 + 1 < this.length ? this[index2 + 1].text : "";
 
 
         var line = new flyingon.TextLine(this.font, text);
         line.measureText();
 
-        this.splice(index_1, index_2 - index_1 + 1, line);
+        this.splice(index1, index2 - index1 + 1, line);
 
         this.text = start + text + end;
 

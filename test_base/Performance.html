@@ -21,7 +21,8 @@
             <input type="button" value="direct_property" onclick="direct_property()" />
             <input type="button" value="boxModel_property" onclick="boxModel_property()" />
             <input type="button" value="nostyle_property" onclick="nostyle_property()" />
-            <input type="button" value="style_property" onclick="style_property()" />
+            <input type="button" value="style_property1" onclick="style_property1()" />
+            <input type="button" value="style_property2" onclick="style_property2()" />
             <input type="button" value="defineVariable" onclick="defineVariable()" />
             <input type="button" value="defineProperty" onclick="defineProperty()" />
         </div>
@@ -96,7 +97,7 @@
             alert(new Date() - date);
         }
 
-        function style_property() {
+        function style_property1() {
 
             var control = new flyingon.Control();
 
@@ -104,7 +105,21 @@
 
             for (var i = 0; i < 1000000; i++)
             {
-                var v = control.width;
+                var v = control.cursor;
+            }
+
+            alert(new Date() - date);
+        }
+
+        function style_property2() {
+
+            var control = new flyingon.Control();
+
+            var date = new Date();
+
+            for (var i = 0; i < 1000000; i++)
+            {
+                var v = (control.__fn_style__ || control.__fn_style_template__())("cursor");
             }
 
             alert(new Date() - date);

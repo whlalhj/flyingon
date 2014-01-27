@@ -392,7 +392,7 @@
 
 
     //按顺序自动排列子控件
-    prototype.match = function (items, boxModel, vertical) {
+    prototype.match = function (items, vertical) {
 
         var cells = this[vertical ? "__fn_vertical_cells__" : "__fn_horizontal_cells__"](true),
             count = cells.length,
@@ -406,7 +406,7 @@
             if (box.visible = index < count && item.visibility != "collapsed")
             {
                 var cell = cells[index++];
-                box.measure(boxModel, cell.x, cell.row.y, cell.width, cell.row.height);
+                box.measure(cell.x, cell.row.y, cell.width, cell.row.height);
             }
         }
 

@@ -6,16 +6,17 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
     Class.create = function (parent) {
 
-        var storage = this.__storage__;
+        var fields = this.__fields__;
 
-        storage.horizontalScroll = "never";
-        storage.verticalScroll = "never";
-        storage.width = "fill";
-        storage.height = "fill";
-        storage.dock = "top";
+        fields.horizontalScroll = "never";
+        fields.verticalScroll = "never";
+        fields.width = "fill";
+        fields.height = "fill";
+        fields.dock = "top";
 
         this.__fn_initialize_button__();
         this.__parent__ = parent;
+        this.__boxModel__.initialize_addtions(parent.__boxModel__);
     };
 
 
@@ -142,7 +143,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
         var y = (this.visibility == "visible" && this.height) || 0;
 
-        this.__boxModel__.measure(boxModel, 0, 0, width, y, true).compute();
+        this.__boxModel__.measure(0, 0, width, y, true).compute();
         return y;
     };
 

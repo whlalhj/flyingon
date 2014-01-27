@@ -5,7 +5,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
     Class.create = function () {
 
-        this.__storage__.__items__ = new flyingon.ItemCollection(this);
+        this.__fields__.__items__ = new flyingon.ItemCollection(this);
     };
 
 
@@ -22,15 +22,15 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         function () {
 
-            return this.__storage__.__items__;
+            return this.__fields__.__items__;
         },
 
         function (value) {
 
-            var oldValue = this.__storage__.__items__;
+            var oldValue = this.__fields__.__items__;
             if (oldValue != value)
             {
-                this.__storage__.__items__ = value;
+                this.__fields__.__items__ = value;
 
                 //
             }

@@ -21,16 +21,15 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
 
 
     //最大步长
-    this.defineProperty("max-step", 200);
+    this.defaultValue("max_step", 200);
 
     //最小步长
-    this.defineProperty("min-step", 20);
+    this.defaultValue("min_step", 20);
 
 
 
 
     this.defineEvent("scroll");
-
 
 
 

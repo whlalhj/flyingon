@@ -22,7 +22,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-
     //父控件
     this.defineProperty("parent", null, {
 
@@ -55,18 +54,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     //触发父控件变更
     this.__fn_parent__ = function (parent) {
-
-        var box = this.__boxModel__;
-
-        if (box.parent)
-        {
-            box.parent.__partition__ = true;
-        }
-
-        if (parent)
-        {
-            parent.__boxModel__.__partition__ = true;
-        }
 
         this.__parent__ = parent;
         this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this.__parent__));
@@ -162,57 +149,101 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
+    flyingon.__define_style__ = function (result, name) {
 
-    flyingon.__define_getter__ = function (name, options) {
+        return "if (fields.hasOwnProperty(\"" + name + "\"))\n"
+            + "{\n"
+            + result + " = fields." + name + ";\n"
+            + "}\n"
+            + "else if ((result = (this.__fn_style__ || this.__fn_style_template__())(\"" + name + "\")) === undefined)\n"
+            + "{\n"
+            + result + " = this.__defaults__." + name + ";\n"
+            + "}\n";
+    };
+
+    flyingon.__define_getter__ = function (name, attributes) {
 
         var body;
 
-        if (options.style) // 样式属性
+        if (attributes.style) // 样式属性
         {
-            body = "return this.styleValue('" + name + "');";
+            body = "var fields = this.__fields__;\n"
+                + flyingon.__define_style__("result", name)
+                + "return result;";
         }
         else
         {
-            body = "return this.__storage__['" + name + "'];"
+            body = "return this.__fields__[\"" + name + "\"];"
         }
 
         return new Function(body);
     };
 
+
     flyingon.__define_setter__ = function (name, attributes) {
 
 
-        var body = "var storage = this.__storage__, cache, name = '" + name + "';\n"
+        var body = [];
 
-            + flyingon.__define_initialize__
-
-
-            + (attributes.style ? "var oldValue = this.styleValue(name);\n" : "var oldValue = storage[name];\n")
-
-            + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
-
-
-            + "if (oldValue !== value)\n"
+        var bindings = "if (cache = this.__bindings__)\n"
             + "{\n"
-
-            + flyingon.__define_change__
-
-            + "storage[name] = value;\n"
-            + "var boxModel = this.__boxModel__;\n";
+            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
+            + "}\n";
 
 
-        if (attributes.valueChangedCode)
+        body.push("var fields = this.__fields__, cache;\n");
+
+
+        body.push("if (flyingon.__initializing__)\n");
+        body.push("{\n");
+        body.push("fields." + name + " = value;\n");
+
+        body.push(bindings);
+
+        body.push("return this;\n");
+        body.push("}\n");
+
+
+        if (attributes.style)
         {
-            body += attributes.valueChangedCode + "\n"; //自定义值变更代码
+            body.push("var oldValue;\n");
+            body.push(flyingon.__define_style__("oldValue", name));
+        }
+        else
+        {
+            body.push("var oldValue = fields." + name + ";\n");
         }
 
-        body += flyingon.__define_binding__; //处理绑定源
+
+        if (attributes.valueChangingCode)
+        {
+            body.push(attributes.valueChangingCode);
+            body.push("\n");
+        }
+
+
+        body.push("if (oldValue !== value)\n");
+        body.push("{\n");
+
+        body.push(flyingon.__define_change__(name));
+
+        body.push("fields." + name + " = value;\n");
+        body.push("var boxModel = this.__boxModel__;\n");
+
+
+        if (attributes.valueChangedCode) //自定义值变更代码
+        {
+            body.push(attributes.valueChangedCode);
+            body.push("\n");
+        }
+
+        body.push(bindings); //处理绑定源
 
 
         //需要重新定位
         if (attributes.locate)
         {
-            body += "if (cache = boxModel.parent)\n"
+            body.push("if (cache = boxModel.parent)\n"
                 + "{\n"
                 + "cache.__measure__ = true;\n"
                 + "cache.ownerControl.invalidate();\n"
@@ -221,32 +252,40 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
                 + "{\n"
                 + "boxModel.__measure__ = true;\n"
                 + "this.invalidate();\n"
-                + "}\n";
+                + "}\n");
         }
         else if (attributes.measure) //需要重新测量
         {
-            body += "boxModel.__measure__ = true;\nthis.invalidate();\n";
+            body.push("boxModel.__measure__ = true;\nthis.invalidate();\n");
         }
         else if (attributes.invalidate)  //需要重新绘制
         {
-            body += "this.invalidate();\n";
+            body.push("this.invalidate();\n");
         }
 
 
-        body += "}\nreturn this;";
+        body.push("}\nreturn this;");
 
 
-        return new Function("value", body);
+        return new Function("value", body.join(""));
     };
 
 
 
 
     //指定样式Key
-    this.defineProperty("styleKey", null, "invalidate");
+    this.defineProperty("styleKey", null, {
+
+        attributes: "invalidate",
+        valueChangedCode: "this.__fn_style__ = null;"
+    });
 
     //自定义样式
-    this.defineProperty("style", null, "invalidate");
+    this.defineProperty("style", null, {
+
+        attributes: "invalidate",
+        valueChangedCode: "this.__fn_style__ = null;"
+    });
 
     /*
     预定义状态组:
@@ -276,86 +315,84 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defaultValue("hover-states", null);
 
     //切换状态
-    this.switchState = function (statesName, stateName) {
+    this.stateTo = function (statesName, stateName) {
 
         if (statesName && stateName)
         {
-            this.__storage__[statesName] = (stateName == "enter-animate" || stateName == "leave-animate") ? null : stateName;
+            this.__fields__[statesName] = (stateName == "enter-animate" || stateName == "leave-animate") ? null : stateName;
 
             //记录最后变更的状态组以作为状态变更动画依据
             this.__statesName__ = statesName;
             this.__stateName__ = stateName;
+
+            this.__fn_style__ = null; //重置获取样式值的方法
 
             this.invalidate();
         }
     };
 
 
-    function styleValue(style, name) {
 
-        var storage = this.__storage__,
+    //缓存获取样式方法以加快检索
+    this.__fn_style_template__ = function () {
+
+        var fields = this.__fields__,
             states = this.__states__,
-            i = states.length - 1,
             statesName,
             stateName,
-            result;
+            result = [];
 
-        while (i >= 0)
+
+        for (var i = states.length - 1; i >= 0; i--)
         {
-            if ((statesName = states[i--]) && (stateName = storage[statesName]))
+            if ((statesName = states[i]) && (stateName = fields[statesName]))
             {
-                if ((result = (style.states && style.states[statesName])) &&
-                    (result = (result[stateName])) &&
-                    (result = result[name]) !== undefined)
+                if (result.length == 0)
                 {
-                    return result;
+                    result.push("var states = style.states;\n");
                 }
+
+                result.push("if ((result = states[\"");
+                result.push(statesName);
+                result.push("\"]) && (result = result[\"");
+                result.push(stateName);
+                result.push("\"]) && (result = result[name]) !== undefined)\n");
+                result.push("return result;\n");
             }
         }
 
-
-        return style[name];
-    };
-
-    //获取样式值
-    this.styleValue = function (name) {
+        result.push("if ((result = style[name]) !== undefined) return result;\n");
 
 
-        var storage = this.__storage__;
+        var body = result.join(""); //方法片断
 
-        if (storage.hasOwnProperty(name))
+        result.length = 0;
+        result.push("var result, style;\n");
+
+        if (this.style)
         {
-            return storage[name];
+            result.push("if (style = this.style)\n");
+            result.push("{\n");
+            result.push(body);
+            result.push("}\n");
         }
 
-        var style = storage.style;
-        if (style && (style = styleValue.call(this, style, name)) != undefined)
+        result.push("var styles = flyingon.styles;\n");
+
+        if (fields.styleKey)
         {
-            return style;
+            result.push("if (style = styles[\"" + fields.styleKey + "\"])\n");
+            result.push("{\n");
+            result.push(body);
+            result.push("}\n");
         }
 
+        result.push("if (style = styles[\"" + this.__classFullName__ + "\"])\n");
+        result.push("{\n");
+        result.push(body);
+        result.push("}\n");
 
-        var styles = flyingon.styles,
-            styleKey;
-
-        if ((styleKey = storage.styleKey) &&
-            (style = (styles[styleKey])) &&
-            (style = styleValue.call(this, style, name)) != undefined)
-        {
-            return style;
-        }
-
-
-        styleKey = this.__className__;
-        style = styles[styleKey];
-
-        if ((style = styleValue.call(this, style, name)) != undefined)
-        {
-            return style;
-        }
-
-
-        return (style = this.__defaults__[name]) || (style === undefined ? null : style);
+        return this.__fn_style__ = new Function("name", result.join(""));
     };
 
 
@@ -443,7 +480,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         attributes: "measure|style",
         getter: function () {
 
-            return flyingon.fonts[this.styleValue("font") || "normal"] || flyingon.fonts["normal"];
+            return flyingon.fonts[this.font || "normal"] || flyingon.fonts.normal;
         }
 
     }, "this.__textMetrics__ = null;");
@@ -457,7 +494,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     this.__fn_cursor__ = function (event) {
 
-        var cursor = this.styleValue("cursor") || "default";
+        var cursor = this.cursor || "default";
         return flyingon.cursors[cursor] || cursor;
     };
 
@@ -498,7 +535,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否可用
     this.defineProperty("enabled", true, {
 
-        valueChangedCode: "this.switchState('common-states', value ? 'disabled' : 'enter-animate');"
+        valueChangedCode: "this.stateTo('common-states', value ? 'disabled' : 'enter-animate');"
     });
 
 
@@ -559,11 +596,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         getter: function () {
 
-            var storage = this.__storage__;
+            var fields = this.__fields__;
 
-            if (storage.hasOwnProperty("template"))
+            if (fields.hasOwnProperty("template"))
             {
-                return storage.template;
+                return fields.template;
             }
 
             return flyingon.templates[this.__className__] || this.__defaults__.template;
@@ -624,7 +661,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
                 if (this.dispatchEvent("focus"))
                 {
-                    this.switchState("focus-states", "focused");
+                    this.stateTo("focus-states", "focused");
                 }
             }
 
@@ -645,7 +682,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (this.dispatchEvent("blur"))
             {
-                this.switchState("focus-states", "leave-animate");
+                this.stateTo("focus-states", "leave-animate");
             }
 
             return true;
@@ -836,7 +873,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (border && border.border)
         {
-            var color = this.styleValue("borderColor");
+            var color = this.borderColor;
 
             if (boxModel.borderRadius > 0)
             {

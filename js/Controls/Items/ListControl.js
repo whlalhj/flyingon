@@ -28,7 +28,7 @@ flyingon.class("ListControl", flyingon.TemplateControl, function (Class, flyingo
     };
 
     //排列子项
-    this.arrange = function (boxModel, clientRect) {
+    this.arrange = function (clientRect) {
 
         var items = this.__items__,
             children = this.__render_children__ = [],
@@ -67,8 +67,7 @@ flyingon.class("ListControl", flyingon.TemplateControl, function (Class, flyingo
 
                 if (control)
                 {
-                    var box = control.__boxModel__;
-                    box.measure(boxModel, 0, y, width, lineHeight);
+                    control.__boxModel__.measure(0, y, width, lineHeight);
 
                     children.push(control);
 

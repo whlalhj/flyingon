@@ -6,7 +6,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
     Class.create = function (ownerControl) {
 
-        this.ownerControl = ownerControl;
+        this.__ownerControl__ = ownerControl;
     };
 
 
@@ -16,13 +16,15 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
         if (item instanceof flyingon.Control)
         {
+            item.__boxModel__.initialize(this.__ownerControl__.__boxModel__);
+
             if (flyingon.__initializing__)
             {
-                item.__parent__ = this.ownerControl;
+                item.__parent__ = this.__ownerControl__;
             }
             else
             {
-                item.__fn_parent__(this.ownerControl);
+                item.__fn_parent__(this.__ownerControl__);
             }
 
             return item;
@@ -31,16 +33,45 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
         throw new Error("item not a Control!");
     };
 
-    this.__fn_remove__ = function (index) {
+    this.__fn_remove__ = function (index, item) {
 
-        this.__items__[index].__fn_parent__(null);
+        var box = item.__boxModel__;
+
+        box.parent = box.offsetParent = null;
+
+        box = this.__ownerControl__.__boxModel__;
+        box.children.splice(index, 1);
+
+        if (!flyingon.__initializing__)
+        {
+            item.__fn_parent__(null);
+            this.__ownerControl__.invalidate();
+        }
     };
 
     this.__fn_clear__ = function (items) {
 
+        var box = this.__ownerControl__,
+            reset = !flyingon.__initializing__;
+
+        box.children.length = 0;
+
         for (var i = 0, length = items.length; i < length; i++)
         {
-            items[i].__fn_parent__(null);
+            var item = items[i],
+                box = item.__boxModel__;
+
+            box.parent = box.offsetParent = null;
+
+            if (reset)
+            {
+                item.__fn_parent__(null);
+            }
+        }
+
+        if (reset)
+        {
+            this.__ownerControl__.invalidate();
         }
     };
 

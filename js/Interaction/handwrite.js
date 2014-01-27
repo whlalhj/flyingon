@@ -2,8 +2,8 @@
 
     alert("load handwrite.js");
     var nav = navigator;
-    var isIE = nastorage.userAgent.indexOf("MSIE") >= 0;
-    var isFirefox = nastorage.userAgent.indexOf("Firefox") >= 0;
+    var isIE = nafields.userAgent.indexOf("MSIE") >= 0;
+    var isFirefox = nafields.userAgent.indexOf("Firefox") >= 0;
 
 
     hw = {};

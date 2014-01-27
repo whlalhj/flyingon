@@ -21,7 +21,7 @@ hw.stopE = function (A) {
 
 hw.count = function (B) {
     var A = window["BD_PS_C" + (new Date()).getTime()] = new Image();
-    A.src = "http://nsclick.baidu.com/storage.gif?pid=201&pj=shouxie&type=" + B + (arguments[1] ? "&costTime=" + arguments[1] : "") + "&t=" + new Date().getTime()
+    A.src = "http://nsclick.baidu.com/fields.gif?pid=201&pj=shouxie&type=" + B + (arguments[1] ? "&costTime=" + arguments[1] : "") + "&t=" + new Date().getTime()
 };
 
 hw.getOffSet = function (C) {

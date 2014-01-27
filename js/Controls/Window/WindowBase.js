@@ -147,14 +147,14 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         this.dom_window.style.zIndex = 9991;
         this.dispatchEvent("activate");
-        this.switchState("activate-states", "activate");
+        this.stateTo("activate-states", "activate");
     };
 
     this.__fn_deactivate__ = function () {
 
         this.dom_window.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
-        this.switchState("activate-states", "deactivate");
+        this.stateTo("activate-states", "deactivate");
     };
 
 
@@ -198,7 +198,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         dom_canvas.width = this.width;
         dom_canvas.height = this.height;
 
-        result.__boxModel__.measure(null, 0, 0, dom_canvas.width, dom_canvas.height);
+        result.__boxModel__.measure(0, 0, dom_canvas.width, dom_canvas.height);
         result.__parent__ = this;
 
         dom_layer.__ownerWindow__ = dom_canvas.__ownerWindow__ = this;
@@ -292,7 +292,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             {
                 dispatchEvent("mouseout", source, dom_MouseEvent);
 
-                source.switchState("hover-states", "leave-animate");
+                source.stateTo("hover-states", "leave-animate");
             }
 
             if (target && target.enabled)
@@ -302,7 +302,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
 
-                target.switchState("hover-states", "hover");
+                target.stateTo("hover-states", "hover");
             }
         }
     };
@@ -399,7 +399,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             flyingon.__hover_control__ = null;
 
             dispatchEvent("mouseout", target, dom_MouseEvent);
-            target.switchState("hover-states", "leave-animate");
+            target.stateTo("hover-states", "leave-animate");
         }
     };
 
@@ -519,8 +519,8 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
         if (fill) //画布充满窗口
         {
-            this.__storage__.width = this.dom_canvas.width = r.width;
-            this.__storage__.height = this.dom_canvas.height = r.height;
+            this.__fields__.width = this.dom_canvas.width = r.width;
+            this.__fields__.height = this.dom_canvas.height = r.height;
         }
 
         return r;
@@ -542,7 +542,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             canvas.width = width; //清空画布
             canvas.height = height;
 
-            box.measure(null, offsetX, offsetY, width - offsetX, height - offsetY);
+            box.measure(offsetX, offsetY, width - offsetX, height - offsetY);
             box.render(layer.context);
         }
     };

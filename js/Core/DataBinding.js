@@ -33,9 +33,9 @@
     };
 
 
-    var clearBindings = function (storage, dispose) {
+    var clearBindings = function (fields, dispose) {
 
-        var keys = Object.keys(storage),
+        var keys = Object.keys(fields),
             key,
             bindings;
 
@@ -57,16 +57,16 @@
 
         if (source && (source = source.__bindings__))
         {
-            var storage = source.pull;
+            var fields = source.pull;
 
-            if (storage)
+            if (fields)
             {
-                clearBindings(storage, dispose);
+                clearBindings(fields, dispose);
             }
 
-            if (storage = source.push)
+            if (fields = source.push)
             {
-                clearBindings(storage, dispose);
+                clearBindings(fields, dispose);
             }
         }
     };

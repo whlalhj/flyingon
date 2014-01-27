@@ -5,10 +5,10 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
     Class.create = function () {
 
-        var storage = this.__storage__;
-        storage.cursor = flyingon.cursors["col-resize"];
-        storage.dock = "left";
-        storage.draggable = true;
+        var fields = this.__fields__;
+        fields.cursor = flyingon.cursors["col-resize"];
+        fields.dock = "left";
+        fields.draggable = true;
     };
 
 
@@ -49,7 +49,7 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
             var boxModel = this.__boxModel__,
                 r = boxModel.clientRect;
 
-            context.fillStyle = this.styleValue("dragColor") || "rgba(255,0,0,0.5)";
+            context.fillStyle = "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context, boxModel);

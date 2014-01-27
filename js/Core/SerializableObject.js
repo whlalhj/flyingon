@@ -15,7 +15,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
         //变量管理器
-        this.__storage__ = Object.create(this.__defaults__);
+        this.__fields__ = Object.create(this.__defaults__);
 
     };
 
@@ -38,51 +38,71 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
     flyingon.__define_getter__ = function (name, attributes) {
 
-        var body = "return this.__storage__['" + name + "'];";
+        var body = "return this.__fields__[\"" + name + "\"];";
         return new Function(body);
     };
 
-    flyingon.__define_binding__ = "(cache = this.__bindings__) && this.__fn_bindings__(name, cache);\n"; //处理绑定源
+    flyingon.__define_change__ = function (name) {
 
-    flyingon.__define_initialize__ = "if (flyingon.__initializing__)\n"
-        + "{\n"
-        + "storage[name] = value;\n"
-        + flyingon.__define_binding__
-        + "return this;\n"
-        + "}\n";
-
-    flyingon.__define_change__ = "if ((cache = this.__events__) && (cache = cache['change']) && cache.length > 0)\n"
-        + "{\n"
-        + "var event = new flyingon.ChangeEvent(this, name, value, oldValue);\n"
-        + "if (this.dispatchEvent(event) === false) return this;\n"
-        + "value = event.value;\n"
-        + "}\n";
+        return "if ((cache = this.__events__) && (cache = cache['change']) && cache.length > 0)\n"
+            + "{\n"
+            + "var event = new flyingon.ChangeEvent(this, \"" + name + "\", value, oldValue);\n"
+            + "if (this.dispatchEvent(event) === false) return this;\n"
+            + "value = event.value;\n"
+            + "}\n";
+    };
 
     flyingon.__define_setter__ = function (name, attributes) {
 
-        var body = "var storage = this.__storage__, cache, name = '" + name + "';\n"
+        var body = [];
 
-            + flyingon.__define_initialize__
-            + "var oldValue = storage[name];\n"
-
-            + (attributes.valueChangingCode ? attributes.valueChangingCode + "\n" : "") //自定义值变更代码
-
-            + "if (oldValue !== value)\n"
+        var bindings = "if (cache = this.__bindings__)\n"
             + "{\n"
+            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
+            + "}\n";
 
-            + flyingon.__define_change__
 
-            + "storage[name] = value;\n"
+        body.push("var fields = this.__fields__, cache;\n");
 
-            + (attributes.valueChangedCode ? attributes.valueChangedCode + "\n" : "")  //自定义值变更代码
 
-            + flyingon.__define_binding__
+        body.push("if (flyingon.__initializing__)\n");
+        body.push("{\n");
+        body.push("fields." + name + " = value;\n");
 
-            + "}\n"
+        body.push(bindings);
 
-            + "return this;\n";
+        body.push("return this;\n");
+        body.push("}\n");
 
-        return new Function("value", body);
+
+        body.push("var oldValue = fields." + name + ";\n");
+
+        if (attributes.valueChangingCode) //自定义值变更代码
+        {
+            body.push(attributes.valueChangingCode);
+            body.push("\n");
+        }
+
+        body.push("if (oldValue !== value)\n");
+        body.push("{\n");
+
+        body.push(flyingon.__define_change__(name));
+
+        body.push("fields." + name + " = value;\n");
+
+        if (attributes.valueChangedCode) //自定义值变更代码
+        {
+            body.push(attributes.valueChangedCode);
+            body.push("\n");
+        }
+
+        body.push(bindings);
+
+        body.push("}\n");
+
+        body.push("return this;\n");
+
+        return new Function("value", body.join(""));
     };
 
 
@@ -325,14 +345,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //获取或设置存储值
-    this.storageValue = function (name, value) {
+    this.fieldsValue = function (name, value) {
 
         if (value === undefined)
         {
-            return this.__storage__[name];
+            return this.__fields__[name];
         }
 
-        this.__storage__[name] = value;
+        this.__fields__[name] = value;
         return this;
     };
 
@@ -370,16 +390,16 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
     //执行绑定
-    this.__fn_bindings__ = function (name, storage) {
+    this.__fn_bindings__ = function (name, fields) {
 
-        var bindings = storage.push;
+        var bindings = fields.push;
 
         if (bindings && bindings.hasOwnProperty(name))
         {
             flyingon.bindingTo(this, name);
         }
 
-        if ((bindings = storage.pull) && (bindings = bindings[name]) && !bindings.__binding__)
+        if ((bindings = fields.pull) && (bindings = bindings[name]) && !bindings.__binding__)
         {
             bindings.push();
         }
@@ -391,19 +411,19 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //自定义序列化
     this.serialize = function (writer) {
 
-        writer.object("storage", this.__storage__);
+        writer.object("fields", this.__fields__);
         writer.bindings(this);
     };
 
     //自定义反序列化
     this.deserialize = function (reader, data) {
 
-        var storage = reader.object(this, "__storage__", data["storage"]);
+        var fields = reader.object(this, "__fields__", data["fields"]);
 
         reader.bindings(this, data);
-        if (storage && storage.name)
+        if (fields && fields.name)
         {
-            (reader.references || (reader.references = {}))[storage.name] = this;
+            (reader.references || (reader.references = {}))[fields.name] = this;
         }
     };
 

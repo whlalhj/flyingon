@@ -502,7 +502,7 @@ var flyingon_defaults = {
                 {
                     flyingon.mearge(source_value, target_value, ignore_exist);
                 }
-                else if (!ignore_exist)
+                else if (!ignore_exist || target_value === undefined)
                 {
                     target[key] = flyingon.copy(source_value);
                 }
@@ -902,7 +902,9 @@ var flyingon_defaults = {
         if (subclasses)
         {
             var styles = flyingon.styles,
-                templates = flyingon.templates;
+                templates = flyingon.templates,
+                parent_style = styles[Class.classFullName],
+                parent_template = templates[Class.classFullName];
 
             for (var i = 0, length = subclasses.length; i < length; i++)
             {
@@ -912,18 +914,16 @@ var flyingon_defaults = {
                     template = templates[className] || (templates[className] = {});
 
 
-                className = Class.className;
-
                 //复制上级样式
-                if (className in styles)
+                if (parent_style)
                 {
-                    flyingon.mearge(styles[className], style, true);
+                    flyingon.mearge(parent_style, style, true);
                 }
 
                 //复制上级模板
-                if (className in templates)
+                if (parent_template)
                 {
-                    flyingon.mearge(templates[className], template, true);
+                    flyingon.mearge(parent_template, template, true);
                 }
 
 

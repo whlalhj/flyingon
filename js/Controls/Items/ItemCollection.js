@@ -41,7 +41,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
         return item;
     };
 
-    this.__fn_remove__ = function (index) {
+    this.__fn_remove__ = function (index, item) {
 
         var items = this.__items_x__;
         if (items.length > index)
