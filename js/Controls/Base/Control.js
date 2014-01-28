@@ -149,7 +149,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    flyingon.__define_style__ = function (result, name) {
+    this.__define_style__ = function (result, name) {
 
         return "if (fields.hasOwnProperty(\"" + name + "\"))\n"
             + "{\n"
@@ -161,14 +161,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             + "}\n";
     };
 
-    flyingon.__define_getter__ = function (name, attributes) {
+    this.__define_getter__ = function (name, attributes) {
 
         var body;
 
         if (attributes.style) // 样式属性
         {
             body = "var fields = this.__fields__;\n"
-                + flyingon.__define_style__("result", name)
+                + this.__define_style__("result", name)
                 + "return result;";
         }
         else
@@ -180,34 +180,21 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     };
 
 
-    flyingon.__define_setter__ = function (name, attributes) {
+    this.__define_setter__ = function (name, attributes) {
 
 
         var body = [];
 
-        var bindings = "if (cache = this.__bindings__)\n"
-            + "{\n"
-            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
-            + "}\n";
-
 
         body.push("var fields = this.__fields__, cache;\n");
 
-
-        body.push("if (flyingon.__initializing__)\n");
-        body.push("{\n");
-        body.push("fields." + name + " = value;\n");
-
-        body.push(bindings);
-
-        body.push("return this;\n");
-        body.push("}\n");
+        body.push(this.__define_initializing__(name, attributes));
 
 
         if (attributes.style)
         {
             body.push("var oldValue;\n");
-            body.push(flyingon.__define_style__("oldValue", name));
+            body.push(this.__define_style__("oldValue", name));
         }
         else
         {
@@ -215,9 +202,9 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
 
 
-        if (attributes.valueChangingCode)
+        if (attributes.changing)
         {
-            body.push(attributes.valueChangingCode);
+            body.push(attributes.changing);
             body.push("\n");
         }
 
@@ -225,19 +212,23 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         body.push("if (oldValue !== value)\n");
         body.push("{\n");
 
-        body.push(flyingon.__define_change__(name));
+        body.push(this.__define_change__(name));
 
         body.push("fields." + name + " = value;\n");
         body.push("var boxModel = this.__boxModel__;\n");
 
 
-        if (attributes.valueChangedCode) //自定义值变更代码
+        if (attributes.changed) //自定义值变更代码
         {
-            body.push(attributes.valueChangedCode);
+            body.push(attributes.changed);
             body.push("\n");
         }
 
-        body.push(bindings); //处理绑定源
+
+        body.push("if (cache = this.__bindings__)\n");
+        body.push("{\n");
+        body.push("this.__fn_bindings__(\"" + name + "\", cache);\n");
+        body.push("}\n");
 
 
         //需要重新定位
@@ -264,7 +255,9 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
 
 
-        body.push("}\nreturn this;");
+        body.push("}\n");
+
+        body.push("return this;");
 
 
         return new Function("value", body.join(""));
@@ -277,14 +270,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("styleKey", null, {
 
         attributes: "invalidate",
-        valueChangedCode: "this.__fn_style__ = null;"
+        changed: "this.__fn_style__ = null;"
     });
 
     //自定义样式
     this.defineProperty("style", null, {
 
         attributes: "invalidate",
-        valueChangedCode: "this.__fn_style__ = null;"
+        changed: "this.__fn_style__ = null;"
     });
 
     /*
@@ -432,8 +425,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
     this.defineProperty("verticalAlign", "top", "locate|style");
 
-    //流式布局 auto:自动 inline:同行 block:新行
-    this.defineProperty("flow", 0, "locate|style");
+    //流式布局 auto:自动 inline:同行 newline:新行
+    this.defineProperty("flow", "auto", "locate|style");
 
     //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
     this.defineProperty("dock", "left", "locate|style");
@@ -446,11 +439,17 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     /***************BoxModel及样式相关属性***************/
 
-    this.defineProperty("margin", [0, 0, 0, 0], "locate|style");
+    var attributes = {
 
-    this.defineProperty("border", [0, 0, 0, 0], "measure|style");
+        attributes: "locate|style",
+        changing: "if (!(value instanceof flyingon.Thickness)) value = new flyingon.Thickness(value);"
+    };
 
-    this.defineProperty("padding", [0, 0, 0, 0], "measure|style");
+    this.defineProperty("margin", new flyingon.Thickness(0), attributes);
+
+    this.defineProperty("border", new flyingon.Thickness(0), attributes);
+
+    this.defineProperty("padding", new flyingon.Thickness(0), attributes);
 
     this.defineProperty("borderRadius", 0, "measure|style");
 
@@ -510,8 +509,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //调整自动大小
-    this.adjustAutoSize = function (boxModel) {
+    this.adjustAutoSize = function (boxModel, auto_width, auto_height) {
 
+        if (auto_width)
+        {
+            boxModel.width = boxModel.width - boxModel.clientRect.width;
+        }
     };
 
 
@@ -519,8 +522,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("text", null, {
 
         attributes: "measure",
-        valueChangingCode: "value += '';",
-        valueChangedCode: "this.__textMetrics__ = null;"
+        changing: "value += '';",
+        changed: "this.__textMetrics__ = null;"
     });
 
 
@@ -535,7 +538,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否可用
     this.defineProperty("enabled", true, {
 
-        valueChangedCode: "this.stateTo('common-states', value ? 'disabled' : 'enter-animate');"
+        changed: "this.stateTo('common-states', value ? 'disabled' : 'enter-animate');"
     });
 
 
@@ -592,7 +595,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("template", null, {
 
         attributes: "measure",
-        valueChangedCode: "this.clearTemplate();",
+        changed: "this.clearTemplate();",
 
         getter: function () {
 
@@ -877,7 +880,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (boxModel.borderRadius > 0)
             {
-                context.lineWidth = border[0];
+                context.lineWidth = border.top;
                 context.set_strokeStyle(color);
                 context.strokeRoundRect(boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, boxModel.borderRadius);
             }

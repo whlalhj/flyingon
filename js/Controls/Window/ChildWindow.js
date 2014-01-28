@@ -143,7 +143,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
         var y = (this.visibility == "visible" && this.height) || 0;
 
-        this.__boxModel__.measure(0, 0, width, y, true).compute();
+        this.__boxModel__.measure(0, 0, width, y).compute();
         return y;
     };
 

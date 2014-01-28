@@ -42,8 +42,6 @@ flyingon.class("HtmlFrame", flyingon.HtmlControl, function (Class, flyingon) {
         var frame = document.createElement("iframe");
 
         frame.setAttribute("border", "0");
-        frame.setAttribute("marginwidth", "0");
-        frame.setAttribute("marginheight", "0");
         frame.setAttribute("frameborder", "no");
         frame.setAttribute("scrolling", "no");
         frame.setAttribute("allowtransparency", "yes");

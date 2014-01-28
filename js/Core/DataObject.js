@@ -16,36 +16,23 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         var body = [];
 
-        var bindings = "if (cache = this.__bindings__)\n"
-            + "{\n"
-            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
-            + "}\n";
-
 
         body.push("var fields = this.__data__, cache;\n");
 
-        body.push("if (flyingon.__initializing__)\n");
-        body.push("{\n");
-        body.push("fields." + name + " = value;\n");
-
-        body.push(bindings);
-
-        body.push("return this;\n");
-        body.push("}\n");
-
+        body.push(this.__define_initializing__(name, attributes));
 
         body.push("var oldValue = fields." + name + ";\n");
 
-        if (attributes.valueChangingCode) //自定义值变更代码
+        if (attributes.changing) //自定义值变更代码
         {
-            body.push(attributes.valueChangingCode);
+            body.push(attributes.changing);
             body.push("\n");
         }
 
         body.push("if (oldValue !== value)\n");
         body.push("{\n");
 
-        body.push(flyingon.__define_change__(name));
+        body.push(this.__define_change__(name));
 
         body.push("var original = fields.__original__ || (fields.__original__ = {});\n");
         body.push("if (!original.hasOwnProperty(\"" + name + "\"))\n");
@@ -55,13 +42,18 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         body.push("fields." + name + " = value;\n");
 
-        if (attributes.valueChangedCode) //自定义值变更代码
+        if (attributes.changed) //自定义值变更代码
         {
-            body.push(attributes.valueChangedCode);
+            body.push(attributes.changed);
             body.push("\n");
         }
 
-        body.push(bindings);
+
+        body.push("if (cache = this.__bindings__)\n");
+        body.push("{\n");
+        body.push("this.__fn_bindings__(\"" + name + "\", cache);\n");
+        body.push("}\n");
+
 
         body.push("}\n");
 
@@ -91,7 +83,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
         var schema = this.__schema__ || (this.__schema__ = {});
 
-        attributes = schema[name] = flyingon.__define_attributes__(attributes);
+        attributes = schema[name] = this.__define_attributes__(attributes);
         attributes.defaultValue = defaultValue;
 
         flyingon.defineProperty(this, name, getter.call(this, name, attributes), setter.call(this, name, attributes));
@@ -238,7 +230,7 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
     //当前位置
     this.defineProperty("position", 0, {
 
-        valueChangingCode: "if (value < 0) value = 0; else if (value >= fields.length) value = fields.length - 1;",
+        changing: "if (value < 0) value = 0; else if (value >= fields.length) value = fields.length - 1;",
     });
 
 

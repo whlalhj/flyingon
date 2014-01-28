@@ -5,7 +5,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //客户端唯一Id
-    var id = 0;
+    var uniqueId = 0;
 
     //自动名称
     var auto_name = 0;
@@ -25,24 +25,45 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //唯一Id
     flyingon.newId = function () {
 
-        return "id" + (++id);
+        return "id" + (++uniqueId);
     };
 
 
 
-    flyingon.defineProperty(this, "id", function () {
+    flyingon.defineProperty(this, "uniqueId", function () {
 
-        return this.__id__ || (this.__id__ = "id" + (++id));
+        return this.__uniqueId__ || (this.__uniqueId__ = "id" + (++uniqueId));
     });
 
 
-    flyingon.__define_getter__ = function (name, attributes) {
+    this.__define_getter__ = function (name, attributes) {
 
         var body = "return this.__fields__[\"" + name + "\"];";
         return new Function(body);
     };
 
-    flyingon.__define_change__ = function (name) {
+    this.__define_initializing__ = function (name, attributes) {
+
+        return "if (flyingon.__initializing__)\n"
+
+            + "{\n"
+
+            + (attributes.changing || "")
+            + "\n"
+
+            + "fields." + name + " = value;\n"
+
+            + "if (cache = this.__bindings__)\n"
+            + "{\n"
+            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
+            + "}\n"
+
+            + "return this;\n"
+
+            + "}\n";
+    };
+
+    this.__define_change__ = function (name) {
 
         return "if ((cache = this.__events__) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
@@ -52,51 +73,42 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             + "}\n";
     };
 
-    flyingon.__define_setter__ = function (name, attributes) {
+    this.__define_setter__ = function (name, attributes) {
 
         var body = [];
 
-        var bindings = "if (cache = this.__bindings__)\n"
-            + "{\n"
-            + "this.__fn_bindings__(\"" + name + "\", cache);\n"
-            + "}\n";
-
-
         body.push("var fields = this.__fields__, cache;\n");
 
-
-        body.push("if (flyingon.__initializing__)\n");
-        body.push("{\n");
-        body.push("fields." + name + " = value;\n");
-
-        body.push(bindings);
-
-        body.push("return this;\n");
-        body.push("}\n");
-
+        body.push(this.__define_initializing__(name, attributes));
 
         body.push("var oldValue = fields." + name + ";\n");
 
-        if (attributes.valueChangingCode) //自定义值变更代码
+        if (attributes.changing) //自定义值变更代码
         {
-            body.push(attributes.valueChangingCode);
+            body.push(attributes.changing);
             body.push("\n");
         }
 
         body.push("if (oldValue !== value)\n");
         body.push("{\n");
 
-        body.push(flyingon.__define_change__(name));
+        body.push(this.__define_change__(name));
 
         body.push("fields." + name + " = value;\n");
 
-        if (attributes.valueChangedCode) //自定义值变更代码
+
+        if (attributes.changed) //自定义值变更代码
         {
-            body.push(attributes.valueChangedCode);
+            body.push(attributes.changed);
             body.push("\n");
         }
 
-        body.push(bindings);
+
+        body.push("if (cache = this.__bindings__)\n");
+        body.push("{\n");
+        body.push("this.__fn_bindings__(\"" + name + "\", cache);\n");
+        body.push("}\n");
+
 
         body.push("}\n");
 
@@ -106,7 +118,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
 
-    flyingon.__define_attributes__ = function (attributes) {
+    this.__define_attributes__ = function (attributes) {
 
         if (attributes)
         {
@@ -148,10 +160,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
                 this.__defaults__[name] = defaultValue;
             }
 
-            attributes = flyingon.__define_attributes__(attributes);
+            attributes = this.__define_attributes__(attributes);
 
-            var getter = attributes.getter || flyingon.__define_getter__(name, attributes),
-                setter = !attributes.readOnly ? (attributes.setter || flyingon.__define_setter__(name, attributes)) : null;
+            var getter = attributes.getter || this.__define_getter__(name, attributes),
+                setter = !attributes.readOnly ? (attributes.setter || this.__define_setter__(name, attributes)) : null;
 
             flyingon.defineProperty(this, name, getter, setter);
 

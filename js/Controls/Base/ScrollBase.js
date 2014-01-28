@@ -37,7 +37,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
     this.defineProperty("isVertical", false, {
 
         attributes: "locate",
-        valueChangedCode: "var width = this.width;\nthis.width = this.height;\nthis.height = width;"
+        changed: "var width = this.width;\nthis.width = this.height;\nthis.height = width;"
     });
 
 

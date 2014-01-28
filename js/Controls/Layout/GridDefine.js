@@ -406,6 +406,7 @@
             if (box.visible = index < count && item.visibility != "collapsed")
             {
                 var cell = cells[index++];
+
                 box.measure(cell.x, cell.row.y, cell.width, cell.row.height);
             }
         }

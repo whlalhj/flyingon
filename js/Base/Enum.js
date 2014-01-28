@@ -43,44 +43,6 @@
 
 
 
-    //拉伸方式
-    flyingon.Stretch = {
-
-        //不拉伸
-        no: "no",
-
-        //宽度拉伸
-        width: "width",
-
-        //高度拉伸
-        height: "height",
-
-        //全部拉伸
-        all: "all"
-
-    };
-
-
-
-    //自动调整大小方式
-    flyingon.AutoSize = {
-
-        //不调整
-        no: "no",
-
-        //宽度调整
-        width: "width",
-
-        //高度调整
-        height: "height",
-
-        //全部调整
-        all: "all"
-
-    };
-
-
-
     //水平对齐方式
     flyingon.HorizontalAlign = {
 
@@ -121,7 +83,7 @@
         line: "line",
 
         //流式布局
-        flow: "rows",
+        flow: "flow",
 
         //单个显示
         single: "single",

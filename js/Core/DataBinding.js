@@ -169,7 +169,7 @@
         //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
         if (expression.match(/^\d|[^\w]/))
         {
-            cache = (this.__fn_getter__ = new flyingon.Expression(expression)).variables;
+            cache = (this.__fn_getter__ = new flyingon.Expression(expression)).parameters;
 
             for (var i = 0, length = cache.length; i < length; i++)
             {
@@ -261,11 +261,11 @@
         {
             if (cache = this.__getter__)
             {
-                var variables = cache.variables;
+                var parameters = cache.parameters;
 
-                for (var i = 0, length = variables.length; i < length; i++)
+                for (var i = 0, length = parameters.length; i < length; i++)
                 {
-                    if (cache = bindings[variables[i]])
+                    if (cache = bindings[parameters[i]])
                     {
                         delete cache[target.id];
                     }

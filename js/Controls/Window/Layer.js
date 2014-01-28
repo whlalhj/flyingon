@@ -31,7 +31,7 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
     this.defineProperty("opacity", 1, {
 
-        valueChangedCode: "this.dom_layer.style.opacity = value;"
+        changed: "this.dom_layer.style.opacity = value;"
     });
 
 

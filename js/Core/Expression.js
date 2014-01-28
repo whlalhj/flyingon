@@ -13,7 +13,7 @@
 
 
 
-    var parse = function (expression, variables) {
+    var parse = function (expression, parameters) {
 
 
         if (!expression)
@@ -62,7 +62,7 @@
                         if (!values[value])
                         {
                             values[value] = true;
-                            variables.push(value);
+                            parameters.push(value);
                         }
                     }
 
@@ -72,9 +72,9 @@
         }
 
 
-        for (var i = 0, length = variables.length; i < length; i++)
+        for (var i = 0, length = parameters.length; i < length; i++)
         {
-            body += "var " + (value = variables[i]) + " = this[\"" + value + "\"];\n";
+            body += "var " + (value = parameters[i]) + " = this[\"" + value + "\"];\n";
         }
 
 
@@ -98,8 +98,8 @@
         function (value) {
 
             this.__expression__ = "" + value;
-            this.variables = [];
-            this.__function__ = parse(this.__expression__, this.variables);
+            this.parameters = [];
+            this.__function__ = parse(this.__expression__, this.parameters);
         });
 
 

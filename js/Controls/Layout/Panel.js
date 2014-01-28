@@ -37,16 +37,19 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
-    //当前布局 见枚举flyingon.Layout对象
-    this.defineProperty("layout", "flow", {
+    var attributes = {
 
         attributes: "locate|style",
-        valueChangedCode: "boxModel.scrollLeft = 0;\nboxModel.scrollTop = 0;"
-    });
+        changed: "boxModel.scrollLeft = 0;\nboxModel.scrollTop = 0;"
+    };
+
+
+    //当前布局 见枚举flyingon.Layout对象
+    this.defineProperty("layout", "flow", attributes);
 
 
     //排列方向 horizontal(横向)或vertical(纵向)
-    this.defineProperty("orientation", "horizontal", "locate|style");
+    this.defineProperty("orientation", "horizontal", attributes);
 
     //镜向变换 以容器中心点作为变换坐标原点
     //none: 不变换
@@ -58,16 +61,16 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //布局x轴间隔 0-1之间表示间隔值为总宽度百分比
-    this.defineProperty("spaceX", 0, "locate|style");
+    this.defineProperty("spaceX", 0, attributes);
 
     //布局y轴间隔 0-1之间表示间隔值为总高度的百分比
-    this.defineProperty("spaceY", 0, "locate|style");
+    this.defineProperty("spaceY", 0, attributes);
 
     //布局行高
-    this.defineProperty("lineHeight", 0, "locate|style");
+    this.defineProperty("lineHeight", 0, attributes);
 
     //布局列宽
-    this.defineProperty("lineWidth", 0, "locate|style");
+    this.defineProperty("lineWidth", 0, attributes);
 
     //当前布局页索引
     this.defineProperty("index", 0, "measure");
@@ -91,6 +94,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     function line_horizontal(items, clientRect, spaceX, spaceY) {
 
         var x = 0,
+
             width = clientRect.width,
             height = clientRect.height,
 
@@ -105,10 +109,9 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (item.visibility != "collapsed"))
             {
-                box.compute_size(width - x, height);
-                box.measure(x, 0, box.width, height, false);
+                box.measure(x, 0, 0, 0, width - x, height, null, height);
 
-                x = box.right + box.margin[3] + spaceX;
+                x = box.right + box.margin.left + spaceX;
 
                 if (box.height > scrollHeight)
                 {
@@ -127,11 +130,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     function line_vertical(items, clientRect, spaceX, spaceY) {
 
         var y = 0,
+
             width = clientRect.width,
             height = clientRect.height,
 
             boxModel = this.__boxModel__,
-            scrollWidth = 0;
+            scrollWidth = boxModel.scrollWidth;
 
 
         for (var i = 0, length = items.length; i < length; i++)
@@ -141,10 +145,9 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (item.visibility != "collapsed"))
             {
-                box.compute_size(width, height - y);
-                box.measure(0, y, width, box.height, false);
+                box.measure(0, y, 0, 0, width, height - y, width);
 
-                y = box.bottom + box.margin[2] + spaceY;
+                y = box.bottom + box.margin.bottom + spaceY;
 
                 if (box.width > scrollWidth)
                 {
@@ -171,20 +174,18 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         var x = 0,
             y = 0,
-            cache,
+
+            lineHeight = this.lineHeight,
 
             maxWidth = clientRect.width,
-            lineHeight = this.lineHeight,
             maxHeight = lineHeight,
 
             boxModel = this.__boxModel__,
-            scrollWidth = boxModel.scrollWidth;
+            scrollWidth = boxModel.scrollWidth,
+            scrollHeight = boxModel.scrollHeight,
 
+            cache;
 
-        if (lineHeight <= 0)
-        {
-            lineHeight = clientRect.height;
-        }
 
 
         for (var i = 0, length = items.length; i < length; i++)
@@ -194,17 +195,36 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (item.visibility != "collapsed"))
             {
-                box.compute_size(maxWidth - x, maxHeight);
-                box.measure(x, y, box.width, maxHeight, false);
+                box.measure(x, y, 0, 0, maxWidth - x, lineHeight, null, lineHeight);
 
-                cache = box.right + box.margin[1] + spaceX;
+                cache = box.right + box.margin.right;
 
-                if (x > 0 && cache > maxWidth) //如果超出宽度则折行
+                if (x > 0)
                 {
-                    //重新定位
-                    box.moveTo(x = 0, y += maxHeight + spaceY);
-                    cache = box.right + box.margin[1] + spaceX;
-                    maxHeight = lineHeight;
+                    var newline;
+
+                    switch (item.flow)
+                    {
+                        case "auto": //如果超出宽度则折行
+                            newline = cache > maxWidth;
+                            break;
+
+                        case "inline": //永远不换行
+                            newline = false;
+                            break;
+
+                        case "newline": //永远换行
+                            newline = true;
+                            break;
+                    }
+
+                    //换行
+                    if (newline)
+                    {
+                        box.moveTo(x = 0, y += maxHeight + spaceY, true);
+                        cache = box.right + box.margin.right;
+                        maxHeight = lineHeight;
+                    }
                 }
 
                 if ((x = cache) > scrollWidth)
@@ -212,7 +232,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                     scrollWidth = x;
                 }
 
-                if ((cache = box.height + box.margin[0] + box.margin[2]) > maxHeight)
+                if ((cache = y + maxHeight) > scrollHeight)
+                {
+                    scrollHeight = cache;
+                }
+
+                if ((cache = box.height + box.margin.spaceY) > maxHeight)
                 {
                     maxHeight = cache;
                 }
@@ -221,7 +246,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
         boxModel.scrollWidth = scrollWidth;
-        boxModel.scrollHeight = items[items.length - 1].__boxModel__.bottom;
+        boxModel.scrollHeight = scrollHeight;
     };
 
 
@@ -230,20 +255,18 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         var x = 0,
             y = 0,
-            cache,
 
             lineWidth = this.lineWidth,
+
             maxWidth = lineWidth,
             maxHeight = clientRect.height,
 
             boxModel = this.__boxModel__,
-            scrollHeight = boxModel.scrollHeight;
+            scrollWidth = boxModel.scrollWidth,
+            scrollHeight = boxModel.scrollHeight,
 
+            cache;
 
-        if (lineWidth <= 0)
-        {
-            lineWidth = clientRect.width;
-        }
 
         for (var i = 0, length = items.length; i < length; i++)
         {
@@ -252,17 +275,36 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (this.visibility != "collapsed"))
             {
-                box.compute_size(maxWidth, maxHeight - y);
-                box.measure(x, y, maxWidth, box.height, false);
+                box.measure(x, y, 0, 0, lineWidth, maxHeight - y, lineWidth);
 
-                cache = box.bottom + box.margin[2] + spaceY;
+                cache = box.bottom + box.margin.bottom;
 
-                if (y > 0 && cache > maxHeight) //如果超出高度则折行
+                if (y > 0)
                 {
-                    //重新定位
-                    box.moveTo(x += maxWidth + spaceX, y = 0);
-                    cache = box.bottom + box.margin[2] + spaceY;
-                    maxWidth = lineWidth;
+                    var newline;
+
+                    switch (item.flow)
+                    {
+                        case "auto": //如果超出高度则折行
+                            newline = cache > maxHeight;
+                            break;
+
+                        case "inline": //永远不换行
+                            newline = false;
+                            break;
+
+                        case "newline": //永远换行
+                            newline = true;
+                            break;
+                    }
+
+                    //换行
+                    if (newline)
+                    {
+                        box.moveTo(x += maxWidth + spaceX, y = 0, true);
+                        cache = box.bottom + box.margin.bottom;
+                        maxWidth = lineWidth;
+                    }
                 }
 
                 if ((y = cache) > scrollHeight)
@@ -270,7 +312,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                     scrollHeight = y;
                 }
 
-                if ((cache = box.width + box.margin[3] + box.margin[1]) > maxWidth)
+                if ((cache = x + maxWidth) > scrollWidth)
+                {
+                    scrollWidth = cache;
+                }
+
+                if ((cache = box.width + box.margin.spaceX) > maxWidth)
                 {
                     maxWidth = cache;
                 }
@@ -278,7 +325,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
 
 
-        boxModel.scrollWidth = items[items.length - 1].__boxModel__.right;
+        boxModel.scrollWidth = scrollWidth;
         boxModel.scrollHeight = scrollHeight;
     };
 
@@ -323,6 +370,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         var x = 0,
             y = 0,
+
             width = clientRect.width,
             height = clientRect.height,
 
@@ -331,6 +379,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             fill = [];
 
+
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
@@ -338,7 +387,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (item.visibility != "collapsed"))
             {
-                if (width < 0 || height < 0)
+                if (width <= 0 || height <= 0)
                 {
                     box.visible = false;
                 }
@@ -347,33 +396,33 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                     switch (item.dock)
                     {
                         case "left":
-                            box.measure(x, y, item.width, height);
-
+                            box.measure(x, y, 0, height, width);
                             x = box.right + spaceX;
                             width = right - x;
                             break;
 
                         case "top":
-                            box.measure(x, y, width, item.height);
-
+                            box.measure(x, y, width, 0, null, height);
                             y = box.bottom + spaceY;
                             height = bottom - y;
                             break;
 
                         case "right":
-                            box.compute_size(width, height);
-                            box.measure(right, y, box.width, height, false);
+                            box.measure(x, y, 0, height, width);
+                            right -= box.width;
 
-                            right -= box.margin[1] + box.width;
+                            box.moveTo(right, y, true);
+
                             right -= spaceX;
                             width = right - x;
                             break;
 
                         case "bottom":
-                            box.compute_size(width, height);
-                            box.measure(x, bottom, width, box.height, false);
+                            box.measure(x, y, width, 0, null, height);
+                            bottom -= box.height;
 
-                            bottom -= box.margin[2] + box.height;
+                            box.moveTo(x, bottom, true);
+
                             bottom -= spaceY;
                             height = bottom - y;
                             break;
@@ -387,14 +436,20 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
 
 
-        if (width > x && height > y)
+        if (width <= 0 || height <= 0)
+        {
+            for (var i = 0; i < fill.length; i++)
+            {
+                fill[i].visible = false;
+            }
+        }
+        else
         {
             for (var i = 0; i < fill.length; i++)
             {
                 fill[i].measure(x, y, width, height);
             }
         }
-
     };
 
 
@@ -509,7 +564,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
             if (box.visible = (this.visibility != "collapsed"))
             {
-                box.measure(this.left, this.top, this.width, this.height);
+                box.measure(item.left, item.top, item.width, item.height);
 
                 if (box.right > boxModel.scrollWidth)
                 {
@@ -547,7 +602,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             items,
             length;
 
-        if (mirror != "none" && (items = this.__render_children__) && (length = items.length) > 0)
+        if (mirror != "none" && (items = boxModel.children) && (length = items.length) > 0)
         {
             switch (this.mirror) //处理镜像变换
             {
@@ -556,7 +611,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                     for (var i = 0; i < length; i++)
                     {
-                        items[i].moveTo(box.x, height - box.bottom);
+                        var box = items[i];
+                        box.moveTo(box.x, height - box.bottom);
                     }
                     break;
 
@@ -565,7 +621,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                     for (var i = 0; i < length; i++)
                     {
-                        items[i].moveTo(width - box.right, box.y);
+                        var box = items[i];
+                        box.moveTo(width - box.right, box.y);
                     }
                     break;
 
@@ -575,7 +632,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                     for (var i = 0; i < length; i++)
                     {
-                        items[i].moveTo(width - box.right, height - box.bottom);
+                        var box = items[i];
+                        box.moveTo(width - box.right, height - box.bottom);
                     }
                     break;
             }

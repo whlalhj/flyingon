@@ -71,10 +71,16 @@
     prototype.height = 0;
 
     //右边x坐标
-    prototype.right = 0;
+    flyingon.defineProperty(prototype, "right", function () {
+
+        return this.x + this.width;
+    });
 
     //底部y坐标
-    prototype.bottom = 0;
+    flyingon.defineProperty(prototype, "bottom", function () {
+
+        return this.y + this.height;
+    });
 
 
     //x渲染偏移
@@ -88,17 +94,6 @@
 
     //滚动高度
     prototype.scrollHeight = 0;
-
-
-    //外边距
-    prototype.margin = [0, 0, 0, 0];
-
-    //边框
-    prototype.border = [0, 0, 0, 0];
-
-    //内边距
-    prototype.padding = [0, 0, 0, 0];
-
 
 
 
@@ -142,188 +137,245 @@
     };
 
 
-    //计算位置
-    var position = function (ownerControl, width, height) {
+    //测量 注:请先调用size方法计算大小
+    //传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
+    //options: 扩展选项 见下:
+    //width:        指定宽度  0表示不指定由系统自动算出 含margin
+    //height:       指定高度  0表示不指定由系统自动算出 含margin
+    //maxWidth:     最大可用宽度 含margin
+    //maxHeight:    最大可用高度 含margin
+    //align_width:  对齐宽度 不设置默认使用指定宽度
+    //align_height: 对齐高度 不设置默认使用指定高度
+    prototype.measure = function (x, y, width, height, maxWidth, maxHeight, align_width, align_height) {
 
-        var value;
-
-        if (width > 0 && (value = (width - this.width)))
-        {
-            switch (ownerControl.horizontalAlign)
-            {
-                case "center":
-                    this.x += value >> 1;
-                    break;
-
-                case "right":
-                    this.x += value;
-                    break;
-            }
-        }
-
-        if (height > 0 && (value = (height - this.height)))
-        {
-            switch (ownerControl.verticalAlign)
-            {
-                case "center":
-                    this.y += value >> 1;
-                    break;
-
-                case "bottom":
-                    this.y += value;
-                    break;
-            }
-        }
-    };
-
-
-    //计算大小
-    prototype.compute_size = function (width, height) {
 
         var ownerControl = this.ownerControl,
+
             margin = this.margin = ownerControl.margin,
+
+            spaceX = margin.spaceX,
+            spaceY = margin.spaceY,
 
             width_value = ownerControl.width,
             height_value = ownerControl.height,
 
+            auto_width = this.__auto_width__ = width_value == "auto",
+            auto_height = this.__auto_height__ = height_value == "auto",
+
             cache;
 
 
-        //处理宽度 如果有效宽度小于0则等于父容器可用宽度
-        if ((width -= margin[3] + margin[1]) < 0)
-        {
-            width = 0;
-        }
+        //记录原始位置作为移动的参考
+        this.origin_x = x;
+        this.origin_y = y;
+
 
         switch (width_value)
         {
-            case "fill": //充满可用区域
-                this.__auto_width__ = false;
+            case "default": //默认
+                width_value = width > 0 ? (width > spaceX ? width - spaceX : 0) : ownerControl.__defaults__.width;
                 break;
 
+            case "fill": //充满可用区域
             case "auto": //自动大小
-                this.__auto_width__ = true;
+                if (width > 0)
+                {
+                    width_value = width > spaceX ? width - spaceX : 0;
+                }
+                else if (maxWidth > 0)
+                {
+                    width_value = maxWidth > spaceX ? maxWidth - spaceX : 0;
+                }
+                else
+                {
+                    width_value = ownerControl.__defaults__.width;
+                }
                 break;
 
             default:  //固定或百分比
-                this.__auto_width__ = false;
-                width = typeof width_value == "number" ? width_value : flyingon.parseInt(width_value, this.parent.clientRect.width);
+                if (typeof width_value != "number")
+                {
+                    width_value = flyingon.parseInt(width_value, this.parent.clientRect.width - spaceX);
+                }
                 break;
         }
 
-        if ((cache = ownerControl.minWidth) > 0 && width < cache)
+
+        if ((cache = ownerControl.minWidth) >= 0 && width_value < cache)
         {
-            width = cache;
+            width_value = cache;
         }
-        else if ((cache = ownerControl.maxWidth) > 0 && width > cache)
+        else if ((cache = ownerControl.maxWidth) > 0 && width_value > cache)
         {
-            width = cache;
+            width_value = cache;
         }
 
-        this.width = width;
-
-
-
-        //处理高度 如果有效高度小于0则等于父容器可用高度
-        if ((height -= margin[0] + margin[2]) < 0)
-        {
-            height = 0;
-        }
 
         switch (height_value)
         {
-            case "fill": //充满可用区域
-                this.__auto_height__ = false;
+            case "default": //默认
+                height_value = height > 0 ? (height > spaceY ? height - spaceY : 0) : ownerControl.__defaults__.height;
                 break;
 
+            case "fill": //充满可用区域
             case "auto": //自动大小
-                this.__auto_height__ = true;
+                if (height > 0)
+                {
+                    height_value = height > spaceY ? height - spaceY : 0;
+                }
+                else if (maxHeight > 0)
+                {
+                    height_value = maxHeight > spaceY ? maxHeight - spaceY : 0;
+                }
+                else
+                {
+                    height_value = ownerControl.__defaults__.height;
+                }
                 break;
 
             default:  //固定或百分比
-                this.__auto_height__ = false;
-                height = typeof height_value == "number" ? height_value : flyingon.parseInt(height_value, this.parent.clientRect.height);
+                if (typeof height_value != "number")
+                {
+                    height_value = flyingon.parseInt(height_value, this.parent.clientRect.height - spaceY);
+                }
                 break;
         }
 
-        if ((cache = ownerControl.minHeight) > 0 && height < cache)
+        if ((cache = ownerControl.minWidth) >= 0 && height_value < cache)
         {
-            height = cache;
+            height_value = cache;
         }
-        else if ((cache = ownerControl.maxHeight) > 0 && height > cache)
+        else if ((cache = ownerControl.maxWidth) > 0 && height_value > cache)
         {
-            height = cache;
+            height_value = cache;
         }
 
-        this.height = height;
-    };
-
-
-    //测量 注:请先调用size方法计算大小
-    //传入的区域为可用区域 系统会自动根据此范围计算出实际占用空间
-    prototype.measure = function (x, y, width, height, compute_size) {
-
-
-        var ownerControl = this.ownerControl;
-
-
-        if (compute_size !== false)
-        {
-            this.compute_size(width, height);
-        }
 
 
         //减去外框
-        this.x = x + this.margin[3];
-        this.y = y + this.margin[0];
+        x += margin.left;
+        y += margin.top;
 
-        //计算位置
-        position.call(this, ownerControl, width, height);
 
+        //修正位置
+        if ((align_width || (width > 0 && (align_width = width))) && (cache = (align_width - width_value)))
+        {
+            switch (align_width = ownerControl.horizontalAlign)
+            {
+                case "center":
+                    x += cache >> 1;
+                    break;
+
+                case "right":
+                    x += cache;
+                    break;
+            }
+        }
+
+        if ((align_height || (height > 0 && (align_height = height))) && (cache = (align_height - height_value)))
+        {
+            switch (align_height = ownerControl.verticalAlign)
+            {
+                case "center":
+                    y += cache >> 1;
+                    break;
+
+                case "bottom":
+                    y += cache;
+                    break;
+            }
+        }
+
+        this.x = x;
+        this.y = y;
+        this.width = width_value;
+        this.height = height_value;
 
 
 
         //处理自动大小
-        if (this.__auto_width__ || this.__auto_height__)
+        if (auto_width || auto_height) //自动大小需立即计算
         {
             //测量
             this.__fn_measure__(ownerControl);
 
-            ownerControl.measureText(this); //自定义文字测量
-            ownerControl.adjustAutoSize(this);
+            //自定义文字测量
+            ownerControl.measureText(this);
+            ownerControl.adjustAutoSize(this, auto_width, auto_height);
 
-            position.call(this, ownerControl, width, height);
+            //调整位置
+            if (auto_width)
+            {
+                switch (align_width)
+                {
+                    case "center":
+                        this.x += (width_value - this.width) >> 1;
+                        break;
 
+                    case "right":
+                        this.x += width_value - this.width;
+                        break;
+                }
+            }
+
+            if (auto_height)
+            {
+                switch (align_height)
+                {
+                    case "center":
+                        this.y += (height_value - this.height) >> 1;
+                        break;
+
+                    case "bottom":
+                        this.y += height_value - this.height;
+                        break;
+                }
+            }
+
+            //计算
             this.compute();
         }
-        else //延迟测量
+        else
         {
             this.__measure__ = true;
         }
 
 
-        //
-        this.right = this.x + this.width;
-        this.bottom = this.y + this.height;
 
-
+        //标记更新状态
         this.__update__ = true;
         return this;
     };
 
 
-    //移动至指定位置(大小不变)
-    prototype.moveTo = function (x, y) {
 
-        x -= this.x;
-        y -= this.y;
+    //移动至指定位置(大小不变)
+    prototype.moveTo = function (x, y, origin_position) {
+
+        if (origin_position) //相对原始位置移动
+        {
+            x -= this.origin_x;
+            y -= this.origin_y;
+        }
+        else //相对真实位置移动(在不按起始位置对齐时有差异)
+        {
+            x -= this.x;
+            y -= this.y;
+        }
+
+
+        this.x += x;
+        this.y += y;
+
+        this.origin_x += x;
+        this.origin_y += y;
+
 
         if (this.clientRect)
         {
             if (x)
             {
                 this.windowX += x;
-                this.right = (this.x += x) + this.width;
 
                 this.insideRect.x += x;
                 this.clientRect.x += x;
@@ -335,25 +387,12 @@
             if (y)
             {
                 this.windowY += y;
-                this.bottom = (this.y += y) + this.height;
 
                 this.insideRect.y += y;
                 this.clientRect.y += y;
 
                 this.insideRect.windowY += y;
                 this.clientRect.windowY += y;
-            }
-        }
-        else
-        {
-            if (x) //x变化值
-            {
-                this.right = (this.x += x) + this.width;
-            }
-
-            if (y) //y变化值
-            {
-                this.bottom = (this.y += y) + this.height;
             }
         }
 
@@ -364,13 +403,12 @@
     //定位单个内容控件
     prototype.content = function (content) {
 
-        if (content && (this.visible = content.visibility == "visible"))
+        if (content && (this.visible = content.visibility != "collapsed"))
         {
             var r = this.clientRect,
-                box = content.__boxModel__,
-                margin = box.margin = content.margin;
+                box = content.__boxModel__;
 
-            box.measure(margin[3], margin[0], r.width - margin[3] - margin[1], r.height - margin[0] - margin[2]);
+            box.measure(0, 0, r.width, r.height);
         }
 
         return this;
@@ -420,31 +458,48 @@
             padding = this.padding = ownerControl.padding;
 
 
+
         //圆角边框不能隐藏边线及不支持粗细不同的边线
-        if (border.border = border[0] > 0)
+        if (border.border = border.top > 0)
         {
             if (this.borderRadius = ownerControl.borderRadius)
             {
-                border[1] = border[2] = border[3] = border[0];
+                border.right = border.bottom = border.left = border.top;
             }
         }
         else
         {
-            border.border = border[1] > 0 || border[2] > 0 || border[3] > 0; //是否有边框线标志
+            border.border = border.right > 0 || border.bottom > 0 || border.left > 0; //是否有边框线标志
         }
 
         this.windowX = x + windowX;
         this.windowY = y + windowY;
 
-        insideRect.windowX = (insideRect.x = x + border[3]) + windowX;
-        insideRect.windowY = (insideRect.y = y + border[0]) + windowY;
-        insideRect.width = width - (border[3] + border[1]);
-        insideRect.height = height - (border[0] + border[2]);
+        insideRect.windowX = (insideRect.x = x + border.left) + windowX;
+        insideRect.windowY = (insideRect.y = y + border.top) + windowY;
 
-        clientRect.windowX = (clientRect.x = x + (clientRect.spaceX = border[3] + padding[3])) + windowX;
-        clientRect.windowY = (clientRect.y = y + (clientRect.spaceY = border[0] + padding[0])) + windowY;
-        clientRect.width = insideRect.width - (padding[3] + padding[1]);
-        clientRect.height = insideRect.height - (padding[0] + padding[2]);
+        if ((insideRect.width = width - border.spaceX) < 0)
+        {
+            insideRect.width = 0;
+        }
+
+        if ((insideRect.height = height - border.spaceY) < 0)
+        {
+            insideRect.height = 0;
+        }
+
+        clientRect.windowX = (clientRect.x = x + (clientRect.spaceX = border.left + padding.left)) + windowX;
+        clientRect.windowY = (clientRect.y = y + (clientRect.spaceY = border.top + padding.top)) + windowY;
+
+        if ((clientRect.width = insideRect.width - padding.spaceX) < 0)
+        {
+            clientRect.width = 0;
+        }
+
+        if ((clientRect.height = insideRect.height - padding.spaceY) < 0)
+        {
+            clientRect.height = 0;
+        }
 
         return this;
     };

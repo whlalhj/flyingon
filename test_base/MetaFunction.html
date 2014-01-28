@@ -32,8 +32,7 @@
             return a + b;
         };
 
-        var func = new flyingon.MetaFunction(fn);
-        var f = func.merge("a = 0;", true);
+        var f = fn.merge("a = 0;", true);
 
     </script>
 

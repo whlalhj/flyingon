@@ -48,18 +48,28 @@
     </div>
 
 
+    <script type="text/javascript">
+
+        var date = new Date();
+
+    </script>
+
     <script type="text/javascript" src="../js/flyingon.js"></script>
 
 
     <script type="text/javascript">
 
-
-
         var w = new flyingon.Window(host);
+
+
+        alert(new Date() - date);
+
+    
+   
 
         w.layout = "flow";
 
-       
+
 
 
         function create() {
@@ -83,10 +93,11 @@
                     ctrl.left = i % 5 * 100;
                     ctrl.top = i / 5 * 30;
 
-                    ctrl.width = 60;
-                    ctrl.height = 20;
-                    ctrl["border"] = [1, 1, 1, 1];
-                    ctrl["borderColor"] = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
+                    ctrl.width = 20;
+                    ctrl.height = 21;
+                    //ctrl.margin = "10, 10, 10, 10";
+                    ctrl.border = "1, 1, 1, 1";
+                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
                     ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                     ctrl.horizontalAlign = "center";
                     ctrl.verticalAlign = "center";
@@ -113,30 +124,36 @@
 
                         case 4:
                             ctrl.dock = "fill";
+                            ctrl.width = "fill";
+                            ctrl.height = "fill";
                             break;
                     }
 
                 }
 
 
-                panel.width = 600;
-                panel.height = 400;
-                panel["border"] = [10, 10, 10, 10];
+
+
+                //panel.width = "auto";
+                //panel.height = "auto";
+                //panel.width = 600;
+                //panel.height = 400;
+                panel.margin = "5, 5, 5, 5";
+                panel.border = "1, 1, 1, 1";
+                panel.padding = "0, 0, 0, 0";
                 panel.borderColor = "orange";
-                panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;
                 panel.lineHeight = 50;
-                panel.lineWidth = 60;
-                panel.rows = 10;
-                panel.columns = 10;
+                panel.lineWidth = 160;
+                panel.rows = 4;
+                panel.columns = 4;
                 panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
 
 
                 w.children.append(panel);
-
-                var win = panel.ownerWindow;
 
             }
 
@@ -172,8 +189,11 @@
 
             var date = new Date();
 
-            var button = w.children.item(0).children.item(1);
-            button.height = 200;
+            for (var i = 0; i < w.children.length; i++)
+            {
+                var panel = w.children.item(i);
+                panel.height += 100;
+            }
 
             w.update();
 
@@ -199,15 +219,33 @@
 
         function mirror(value) {
 
-            var panel = w.children.item(0);
-            panel.mirror = value;
+            var date = new Date();
+
+            for (var i = 0; i < w.children.length; i++)
+            {
+                var panel = w.children.item(i);
+                panel.mirror = value;
+            }
+
+            w.update();
+
+            alert(new Date() - date);
         };
 
 
         function direction(value) {
 
-            var panel = w.children.item(0);
-            panel.direction = value;
+            var date = new Date();
+
+            for (var i = 0; i < w.children.length; i++)
+            {
+                var panel = w.children.item(i);
+                panel.orientation = value;
+            }
+
+            w.update();
+
+            alert(new Date() - date);
         };
 
 

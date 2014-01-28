@@ -3,6 +3,10 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
 
+    var thickness = flyingon_setting.scroll_thickness;
+
+
+
 
     this.defaultValue("clipToBounds", true);
 
@@ -33,7 +37,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         this.defineProperty("name", 0, {
 
             attributes: attributes || "invalidate",
-            valueChangedCode: "this.__boxModel__." + name + " = value;"
+            changed: "this.__boxModel__." + name + " = value;"
         });
     };
 
@@ -148,19 +152,6 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         }
 
 
-        if (boxModel.scrollWidth < r.width)
-        {
-            boxModel.scrollLeft = 0;
-            boxModel.scrollWidth = r.width;
-        }
-
-        if (boxModel.scrollHeight < r.height)
-        {
-            boxModel.scrollTop = 0;
-            boxModel.scrollHeight = r.height;
-        }
-
-
         var horizontalScrollBar = this.__horizontalScrollBar__,
             verticalScrollBar = this.__verticalScrollBar__;
 
@@ -172,12 +163,19 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         }
     };
 
-    this.adjustAutoSize = function (boxModel) {
+    this.adjustAutoSize = function (boxModel, auto_width, auto_height) {
 
         var r = boxModel.clientRect;
 
-        boxModel.width = boxModel.scrollWidth + boxModel.width - r.width;
-        boxModel.height = boxModel.scrollHeight + boxModel.height - r.height;
+        if (auto_width)
+        {
+            boxModel.width = boxModel.scrollWidth + boxModel.width - r.width;
+        }
+
+        if (auto_height)
+        {
+            boxModel.height = boxModel.scrollHeight + boxModel.height - r.height;
+        }
     };
 
 
@@ -254,7 +252,8 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
                 horizontalScrollBar.__boxModel__.initialize_addtions(boxModel);
             }
 
-            clientRect.height -= horizontalScrollBar.height;
+            clientRect.height -= thickness;
+            boxModel.scrollHeight -= thickness;
         }
         else if (horizontalScrollBar)
         {
@@ -272,7 +271,8 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
                 verticalScrollBar.__boxModel__.initialize_addtions(boxModel);
             }
 
-            clientRect.width -= verticalScrollBar.width;
+            clientRect.width -= thickness;
+            boxModel.scrollWidth -= thickness;
         }
         else if (verticalScrollBar)
         {
@@ -322,7 +322,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
                 boxModel.scrollLeft = boxModel.scrollWidth;
             }
 
-            insideRect.height -= horizontalScrollBar.height;
+            insideRect.height -= thickness;
         }
 
         if (verticalScrollBar)
@@ -332,7 +332,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
                 boxModel.scrollTop = boxModel.scrollHeight;
             }
 
-            insideRect.width -= verticalScrollBar.width;
+            insideRect.width -= thickness;
         }
 
 
@@ -345,7 +345,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
             horizontalScrollBar.maxValue = boxModel.scrollWidth + insideRect.width - clientRect.width;
             horizontalScrollBar.viewportSize = insideRect.width;
 
-            horizontalScrollBar.__boxModel__.measure(insideRect.x, insideRect.bottom, insideRect.width, horizontalScrollBar.height);
+            horizontalScrollBar.__boxModel__.measure(insideRect.x, insideRect.bottom, insideRect.width, thickness);
         }
 
 
@@ -358,7 +358,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
             verticalScrollBar.maxValue = boxModel.scrollHeight + insideRect.height - clientRect.height;
             verticalScrollBar.viewportSize = insideRect.height;
 
-            verticalScrollBar.__boxModel__.measure(insideRect.right, insideRect.y, verticalScrollBar.width, insideRect.height);
+            verticalScrollBar.__boxModel__.measure(insideRect.right, insideRect.y, thickness, insideRect.height);
         }
     };
 
@@ -377,7 +377,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
             }
 
             var r = boxModel.insideRect;
-            corner.__boxModel__.measure(r.right, r.bottom, verticalScrollBar.width, horizontalScrollBar.height);
+            corner.__boxModel__.measure(r.right, r.bottom, thickness, thickness);
         }
         else if (corner)
         {

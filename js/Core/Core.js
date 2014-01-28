@@ -35,7 +35,10 @@ var flyingon_defaults = {
     language: "zh-CHS",
 
     //默认样式
-    default_style: "/themes/default.js"
+    default_style: "/themes/default.js",
+
+    //滚动条厚度
+    scroll_thickness: 16
 
 };
 
@@ -236,6 +239,36 @@ var flyingon_defaults = {
 
 
 
+
+    prototype = Function.prototype;
+
+    prototype.get_body = function () {
+
+        var result = this.toString();
+        return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
+    };
+
+    prototype.get_parameters = function () {
+
+        var result = this.toString();
+
+        result = result.match(/\([^)]*\)/)[0];
+        result = result.substring(1, result.length - 1).replace(/\s+/, "");;
+
+        return result ? result.split(",") : [];
+    };
+
+    //合并函数内容
+    prototype.merge = function (body, insertBefore) {
+
+        body = typeof body == "function" ? body.get_body() : "" + body;
+        body = insertBefore ? body + this.get_body() : this.get_body() + body;
+
+        return new Function(this.get_parameters(), body);
+    };
+
+
+
 })(flyingon);
 
 
@@ -319,93 +352,66 @@ var flyingon_defaults = {
 //通用函数区
 (function (flyingon) {
 
-    //定义变量
-    flyingon.defineVariable = function (target, name, value) {
-
-        //target[name] = value;
-        Object.defineProperty(target, name, {
-
-            value: value,
-            writable: false,
-            configurable: true,
-            enumerable: true
-        });
-    };
-
-    //定义属性
-    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
-    flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
-
-        var attributes = {
-
-            configurable: true,
-            enumerable: true
-        };
-
-        if (getter)
-        {
-            attributes.get = getter;
-        }
-
-        if (setter)
-        {
-            attributes.set = setter;
-        }
-
-        Object.defineProperty(target, name, attributes);
-
-    } : function (target, name, getter, setter) {
-
-        if (getter)
-        {
-            target.__defineGetter__(name, getter);
-        }
-
-        if (setter)
-        {
-            target.__defineSetter__(name, setter);
-        }
-    };
-
-
-    //增加模板函数支持 以当前函数为模板动态创建新函数
-    flyingon.__fn_template_to__ = function (fn, values, names) {
-
-        var body = fn.toString().replace(/"\{\w+\}"/g, function (value) {
-
-            value = values[value.substring(2, value.length - 2)] || "";
-
-            if (typeof value == "function")
-            {
-                value = value.toString();
-
-                var index = value.indexOf("{");
-                if (index++ > 0)
-                {
-                    var lastIndexOf = value.lastIndexOf("}");
-                    if (lastIndexOf > 0)
-                    {
-                        value = value.substring(index, lastIndexOf);
-                    }
-                }
-            }
-
-            return value;
-        });
-
-        return new Function(names, "return (" + body + ")")()
-    };
 
 
     //转换字符串为整数 支持"%"
     flyingon.parseInt = function (value, total) {
 
-        if (value[value.length - 1] == "%")
+        if ((value = "" + value) && value[value.length - 1] == "%")
         {
-            return Math.floor(parseFloat(value) * total);
+            return Math.floor(parseFloat(value) * total / 100);
         }
 
         return parseInt(value);
+    };
+
+    //转换字符串为浮点数 支持"%"
+    flyingon.parseFloat = function (value, total) {
+
+        if ((value = "" + value) && value[value.length - 1] == "%")
+        {
+            return parseFloat(value) * total / 100;
+        }
+
+        return parseFloat(value);
+    };
+
+
+    //处理边框属性如:margin border padding值为标准长度为4的数组
+    flyingon.__fn_thickness__ = function (target, name) {
+
+        var value = target[name];
+
+        if (value == null)
+        {
+            target[name] = [0, 0, 0, 0];
+        }
+        else if (value.constructor == Array)
+        {
+            switch (value.length)
+            {
+                case 0:
+                    target[name] = [0, 0, 0, 0];
+                    break;
+
+                case 1:
+                    value[1] = value[2] = value[3] = value[0];
+                    break;
+
+                case 2:
+                    value[2] = value[0];
+                    value[3] = value[1];
+                    break;
+
+                case 3:
+                    value[3] = value[1];
+                    break;
+            }
+        }
+        else
+        {
+            target[name] = [value = value - 0 || 0, value, value, value];
+        }
     };
 
 
@@ -536,6 +542,58 @@ var flyingon_defaults = {
     };
 
 
+
+
+    //定义变量
+    flyingon.defineVariable = function (target, name, value) {
+
+        //target[name] = value;
+        Object.defineProperty(target, name, {
+
+            value: value,
+            writable: false,
+            configurable: true,
+            enumerable: true
+        });
+    };
+
+    //定义属性
+    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
+    flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
+
+        var attributes = {
+
+            configurable: true,
+            enumerable: true
+        };
+
+        if (getter)
+        {
+            attributes.get = getter;
+        }
+
+        if (setter)
+        {
+            attributes.set = setter;
+        }
+
+        Object.defineProperty(target, name, attributes);
+
+    } : function (target, name, getter, setter) {
+
+        if (getter)
+        {
+            target.__defineGetter__(name, getter);
+        }
+
+        if (setter)
+        {
+            target.__defineSetter__(name, setter);
+        }
+    };
+
+
+
     //开始初始化
     flyingon.beginInit = function () {
 
@@ -554,46 +612,6 @@ var flyingon_defaults = {
 
     //合并全局设定
     flyingon.mearge(flyingon_defaults, flyingon_setting, false);
-
-
-})(flyingon);
-
-
-
-
-//函数元数据
-(function (flyingon) {
-
-
-    var prototype = (flyingon.MetaFunction = function (fn) {
-
-        this.fn = fn;
-
-        var body = fn.toString();
-
-        this.body = body.substring(body.indexOf("{") + 1, body.lastIndexOf("}"));
-
-        body = body.match(/\([^)]*\)/)[0];
-        body = body.substring(1, body.length - 1).replace(/\s+/, "");;
-
-        this.parameters = body ? body.split(",") : [];
-
-    }).prototype;
-
-
-    //合并函数内容
-    prototype.merge = function (body, insertBefore) {
-
-        if (typeof body == "function")
-        {
-            body = body.toString();
-            body = body.substring(body.indexOf("{") + 1, body.lastIndexOf("}"));
-        }
-
-        this.body = insertBefore ? body + this.body : this.body + body;
-        this.fn = new Function(this.parameters, this.body);
-        return this;
-    };
 
 
 })(flyingon);
@@ -825,8 +843,7 @@ var flyingon_defaults = {
                 //合并构造函数 注:已有构造链时不可以合并
                 if (!create_chain && constructor_merge)
                 {
-                    Class_create = new flyingon.MetaFunction(Class_create);
-                    Class.create = Class_create.merge(superclass_create, true).fn;
+                    Class.create = Class_create.merge(superclass_create, true);
                 }
                 else //生成构造链
                 {
@@ -874,7 +891,7 @@ var flyingon_defaults = {
 
 
     //加载默认样式
-    function default_style() {
+    function load_default_style() {
 
         if (!style_loaded)
         {
@@ -886,9 +903,10 @@ var flyingon_defaults = {
                 flyingon.cursors = data.cursors || {};
                 flyingon.images = data.images || {};
                 flyingon.colors = data.colors || {};
-                flyingon.fonts = data.fonts || {};
                 flyingon.styles = data.styles || {};
                 flyingon.templates = data.templates || {};
+
+                parse_style(flyingon.styles);
             }
 
             style_loaded = true;
@@ -934,18 +952,55 @@ var flyingon_defaults = {
     };
 
 
+    function parse_thickness(name) {
+
+        this[name] = new flyingon.Thickness(this[name]);
+    };
+
+
+    var parse_setting = {
+
+        margin: parse_thickness,
+        border: parse_thickness,
+        padding: parse_thickness
+    };
+
+
+    function parse_style(target) {
+
+        var names = Object.keys(target),
+            name,
+            value,
+            fn;
+
+        for (var i = 0, length = names.length; i < length; i++)
+        {
+            if ((name = names[i]) && (fn = parse_setting[name]))
+            {
+                fn.call(target, name);
+            }
+            else if ((value = target[name]) && typeof value == "object" && value.constructor != Array)
+            {
+                parse_style(value);
+            }
+        }
+
+    };
+
+
 
     //加载样式
-    flyingon.style = function (url) {
+    flyingon.load_style = function (url) {
 
         if (url)
         {
-            default_style();
+            load_default_style();
 
             var data = flyingon.require(url);
 
             if (data)
             {
+                parse_style(data);
                 flyingon.mearge(data, flyingon);
             }
         }
@@ -959,7 +1014,7 @@ var flyingon_defaults = {
         if (flyingon.Control)
         {
             //加载默认样式
-            default_style();
+            load_default_style();
 
             //初始化控件样式
             initialize_style(flyingon.Control);

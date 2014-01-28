@@ -3,7 +3,7 @@
 */
 flyingon.class("HandWirte", flyingon.HtmlFrame, function (Class, flyingon) {
 
-    var html = "<html><head><body style='margin:0px;padding:0px;width:100%;height:100%;'>";
+    var html = "<html><head><body style='margin:0;padding:0;width:100%;height:100%;'>";
 
     if (navigator.userAgent.match(/MSIE/))
     {

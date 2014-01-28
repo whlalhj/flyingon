@@ -345,14 +345,20 @@
         //默认控件样式
         styles["Control"] = {
 
-            //外边距 上->右->下-左
-            margin: [0, 0, 0, 0],
+            //宽度 default|fill|auto|number|number%
+            width: "default",
 
-            //边框 上->右->下-左
-            border: [0, 0, 0, 0],
+            //高度 default|fill|auto|number|number%
+            height: "default",
 
-            //内边距 上->右->下-左
-            padding: [0, 0, 0, 0],
+            //外边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+            margin: 0,
+
+            //边框 上->右->下-左       示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+            border: 0,
+
+            //内边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+            padding: 0,
 
             //字体
             font: "normal",
@@ -544,7 +550,7 @@
 
             background: "window-back",
 
-            border: [1, 1, 1, 1],
+            border: 1,
 
             cursor: "text",
 
@@ -575,7 +581,7 @@
 
             background: "window-back",
 
-            border: [1, 1, 1, 1]
+            border: 1
         };
 
 
@@ -584,7 +590,7 @@
 
             background: "button-background",
 
-            border: [1, 1, 1, 1],
+            border: 1,
 
             borderRadius: 0,
 
@@ -665,10 +671,13 @@
 
         styles["WindowTitleBar"] = {
 
+            width: "fill",
+
+            height: "fill",
 
             background: "window-title-background",
 
-            border: [1, 1, 1, 1],
+            border: 1,
 
         };
 
@@ -678,7 +687,7 @@
 
             background: "window-back",
 
-            border: [1, 1, 1, 1],
+            border: 1,
 
         };
 

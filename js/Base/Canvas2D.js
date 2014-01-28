@@ -408,10 +408,10 @@ Canvas2D绘图扩展
 
         this.beginPath();
 
-        this.rect(x, y, width - border[1], border[0]);
-        this.rect(x + width - border[1], y, border[1], height - border[2]);
-        this.rect(x + border[3], y + height - border[2], width - border[3], border[2]);
-        this.rect(x, y + border[0], border[3], height - border[0]);
+        this.rect(x, y, width - border.right, border.top);
+        this.rect(x + width - border.right, y, border.right, height - border.bottom);
+        this.rect(x + border.left, y + height - border.bottom, width - border.left, border.bottom);
+        this.rect(x, y + border.top, border.left, height - border.top);
 
         this.fill();
     };
