@@ -259,7 +259,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             break;
                     }
 
-                    if (Array.isArray(node) == Array)
+                    if (node.constructor == Array)
                     {
                         node.push(value);
                     }

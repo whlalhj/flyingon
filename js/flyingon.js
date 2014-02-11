@@ -13,35 +13,10 @@
 
 
 //根命名空间
-var flyingon = this.flyingon = function () {
+var flyingon = this.flyingon = function (selector, context) {
 
+    return new flyingon.Query(selector, context);
 };
-
-
-//全局设定
-//可以加载此脚本前使用 var flyingon_setting = { xxx }; 的方式设置参数
-//也可以在加载此脚本后直接修改属性值
-var flyingon_setting = this.flyingon_setting = flyingon_setting || {};
-
-
-//默认全局设定 初始化设定值
-var flyingon_defaults = {
-
-
-    //版本
-    version: "0.0.0.1",
-
-    //语言
-    language: "zh-CHS",
-
-    //默认样式
-    default_style: "/themes/default.js",
-
-    //滚动条厚度
-    scroll_thickness: 16
-
-};
-
 
 
 
@@ -50,18 +25,38 @@ var flyingon_defaults = {
 (function (flyingon) {
 
 
-    //增加字符串格式化支持
-    String.prototype.format = function () {
+    var prototype = String.prototype;
 
-        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (value) {
 
-            return arguments[value.substring(1, value.length - 1)] || "";
+    //增加字符串顺序格式化支持
+    prototype.format = function () {
+
+        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (key) {
+
+            return arguments[key.substring(1, key.length - 1)] || "";
         });
     };
 
 
+    //增加字符串名字格式化支持
+    prototype.format_name = function (value) {
 
-    var prototype = Array.prototype;
+        return !value ? this : this.replace(/\{\w+\}/g, function (key) {
+
+            return value[key.substring(1, key.length - 1)] || "";
+        });
+    };
+
+    //增加字符串顺序格式化支持
+    prototype.trim = function () {
+
+        return arguments.length == 0 ? this : this.replace(/^\s+|\s+$/g, "");
+    };
+
+
+
+
+    prototype = Array.prototype;
 
 
     //移除指定项
@@ -83,7 +78,7 @@ var flyingon_defaults = {
 
 
     //二分法搜索数据段
-    prototype.binaryBetween = function (value, start, end) {
+    prototype.binary_between = function (value, start, end) {
 
         if (start == null || start < 0)
         {
@@ -146,7 +141,7 @@ var flyingon_defaults = {
 
 
     //二分法查找子项位置
-    prototype.binaryIndexOf = function (value, start, end) {
+    prototype.binary_indexOf = function (value, start, end) {
 
         if (start == null || start < 0)
         {
@@ -189,7 +184,7 @@ var flyingon_defaults = {
 
 
     //二分法搜索
-    prototype.binarySearch = function (callbackfn, start, end) {
+    prototype.binary_search = function (callbackfn, start, end) {
 
         if (start == null || start < 0)
         {
@@ -222,6 +217,45 @@ var flyingon_defaults = {
         }
 
         return -1;
+    };
+
+
+    //去重复 
+    //save_after: 为true时保留后面的值
+    prototype.remove_repeat = function (save_after) {
+
+        var keys = {},
+            key;
+
+        if (save_after)
+        {
+            for (var i = this.length; i >= 0; i--)
+            {
+                if (keys[key = this[i]])
+                {
+                    this.removeAt(i);
+                }
+                else
+                {
+                    keys[key] = true;
+                }
+            }
+        }
+        else
+        {
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if (keys[key = this[i]])
+                {
+                    this.removeAt(i);
+                    length--;
+                }
+                else
+                {
+                    keys[key] = true;
+                }
+            }
+        }
     };
 
 
@@ -289,7 +323,7 @@ var flyingon_defaults = {
 
         if (!dom.getContext)
         {
-            alert("对不起,需要支持Html5特性的浏览器才可以运行本系统!");
+            alert(flyingon_setting.html5_not_surpport);
             return false;
         }
 
@@ -376,43 +410,6 @@ var flyingon_defaults = {
         return parseFloat(value);
     };
 
-
-    //处理边框属性如:margin border padding值为标准长度为4的数组
-    flyingon.__fn_thickness__ = function (target, name) {
-
-        var value = target[name];
-
-        if (value == null)
-        {
-            target[name] = [0, 0, 0, 0];
-        }
-        else if (value.constructor == Array)
-        {
-            switch (value.length)
-            {
-                case 0:
-                    target[name] = [0, 0, 0, 0];
-                    break;
-
-                case 1:
-                    value[1] = value[2] = value[3] = value[0];
-                    break;
-
-                case 2:
-                    value[2] = value[0];
-                    value[3] = value[1];
-                    break;
-
-                case 3:
-                    value[3] = value[1];
-                    break;
-            }
-        }
-        else
-        {
-            target[name] = [value = value - 0 || 0, value, value, value];
-        }
-    };
 
 
     //判断目标是否对象或数组(除undefined null boolean number string function外的数据类型)
@@ -535,6 +532,45 @@ var flyingon_defaults = {
     };
 
 
+
+    //编码对象
+    flyingon.encode = function (data) {
+
+        if (data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return values.length > 0 ? values.join("&") : data.toString();
+        }
+
+        return data;
+    };
+
+    //url编码
+    flyingon.encodeURL = function (url, data) {
+
+        if (url && data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
+        }
+
+        return url;
+    };
+
     //解析json数据
     flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
 
@@ -608,10 +644,6 @@ var flyingon_defaults = {
         return this;
     };
 
-
-
-    //合并全局设定
-    flyingon.mearge(flyingon_defaults, flyingon_setting, false);
 
 
 })(flyingon);
@@ -730,49 +762,46 @@ var flyingon_defaults = {
     flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
 
 
-    flyingon.registryClass = function (Class, classFullName) {
+    flyingon.registry_class = function (Class, classFullName) {
 
         flyingon.__registry_list__[classFullName || Class.classFullName] = Class;
     };
 
-    flyingon.unregistryClass = function (classFullName) {
+    flyingon.unregistry_class = function (classFullName) {
 
         delete flyingon.__registry_list__[classFullName];
     };
 
-    flyingon.getRegistryClass = function (classFullName) {
+    flyingon.get_registry_class = function (classFullName) {
 
         return flyingon.__registry_list__[classFullName];
     };
 
 
 
-    var errorMsg = "define class error!",
+    var defineProperty = function (Class, prototype, name, value) {
 
-        defineProperty = function (Class, prototype, name, value) {
-
-            Class[name] = value;
-            prototype["__" + name + "__"] = value;
-            flyingon.defineVariable(prototype, name, value);
-        };
+        Class[name] = value;
+        prototype["__" + name + "__"] = value;
+        flyingon.defineVariable(prototype, name, value);
+    };
 
 
     //定义类方法
-    //extension: 类扩展 必须为函数
+    //body: 扩展代码 必须为函数
     //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.class = function (className, superclass, extension, constructor_merge) {
+    flyingon.class = function (className, superclass, body, constructor_merge) {
 
 
         //处理参数
         if (!className)
         {
-            throw new Error(errorMsg);
+            throw new Error(flyingon_setting.define_class_error.format(className));
         }
 
-        if (extension == null || typeof extension != "function")
+        if (!body || typeof body == "boolean")
         {
-            constructor_merge = extension;
-            extension = superclass;
+            body = superclass;
             superclass = flyingon.RootObject;
         }
         else if (!superclass) //没有指定基类
@@ -780,10 +809,6 @@ var flyingon_defaults = {
             superclass = flyingon.RootObject;
         }
 
-        if (typeof extension != "function") //扩展不是函数
-        {
-            throw new Error(errorMsg);
-        }
 
 
 
@@ -821,13 +846,30 @@ var flyingon_defaults = {
         prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || Object.prototype);  //默认值
 
 
-        flyingon.registryClass(Class); //注册类
+        flyingon.registry_class(Class); //注册类
         namespace[className] = Class; //输出类
 
 
 
         //扩展
-        extension.call(prototype, Class, flyingon);
+        if (typeof body == "function")
+        {
+            body.call(prototype, Class, flyingon);
+        }
+        else//兼容类似{ __init__: function(Class, flyingon) { }, p1: 1 }写法扩展
+        {
+            for (var name in body)
+            {
+                if (name == "__init__" && typeof body[name] == "function") //初始化
+                {
+                    body[name].call(prototype, Class, flyingon);
+                }
+                else
+                {
+                    prototype[name] = body[name];
+                }
+            }
+        }
 
 
 
@@ -836,34 +878,35 @@ var flyingon_defaults = {
         if (superclass_create)
         {
             var Class_create = Class.create,
-                create_chain = superclass.__create_chain__;
+                create_list = superclass.__create_list__;
 
             if (Class_create)
             {
-                //合并构造函数 注:已有构造链时不可以合并
-                if (!create_chain && constructor_merge)
+                //合并构造函数以提升性能 注:已有构造链时不可以合并
+                if (!create_list && constructor_merge)
                 {
                     Class.create = Class_create.merge(superclass_create, true);
                 }
                 else //生成构造链
                 {
-                    (Class.__create_chain__ = (create_chain && create_chain.slice(0)) || [superclass_create]).push(Class_create);
+                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
+                    create_list.push(Class_create);
 
                     Class.create = function () {
 
-                        var create_chain = Class.__create_chain__;
-                        for (var i = 0, length = create_chain.length; i < length; i++)
+                        var list = Class.__create_list__;
+                        for (var i = 0, length = list.length; i < length; i++)
                         {
-                            create_chain[i].apply(this, arguments);
+                            list[i].apply(this, arguments);
                         }
                     };
                 }
             }
             else
             {
-                if (create_chain)
+                if (create_list)
                 {
-                    Class.__create_chain__ = create_chain;
+                    Class.__create_list__ = create_list;
                 }
 
                 Class.create = superclass_create;
@@ -879,150 +922,6 @@ var flyingon_defaults = {
 
 })(flyingon);
 
-
-
-
-
-//系统初始化方法
-(function (flyingon) {
-
-
-    var style_loaded = false;
-
-
-    //加载默认样式
-    function load_default_style() {
-
-        if (!style_loaded)
-        {
-            var data = flyingon.require(flyingon_setting.default_style || "themes/default.js");
-
-            if (data)
-            {
-                flyingon.fonts = data.fonts || {};
-                flyingon.cursors = data.cursors || {};
-                flyingon.images = data.images || {};
-                flyingon.colors = data.colors || {};
-                flyingon.styles = data.styles || {};
-                flyingon.templates = data.templates || {};
-
-                parse_style(flyingon.styles);
-            }
-
-            style_loaded = true;
-        }
-    };
-
-    //复制样式
-    function initialize_style(Class) {
-
-        var subclasses = Class.subclasses;
-        if (subclasses)
-        {
-            var styles = flyingon.styles,
-                templates = flyingon.templates,
-                parent_style = styles[Class.classFullName],
-                parent_template = templates[Class.classFullName];
-
-            for (var i = 0, length = subclasses.length; i < length; i++)
-            {
-                var target = subclasses[i],
-                    className = target.className,
-                    style = styles[className] || (styles[className] = {}),
-                    template = templates[className] || (templates[className] = {});
-
-
-                //复制上级样式
-                if (parent_style)
-                {
-                    flyingon.mearge(parent_style, style, true);
-                }
-
-                //复制上级模板
-                if (parent_template)
-                {
-                    flyingon.mearge(parent_template, template, true);
-                }
-
-
-                //递归
-                initialize_style(target);
-            }
-        }
-    };
-
-
-    function parse_thickness(name) {
-
-        this[name] = new flyingon.Thickness(this[name]);
-    };
-
-
-    var parse_setting = {
-
-        margin: parse_thickness,
-        border: parse_thickness,
-        padding: parse_thickness
-    };
-
-
-    function parse_style(target) {
-
-        var names = Object.keys(target),
-            name,
-            value,
-            fn;
-
-        for (var i = 0, length = names.length; i < length; i++)
-        {
-            if ((name = names[i]) && (fn = parse_setting[name]))
-            {
-                fn.call(target, name);
-            }
-            else if ((value = target[name]) && typeof value == "object" && value.constructor != Array)
-            {
-                parse_style(value);
-            }
-        }
-
-    };
-
-
-
-    //加载样式
-    flyingon.load_style = function (url) {
-
-        if (url)
-        {
-            load_default_style();
-
-            var data = flyingon.require(url);
-
-            if (data)
-            {
-                parse_style(data);
-                flyingon.mearge(data, flyingon);
-            }
-        }
-    };
-
-
-
-    //初始化系统
-    flyingon.initialize = function (reset) {
-
-        if (flyingon.Control)
-        {
-            //加载默认样式
-            load_default_style();
-
-            //初始化控件样式
-            initialize_style(flyingon.Control);
-        }
-    };
-
-
-})(flyingon);
 
 
 
@@ -1287,7 +1186,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             break;
                     }
 
-                    if (Array.isArray(node) == Array)
+                    if (node.constructor == Array)
                     {
                         node.push(value);
                     }
@@ -1311,6 +1210,1023 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
 
 })(flyingon);
+
+
+
+﻿
+/*
+
+
+css1-css3选择器
+
+
+1.基础的选择器
+
+*               通用元素选择器，匹配任何元素
+E               标签选择器，匹配所有使用E标签的元素
+.               class选择器，匹配所有class属性中包含info的元素
+#               id选择器，匹配所有id属性等于footer的元素
+
+
+2.组合选择器
+
+E,F             多元素选择器，同时匹配所有E元素或F元素，E和F之间用逗号分隔
+E F             后代元素选择器，匹配所有属于E元素后代的F元素，E和F之间用空格分隔
+E>F             子元素选择器，匹配所有E元素的子元素F
+E+F             毗邻元素选择器，匹配所有紧随E元素之后的同级元素F
+
+
+3.CSS 2.1 属性选择器
+
+E[att]          匹配所有具有att属性的E元素，不考虑它的值。（注意：E在此处可以省略，比如“[cheacked]”。以下同。）
+E[att=val]      匹配所有att属性等于“val”的E元素
+E[att~=val]     匹配所有att属性具有多个空格分隔的值、其中一个值等于“val”的E元素
+E[att|=val]     匹配所有att属性具有多个连字号分隔（hyphen-separated）的值、其中一个值以“val”开头的E元素，主要用于lang属性，比如“en”、“en-us”、“en-gb”等等
+
+
+4.CSS 2.1 中的伪类
+
+E:first-child   匹配父元素的第一个子元素
+E:link          匹配所有未被点击的链接
+E:visited       匹配所有已被点击的链接
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:lang(c)       匹配lang属性等于c的E元素
+
+
+5.CSS 2.1中的伪元素
+
+E:first-line    匹配E元素的第一行
+E:first-letter  匹配E元素的第一个字母
+E:before        在E元素之前插入生成的内容
+E:after         在E元素之后插入生成的内容
+
+
+6.CSS 3的同级元素通用选择器
+
+E~F             匹配任何在E元素之后的同级F元素
+
+
+7．CSS 3 属性选择器
+
+E[att^=”val”] 属性att的值以”val”开头的元素
+E[att$=”val”] 属性att的值以”val”结尾的元素
+E[att*=”val”] 属性att的值包含”val”字符串的元素
+
+
+8. CSS 3中与用户界面有关的伪类
+
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+
+
+9. CSS 3中的结构性伪类
+
+E:root                  匹配文档的根元素，对于HTML文档，就是HTML元素
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+E:empty                 匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+
+
+10.CSS 3的反选伪类
+
+E:not(s)        匹配不符合当前选择器的任何元素
+
+
+11. CSS 3中的 :target 伪类
+
+E:target        匹配文档中特定”id”点击后的效果
+
+*/
+
+
+
+
+///选择器解析器
+(function (flyingon) {
+
+    //sample: Panel,Repeater .button[text="确定",name="button1"][isMouseOver=false] :checked
+    //以下为解析过程
+    //Panel
+    //组合1[Panel]
+    //组合1[Panel, Repeater]
+    //后代1[组合1[Panel, Repeater]]
+    //后代1[组合1[Panel, Repeater], .button]
+    //后代1[组合1[Panel, Repeater], .button[[text="确定"]]]
+    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"]]]]
+    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]]]]
+    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]], [isMouseOver=false]]]
+    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]], [isMouseOver=false], :checked]]
+
+
+
+
+    var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\#\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g;
+
+
+
+    var QueryParser = flyingon.QueryParser = function (selector) {
+
+        var values = selector.match(split_regex);
+
+        this.selector = selector;
+        this.ast = parse.call(this, values); //语法树
+
+    }, prototype = QueryParser.prototype;
+
+
+
+    //全部元素选择器标记
+    QueryParser.token_all = "*";
+
+    //样式选择器标记
+    QueryParser.token_style = ".";
+
+    //id选择器标记
+    QueryParser.token_id = "#";
+
+    //类型选择器标记
+    QueryParser.token_type = "";
+
+    //伪类选择器标记
+    QueryParser.token_pseudo = ":";
+
+    //属性选择器标记
+    QueryParser.token_property = "[]";
+
+    //后代选择器标记
+    QueryParser.token_descendant = " ";
+
+    //组合选择器标记
+    QueryParser.token_compsite = ",";
+
+    //子元素选择器标记
+    QueryParser.token_son = ">";
+
+    //毗邻选择器标记
+    QueryParser.token_next = "+";
+
+    //之后同级元素选择器标记
+    QueryParser.token_behind = "~";
+
+
+
+
+
+    //组合节点类型
+    function composite(token) {
+
+        this.token = token;
+    };
+
+    composite.prototype = [];
+
+
+
+    //元素类(all_element type_element style_element id_element)解析方法 
+    function parse(values) {
+
+
+        var nodes,  //节点集合
+            node,   //当前节点 
+
+            item,   //当前项  
+
+            token,
+            token_last,
+
+            cache,
+
+            i = 0,
+            length = values.length;
+
+
+        while (i < length)
+        {
+            //以下switch代码在chrome下的效率没有IE9好,不知道什么原因
+            switch (token = values[i++])
+            {
+                case ".": //样式选择器
+                case "#": //id选择器
+                    item = new composite(token);
+                    item.name = values[i++];
+                    break;
+
+                case ":": //伪类选择器
+                    item = parse_pseudo.call(this, values, length, i);
+                    i += this.__length__;
+
+                    if (node) //加至当前节点
+                    {
+                        node.push(item);
+                        item = null;
+                    }
+                    break;
+
+                case "[": //开始属性
+                    item = parse_property.call(this, values, length, i);
+                    i += this.__length__;
+
+                    if (node) //加至当前节点
+                    {
+                        node.push(item);
+                        item = null;
+                    }
+                    break;
+
+                case "]": //结束属性
+                    break;
+
+                case "*": // * 所有当前上下文内的元素 *= 包含属性值XX (由属性解析)
+                    item = { token: token };
+                    break;
+
+                case ">>": //后代选择器
+                case ",":  //组合选择器
+                case ">":  //子元素选择器
+                case "+":  //毗邻元素选择器
+                case "~":  //~ 之后同级元素 ~= (此处不处理)匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
+                    if (!nodes)
+                    {
+                        nodes = new composite(token);
+
+                        if (node)
+                        {
+                            nodes.push(node);
+                        }
+                    }
+                    else if (nodes.token != token)
+                    {
+                        cache = new composite(token);
+                        cache.push(nodes);
+                        nodes = cache;
+                    }
+                    break;
+
+                case "=": // 属性名与值的分隔 可与其它字符组合
+                case "|": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                case "^": // ^= 属性值以XX开头 (由属性解析)
+                case "$": // $= 属性值以XX结尾 (由属性解析)
+                    //此节不处理 仅在属性中处理
+                    break;
+
+                case "(": //开始参数
+                case ")": //结束参数
+                    //此节不处理 仅在伪类中处理
+                    break;
+
+                default: //类名 token = ""
+                    item = new composite("");
+
+                    switch (token[0])
+                    {
+                        case "'":
+                        case "\"":
+                            item.name = token.substring(1, token.length - 1);
+                            break;
+
+                        default:
+                            item.name = token;
+                            break;
+                    }
+                    break;
+            }
+
+
+            //处理当前节点
+            if (item)
+            {
+                if (nodes)
+                {
+                    if (nodes.token != " " && nodes.token != token_last) //如果组合选择器token不等前一token 按后代选择器处理
+                    {
+                        cache = new composite(" ");
+                        cache.push(nodes);
+                        nodes = cache;
+                    }
+
+                    nodes.push(node = item);
+                }
+                else if (node)
+                {
+                    nodes = new composite(" ");
+                    nodes.push(node);
+                    nodes.push(node = item);
+                }
+                else
+                {
+                    node = item;
+                }
+
+                item = null;
+            }
+
+
+            token_last = token;
+        }
+
+
+        return nodes || node;
+    };
+
+
+
+    //[name?=value]属性选择器
+    function parse_property(values, length, index) {
+
+
+        var nodes,
+            item,
+            loop = true,
+            end = false,
+            token;
+
+
+        this.__length__ = 0;
+
+        while (loop && index < length)
+        {
+            this.__length__++;
+
+            switch (token = values[index++])
+            {
+                case "]":
+                    loop = false;
+                    break;
+
+                case ",":
+                    if (nodes == null)
+                    {
+                        nodes = new composite(",");
+                        nodes.push(item);
+                    }
+
+                    end = false;
+                    break;
+
+                case "*": // *= 包含属性值XX (由属性解析)
+                case "^": // ^= 属性值以XX开头 (由属性解析)
+                case "$": // $= 属性值以XX结尾 (由属性解析)
+                case "~": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
+                case "|": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                    item.relation += token;
+                    break;
+
+                case "=":
+                    item.relation += "=";
+                    end = true;
+                    break;
+
+                default:
+                    if (item && end)
+                    {
+                        switch (token[0])
+                        {
+                            case "\"":
+                            case "'":
+                                item.value = token.substring(1, token.length - 1);
+                                break;
+
+                            default:
+                                item.value = token;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        item = { token: "[]" };
+                        item.name = token;
+                        item.relation = "";
+
+                        if (nodes)
+                        {
+                            nodes.push(item);
+                        }
+                    }
+                    break;
+            }
+        }
+
+
+        return nodes || item;
+    };
+
+
+    //:name :name(p1[,p2...]) 伪类(扩展)选择器
+    function parse_pseudo(values, length, index) {
+
+        var result = { token: ":" };
+
+        result.name = values[index++];
+        this.__length__ = 1;
+
+        if (index < length && values[index] == "(") //无参数
+        {
+            var loop = true,
+                token;
+
+            result.parameters = [];
+
+            while (loop && index < length)
+            {
+                result++;
+
+                switch (token = values[index++])
+                {
+                    case ")":
+                        loop = false;
+                        break;
+
+                    case ",":
+                        break;
+
+                    default:
+                        result.parameters.push(token);
+                        break;
+                }
+            }
+        }
+
+        return result;
+    };
+
+
+
+
+})(flyingon);
+
+
+
+
+﻿
+///使用表单提交数据
+///在使用ajax进行post提交的时候 在IE6-8的浏览器中可能会出现问题, 使用表单的方式提交比较安全
+///此方法不支持进度及同步
+(function (flyingon) {
+
+
+    var id = 0,
+        pool = []; //缓存池
+
+
+    function form() {
+
+        this.host = document.createElement("div");
+        this.form = document.createElement("form");
+        this.iframe = document.createElement("iframe");
+
+        this.host.id = "__submit_host_" + (++id) + "__";
+        //this.host.style.display = "none";
+
+        this.iframe.name = "__submit_iframe__";
+        this.iframe.src = "about:blank";
+
+        this.form.name = "__submit_form__";
+        this.form.target = "__submit_iframe__";
+
+        this.host.appendChild(this.iframe);
+        this.host.appendChild(this.form);
+
+        document.documentElement.children[0].appendChild(this.host);
+
+        this.iframe.contentWindow.name = "__submit_iframe__"; //解决IE6在新窗口打开的BUG
+    };
+
+    function get_form(options) {
+
+        var result = pool.length > 0 ? pool.shift() : new form();
+
+        result.iframe.onload = function fn(event) {
+
+            if (result.iframe.attachEvent) //注销事件
+            {
+                result.iframe.detachEvent("onload", fn);
+            }
+
+            response(result.iframe, options);
+
+            result.form.innerHTML = "";
+            result.iframe.innerHTML = "";
+
+            pool.push(result);
+        };
+
+        if (result.iframe.attachEvent) //解决IE6不能触发onload事件的bug
+        {
+            result.iframe.attachEvent("onload", result.iframe.onload);
+            result.iframe.onload = null;
+        }
+
+        return result.form;
+    };
+
+
+    function response(iframe, options) {
+
+
+        var body = iframe.contentWindow.document.body,
+            fn;
+
+
+        try
+        {
+            options.responseText = body.innerHTML;
+
+            switch (options.dataType)
+            {
+                case "json":
+                case "text/json":
+                    options.response = flyingon.parseJson(options.responseText);
+                    break;
+
+                case "script":
+                case "javascript":
+                case "text/script":
+                case "text/javascript":
+                    options.response = eval(options.responseText);
+                    break;
+
+                case "xml":
+                case "text/xml":
+                    options.response = body.children[0];
+                    break;
+
+                default:
+                    options.response = options.responseText;
+                    break;
+            }
+
+            if (fn = options.success)
+            {
+                fn.call(options, options.response);
+            }
+        }
+        catch (error)
+        {
+            if (fn = (options.error || flyingon.show_error))
+            {
+                fn.call(options, options.responseText);
+            }
+            else
+            {
+                alert(options.responseText);
+            }
+        }
+
+
+        if (fn = options.complete)
+        {
+            fn.call(options, options.response);
+        }
+
+
+        this.innerHTML = "";
+    };
+
+    /*
+    {
+    
+        action: "http://www.xxx.com"
+    
+        method: "post",
+
+        dataType: "text/plain",
+
+        enctype: "application/x-www-form-urlencoded"
+    
+        success: function(response) {
+    
+        },
+    
+        error: function (responseText) {
+    
+            alert(responseText);
+        },
+
+        complete: function(response) {
+    
+        }
+    }
+    */
+    flyingon.ajax_submit = function (options) {
+
+        var form = get_form(options);
+
+        form.action = options.action;
+        form.method = options.method || "post";
+        form.enctype = options.enctype || "application/x-www-form-urlencoded";
+
+        var data = options.data;
+        if (data)
+        {
+            for (var name in data)
+            {
+                var input = document.createElement("input");
+
+                input.name = name;
+                input.type = "hidden";
+                input.value = data[name];
+
+                form.appendChild(input);
+            }
+        }
+
+        form.submit();
+    };
+
+
+})(flyingon);
+
+
+
+﻿
+///Ajax实现
+(function (flyingon) {
+
+
+    var ajax_fn = null, //ajax创建函数
+
+        defaults = {
+
+            type: "GET",
+
+            dataType: "text/plain",
+
+            contentType: "application/x-www-form-urlencoded",
+
+            error: function (request) {
+
+                alert(request.status + ":" + request.statusText);
+            }
+        };
+
+
+
+
+    function ajax() {
+
+        if (!ajax_fn)
+        {
+            if (typeof XMLHttpRequest !== "undefined")
+            {
+                return (ajax_fn = function () { return new XMLHttpRequest(); })();
+            }
+
+            if (typeof ActiveXObject !== "undefined")
+            {
+                var items = [
+
+                    "MSXML2.XMLHTTP.4.0",
+                    "MSXML2.XMLHTTP",
+                    "Microsoft.XMLHTTP"
+
+                ], result;
+
+                for (var i = 0; i < items.length; i++)
+                {
+                    try
+                    {
+                        if (result = (ajax_fn = function () { return new ActiveXObject(items[i]); })())
+                        {
+                            return result;
+                        }
+                    }
+                    catch (error)
+                    {
+                    }
+                }
+            }
+
+            if (window.createRequest)
+            {
+                return (ajax_fn = window.createRequest)();
+            }
+
+            throw new Error('XMLHttpRequest is not available!');
+        }
+
+        return ajax_fn();
+    };
+
+
+
+    function response(request, options) {
+
+        var fn;
+
+        if (request.readyState == 4)
+        {
+            if (options.timer)
+            {
+                clearTimeout(options.timer);
+                delete options.timer;
+            }
+
+
+            options.responseText = request.responseText;
+
+            if (request.status < 300)
+            {
+                try
+                {
+                    switch (options.dataType || defaults.dataType)
+                    {
+                        case "json":
+                        case "text/json":
+                            options.response = flyingon.parseJson(options.responseText);
+                            break;
+
+                        case "script":
+                        case "javascript":
+                        case "text/script":
+                        case "text/javascript":
+                            options.response = eval(options.responseText);
+                            break;
+
+                        case "xml":
+                        case "text/xml":
+                            options.response = request.responseXML;
+                            break;
+
+                        default:
+                            options.response = options.responseText;
+                            break;
+                    }
+
+                    if (fn = options.success)
+                    {
+                        fn.call(options, options.response);
+                    }
+                }
+                catch (error)
+                {
+                    if (fn = (options.error || flyingon.show_error))
+                    {
+                        fn.call(options, options.responseText);
+                    }
+                    else
+                    {
+                        alert(options.responseText);
+                    }
+                }
+            }
+            else
+            {
+                options.status = request.status;
+                options.statusText = request.statusText;
+
+                if (fn = (options.error || flyingon.show_error))
+                {
+                    fn.call(options, options.responseText);
+                }
+                else
+                {
+                    alert(options.responseText);
+                }
+            }
+
+            if (fn = options.complete)
+            {
+                fn.call(options, options.response);
+            }
+        }
+        else if (fn = options.progress)
+        {
+            fn.call(options, options.progress_value ? ++options.progress_value : (options.progress_value = 1));
+        }
+    };
+
+    /*
+    {
+    
+        url: "http://www.xxx.com"
+    
+        type: "GET",
+    
+        dataType: "text/plain" || "json" || "script" || "xml"
+    
+        contentType: "application/x-www-form-urlencoded",
+    
+        async: true,
+    
+        user: undefined,
+    
+        password: undefined,
+    
+        timeout: 0,
+    
+        data: null,
+
+        progress: function(value){
+
+        },
+    
+        success: function(response) {
+    
+        },
+    
+        error: function (responseText) {
+    
+            alert(options.status + ":" + options.statusText);
+        },
+    
+        abort: function(responseText) {
+    
+        },
+    
+        complete: function(response) {
+    
+        }
+    
+    }
+    */
+    flyingon.ajax = function (options) {
+
+        var url = options.url,
+            type = options.type || defaults.type,
+            data = options.data,
+            request = ajax_fn ? ajax_fn() : ajax(),
+            async = options.async !== false;
+
+
+        if (options.timeout > 0)
+        {
+            options.timer = setTimeout(function () {
+
+                request.abort();
+
+                if (options.abort)
+                {
+                    options.abort(options, request);
+                }
+
+            }, options.timeout);
+        }
+
+
+        request.onreadystatechange = function (event) {
+
+            response(request, options);
+        };
+
+        var post;
+
+        switch (type)
+        {
+            case "POST":
+            case "post":
+            case "PUT":
+            case "put":
+                post = true;
+                break;
+
+            default:
+                if (data)
+                {
+                    url = flyingon.encodeURL(url, data);
+                    data = null;
+                }
+                break;
+        }
+
+
+        request.open(type, url, async, options.user, options.password);
+
+        if (post)
+        {
+            request.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
+
+            if (data && typeof data == "object")
+            {
+                data = flyingon.encode(data);
+                request.setRequestHeader("Content-Length", data.length);
+            }
+        }
+
+        if (options.headers)
+        {
+            for (var name in options.headers)
+            {
+                request.setRequestHeader(name, options.headers[name]);
+            }
+        }
+
+        request.send(data);
+        return async ? request : options.response;
+    };
+
+    //get方式提交
+    //注:未传入options则默认使用同步提交
+    flyingon.ajax_get = function (url, dataType, options) {
+
+        (options || (options = { async: false })).url = url;
+
+        options.type = "GET";
+
+        if (dataType)
+        {
+            options.dataType = dataType;
+        }
+
+        return flyingon.ajax(options);
+    };
+
+    //post提交 在IE6时会可能会出错 服务端可实现IHttpAsyncHandler接口解决些问题 
+    //注:未传入options则默认使用同步提交
+    flyingon.ajax_post = function (url, dataType, options) {
+
+        (options || (options = { async: false })).url = url;
+
+        options.type = "POST";
+
+        if (dataType)
+        {
+            options.dataType = dataType;
+        }
+
+        return flyingon.ajax(options);
+    };
+
+    flyingon.require = function (url) {
+
+        if (url)
+        {
+            var options = {
+
+                url: url,
+                type: "GET",
+                dataType: "script",
+                async: false
+            };
+
+            flyingon.ajax(options);
+            return options.response;
+        };
+    };
+
+
+
+
+})(flyingon);
+
+
+
+
+
+﻿
+/*
+延时执行器
+
+*/
+flyingon.DelayExecutor = function (interval, handler, thisArg) {
+
+
+    var timer = 0, data;
+
+
+    //时间间隔
+    this.interval = interval;
+
+
+
+    this.registry = function (args) {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
+
+        data = args;
+        timer = setTimeout(this.execute, this.interval);
+    };
+
+    this.execute = function () {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+            handler.apply(thisArg, data);
+
+            timer = 0;
+            data = null;
+        };
+
+        return thisArg;
+    };
+
+};
+
+
 
 
 
@@ -1433,9 +2349,9 @@ flyingon.class("Collection", function (Class, flyingon) {
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        reader.array(this, "__items__", data["items"]);
+        reader.array(this, "__items__", data.items);
     };
 
 
@@ -1450,14 +2366,19 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //客户端唯一Id
-    var uniqueId = 0;
+    flyingon.__uniqueId__ = 0;
 
     //自动名称
-    var auto_name = 0;
+    flyingon.__auto_name__ = 0;
+
+
 
 
     Class.create = function () {
 
+
+        //唯一id
+        this.__uniqueId__ = (++flyingon.__uniqueId__);
 
         //变量管理器
         this.__fields__ = Object.create(this.__defaults__);
@@ -1470,14 +2391,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //唯一Id
     flyingon.newId = function () {
 
-        return "id" + (++uniqueId);
+        return ++flyingon.__uniqueId__;
     };
 
 
 
     flyingon.defineProperty(this, "uniqueId", function () {
 
-        return this.__uniqueId__ || (this.__uniqueId__ = "id" + (++uniqueId));
+        return this.__uniqueId__;
     });
 
 
@@ -1612,14 +2533,28 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
             flyingon.defineProperty(this, name, getter, setter);
 
-            if (setter && attributes.autoset !== false)
+
+            //扩展至选择器(样式属性直接扩展)
+            if (attributes.query || attributes.style)
             {
-                this["set_" + name] = setter;
+                var body = "if (value === undefined)\n"
+                    + "{\n"
+                    + "return this.length > 0 ? this[0]." + name + " : defaultValue;\n"
+                    + "}\n"
+
+                    + "for (var i = 0, length = this.length; i < length; i++)\n"
+                    + "{\n"
+                    + "this[i]." + name + " = value;\n"
+                    + "}\n"
+
+                    + "return this;";
+
+                flyingon.query[name] = new Function("value", body);
             }
         }
     };
 
-    //定义多个属性及set_XXX方法
+    //定义多个属性
     this.defineProperties = function (names, defaultValue, attributes) {
 
         for (var i = 0; i < names.length; i++)
@@ -1633,17 +2568,15 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //定义事件 name为不带on的事件名
     this.defineEvent = function (name) {
 
-        flyingon.defineProperty(this, "on" + name, null,
+        flyingon.defineProperty(this, "on" + name, null, function (fn) {
 
-            function (listener) {
+            var events = (this.__events__ || (this.__events__ = {}))[name];
 
-                var events = (this.__events__ || (this.__events__ = {}))[name];
+            events ? (events.length > 0 && (events.length = 0)) : (events = this.__events__[name] = []);
+            events.push(fn);
 
-                events ? (events.length > 0 && (events.length = 0)) : (events = this.__events__[name] = []);
-                events.push(listener);
-
-                return this;
-            });
+            return this;
+        });
     };
 
     //定义多个事件 names为不带on的事件名数组
@@ -1657,35 +2590,31 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //绑定事件处理 注:type不带on
-    this.addEventListener = function (type, listener) {
+    this.addEventListener = function (type, fn) {
 
-        if (listener)
+        if (fn)
         {
             var events = (this.__events__ || (this.__events__ = {}));
-            (events[type] || (events[type] = [])).push(listener);
+            (events[type] || (events[type] = [])).push(fn);
         }
 
         return this;
     };
 
     //移除事件处理
-    this.removeListener = function (type, listener) {
+    this.removeListener = function (type, fn) {
 
         var events = this.__events__;
 
         if (events && (events = events[type]))
         {
-            if (listener == null)
+            if (fn == null)
             {
                 events.length = 0;
             }
-            else
+            else if ((events.indexOf(fn)) >= 0)
             {
-                var index = events.indexOf(listener);
-                if (index >= 0)
-                {
-                    events.splice(index, 1);
-                }
+                events.splice(fn, 1);
             }
         }
 
@@ -1779,7 +2708,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
-    this.__reference__ = false;
+    this.serialize_reference = false;
 
     //对象名称
     this.defineProperty("name", null);
@@ -1821,11 +2750,6 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         if (name && source)
         {
-            if (!source.name)
-            {
-                source.name = "auto_name_" + (++auto_name);
-            }
-
             var binding = new flyingon.DataBinding(source, expression || name, setter);
 
             binding.__fn_initialize__(this, name);
@@ -1868,17 +2792,22 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //自定义序列化
     this.serialize = function (writer) {
 
-        writer.object("fields", this.__fields__);
+        writer.properties(this.__fields__);
         writer.bindings(this);
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        var fields = reader.object(this, "__fields__", data["fields"]);
+        if (data.bindings)
+        {
+            except.bindings = true;
+        }
 
+        reader.properties(this.__fields__, data, except);
         reader.bindings(this, data);
-        if (fields && fields.name)
+
+        if (this.__fields__.name)
         {
             (reader.references || (reader.references = {}))[fields.name] = this;
         }
@@ -2036,40 +2965,11 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             if (result.deserialize)
             {
-                result.deserialize(this, value);
+                result.deserialize(this, value, {});
             }
             else
             {
-                var keys = Object.keys(value);
-
-                for (var i = 0, length = keys.length; i < length; i++)
-                {
-                    var key = keys[i],
-                        item = value[key];
-
-                    if (item != null)
-                    {
-                        switch (typeof item)
-                        {
-                            case "object":
-                                if (item instanceof Array)
-                                {
-                                    item = this.array(null, null, item);
-                                }
-                                else if (flyingon.isObject)
-                                {
-                                    item = this.object(null, null, item);
-                                }
-                                break;
-
-                            case "function":
-                                item = item ? new Function("" + item) : null;
-                                break;
-                        }
-                    }
-
-                    result[key] = item;
-                }
+                this.properties(result, value);
             }
 
             return result;
@@ -2080,6 +2980,47 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
         }
 
         return null;
+    };
+
+
+    this.properties = function (target, value, excludes) {
+
+        var keys = Object.keys(value),
+            key,
+            item;
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            key = keys[i];
+
+            if (excludes && excludes[key])
+            {
+                continue;
+            }
+
+            if ((item = value[key]) != null)
+            {
+                switch (typeof item)
+                {
+                    case "object":
+                        if (item instanceof Array)
+                        {
+                            item = this.array(null, null, item);
+                        }
+                        else if (flyingon.isObject)
+                        {
+                            item = this.object(null, null, item);
+                        }
+                        break;
+
+                    case "function":
+                        item = item ? new Function("" + item) : null;
+                        break;
+                }
+            }
+
+            target[key] = item;
+        }
     };
 
 
@@ -2169,7 +3110,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
     this.bindings = function (target, data) {
 
-        if (target && (data = data["bindings"]))
+        if (target && (data = data.bindings))
         {
             this.__bindings__ || (this.__bindings__ = []).push([target, data]);
         }
@@ -2208,7 +3149,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.serialize = function (target) {
 
-        this[Array.isArray(target) ? "array" : "object"](this.__root__, target);
+        this[target.constructor == Array ? "array" : "object"](this.__root__, target);
         return this.toString();
     };
 
@@ -2242,7 +3183,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                     case Boolean:
                         this.boolean(name, value);
                         break;
-                        
+
                     case Number:
                         this.number(name, value);
                         break;
@@ -2368,20 +3309,8 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                 }
                 else
                 {
-                    var keys = Object.keys(value);
-
-                    for (var i = 0, length = keys.length; i < length; i++)
-                    {
-                        if (i > 0 || name)
-                        {
-                            data.push(",");
-                        }
-
-                        data.push("\"" + (name = keys[i]) + "\":");
-                        this.value(null, value[name]);
-                    }
+                    this.properties(value);
                 }
-
 
                 data.push("}");
             }
@@ -2389,6 +3318,28 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
             {
                 data.push("null");
             }
+        }
+    };
+
+    this.properties = function (value, keys) {
+
+        var data = this.__data__,
+            key = data[data.length - 1] != "{";
+
+        if (!keys)
+        {
+            keys = Object.keys(value);
+        }
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            if (i > 0 || key)
+            {
+                data.push(",");
+            }
+
+            data.push("\"" + (key = keys[i]) + "\":");
+            this.value(null, value[key]);
         }
     };
 
@@ -2439,18 +3390,18 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value != null)
         {
-            //未设置名称则直接序列化
-            if (!value.__reference__)
+            if (!value.serialize_reference) //直接序列化
             {
-                this[Array.isArray(value) ? "array" : "object"](name, value);
+                this[value.constructor == Array ? "array" : "object"](name, value);
             }
-            else if (value = value.name)
+            else //序列化引用
             {
+                if (!(value = value.name))
+                {
+                    value = value.name = "__name_" + (++flyingon.__auto_name__);
+                }
+
                 this.string(name, value);
-            }
-            else
-            {
-                throw new Error("serialize reference fail! no name!");
             }
         }
     };
@@ -2539,13 +3490,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             }
             else
             {
-                var keys = Object.keys(value),
-                    key;
-
-                for (var i = 0, length = keys.length; i < length; i++)
-                {
-                    this.value(key = keys[i], value[key]);
-                }
+                this.properties(value);
             }
 
             data.push("</" + name + ">");
@@ -2553,6 +3498,21 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         else
         {
             data.push("<" + name + " type=\"null\"/>");
+        }
+    };
+
+    this.properties = function (value, keys) {
+
+        var key;
+
+        if (!keys)
+        {
+            keys = Object.keys(value);
+        }
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            this.value(key = keys[i], value[key]);
         }
     };
 
@@ -2730,7 +3690,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         writer.string("expression", this.__expression__);
     };
 
-    prototype.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data, except) {
 
         reader.string(this, "__expression__", data.expression);
     };
@@ -3043,11 +4003,11 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         writer.string("setter", this.__setter__);
     };
 
-    prototype.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data, except) {
 
-        reader.reference(this, "__source__", data["source"]);
-        reader.string(this, "__expression__", data["expression"]);
-        reader.string(this, "__setter__", data["setter"]);
+        reader.reference(this, "__source__", data.source);
+        reader.string(this, "__expression__", data.expression);
+        reader.string(this, "__setter__", data.setter);
     };
 
 
@@ -3249,24 +4209,15 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.serialize = function (writer) {
 
         flyingon.DataObject.super.serialize.call(this, writer);
-        this.__fn_serialize_data__(writer);
-    };
-
-    this.__fn_serialize_data__ = function (writer) {
-
         writer.object("data", this.__data__);
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.DataObject.super.deserialize.call(this, reader, data);
-        this.__fn_deserialize_data__(reader, data);
-    };
-
-    this.__fn_deserialize_data__ = function (reader, data) {
-
+        flyingon.DataObject.super.deserialize.call(this, reader, data, except);
         reader.object(this, "__data__", data.data);
     };
+
 
 }, true);
 
@@ -3320,390 +4271,6 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
     };
 
 }, true);
-
-
-
-
-
-﻿
-///Ajax实现
-(function (flyingon) {
-
-
-    var ajax_fn = null, //ajax创建函数
-
-        defaults = {
-
-            type: "GET",
-
-            dataType: "text/plain",
-
-            contentType: "application/x-www-form-urlencoded",
-
-            error: function (request) {
-
-                alert(request.status + ":" + request.statusText);
-            }
-        };
-
-
-
-
-    function ajax() {
-
-        if (!ajax_fn)
-        {
-            if (typeof XMLHttpRequest !== "undefined")
-            {
-                return (ajax_fn = function () { return new XMLHttpRequest(); })();
-            }
-
-            if (typeof ActiveXObject !== "undefined")
-            {
-                var items = [
-
-                    "MSXML2.XMLHTTP.4.0",
-                    "MSXML2.XMLHTTP",
-                    "Microsoft.XMLHTTP"
-
-                ], result;
-
-                for (var i = 0; i < items.length; i++)
-                {
-                    try
-                    {
-                        if (result = (ajax_fn = function () { return new ActiveXObject(items[i]); })())
-                        {
-                            return result;
-                        }
-                    }
-                    catch (error)
-                    {
-                    }
-                }
-            }
-
-            if (window.createRequest)
-            {
-                return (ajax_fn = window.createRequest)();
-            }
-
-            throw new Error('XMLHttpRequest is not available!');
-        }
-
-        return ajax_fn();
-    };
-
-
-    flyingon.encode = function (data) {
-
-        if (data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return values.length > 0 ? values.join("&") : data.toString();
-        }
-
-        return data;
-    };
-
-    flyingon.encodeURL = function (url, data) {
-
-        if (url && data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
-        }
-
-        return url;
-    };
-
-
-
-    function response(target, options) {
-
-        var fn;
-
-        if (target.readyState == 4)
-        {
-            if (options.timer)
-            {
-                clearTimeout(options.timer);
-                delete options.timer;
-            }
-
-            if (target.status < 300)
-            {
-                switch (options.dataType || defaults.dataType)
-                {
-                    case "json":
-                    case "text/json":
-                        options.response = flyingon.parseJson(target.responseText);
-                        break;
-
-                    case "script":
-                    case "javascript":
-                    case "text/script":
-                    case "text/javascript":
-                        options.response = eval(target.responseText);
-                        break;
-
-                    case "xml":
-                    case "text/xml":
-                        options.response = target.responseXML;
-                        break;
-
-                    default:
-                        options.response = target.responseText;
-                        break;
-                }
-
-                if (fn = options.success)
-                {
-                    fn(target, options.response);
-                }
-            }
-            else
-            {
-                (options["error"] || defaults["error"])(target);
-            }
-
-            if (fn = options.complete)
-            {
-                fn(target, options.response);
-            }
-        }
-        else if (fn = options.progress)
-        {
-            fn(options.progressValue ? ++options.progressValue : (options.progressValue = 1));
-        }
-    };
-
-    /*
-    {
-    
-        url: "http://www.xxx.com"
-    
-        type: "GET",
-    
-        dataType: "text/plain" || "json" || "script" || "xml"
-    
-        contentType: "application/x-www-form-urlencoded",
-    
-        async: true,
-    
-        user: undefined,
-    
-        password: undefined,
-    
-        timeout: 0,
-    
-        data: null,
-    
-        success: function(request, response) {
-    
-        },
-    
-        error: function (request) {
-    
-            alert(request.status + ":" + request.statusText);
-        },
-    
-        abort: function(request) {
-    
-        },
-    
-        complete: function(request) {
-    
-        }
-    
-    }
-    */
-    flyingon.ajax = function (options) {
-
-        var url = options.url,
-            type = options.type || defaults.type,
-            data = options.data,
-            result = ajax_fn ? ajax_fn() : ajax(),
-            async = options.async !== false;
-
-
-        if (options.timeout > 0)
-        {
-            options.timer = setTimeout(function () {
-
-                result.abort();
-
-                if (options.abort)
-                {
-                    options.abort(result);
-                }
-
-            }, options.timeout);
-        }
-
-
-        result.onreadystatechange = function (event) {
-
-            response(result, options);
-        };
-
-        var post;
-
-        switch (type)
-        {
-            case "POST":
-            case "post":
-            case "PUT":
-            case "put":
-                post = true;
-                break;
-
-            default:
-                if (data)
-                {
-                    url = flyingon.encodeURL(url, data);
-                    data = null;
-                }
-                break;
-        }
-
-
-        result.open(type, url, async, options.user, options.password);
-
-        if (post)
-        {
-            result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
-
-            if (data && typeof data == "object")
-            {
-                data = flyingon.encode(data);
-                result.setRequestHeader("Content-Length", data.length);
-            }
-        }
-
-        if (options.headers)
-        {
-            for (var name in options.headers)
-            {
-                result.setRequestHeader(name, options.headers[name]);
-            }
-        }
-
-        result.send(data);
-        return async ? result : options.response;
-    };
-
-    //get方式提交
-    //注:未传入options则默认使用同步提交
-    flyingon.get = function (url, dataType, options) {
-
-        (options || (options = { async: false })).url = url;
-
-        options.type = "GET";
-
-        if (dataType)
-        {
-            options.dataType = dataType;
-        }
-
-        return flyingon.ajax(options);
-    };
-
-    //post提交 在IE6时会可能会出错 服务端可实现IHttpAsyncHandler接口解决些问题 
-    //注:未传入options则默认使用同步提交
-    flyingon.post = function (url, dataType, options) {
-
-        (options || (options = { async: false })).url = url;
-
-        options.type = "POST";
-
-        if (dataType)
-        {
-            options.dataType = dataType;
-        }
-
-        return flyingon.ajax(options);
-    };
-
-    flyingon.require = function (url) {
-
-        if (url)
-        {
-            var options = {
-
-                url: url,
-                type: "GET",
-                dataType: "script",
-                async: false
-            };
-
-            flyingon.ajax(options);
-            return options.response;
-        };
-    };
-
-
-
-})(flyingon);
-
-
-
-﻿
-/*
-延时执行器
-
-*/
-flyingon.DelayExecutor = function (interval, handler, thisArg) {
-
-
-    var timer = 0, data;
-
-
-    //时间间隔
-    this.interval = interval;
-
-
-
-    this.registry = function (args) {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
-
-        data = args;
-        timer = setTimeout(this.execute, this.interval);
-    };
-
-    this.execute = function () {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-            handler.apply(thisArg, data);
-
-            timer = 0;
-            data = null;
-        };
-
-        return thisArg;
-    };
-
-};
 
 
 
@@ -4231,7 +4798,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     //获取指定位置的字符索引
     prototype.charAt = function (x) {
 
-        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binary_between(x);
     };
 
 
@@ -4376,7 +4943,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
         }
 
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(columnIndex),
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(columnIndex),
             word = this[index],
             charIndex = columnIndex - this.__cache1__[index];
 
@@ -4395,7 +4962,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     //查找指定位置的文字信息
     prototype.charAt = function (x) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(x),
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(x),
             word = this[index],
             charIndex,
             x;
@@ -4546,13 +5113,13 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
             textIndex = 0;
         }
 
-        return this[(this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex)];
+        return this[(this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex)];
     };
 
     //查找指定位置的行信息
     prototype["line-at"] = function (y) {
 
-        return this[(this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y)];
+        return this[(this.__cache2__ || initialize.call(this).__cache2__).binary_between(y)];
     };
 
     //获取指定索引的字符信息
@@ -4563,7 +5130,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
             textIndex = 0;
         }
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex),
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex),
             start = this.__cache1__[index],
             result = this[index].charBy(textIndex - start);
 
@@ -4576,7 +5143,7 @@ flyingon.DelayExecutor = function (interval, handler, thisArg) {
     //查找指定位置的字符信息
     prototype.charAt = function (x, y) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y),
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(y),
             result = this[index].charAt(x);
 
         result.lineIndex = index;
@@ -5800,31 +6367,31 @@ flyingon.class("KeyEvent", flyingon.Event, function (Class, flyingon) {
     //是否按下ctrl键
     flyingon.defineProperty(this, "ctrlKey", function () {
 
-        return this.originalEvent["ctrlKey"];
+        return this.originalEvent.ctrlKey;
     });
 
     //是否按下shift键
     flyingon.defineProperty(this, "shiftKey", function () {
 
-        return this.originalEvent["shiftKey"];
+        return this.originalEvent.shiftKey;
     });
 
     //是否按下alt键
     flyingon.defineProperty(this, "altKey", function () {
 
-        return this.originalEvent["altKey"];
+        return this.originalEvent.altKey;
     });
 
     //是否按下meta键
     flyingon.defineProperty(this, "metaKey", function () {
 
-        return this.originalEvent["metaKey"];
+        return this.originalEvent.metaKey;
     });
 
     //事件触发时间
     flyingon.defineProperty(this, "timeStamp", function () {
 
-        return this.originalEvent["timeStamp"];
+        return this.originalEvent.timeStamp;
     });
 
     //键码
@@ -5955,7 +6522,7 @@ flyingon.class("ChangeEvent", flyingon.Event, function (Class, flyingon) {
         move: function (dom_MouseEvent, offsetX, offsetY) {
 
             //需修正div移动偏差
-            var target = ownerWindow.getControlAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
+            var target = ownerWindow.find_control(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
                 event;
 
 
@@ -6303,20 +6870,13 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
     //自定义序列化
     this.serialize = function (writer) {
 
-        var fields = this.__fields__,
-            keys = Object.keys(fields),
-            key;
-
-        for (var i = 0, length = keys.length; i < length; i++)
-        {
-            writer.object(key = keys[i], fields[key]);
-        }
+        writer.properties(this.__fields__);
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        reader.object(this, "__fields__", data);
+        reader.properties(this.__fields__, data, except);
     };
 
 
@@ -6489,6 +7049,205 @@ flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
 
 
 });
+
+
+
+
+
+﻿
+//选择器实现
+(function (flyingon) {
+
+
+
+    //flyingon.query 选择器方法扩展
+    var prototype = flyingon.query = (flyingon.Query = function (selector, context) {
+
+        if (selector)
+        {
+            //字符串
+            switch (typeof selector)
+            {
+                case "string":
+                    query_string.call(this, selector, context);
+                    break;
+
+                case "function":
+                    query_function.call(this, selector, context);
+                    break;
+
+                case "object":
+                    var constructor = selector.constructor;
+
+                    if (constructor == Array)
+                    {
+                        for (var i = 0, length = selector.length; i < length; i++)
+                        {
+                            this[this.length++] = selector[i];
+                        }
+                    }
+                    else if (constructor == String)
+                    {
+                        query_string.call(this, selector, context);
+                    }
+                    else
+                    {
+                        this[this.length++] = selector;
+                    }
+                    break;
+
+                default:
+                    this[this.length++] = selector;
+                    break;
+            }
+        }
+
+    }).prototype;
+
+
+    //选中项长度
+    prototype.length = 0;
+
+
+    //扩展选择器方法
+    /*
+    flyingon.extend_query({
+
+        test: function () {
+
+            return this.forEach(...);
+        }
+    });
+    */
+    flyingon.extend_query = function (data) {
+
+        if (data)
+        {
+            for (var name in data)
+            {
+                prototype[name] = data[name];
+            }
+        }
+    };
+
+
+
+    prototype.forEach = function (fn) {
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            fn.apply(this[i]);
+        }
+
+        return this;
+    };
+
+
+
+
+
+
+    function query_string(selector, context) {
+
+    };
+
+    function query_function(selector, context) {
+
+        //query_list:可选择对象接口
+        if (context && (context = context.query_list) && (context = context()))
+        {
+            for (var i = 0, length = context.length; i < length; i++)
+            {
+                var target = context[i];
+
+                if (selector.call(target))
+                {
+                    this[this.length++] = target;
+                }
+
+                if (target.query_list)
+                {
+                    query_function.call(this, selector, target);
+                }
+            }
+        }
+    };
+
+
+    //合并
+    prototype.merge = function (selector, context) {
+
+        flyingon.Selector.call(this, selector, context);
+        return this;
+    };
+
+    //剔除子项
+    prototype.reject = function (control) {
+
+    };
+
+    //筛选子项
+    prototype.filter = function (fn) {
+
+    };
+
+    //如果进行过筛选则回到筛选前的状态
+    prototype.back = function () {
+
+
+    };
+
+
+
+
+
+    prototype.addEventListener = function (type, fn) {
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            this[i].addEventListener(type, fn);
+        }
+
+        return this;
+    };
+
+    prototype.removeEventListener = function (type, fn) {
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            this[i].removeEventListener(type, fn);
+        }
+
+        return this;
+    };
+
+
+
+
+    prototype.addStyle = function (styleName) {
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            this[i].add_styleName(styleName);
+        }
+
+        return this;
+    };
+
+    prototype.removeStyle = function (styleName) {
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            this[i].remove_styleName(styleName);
+        }
+
+        return this;
+    };
+
+
+
+})(flyingon);
+
 
 
 
@@ -7904,7 +8663,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
-    this.__reference__ = true;
+    this.serialize_reference = true;
 
 
 
@@ -8001,20 +8760,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return control ? control.isParent(this) : false;
     };
 
-    //获取当前控件的上级控件列表(按从上到下的顺序显示)
-    this.getParentList = function () {
-
-        var result = [],
-            parent = this.__parent__;
-
-        while (parent)
-        {
-            result.unshift(parent);
-            parent = parent.__parent__;
-        }
-
-        return result;
-    };
 
     //从父控件中移除自身
     this.remove = function () {
@@ -8152,19 +8897,61 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    //指定样式Key
-    this.defineProperty("styleKey", null, {
+    //指定样式名(类似html节点的className,多个名称可用空格分隔)
+    this.defineProperty("styleName", null, {
 
-        attributes: "invalidate",
-        changed: "this.__fn_style__ = null;"
+        attributes: "invalidate|query",
+        changing: "if (value) value = value.replace(/^\s+|\s+$/g, '');",
+        changed: "this.__fn_style__ = null;\nthis.__styles__ = value ? value.split(/\s+/g) : [];"
     });
+
+    //添加样式(多个名称可用空格分隔)
+    this.addStyle = function (styleName) {
+
+        if (styleName && (styleName = styleName.replace(/^\s+|\s+$/g, "")))
+        {
+            this.styleName += styleName;
+            this.__styles__.remove_repeat(true);
+        }
+    };
+
+    //移除样式(多个名称可用空格分隔)
+    this.removeStyle = function (styleName) {
+
+        var styles;
+
+        if (styleName && (styles = this.__styles__) && (styleName = styleName.replace(/^\s+|\s+$/g, "")))
+        {
+            var names = styleName.split(/\s+/g),
+                index,
+                value;
+
+            for (var i = 0, length = names[i]; i < length; i++)
+            {
+                if ((index = styles.indexOf(names[i])) >= 0)
+                {
+                    styles.removeAt(index);
+                    value = true;
+                }
+            }
+
+            if (value)
+            {
+                this.styleName = styles.join(" ");
+            }
+        }
+    };
+
 
     //自定义样式
     this.defineProperty("style", null, {
 
-        attributes: "invalidate",
+        attributes: "invalidate|query",
         changed: "this.__fn_style__ = null;"
     });
+
+
+
 
     /*
     预定义状态组:
@@ -8215,11 +9002,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //缓存获取样式方法以加快检索
     this.__fn_style_template__ = function () {
 
-        var fields = this.__fields__,
+        var result = [],
+            fields = this.__fields__,
             states = this.__states__,
             statesName,
-            stateName,
-            result = [];
+            stateName;
 
 
         for (var i = states.length - 1; i >= 0; i--)
@@ -8245,6 +9032,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var body = result.join(""); //方法片断
 
+
         result.length = 0;
         result.push("var result, style;\n");
 
@@ -8258,12 +9046,15 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         result.push("var styles = flyingon.styles;\n");
 
-        if (fields.styleKey)
+        if (fields.__styles__)
         {
-            result.push("if (style = styles[\"" + fields.styleKey + "\"])\n");
-            result.push("{\n");
-            result.push(body);
-            result.push("}\n");
+            for (var i = 0, length = fields.__styles__.length; i < length; i++)
+            {
+                result.push("if (style = styles[\"." + fields.__styles[i] + "\"])\n");
+                result.push("{\n");
+                result.push(body);
+                result.push("}\n");
+            }
         }
 
         result.push("if (style = styles[\"" + this.__classFullName__ + "\"])\n");
@@ -8993,12 +9784,12 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
             case "decreaseMax":
                 step = -this.max_step;
-                limit = this.getValueAt(event.controlX, event.controlY, false);
+                limit = this.get_value(event.controlX, event.controlY, false);
                 break;
 
             case "increaseMax":
                 step = this.max_step;
-                limit = this.getValueAt(event.controlX, event.controlY, true);
+                limit = this.get_value(event.controlX, event.controlY, true);
                 break;
 
             default: //slider
@@ -9122,7 +9913,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
     //根据位置获取当前值
-    this.getValueAt = function (x, y, exclueSlider) {
+    this.get_value = function (x, y, exclueSlider) {
 
         var boxModel = this.__boxModel__,
             value = this.isVertical ? y : x;
@@ -9426,7 +10217,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         var horizontalScrollBar = this.__horizontalScrollBar__;
 
@@ -9781,14 +10572,14 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-    //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    //查找指定位置的控件
+    this.find_control = function (x, y) {
 
         var content = this.__content__;
 
         if (content && content.hitTest(x, y))
         {
-            return content.getControlAt ? content.getControlAt(x, y) : content;
+            return content.find_control ? content.find_control(x, y) : content;
         }
 
         return this;
@@ -9809,10 +10600,12 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
         writer.object("content", this.__content__);
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.ContentControl.super.deserialize.call(this, reader, data);
-        reader.object(this, "__content__", data["content"]);
+        excludes.__content__ = true;
+
+        flyingon.ContentControl.super.deserialize.call(this, reader, data, except);
+        reader.object(this, "__content__", data.content);
     };
 
 
@@ -9828,7 +10621,7 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         if (!this.__designMode__) //未实现
         {
@@ -9836,7 +10629,7 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
 
             if (content && content.hitTest(x, y))
             {
-                return content.getControlAt ? content.getControlAt(x, y) : content;
+                return content.find_control ? content.find_control(x, y) : content;
             }
         }
 
@@ -9952,7 +10745,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
     Class.create = function () {
 
-        this.__fields__.__items__ = new flyingon.ItemCollection(this);
+        this.__items__ = new flyingon.ItemCollection(this);
     };
 
 
@@ -9969,15 +10762,15 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         function () {
 
-            return this.__fields__.__items__;
+            return this.__items__;
         },
 
         function (value) {
 
-            var oldValue = this.__fields__.__items__;
+            var oldValue = this.__items__;
             if (oldValue != value)
             {
-                this.__fields__.__items__ = value;
+                this.__items__ = value;
 
                 //
             }
@@ -10066,17 +10859,19 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         flyingon.SerializableObject.prototype.serialize.call(this, writer);
 
-        var items = this.__items__.__items__;
+        var items = this.__items__;
         if (items && items.length > 0)
         {
             writer.array(items_name, items);
         }
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
-        reader.array(this.__items__ || (this.__items__ = new flyingon.ItemCollection()), "__items__", data[items_name]);
+        except[items_name] = true;
+
+        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data, except);
+        reader.array(this.__items__, "__items__", data[items_name]);
     };
 
 };
@@ -10167,6 +10962,96 @@ flyingon.class("ListBox", flyingon.TemplateControl, function (Class, flyingon) {
 
 
     flyingon["items-painter"].call(this, Class, flyingon);
+
+
+
+});
+
+
+
+
+
+﻿
+flyingon.class("Repeater", flyingon.TemplateControl, function (Class, flyingon) {
+
+
+
+  
+
+    this.__fn_create_item__ = function () {
+
+    };
+
+    this.clearTemplate = function () {
+
+        var items = this.__items__,
+            length = items && items.length;
+
+        for (var i = 0; i < length; i++)
+        {
+            var item = items[i],
+                control = item.__control__;
+
+            if (control)
+            {
+                item.__control__ = null;
+                control.dispose();
+            }
+        }
+    };
+
+    //排列子项
+    this.arrange = function (clientRect) {
+
+        var items = this.__items__,
+            children = this.__render_children__ = [],
+
+            maxIndex = this.maxIndex,
+            lineHeight = this.lineHeight,
+            visibleIndex = this.visibleIndex,
+
+            y = 0,
+            width = clientRect.width,
+            height = clientRect.height,
+
+            template;
+
+
+        for (var i = 0, length = items.length; i < length; i++)
+        {
+            var item = items[i];
+
+            if (item.visible)
+            {
+                var control = item.__control__;
+
+                if (!control)
+                {
+                    if (template || (template = this.template))
+                    {
+                        control = item.__control__ = this.createTemplateControl(template, item);
+                    }
+                    else
+                    {
+                        control = item.__control__ = this.__fn_create_item__();
+                    }
+                }
+
+
+                if (control)
+                {
+                    control.__boxModel__.measure(0, y, width, lineHeight);
+
+                    children.push(control);
+
+                    if ((y += box.height) >= height)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    };
 
 
 
@@ -10570,11 +11455,11 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
     };
 
 
-    prototype.serialize = function () {
+    prototype.serialize = function (writer) {
 
     };
 
-    prototype.deserialize = function (value) {
+    prototype.deserialize = function (reader, value, except) {
 
 
     };
@@ -10771,6 +11656,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
+
     //布局集
     var layouts = {};
 
@@ -10783,6 +11669,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             height = clientRect.height,
 
             boxModel = this.__boxModel__,
+            scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight;
 
 
@@ -10795,7 +11682,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             {
                 box.measure(x, 0, 0, 0, width - x, height, null, height);
 
-                x = box.right + box.margin.left + spaceX;
+                if ((x = box.right + box.margin.left) > scrollWidth)
+                {
+                    scrollWidth = x;
+                }
+
+                x += spaceX;
 
                 if (box.height > scrollHeight)
                 {
@@ -10805,7 +11697,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
 
 
-        boxModel.scrollWidth = items[items.length - 1].__boxModel__.right;
+        boxModel.scrollWidth = scrollWidth;
         boxModel.scrollHeight = scrollHeight;
     };
 
@@ -10819,7 +11711,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             height = clientRect.height,
 
             boxModel = this.__boxModel__,
-            scrollWidth = boxModel.scrollWidth;
+            scrollWidth = boxModel.scrollWidth,
+            scrollHeight = boxModel.scrollHeight;
 
 
         for (var i = 0, length = items.length; i < length; i++)
@@ -10831,18 +11724,23 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             {
                 box.measure(0, y, 0, 0, width, height - y, width);
 
-                y = box.bottom + box.margin.bottom + spaceY;
-
                 if (box.width > scrollWidth)
                 {
                     scrollWidth = box.width;
                 }
+
+                if ((y = box.bottom + box.margin.bottom) > scrollHeight)
+                {
+                    scrollHeight = y;
+                }
+
+                y += spaceY;
             }
         }
 
 
         boxModel.scrollWidth = scrollWidth;
-        boxModel.scrollHeight = items[items.length - 1].__boxModel__.bottom;
+        boxModel.scrollHeight = scrollHeight;
     };
 
     //线性布局 spaceX verticalAlign
@@ -10925,6 +11823,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 {
                     maxHeight = cache;
                 }
+
+                x += spaceX;
             }
         }
 
@@ -11005,6 +11905,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 {
                     maxWidth = cache;
                 }
+
+                y += spaceY;
             }
         }
 
@@ -11400,10 +12302,10 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         //判断滚动条
-        var result = flyingon.Panel.super.getControlAt.call(this, x, y);
+        var result = flyingon.Panel.super.find_control.call(this, x, y);
 
         if (result != this)
         {
@@ -11435,7 +12337,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                 if (item.hitTest(x, y))
                 {
-                    return item.getControlAt ? item.getControlAt(x, y) : item;
+                    return item.find_control ? item.find_control(x, y) : item;
                 }
             }
         }
@@ -11488,9 +12390,11 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.Panel.super.deserialize.call(this, reader, data);
+        except.children = true;
+
+        flyingon.Panel.super.deserialize.call(this, reader, data, except);
 
         var items = reader.array(this.__children__, "__items__", data["children"]);
         if (items && items.length > 0)
@@ -11721,6 +12625,153 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
 
+﻿
+//系统初始化方法
+(function (flyingon) {
+
+
+    var style_loaded = false;
+
+
+    //加载默认样式
+    function load_default_style() {
+
+        if (!style_loaded)
+        {
+            var data = flyingon.require(flyingon_setting.style_file || "themes/default.js");
+
+            if (data)
+            {
+                flyingon.fonts = data.fonts || {};
+                flyingon.cursors = data.cursors || {};
+                flyingon.images = data.images || {};
+                flyingon.colors = data.colors || {};
+                flyingon.styles = data.styles || {};
+                flyingon.templates = data.templates || {};
+
+                parse_style(flyingon.styles);
+            }
+
+            style_loaded = true;
+        }
+    };
+
+    //复制样式
+    function initialize_style(Class) {
+
+        var subclasses = Class.subclasses;
+        if (subclasses)
+        {
+            var styles = flyingon.styles,
+                templates = flyingon.templates,
+                parent_style = styles[Class.classFullName],
+                parent_template = templates[Class.classFullName];
+
+            for (var i = 0, length = subclasses.length; i < length; i++)
+            {
+                var target = subclasses[i],
+                    className = target.className,
+                    style = styles[className] || (styles[className] = {}),
+                    template = templates[className] || (templates[className] = {});
+
+
+                //复制上级样式
+                if (parent_style)
+                {
+                    flyingon.mearge(parent_style, style, true);
+                }
+
+                //复制上级模板
+                if (parent_template)
+                {
+                    flyingon.mearge(parent_template, template, true);
+                }
+
+
+                //递归
+                initialize_style(target);
+            }
+        }
+    };
+
+
+    function parse_thickness(name) {
+
+        this[name] = new flyingon.Thickness(this[name]);
+    };
+
+
+    var parse_setting = {
+
+        margin: parse_thickness,
+        border: parse_thickness,
+        padding: parse_thickness
+    };
+
+
+    function parse_style(target) {
+
+        var names = Object.keys(target),
+            name,
+            value,
+            fn;
+
+        for (var i = 0, length = names.length; i < length; i++)
+        {
+            if ((name = names[i]) && (fn = parse_setting[name]))
+            {
+                fn.call(target, name);
+            }
+            else if ((value = target[name]) && typeof value == "object" && value.constructor != Array)
+            {
+                parse_style(value);
+            }
+        }
+
+    };
+
+
+
+    //加载样式
+    flyingon.load_style = function (url) {
+
+        if (url)
+        {
+            load_default_style();
+
+            var data = flyingon.require(url);
+
+            if (data)
+            {
+                parse_style(data);
+                flyingon.mearge(data, flyingon);
+            }
+        }
+    };
+
+
+
+    //初始化系统
+    flyingon.initialize = function (reset) {
+
+        if (flyingon.Control)
+        {
+            //加载资源包
+            flyingon.require(flyingon_setting.language_file);
+
+            //加载默认样式
+            load_default_style();
+
+            //初始化控件样式
+            initialize_style(flyingon.Control);
+        }
+    };
+
+
+})(flyingon);
+
+
+
 ﻿//窗口基类
 flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
@@ -11846,7 +12897,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
     //获取活动窗口
-    this.getActivateWindow = function () {
+    this.get_activateWindow = function () {
 
         var result = this,
             activateWindow;
@@ -11946,7 +12997,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         for (var i = this.layers.length - 1; i >= 0; i--)
         {
@@ -11954,7 +13005,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
             {
-                return flyingon.WindowBase.super.getControlAt.call(layer, x, y);
+                return flyingon.WindowBase.super.find_control.call(layer, x, y);
             }
         }
 
@@ -12003,7 +13054,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         var source = flyingon.__hover_control__,
-            target = this.getControlAt(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
+            target = this.find_control(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
 
         if (target != source)
         {
@@ -12043,7 +13094,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.mainWindow.getActivateWindow()) //活动窗口不是当前点击窗口
+        if (ownerWindow != ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
         {
             ownerWindow.activate(true);
         }
@@ -12299,8 +13350,10 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         div.appendChild(this.dom_window);
 
         //添加至指定dom
-        (parentNode || flyingon.__window_host__ || document.body).appendChild(div);
-
+        if (parentNode)
+        {
+            parentNode.appendChild(div);
+        }
 
 
         //定义主窗口变更
@@ -12322,12 +13375,33 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
+
+    //父dom节点
+    flyingon.defineProperty(this, "parentNode",
+
+        function () {
+
+            return this.dom_host.parentNode;
+        },
+
+        function (value) {
+
+            if (value)
+            {
+                value.appendChild(this.dom_host);
+            }
+        });
+
+
+
+
     //刷新窗口
     this.update = function () {
 
         var r = this.__fn_getBoundingClientRect__(true);
         this.__fn_resize__(0, 0, r.width, r.height);
     };
+
 
 
 }, true);
@@ -12381,14 +13455,14 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
         this.ownerWindow.close();
     };
 
-    function button(name, dock, styleKey, click) {
+    function button(name, dock, styleName, click) {
 
         var result = this[name] = new flyingon.PictureBox();
 
         result.dock = dock;
         result.width = 20;
         result.height = "fill";
-        result.styleKey = styleKey;
+        result.styleName = styleName;
 
         if (click)
         {
@@ -12535,15 +13609,15 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         //判断滚动条
         if (this.title_bar.hitTest(x, y))
         {
-            return this.title_bar.getControlAt(x, y);
+            return this.title_bar.find_control(x, y);
         }
 
-        return flyingon.ChildWindow.super.getControlAt.call(this, x, y);
+        return flyingon.ChildWindow.super.find_control.call(this, x, y);
     };
 
 

@@ -14,7 +14,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.serialize = function (target) {
 
-        this[Array.isArray(target) ? "array" : "object"](this.__root__, target);
+        this[target.constructor == Array ? "array" : "object"](this.__root__, target);
         return this.toString();
     };
 
@@ -48,7 +48,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                     case Boolean:
                         this.boolean(name, value);
                         break;
-                        
+
                     case Number:
                         this.number(name, value);
                         break;
@@ -174,20 +174,8 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                 }
                 else
                 {
-                    var keys = Object.keys(value);
-
-                    for (var i = 0, length = keys.length; i < length; i++)
-                    {
-                        if (i > 0 || name)
-                        {
-                            data.push(",");
-                        }
-
-                        data.push("\"" + (name = keys[i]) + "\":");
-                        this.value(null, value[name]);
-                    }
+                    this.properties(value);
                 }
-
 
                 data.push("}");
             }
@@ -195,6 +183,28 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
             {
                 data.push("null");
             }
+        }
+    };
+
+    this.properties = function (value, keys) {
+
+        var data = this.__data__,
+            key = data[data.length - 1] != "{";
+
+        if (!keys)
+        {
+            keys = Object.keys(value);
+        }
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            if (i > 0 || key)
+            {
+                data.push(",");
+            }
+
+            data.push("\"" + (key = keys[i]) + "\":");
+            this.value(null, value[key]);
         }
     };
 
@@ -245,18 +255,18 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value != null)
         {
-            //未设置名称则直接序列化
-            if (!value.__reference__)
+            if (!value.serialize_reference) //直接序列化
             {
-                this[Array.isArray(value) ? "array" : "object"](name, value);
+                this[value.constructor == Array ? "array" : "object"](name, value);
             }
-            else if (value = value.name)
+            else //序列化引用
             {
+                if (!(value = value.name))
+                {
+                    value = value.name = "__name_" + (++flyingon.__auto_name__);
+                }
+
                 this.string(name, value);
-            }
-            else
-            {
-                throw new Error("serialize reference fail! no name!");
             }
         }
     };
@@ -345,13 +355,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             }
             else
             {
-                var keys = Object.keys(value),
-                    key;
-
-                for (var i = 0, length = keys.length; i < length; i++)
-                {
-                    this.value(key = keys[i], value[key]);
-                }
+                this.properties(value);
             }
 
             data.push("</" + name + ">");
@@ -359,6 +363,21 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         else
         {
             data.push("<" + name + " type=\"null\"/>");
+        }
+    };
+
+    this.properties = function (value, keys) {
+
+        var key;
+
+        if (!keys)
+        {
+            keys = Object.keys(value);
+        }
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            this.value(key = keys[i], value[key]);
         }
     };
 

@@ -75,7 +75,7 @@
     //获取指定位置的字符索引
     prototype.charAt = function (x) {
 
-        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binaryBetween(x);
+        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binary_between(x);
     };
 
 

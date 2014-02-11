@@ -31,7 +31,8 @@
     <!--    <input id="Text1" type="text" style="position: absolute; opacity: 0.5; top: 42px; left: 14px;border:0;padding:0" />-->
 
 
-    <script src="../js/flyingon.js"></script>
+    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
+    <script type="text/javascript" src="../js/flyingon.js"></script>
 
 
 
@@ -61,8 +62,8 @@
 
                 panel.height = 400;
                 //panel.layout = "flow"
-                panel["margin"] = [10, 20, 30, 40];
-                panel["border"] = [1, 1, 1, 1];
+                panel.margin = [10, 20, 30, 40];
+                panel.border = [1, 1, 1, 1];
 
                 for (var j = 0; j < 100; j++)
                 {
@@ -76,8 +77,8 @@
 
                 panel.onmousemove = function (event) {
 
-                    var items = this.__render_children__;
-                    document.title += "  " + (items && items.length || "0") + " " + this.__boxModel__.scrollTop;
+                    var items = this._render_children_;
+                    document.title += "  " + (items && items.length || "0") + " " + this._boxModel_.scrollTop;
                 };
 
                 w.children.append(panel);

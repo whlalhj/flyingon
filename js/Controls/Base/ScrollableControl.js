@@ -107,7 +107,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         var horizontalScrollBar = this.__horizontalScrollBar__;
 

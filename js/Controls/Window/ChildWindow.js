@@ -43,14 +43,14 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
         this.ownerWindow.close();
     };
 
-    function button(name, dock, styleKey, click) {
+    function button(name, dock, styleName, click) {
 
         var result = this[name] = new flyingon.PictureBox();
 
         result.dock = dock;
         result.width = 20;
         result.height = "fill";
-        result.styleKey = styleKey;
+        result.styleName = styleName;
 
         if (click)
         {
@@ -197,15 +197,15 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         //判断滚动条
         if (this.title_bar.hitTest(x, y))
         {
-            return this.title_bar.getControlAt(x, y);
+            return this.title_bar.find_control(x, y);
         }
 
-        return flyingon.ChildWindow.super.getControlAt.call(this, x, y);
+        return flyingon.ChildWindow.super.find_control.call(this, x, y);
     };
 
 

@@ -92,7 +92,7 @@
         move: function (dom_MouseEvent, offsetX, offsetY) {
 
             //需修正div移动偏差
-            var target = ownerWindow.getControlAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
+            var target = ownerWindow.find_control(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
                 event;
 
 

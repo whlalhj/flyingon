@@ -243,31 +243,31 @@ flyingon.class("KeyEvent", flyingon.Event, function (Class, flyingon) {
     //是否按下ctrl键
     flyingon.defineProperty(this, "ctrlKey", function () {
 
-        return this.originalEvent["ctrlKey"];
+        return this.originalEvent.ctrlKey;
     });
 
     //是否按下shift键
     flyingon.defineProperty(this, "shiftKey", function () {
 
-        return this.originalEvent["shiftKey"];
+        return this.originalEvent.shiftKey;
     });
 
     //是否按下alt键
     flyingon.defineProperty(this, "altKey", function () {
 
-        return this.originalEvent["altKey"];
+        return this.originalEvent.altKey;
     });
 
     //是否按下meta键
     flyingon.defineProperty(this, "metaKey", function () {
 
-        return this.originalEvent["metaKey"];
+        return this.originalEvent.metaKey;
     });
 
     //事件触发时间
     flyingon.defineProperty(this, "timeStamp", function () {
 
-        return this.originalEvent["timeStamp"];
+        return this.originalEvent.timeStamp;
     });
 
     //键码

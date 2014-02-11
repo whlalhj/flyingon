@@ -191,24 +191,15 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     this.serialize = function (writer) {
 
         flyingon.DataObject.super.serialize.call(this, writer);
-        this.__fn_serialize_data__(writer);
-    };
-
-    this.__fn_serialize_data__ = function (writer) {
-
         writer.object("data", this.__data__);
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.DataObject.super.deserialize.call(this, reader, data);
-        this.__fn_deserialize_data__(reader, data);
-    };
-
-    this.__fn_deserialize_data__ = function (reader, data) {
-
+        flyingon.DataObject.super.deserialize.call(this, reader, data, except);
         reader.object(this, "__data__", data.data);
     };
+
 
 }, true);
 

@@ -13,35 +13,10 @@
 
 
 //根命名空间
-var flyingon = this.flyingon = function () {
+var flyingon = this.flyingon = function (selector, context) {
 
+    return new flyingon.Query(selector, context);
 };
-
-
-//全局设定
-//可以加载此脚本前使用 var flyingon_setting = { xxx }; 的方式设置参数
-//也可以在加载此脚本后直接修改属性值
-var flyingon_setting = this.flyingon_setting = flyingon_setting || {};
-
-
-//默认全局设定 初始化设定值
-var flyingon_defaults = {
-
-
-    //版本
-    version: "0.0.0.1",
-
-    //语言
-    language: "zh-CHS",
-
-    //默认样式
-    default_style: "/themes/default.js",
-
-    //滚动条厚度
-    scroll_thickness: 16
-
-};
-
 
 
 
@@ -50,18 +25,38 @@ var flyingon_defaults = {
 (function (flyingon) {
 
 
-    //增加字符串格式化支持
-    String.prototype.format = function () {
+    var prototype = String.prototype;
 
-        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (value) {
 
-            return arguments[value.substring(1, value.length - 1)] || "";
+    //增加字符串顺序格式化支持
+    prototype.format = function () {
+
+        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (key) {
+
+            return arguments[key.substring(1, key.length - 1)] || "";
         });
     };
 
 
+    //增加字符串名字格式化支持
+    prototype.format_name = function (value) {
 
-    var prototype = Array.prototype;
+        return !value ? this : this.replace(/\{\w+\}/g, function (key) {
+
+            return value[key.substring(1, key.length - 1)] || "";
+        });
+    };
+
+    //增加字符串顺序格式化支持
+    prototype.trim = function () {
+
+        return arguments.length == 0 ? this : this.replace(/^\s+|\s+$/g, "");
+    };
+
+
+
+
+    prototype = Array.prototype;
 
 
     //移除指定项
@@ -83,7 +78,7 @@ var flyingon_defaults = {
 
 
     //二分法搜索数据段
-    prototype.binaryBetween = function (value, start, end) {
+    prototype.binary_between = function (value, start, end) {
 
         if (start == null || start < 0)
         {
@@ -146,7 +141,7 @@ var flyingon_defaults = {
 
 
     //二分法查找子项位置
-    prototype.binaryIndexOf = function (value, start, end) {
+    prototype.binary_indexOf = function (value, start, end) {
 
         if (start == null || start < 0)
         {
@@ -189,7 +184,7 @@ var flyingon_defaults = {
 
 
     //二分法搜索
-    prototype.binarySearch = function (callbackfn, start, end) {
+    prototype.binary_search = function (callbackfn, start, end) {
 
         if (start == null || start < 0)
         {
@@ -222,6 +217,45 @@ var flyingon_defaults = {
         }
 
         return -1;
+    };
+
+
+    //去重复 
+    //save_after: 为true时保留后面的值
+    prototype.remove_repeat = function (save_after) {
+
+        var keys = {},
+            key;
+
+        if (save_after)
+        {
+            for (var i = this.length; i >= 0; i--)
+            {
+                if (keys[key = this[i]])
+                {
+                    this.removeAt(i);
+                }
+                else
+                {
+                    keys[key] = true;
+                }
+            }
+        }
+        else
+        {
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if (keys[key = this[i]])
+                {
+                    this.removeAt(i);
+                    length--;
+                }
+                else
+                {
+                    keys[key] = true;
+                }
+            }
+        }
     };
 
 
@@ -289,7 +323,7 @@ var flyingon_defaults = {
 
         if (!dom.getContext)
         {
-            alert("对不起,需要支持Html5特性的浏览器才可以运行本系统!");
+            alert(flyingon_setting.html5_not_surpport);
             return false;
         }
 
@@ -376,43 +410,6 @@ var flyingon_defaults = {
         return parseFloat(value);
     };
 
-
-    //处理边框属性如:margin border padding值为标准长度为4的数组
-    flyingon.__fn_thickness__ = function (target, name) {
-
-        var value = target[name];
-
-        if (value == null)
-        {
-            target[name] = [0, 0, 0, 0];
-        }
-        else if (value.constructor == Array)
-        {
-            switch (value.length)
-            {
-                case 0:
-                    target[name] = [0, 0, 0, 0];
-                    break;
-
-                case 1:
-                    value[1] = value[2] = value[3] = value[0];
-                    break;
-
-                case 2:
-                    value[2] = value[0];
-                    value[3] = value[1];
-                    break;
-
-                case 3:
-                    value[3] = value[1];
-                    break;
-            }
-        }
-        else
-        {
-            target[name] = [value = value - 0 || 0, value, value, value];
-        }
-    };
 
 
     //判断目标是否对象或数组(除undefined null boolean number string function外的数据类型)
@@ -535,6 +532,45 @@ var flyingon_defaults = {
     };
 
 
+
+    //编码对象
+    flyingon.encode = function (data) {
+
+        if (data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return values.length > 0 ? values.join("&") : data.toString();
+        }
+
+        return data;
+    };
+
+    //url编码
+    flyingon.encodeURL = function (url, data) {
+
+        if (url && data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
+        }
+
+        return url;
+    };
+
     //解析json数据
     flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
 
@@ -608,10 +644,6 @@ var flyingon_defaults = {
         return this;
     };
 
-
-
-    //合并全局设定
-    flyingon.mearge(flyingon_defaults, flyingon_setting, false);
 
 
 })(flyingon);
@@ -730,49 +762,46 @@ var flyingon_defaults = {
     flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
 
 
-    flyingon.registryClass = function (Class, classFullName) {
+    flyingon.registry_class = function (Class, classFullName) {
 
         flyingon.__registry_list__[classFullName || Class.classFullName] = Class;
     };
 
-    flyingon.unregistryClass = function (classFullName) {
+    flyingon.unregistry_class = function (classFullName) {
 
         delete flyingon.__registry_list__[classFullName];
     };
 
-    flyingon.getRegistryClass = function (classFullName) {
+    flyingon.get_registry_class = function (classFullName) {
 
         return flyingon.__registry_list__[classFullName];
     };
 
 
 
-    var errorMsg = "define class error!",
+    var defineProperty = function (Class, prototype, name, value) {
 
-        defineProperty = function (Class, prototype, name, value) {
-
-            Class[name] = value;
-            prototype["__" + name + "__"] = value;
-            flyingon.defineVariable(prototype, name, value);
-        };
+        Class[name] = value;
+        prototype["__" + name + "__"] = value;
+        flyingon.defineVariable(prototype, name, value);
+    };
 
 
     //定义类方法
-    //extension: 类扩展 必须为函数
+    //body: 扩展代码 必须为函数
     //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.class = function (className, superclass, extension, constructor_merge) {
+    flyingon.class = function (className, superclass, body, constructor_merge) {
 
 
         //处理参数
         if (!className)
         {
-            throw new Error(errorMsg);
+            throw new Error(flyingon_setting.define_class_error.format(className));
         }
 
-        if (extension == null || typeof extension != "function")
+        if (!body || typeof body == "boolean")
         {
-            constructor_merge = extension;
-            extension = superclass;
+            body = superclass;
             superclass = flyingon.RootObject;
         }
         else if (!superclass) //没有指定基类
@@ -780,10 +809,6 @@ var flyingon_defaults = {
             superclass = flyingon.RootObject;
         }
 
-        if (typeof extension != "function") //扩展不是函数
-        {
-            throw new Error(errorMsg);
-        }
 
 
 
@@ -821,13 +846,30 @@ var flyingon_defaults = {
         prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || Object.prototype);  //默认值
 
 
-        flyingon.registryClass(Class); //注册类
+        flyingon.registry_class(Class); //注册类
         namespace[className] = Class; //输出类
 
 
 
         //扩展
-        extension.call(prototype, Class, flyingon);
+        if (typeof body == "function")
+        {
+            body.call(prototype, Class, flyingon);
+        }
+        else//兼容类似{ __init__: function(Class, flyingon) { }, p1: 1 }写法扩展
+        {
+            for (var name in body)
+            {
+                if (name == "__init__" && typeof body[name] == "function") //初始化
+                {
+                    body[name].call(prototype, Class, flyingon);
+                }
+                else
+                {
+                    prototype[name] = body[name];
+                }
+            }
+        }
 
 
 
@@ -836,34 +878,35 @@ var flyingon_defaults = {
         if (superclass_create)
         {
             var Class_create = Class.create,
-                create_chain = superclass.__create_chain__;
+                create_list = superclass.__create_list__;
 
             if (Class_create)
             {
-                //合并构造函数 注:已有构造链时不可以合并
-                if (!create_chain && constructor_merge)
+                //合并构造函数以提升性能 注:已有构造链时不可以合并
+                if (!create_list && constructor_merge)
                 {
                     Class.create = Class_create.merge(superclass_create, true);
                 }
                 else //生成构造链
                 {
-                    (Class.__create_chain__ = (create_chain && create_chain.slice(0)) || [superclass_create]).push(Class_create);
+                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
+                    create_list.push(Class_create);
 
                     Class.create = function () {
 
-                        var create_chain = Class.__create_chain__;
-                        for (var i = 0, length = create_chain.length; i < length; i++)
+                        var list = Class.__create_list__;
+                        for (var i = 0, length = list.length; i < length; i++)
                         {
-                            create_chain[i].apply(this, arguments);
+                            list[i].apply(this, arguments);
                         }
                     };
                 }
             }
             else
             {
-                if (create_chain)
+                if (create_list)
                 {
-                    Class.__create_chain__ = create_chain;
+                    Class.__create_list__ = create_list;
                 }
 
                 Class.create = superclass_create;
@@ -875,151 +918,6 @@ var flyingon_defaults = {
     };
 
 
-
-
-})(flyingon);
-
-
-
-
-
-//系统初始化方法
-(function (flyingon) {
-
-
-    var style_loaded = false;
-
-
-    //加载默认样式
-    function load_default_style() {
-
-        if (!style_loaded)
-        {
-            var data = flyingon.require(flyingon_setting.default_style || "themes/default.js");
-
-            if (data)
-            {
-                flyingon.fonts = data.fonts || {};
-                flyingon.cursors = data.cursors || {};
-                flyingon.images = data.images || {};
-                flyingon.colors = data.colors || {};
-                flyingon.styles = data.styles || {};
-                flyingon.templates = data.templates || {};
-
-                parse_style(flyingon.styles);
-            }
-
-            style_loaded = true;
-        }
-    };
-
-    //复制样式
-    function initialize_style(Class) {
-
-        var subclasses = Class.subclasses;
-        if (subclasses)
-        {
-            var styles = flyingon.styles,
-                templates = flyingon.templates,
-                parent_style = styles[Class.classFullName],
-                parent_template = templates[Class.classFullName];
-
-            for (var i = 0, length = subclasses.length; i < length; i++)
-            {
-                var target = subclasses[i],
-                    className = target.className,
-                    style = styles[className] || (styles[className] = {}),
-                    template = templates[className] || (templates[className] = {});
-
-
-                //复制上级样式
-                if (parent_style)
-                {
-                    flyingon.mearge(parent_style, style, true);
-                }
-
-                //复制上级模板
-                if (parent_template)
-                {
-                    flyingon.mearge(parent_template, template, true);
-                }
-
-
-                //递归
-                initialize_style(target);
-            }
-        }
-    };
-
-
-    function parse_thickness(name) {
-
-        this[name] = new flyingon.Thickness(this[name]);
-    };
-
-
-    var parse_setting = {
-
-        margin: parse_thickness,
-        border: parse_thickness,
-        padding: parse_thickness
-    };
-
-
-    function parse_style(target) {
-
-        var names = Object.keys(target),
-            name,
-            value,
-            fn;
-
-        for (var i = 0, length = names.length; i < length; i++)
-        {
-            if ((name = names[i]) && (fn = parse_setting[name]))
-            {
-                fn.call(target, name);
-            }
-            else if ((value = target[name]) && typeof value == "object" && value.constructor != Array)
-            {
-                parse_style(value);
-            }
-        }
-
-    };
-
-
-
-    //加载样式
-    flyingon.load_style = function (url) {
-
-        if (url)
-        {
-            load_default_style();
-
-            var data = flyingon.require(url);
-
-            if (data)
-            {
-                parse_style(data);
-                flyingon.mearge(data, flyingon);
-            }
-        }
-    };
-
-
-
-    //初始化系统
-    flyingon.initialize = function (reset) {
-
-        if (flyingon.Control)
-        {
-            //加载默认样式
-            load_default_style();
-
-            //初始化控件样式
-            initialize_style(flyingon.Control);
-        }
-    };
 
 
 })(flyingon);

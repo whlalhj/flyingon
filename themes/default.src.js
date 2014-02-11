@@ -2,8 +2,14 @@
 (function (flyingon) {
 
 
+
     //结果对象
     var result = {};
+
+
+    //当前语言
+    var language = flyingon_setting.language;
+
 
 
 
@@ -307,22 +313,22 @@
     可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
     */
     (function (flyingon) {
-
+        
 
         var fonts = result.fonts = {};
 
 
         //普通字体
-        var normal = fonts["normal"] = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
+        var normal = fonts.normal = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
 
         //粗体
-        fonts["bold"] = normal.deriveBold();
+        fonts.bold = normal.deriveBold();
 
         //斜体
-        fonts["italic"] = normal.deriveItalic();
+        fonts.italic = normal.deriveItalic();
 
         //粗斜体
-        fonts["bold-italic"] = normal.deriveBoldItalic();
+        fonts.bold_italic = normal.deriveBoldItalic();
 
 
     })(flyingon);
@@ -338,359 +344,345 @@
     (function (flyingon) {
 
 
-        var styles = result.styles = {};
+        result.styles = {
 
 
+            //默认控件样式
+            Control: {
 
-        //默认控件样式
-        styles["Control"] = {
+                //宽度 default|fill|auto|number|number%
+                width: "default",
 
-            //宽度 default|fill|auto|number|number%
-            width: "default",
+                //高度 default|fill|auto|number|number%
+                height: "default",
 
-            //高度 default|fill|auto|number|number%
-            height: "default",
+                //外边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+                margin: 0,
 
-            //外边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
-            margin: 0,
+                //边框 上->右->下-左       示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+                border: 0,
 
-            //边框 上->右->下-左       示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
-            border: 0,
+                //内边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
+                padding: 0,
 
-            //内边距 上->右->下-左     示例: 5 | "5,5" | "5,5,5" | "5,5,5,5" | [5,5] | [5,5,5] | [5,5,5,5]
-            padding: 0,
+                //字体
+                font: "normal",
 
-            //字体
-            font: "normal",
+                //光标
+                cursor: "default",
 
-            //光标
-            cursor: "default",
+                //透明度
+                opacity: 1,
 
-            //透明度
-            opacity: 1,
+                //背景色
+                background: null,
 
-            //背景色
-            background: null,
+                //前景色
+                foreground: "control-text",
 
-            //前景色
-            foreground: "control-text",
+                //边框颜色
+                borderColor: "control-border",
 
-            //边框颜色
-            borderColor: "control-border",
+                //边框圆角
+                borderRadius: 0,
 
-            //边框圆角
-            borderRadius: 0,
-
-            //装饰
-            decorates: null,
+                //装饰
+                decorates: null,
 
 
-            //状态组 同一组互斥 不同组属性叠加 按定义顺序后面冲前面
-            /*
-            common-states:  普通状态组(enter-animate disabled pressed)
-            check-states:   选中状态组(checked unchecked unkown)
-            focus-states:   焦点状态组(focused leave-animate)
-            hover-states:   鼠标悬停状态组(hover leave-animate)
-            */
-            states: {
+                //状态组 同一组互斥 不同组属性叠加 按定义顺序后面冲前面
+                /*
+                common-states:  普通状态组(enter-animate disabled pressed)
+                check-states:   选中状态组(checked unchecked unkown)
+                focus-states:   焦点状态组(focused leave-animate)
+                hover-states:   鼠标悬停状态组(hover leave-animate)
+                */
+                states: {
 
-                "common-states": {
-
-                    //状态切入时动画
-                    "enter-animate": null,
-
-                    //禁用状态
-                    disabled: {
-
-                        background: null,
-
-                        foreground: "disabled-text",
-
-                        borderColor: "disabled-border",
+                    "common-states": {
 
                         //状态切入时动画
-                        "enter-animate": null
+                        "enter-animate": null,
+
+                        //禁用状态
+                        disabled: {
+
+                            background: null,
+
+                            foreground: "disabled-text",
+
+                            borderColor: "disabled-border",
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        },
+
+                        //按下状态
+                        pressed: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        }
                     },
 
-                    //按下状态
-                    pressed: {
+                    "check-states": {
 
-                        //状态切入时动画
-                        "enter-animate": null
+                        //选中时
+                        checked: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        },
+
+                        //未选中时
+                        unchecked: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        },
+
+                        //未知
+                        unkown: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        }
+                    },
+
+                    "focus-states": {
+
+                        //获取焦点时
+                        focused: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        },
+
+                        //失去焦点时动画
+                        "leave-animate": null
+                    },
+
+                    "hover-states": {
+
+                        //鼠标悬停时
+                        hover: {
+
+                            //状态切入时动画
+                            "enter-animate": null
+                        },
+
+                        //鼠标离开时动画
+                        "leave-animate": null
                     }
-
-                },
-
-
-                "check-states": {
-
-                    //选中时
-                    checked: {
-
-                        //状态切入时动画
-                        "enter-animate": null
-                    },
-
-                    //未选中时
-                    unchecked: {
-
-                        //状态切入时动画
-                        "enter-animate": null
-                    },
-
-                    //未知
-                    unkown: {
-
-                        //状态切入时动画
-                        "enter-animate": null
-                    }
-                },
-
-
-                "focus-states": {
-
-                    //获取焦点时
-                    focused: {
-
-                        //状态切入时动画
-                        "enter-animate": null
-                    },
-
-                    //失去焦点时动画
-                    "leave-animate": null
-                },
-
-
-                "hover-states": {
-
-                    //鼠标悬停时
-                    hover: {
-
-                        //状态切入时动画
-                        "enter-animate": null
-                    },
-
-                    //鼠标离开时动画
-                    "leave-animate": null
                 }
 
-            }
-
-        };
+            },
 
 
 
-        //滚动条样式
-        styles["ScrollBase"] = {
+            //滚动条样式
+            ScrollBase: {
 
-            //背景色
-            background: "dark-back",
+                //背景色
+                background: "dark-back",
 
-            //箭头背景
-            arrowBackground: "control-back",
+                //箭头背景
+                arrowBackground: "control-back",
 
-            //向左箭头图片
-            arrowLeftImage: null,
+                //向左箭头图片
+                arrowLeftImage: null,
 
-            //向上箭头图片
-            arrowUpImage: null,
+                //向上箭头图片
+                arrowUpImage: null,
 
-            //向右箭头图片
-            arrowRightImage: null,
+                //向右箭头图片
+                arrowRightImage: null,
 
-            //向下箭头图片
-            arrowDownImage: null,
+                //向下箭头图片
+                arrowDownImage: null,
 
-            //滑块背景
-            sliderBackground: null,
+                //滑块背景
+                sliderBackground: null,
 
-            //滑块图片
-            sliderImage: null,
+                //滑块图片
+                sliderImage: null,
 
+                states: {
 
-            states: {
+                    "hover-states": {
 
-                "hover-states": {
+                        hover: {
 
-                    hover: {
+                            background: "yellow",
 
-                        background: "yellow",
+                            "enter-animate": null
+                        },
 
-                        "enter-animate": null
-                    },
-
-                    "leave-animate": null
+                        "leave-animate": null
+                    }
                 }
-            }
 
-        };
-
+            },
 
 
 
-        //内容控件样式
-        styles["ContentControl"] = {
+            //内容控件样式
+            ContentControl: {
 
 
-        };
-
-
-
-        //面板控件样式
-        styles["Panel"] = {
-
-
-        };
+            },
 
 
 
+            //面板控件样式
+            Panel: {
 
-        //文本框样式
-        styles["TextBoxBase"] = {
 
-            background: "window-back",
+            },
 
-            border: 1,
 
-            cursor: "text",
 
-            states: {
+            //文本框样式
+            TextBoxBase: {
 
-                "hover-states": {
+                background: "window-back",
 
-                    hover: {
+                border: 1,
 
-                        decorates: [{
+                cursor: "text",
 
-                            className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
+                states: {
 
-                                className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
+                    "hover-states": {
+
+                        hover: {
+
+                            decorates: [{
+
+                                className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
+
+                                    className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
+                                }]
                             }]
-                        }]
+                        }
                     }
                 }
-            }
 
-        };
-
+            },
 
 
 
-        //文本框样式
-        styles["ListBox"] = {
+            //文本框样式
+            ListBox: {
 
-            background: "window-back",
+                background: "window-back",
 
-            border: 1
-        };
-
-
-        //文本框样式
-        styles["Button"] = {
-
-            background: "button-background",
-
-            border: 1,
-
-            borderRadius: 0,
-
-            cursor: "pointer"
-
-        };
+                border: 1
+            },
 
 
 
-        styles["Window"] = {
+            //文本框样式
+            Button: {
+
+                background: "button-background",
+
+                border: 1,
+
+                borderRadius: 0,
+
+                cursor: "pointer"
+
+            },
 
 
-            background: "window-back"
 
-        };
+            Window: {
 
+                background: "window-back"
+            },
 
+            ".window-icon": {
 
+                image: "window-icon"
+            },
 
-        styles["window-icon"] = {
+            ".window-close": {
 
-            image: "window-icon"
-        };
+                image: "window-close",
 
-        styles["window-close"] = {
+                states: {
 
-            image: "window-close",
+                    "hover-states": {
 
-            states: {
+                        hover: {
 
-                "hover-states": {
+                            background: "white",
 
-                    hover: {
-
-                        background: "white",
-
-                        image: "window-close-hover"
+                            image: "window-close-hover"
+                        }
                     }
                 }
-            }
-        };
+            },
 
-        styles["window-maximize"] = {
+            ".window-maximize": {
 
-            image: "window-maximize",
+                image: "window-maximize",
 
-            states: {
+                states: {
 
-                "hover-states": {
+                    "hover-states": {
 
-                    hover: {
+                        hover: {
 
-                        background: "white",
+                            background: "white",
 
-                        image: "window-maximize-hover"
+                            image: "window-maximize-hover"
+                        }
                     }
                 }
-            }
-        };
+            },
 
-        styles["window-minimize"] = {
+            ".window-minimize": {
 
-            image: "window-minimize",
+                image: "window-minimize",
 
-            states: {
+                states: {
 
-                "hover-states": {
+                    "hover-states": {
 
-                    hover: {
+                        hover: {
 
-                        background: "white",
+                            background: "white",
 
-                        image: "window-minimize-hover"
+                            image: "window-minimize-hover"
+                        }
                     }
                 }
+            },
+
+
+            WindowTitleBar: {
+
+                width: "fill",
+
+                height: "fill",
+
+                background: "window-title-background",
+
+                border: 1
+            },
+
+
+            ChildWindow: {
+
+                background: "window-back",
+
+                border: 1
             }
-        };
 
-        styles["WindowTitleBar"] = {
-
-            width: "fill",
-
-            height: "fill",
-
-            background: "window-title-background",
-
-            border: 1,
 
         };
-
-
-        styles["ChildWindow"] = {
-
-
-            background: "window-back",
-
-            border: 1,
-
-        };
-
 
 
 
@@ -708,10 +700,11 @@
     (function (flyingon) {
 
 
-        var templates = result.templates = {};
+        result.templates = {
 
 
 
+        };
 
 
     })(flyingon);

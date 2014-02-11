@@ -113,20 +113,13 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
     //自定义序列化
     this.serialize = function (writer) {
 
-        var fields = this.__fields__,
-            keys = Object.keys(fields),
-            key;
-
-        for (var i = 0, length = keys.length; i < length; i++)
-        {
-            writer.object(key = keys[i], fields[key]);
-        }
+        writer.properties(this.__fields__);
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        reader.object(this, "__fields__", data);
+        reader.properties(this.__fields__, data, except);
     };
 
 

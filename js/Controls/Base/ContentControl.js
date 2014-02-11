@@ -68,14 +68,14 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-    //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    //查找指定位置的控件
+    this.find_control = function (x, y) {
 
         var content = this.__content__;
 
         if (content && content.hitTest(x, y))
         {
-            return content.getControlAt ? content.getControlAt(x, y) : content;
+            return content.find_control ? content.find_control(x, y) : content;
         }
 
         return this;
@@ -96,10 +96,12 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
         writer.object("content", this.__content__);
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.ContentControl.super.deserialize.call(this, reader, data);
-        reader.object(this, "__content__", data["content"]);
+        excludes.__content__ = true;
+
+        flyingon.ContentControl.super.deserialize.call(this, reader, data, except);
+        reader.object(this, "__content__", data.content);
     };
 
 

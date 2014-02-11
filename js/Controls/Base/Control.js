@@ -18,7 +18,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
-    this.__reference__ = true;
+    this.serialize_reference = true;
 
 
 
@@ -115,20 +115,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return control ? control.isParent(this) : false;
     };
 
-    //获取当前控件的上级控件列表(按从上到下的顺序显示)
-    this.getParentList = function () {
-
-        var result = [],
-            parent = this.__parent__;
-
-        while (parent)
-        {
-            result.unshift(parent);
-            parent = parent.__parent__;
-        }
-
-        return result;
-    };
 
     //从父控件中移除自身
     this.remove = function () {
@@ -266,19 +252,61 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    //指定样式Key
-    this.defineProperty("styleKey", null, {
+    //指定样式名(类似html节点的className,多个名称可用空格分隔)
+    this.defineProperty("styleName", null, {
 
-        attributes: "invalidate",
-        changed: "this.__fn_style__ = null;"
+        attributes: "invalidate|query",
+        changing: "if (value) value = value.replace(/^\s+|\s+$/g, '');",
+        changed: "this.__fn_style__ = null;\nthis.__styles__ = value ? value.split(/\s+/g) : [];"
     });
+
+    //添加样式(多个名称可用空格分隔)
+    this.addStyle = function (styleName) {
+
+        if (styleName && (styleName = styleName.replace(/^\s+|\s+$/g, "")))
+        {
+            this.styleName += styleName;
+            this.__styles__.remove_repeat(true);
+        }
+    };
+
+    //移除样式(多个名称可用空格分隔)
+    this.removeStyle = function (styleName) {
+
+        var styles;
+
+        if (styleName && (styles = this.__styles__) && (styleName = styleName.replace(/^\s+|\s+$/g, "")))
+        {
+            var names = styleName.split(/\s+/g),
+                index,
+                value;
+
+            for (var i = 0, length = names[i]; i < length; i++)
+            {
+                if ((index = styles.indexOf(names[i])) >= 0)
+                {
+                    styles.removeAt(index);
+                    value = true;
+                }
+            }
+
+            if (value)
+            {
+                this.styleName = styles.join(" ");
+            }
+        }
+    };
+
 
     //自定义样式
     this.defineProperty("style", null, {
 
-        attributes: "invalidate",
+        attributes: "invalidate|query",
         changed: "this.__fn_style__ = null;"
     });
+
+
+
 
     /*
     预定义状态组:
@@ -329,11 +357,11 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //缓存获取样式方法以加快检索
     this.__fn_style_template__ = function () {
 
-        var fields = this.__fields__,
+        var result = [],
+            fields = this.__fields__,
             states = this.__states__,
             statesName,
-            stateName,
-            result = [];
+            stateName;
 
 
         for (var i = states.length - 1; i >= 0; i--)
@@ -359,6 +387,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         var body = result.join(""); //方法片断
 
+
         result.length = 0;
         result.push("var result, style;\n");
 
@@ -372,12 +401,15 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         result.push("var styles = flyingon.styles;\n");
 
-        if (fields.styleKey)
+        if (fields.__styles__)
         {
-            result.push("if (style = styles[\"" + fields.styleKey + "\"])\n");
-            result.push("{\n");
-            result.push(body);
-            result.push("}\n");
+            for (var i = 0, length = fields.__styles__.length; i < length; i++)
+            {
+                result.push("if (style = styles[\"." + fields.__styles[i] + "\"])\n");
+                result.push("{\n");
+                result.push(body);
+                result.push("}\n");
+            }
         }
 
         result.push("if (style = styles[\"" + this.__classFullName__ + "\"])\n");

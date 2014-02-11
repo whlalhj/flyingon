@@ -117,9 +117,9 @@ flyingon.class("Collection", function (Class, flyingon) {
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        reader.array(this, "__items__", data["items"]);
+        reader.array(this, "__items__", data.items);
     };
 
 

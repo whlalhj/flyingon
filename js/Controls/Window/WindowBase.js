@@ -123,7 +123,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
     //获取活动窗口
-    this.getActivateWindow = function () {
+    this.get_activateWindow = function () {
 
         var result = this,
             activateWindow;
@@ -223,7 +223,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         for (var i = this.layers.length - 1; i >= 0; i--)
         {
@@ -231,7 +231,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
             {
-                return flyingon.WindowBase.super.getControlAt.call(layer, x, y);
+                return flyingon.WindowBase.super.find_control.call(layer, x, y);
             }
         }
 
@@ -280,7 +280,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         var source = flyingon.__hover_control__,
-            target = this.getControlAt(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
+            target = this.find_control(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
 
         if (target != source)
         {
@@ -320,7 +320,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.mainWindow.getActivateWindow()) //活动窗口不是当前点击窗口
+        if (ownerWindow != ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
         {
             ownerWindow.activate(true);
         }

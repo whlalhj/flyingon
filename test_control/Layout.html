@@ -54,18 +54,21 @@
 
     </script>
 
+    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
 
 
     <script type="text/javascript">
 
+
+
         var w = new flyingon.Window(host);
+
+        var selector = flyingon(w);
 
 
         alert(new Date() - date);
 
-    
-   
 
         w.layout = "flow";
 
@@ -120,12 +123,12 @@
 
                         case 3:
                             ctrl.dock = "bottom";
+                            ctrl.width = "fill";
+                            ctrl.height = "fill";
                             break;
 
                         case 4:
                             ctrl.dock = "fill";
-                            ctrl.width = "fill";
-                            ctrl.height = "fill";
                             break;
                     }
 
@@ -179,7 +182,7 @@
 
             var date = new Date();
 
-            w.children.item(0)["border"] = [20, 20, 20, 20];
+            w.children.item(0).border = [20, 20, 20, 20];
             w.update();
 
             alert(new Date() - date);

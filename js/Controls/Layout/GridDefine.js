@@ -308,11 +308,11 @@
     };
 
 
-    prototype.serialize = function () {
+    prototype.serialize = function (writer) {
 
     };
 
-    prototype.deserialize = function (value) {
+    prototype.deserialize = function (reader, value, except) {
 
 
     };

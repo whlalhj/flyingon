@@ -124,7 +124,7 @@
         }
 
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(columnIndex),
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(columnIndex),
             word = this[index],
             charIndex = columnIndex - this.__cache1__[index];
 
@@ -143,7 +143,7 @@
     //查找指定位置的文字信息
     prototype.charAt = function (x) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(x),
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(x),
             word = this[index],
             charIndex,
             x;

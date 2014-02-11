@@ -4,7 +4,7 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         if (!this.__designMode__) //未实现
         {
@@ -12,7 +12,7 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
 
             if (content && content.hitTest(x, y))
             {
-                return content.getControlAt ? content.getControlAt(x, y) : content;
+                return content.find_control ? content.find_control(x, y) : content;
             }
         }
 

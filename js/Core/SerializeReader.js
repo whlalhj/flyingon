@@ -132,40 +132,11 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             if (result.deserialize)
             {
-                result.deserialize(this, value);
+                result.deserialize(this, value, {});
             }
             else
             {
-                var keys = Object.keys(value);
-
-                for (var i = 0, length = keys.length; i < length; i++)
-                {
-                    var key = keys[i],
-                        item = value[key];
-
-                    if (item != null)
-                    {
-                        switch (typeof item)
-                        {
-                            case "object":
-                                if (item instanceof Array)
-                                {
-                                    item = this.array(null, null, item);
-                                }
-                                else if (flyingon.isObject)
-                                {
-                                    item = this.object(null, null, item);
-                                }
-                                break;
-
-                            case "function":
-                                item = item ? new Function("" + item) : null;
-                                break;
-                        }
-                    }
-
-                    result[key] = item;
-                }
+                this.properties(result, value);
             }
 
             return result;
@@ -176,6 +147,47 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
         }
 
         return null;
+    };
+
+
+    this.properties = function (target, value, excludes) {
+
+        var keys = Object.keys(value),
+            key,
+            item;
+
+        for (var i = 0, length = keys.length; i < length; i++)
+        {
+            key = keys[i];
+
+            if (excludes && excludes[key])
+            {
+                continue;
+            }
+
+            if ((item = value[key]) != null)
+            {
+                switch (typeof item)
+                {
+                    case "object":
+                        if (item instanceof Array)
+                        {
+                            item = this.array(null, null, item);
+                        }
+                        else if (flyingon.isObject)
+                        {
+                            item = this.object(null, null, item);
+                        }
+                        break;
+
+                    case "function":
+                        item = item ? new Function("" + item) : null;
+                        break;
+                }
+            }
+
+            target[key] = item;
+        }
     };
 
 
@@ -265,7 +277,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
     this.bindings = function (target, data) {
 
-        if (target && (data = data["bindings"]))
+        if (target && (data = data.bindings))
         {
             this.__bindings__ || (this.__bindings__ = []).push([target, data]);
         }

@@ -5,7 +5,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
     Class.create = function () {
 
-        this.__fields__.__items__ = new flyingon.ItemCollection(this);
+        this.__items__ = new flyingon.ItemCollection(this);
     };
 
 
@@ -22,15 +22,15 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         function () {
 
-            return this.__fields__.__items__;
+            return this.__items__;
         },
 
         function (value) {
 
-            var oldValue = this.__fields__.__items__;
+            var oldValue = this.__items__;
             if (oldValue != value)
             {
-                this.__fields__.__items__ = value;
+                this.__items__ = value;
 
                 //
             }
@@ -119,17 +119,19 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         flyingon.SerializableObject.prototype.serialize.call(this, writer);
 
-        var items = this.__items__.__items__;
+        var items = this.__items__;
         if (items && items.length > 0)
         {
             writer.array(items_name, items);
         }
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data);
-        reader.array(this.__items__ || (this.__items__ = new flyingon.ItemCollection()), "__items__", data[items_name]);
+        except[items_name] = true;
+
+        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data, except);
+        reader.array(this.__items__, "__items__", data[items_name]);
     };
 
 };

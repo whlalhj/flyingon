@@ -19,8 +19,10 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         div.appendChild(this.dom_window);
 
         //添加至指定dom
-        (parentNode || flyingon.__window_host__ || document.body).appendChild(div);
-
+        if (parentNode)
+        {
+            parentNode.appendChild(div);
+        }
 
 
         //定义主窗口变更
@@ -42,12 +44,33 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
+
+    //父dom节点
+    flyingon.defineProperty(this, "parentNode",
+
+        function () {
+
+            return this.dom_host.parentNode;
+        },
+
+        function (value) {
+
+            if (value)
+            {
+                value.appendChild(this.dom_host);
+            }
+        });
+
+
+
+
     //刷新窗口
     this.update = function () {
 
         var r = this.__fn_getBoundingClientRect__(true);
         this.__fn_resize__(0, 0, r.width, r.height);
     };
+
 
 
 }, true);

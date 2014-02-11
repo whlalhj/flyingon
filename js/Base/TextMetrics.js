@@ -113,13 +113,13 @@
             textIndex = 0;
         }
 
-        return this[(this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex)];
+        return this[(this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex)];
     };
 
     //查找指定位置的行信息
     prototype["line-at"] = function (y) {
 
-        return this[(this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y)];
+        return this[(this.__cache2__ || initialize.call(this).__cache2__).binary_between(y)];
     };
 
     //获取指定索引的字符信息
@@ -130,7 +130,7 @@
             textIndex = 0;
         }
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binaryBetween(textIndex),
+        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex),
             start = this.__cache1__[index],
             result = this[index].charBy(textIndex - start);
 
@@ -143,7 +143,7 @@
     //查找指定位置的字符信息
     prototype.charAt = function (x, y) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binaryBetween(y),
+        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(y),
             result = this[index].charAt(x);
 
         result.lineIndex = index;

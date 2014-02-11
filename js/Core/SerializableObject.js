@@ -5,14 +5,19 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //客户端唯一Id
-    var uniqueId = 0;
+    flyingon.__uniqueId__ = 0;
 
     //自动名称
-    var auto_name = 0;
+    flyingon.__auto_name__ = 0;
+
+
 
 
     Class.create = function () {
 
+
+        //唯一id
+        this.__uniqueId__ = (++flyingon.__uniqueId__);
 
         //变量管理器
         this.__fields__ = Object.create(this.__defaults__);
@@ -25,14 +30,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //唯一Id
     flyingon.newId = function () {
 
-        return "id" + (++uniqueId);
+        return ++flyingon.__uniqueId__;
     };
 
 
 
     flyingon.defineProperty(this, "uniqueId", function () {
 
-        return this.__uniqueId__ || (this.__uniqueId__ = "id" + (++uniqueId));
+        return this.__uniqueId__;
     });
 
 
@@ -167,14 +172,28 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
             flyingon.defineProperty(this, name, getter, setter);
 
-            if (setter && attributes.autoset !== false)
+
+            //扩展至选择器(样式属性直接扩展)
+            if (attributes.query || attributes.style)
             {
-                this["set_" + name] = setter;
+                var body = "if (value === undefined)\n"
+                    + "{\n"
+                    + "return this.length > 0 ? this[0]." + name + " : defaultValue;\n"
+                    + "}\n"
+
+                    + "for (var i = 0, length = this.length; i < length; i++)\n"
+                    + "{\n"
+                    + "this[i]." + name + " = value;\n"
+                    + "}\n"
+
+                    + "return this;";
+
+                flyingon.query[name] = new Function("value", body);
             }
         }
     };
 
-    //定义多个属性及set_XXX方法
+    //定义多个属性
     this.defineProperties = function (names, defaultValue, attributes) {
 
         for (var i = 0; i < names.length; i++)
@@ -188,17 +207,15 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //定义事件 name为不带on的事件名
     this.defineEvent = function (name) {
 
-        flyingon.defineProperty(this, "on" + name, null,
+        flyingon.defineProperty(this, "on" + name, null, function (fn) {
 
-            function (listener) {
+            var events = (this.__events__ || (this.__events__ = {}))[name];
 
-                var events = (this.__events__ || (this.__events__ = {}))[name];
+            events ? (events.length > 0 && (events.length = 0)) : (events = this.__events__[name] = []);
+            events.push(fn);
 
-                events ? (events.length > 0 && (events.length = 0)) : (events = this.__events__[name] = []);
-                events.push(listener);
-
-                return this;
-            });
+            return this;
+        });
     };
 
     //定义多个事件 names为不带on的事件名数组
@@ -212,35 +229,31 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //绑定事件处理 注:type不带on
-    this.addEventListener = function (type, listener) {
+    this.addEventListener = function (type, fn) {
 
-        if (listener)
+        if (fn)
         {
             var events = (this.__events__ || (this.__events__ = {}));
-            (events[type] || (events[type] = [])).push(listener);
+            (events[type] || (events[type] = [])).push(fn);
         }
 
         return this;
     };
 
     //移除事件处理
-    this.removeListener = function (type, listener) {
+    this.removeListener = function (type, fn) {
 
         var events = this.__events__;
 
         if (events && (events = events[type]))
         {
-            if (listener == null)
+            if (fn == null)
             {
                 events.length = 0;
             }
-            else
+            else if ((events.indexOf(fn)) >= 0)
             {
-                var index = events.indexOf(listener);
-                if (index >= 0)
-                {
-                    events.splice(index, 1);
-                }
+                events.splice(fn, 1);
             }
         }
 
@@ -334,7 +347,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
-    this.__reference__ = false;
+    this.serialize_reference = false;
 
     //对象名称
     this.defineProperty("name", null);
@@ -376,11 +389,6 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         if (name && source)
         {
-            if (!source.name)
-            {
-                source.name = "auto_name_" + (++auto_name);
-            }
-
             var binding = new flyingon.DataBinding(source, expression || name, setter);
 
             binding.__fn_initialize__(this, name);
@@ -423,17 +431,22 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //自定义序列化
     this.serialize = function (writer) {
 
-        writer.object("fields", this.__fields__);
+        writer.properties(this.__fields__);
         writer.bindings(this);
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        var fields = reader.object(this, "__fields__", data["fields"]);
+        if (data.bindings)
+        {
+            except.bindings = true;
+        }
 
+        reader.properties(this.__fields__, data, except);
         reader.bindings(this, data);
-        if (fields && fields.name)
+
+        if (this.__fields__.name)
         {
             (reader.references || (reader.references = {}))[fields.name] = this;
         }

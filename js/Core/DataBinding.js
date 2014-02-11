@@ -298,11 +298,11 @@
         writer.string("setter", this.__setter__);
     };
 
-    prototype.deserialize = function (reader, data) {
+    prototype.deserialize = function (reader, data, except) {
 
-        reader.reference(this, "__source__", data["source"]);
-        reader.string(this, "__expression__", data["expression"]);
-        reader.string(this, "__setter__", data["setter"]);
+        reader.reference(this, "__source__", data.source);
+        reader.string(this, "__expression__", data.expression);
+        reader.string(this, "__setter__", data.setter);
     };
 
 

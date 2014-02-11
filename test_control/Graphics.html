@@ -27,6 +27,7 @@
     </div>
 
 
+    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
 
 
@@ -56,26 +57,20 @@
 
                     ctrl.width = 80;
                     ctrl.height = 20;
-                    ctrl["border"] = [1, 1, 1, 1];
-                    ctrl["borderColor"] = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "blue"]]);
+                    ctrl.border = [1, 1, 1, 1];
+                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "blue"]]);
                     ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
 
                     panel.children.append(ctrl);
                 }
 
-                //panel.width = 500;
-                //panel.height = 500;
-                //panel["border"] = [10,10,10,10];
-                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                //panel.layout = "flow";
-
-                panel.set_width(650)
-                   .set_height(400)
-                   .set_border([10, 10, 10, 10])
-                   .set_background(new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]));
-
+                panel.width = 500;
+                panel.height = 500;
+                panel["border"] = [10,10,10,10];
+                panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                panel.layout = "flow";
+   
                 w.children.append(panel);
-
             };
 
             w.onmouseover = function (e) {

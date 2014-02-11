@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--以IE的当前版本渲染,如果安装了ChromeFrame则优先使用-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title></title>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+<body style="margin: 0;">
+
+    <div style="width: 100%; height: 100%;">
+        <div id="drag" style="background-color: yellow;">
+
+
+            <input type="button" value="Create" onclick="create()" />
+            <input type="button" value="Paint" onclick="paint()" />
+            <input type="button" value="changeBoxModel" onclick="changeBoxModel()" />
+            <input type="button" value="resize" onclick="resize()" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="line" onclick="layout('line')" />
+            <input type="button" value="flow" onclick="layout('flow')" />
+            <input type="button" value="single" onclick="layout('single')" />
+            <input type="button" value="dock" onclick="layout('dock')" />
+            <input type="button" value="queue" onclick="layout('queue')" />
+            <input type="button" value="grid" onclick="layout('grid')" />
+            <input type="button" value="absolute" onclick="layout('absolute')" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="horizontal" onclick="direction('horizontal')" />
+            <input type="button" value="vertical" onclick="direction('vertical')" />
+
+            <span style="width: 10px"></span>
+            <input type="button" value="mirror-none" onclick="mirror('none')" />
+            <input type="button" value="mirror-x-axis" onclick="mirror('x-axis')" />
+            <input type="button" value="mirror-y-axis" onclick="mirror('y-axis')" />
+            <input type="button" value="mirror-origin" onclick="mirror('origin')" />
+        </div>
+
+        <div id="host" style="width: 100%; height: 100%;">
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+
+        var date = new Date();
+
+    </script>
+
+    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
+    <script type="text/javascript" src="../js/flyingon.js"></script>
+
+
+    <script type="text/javascript">
+
+        //var selector = 'Panel,Repeater .button[text="确定",name="button1"][isMouseOver=false] :checked';
+        var selector = 'Panel Repeater>.button[text="确定",name="button1"][isMouseOver=false] :checked';
+
+        //var date = new Date();
+
+        //for (var i = 0; i < 10000; i++)
+        //{
+        var parser = new flyingon.QueryParser(selector);
+        var ast = parser.ast;
+        //}
+
+        //alert(new Date() - date);
+
+
+
+        //var w = new flyingon.Window(host);
+
+        //var selector = flyingon(w);
+
+
+        //alert(new Date() - date);
+
+
+        //w.layout = "flow";
+
+
+
+
+        //function create() {
+
+
+        //    var date = new Date();
+
+        //    flyingon.beginInit();
+        //    w.layout = "flow";
+
+
+        //    for (var k = 0; k < 200; k++)
+        //    {
+        //        var panel = new flyingon.Panel();
+
+        //        for (var i = 0; i < 50; i++)
+        //        {
+
+        //            var ctrl = new flyingon.Button();
+
+        //            ctrl.left = i % 5 * 100;
+        //            ctrl.top = i / 5 * 30;
+
+        //            ctrl.width = 20;
+        //            ctrl.height = 21;
+        //            //ctrl.margin = "10, 10, 10, 10";
+        //            ctrl.border = "1, 1, 1, 1";
+        //            ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
+        //            ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+        //            ctrl.horizontalAlign = "center";
+        //            ctrl.verticalAlign = "center";
+
+        //            panel.children.append(ctrl);
+
+        //            switch (i % 5)
+        //            {
+        //                case 0:
+        //                    ctrl.dock = "left";
+        //                    break;
+
+        //                case 1:
+        //                    ctrl.dock = "top";
+        //                    break;
+
+        //                case 2:
+        //                    ctrl.dock = "right";
+        //                    break;
+
+        //                case 3:
+        //                    ctrl.dock = "bottom";
+        //                    ctrl.width = "fill";
+        //                    ctrl.height = "fill";
+        //                    break;
+
+        //                case 4:
+        //                    ctrl.dock = "fill";
+        //                    break;
+        //            }
+
+        //        }
+
+
+
+
+        //        //panel.width = "auto";
+        //        //panel.height = "auto";
+        //        //panel.width = 600;
+        //        //panel.height = 400;
+        //        panel.margin = "5, 5, 5, 5";
+        //        panel.border = "1, 1, 1, 1";
+        //        panel.padding = "0, 0, 0, 0";
+        //        panel.borderColor = "orange";
+        //        //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+        //        panel.layout = "line";
+        //        panel.spaceX = 5;
+        //        panel.spaceY = 5;
+        //        panel.lineHeight = 50;
+        //        panel.lineWidth = 160;
+        //        panel.rows = 4;
+        //        panel.columns = 4;
+        //        panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+
+
+        //        w.children.append(panel);
+
+        //    }
+
+
+
+        //    flyingon.endInit();
+        //    alert(new Date() - date);
+
+        //    w.update();
+
+        //};
+
+        //function paint() {
+
+        //    var date = new Date();
+
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+        //function changeBoxModel() {
+
+        //    var date = new Date();
+
+        //    w.children.item(0).border = [20, 20, 20, 20];
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+        //function resize() {
+
+        //    var date = new Date();
+
+        //    for (var i = 0; i < w.children.length; i++)
+        //    {
+        //        var panel = w.children.item(i);
+        //        panel.height += 100;
+        //    }
+
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+
+        //function layout(value) {
+
+        //    var date = new Date();
+
+        //    for (var i = 0; i < w.children.length; i++)
+        //    {
+        //        var panel = w.children.item(i);
+        //        panel.layout = value;
+        //    }
+
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+
+        //function mirror(value) {
+
+        //    var date = new Date();
+
+        //    for (var i = 0; i < w.children.length; i++)
+        //    {
+        //        var panel = w.children.item(i);
+        //        panel.mirror = value;
+        //    }
+
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+
+        //function direction(value) {
+
+        //    var date = new Date();
+
+        //    for (var i = 0; i < w.children.length; i++)
+        //    {
+        //        var panel = w.children.item(i);
+        //        panel.orientation = value;
+        //    }
+
+        //    w.update();
+
+        //    alert(new Date() - date);
+        //};
+
+
+    </script>
+
+</body>
+</html>

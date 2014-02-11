@@ -115,12 +115,12 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
             case "decreaseMax":
                 step = -this.max_step;
-                limit = this.getValueAt(event.controlX, event.controlY, false);
+                limit = this.get_value(event.controlX, event.controlY, false);
                 break;
 
             case "increaseMax":
                 step = this.max_step;
-                limit = this.getValueAt(event.controlX, event.controlY, true);
+                limit = this.get_value(event.controlX, event.controlY, true);
                 break;
 
             default: //slider
@@ -244,7 +244,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
     //根据位置获取当前值
-    this.getValueAt = function (x, y, exclueSlider) {
+    this.get_value = function (x, y, exclueSlider) {
 
         var boxModel = this.__boxModel__,
             value = this.isVertical ? y : x;

@@ -87,6 +87,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
 
+
     //布局集
     var layouts = {};
 
@@ -99,6 +100,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             height = clientRect.height,
 
             boxModel = this.__boxModel__,
+            scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight;
 
 
@@ -111,7 +113,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             {
                 box.measure(x, 0, 0, 0, width - x, height, null, height);
 
-                x = box.right + box.margin.left + spaceX;
+                if ((x = box.right + box.margin.left) > scrollWidth)
+                {
+                    scrollWidth = x;
+                }
+
+                x += spaceX;
 
                 if (box.height > scrollHeight)
                 {
@@ -121,7 +128,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
 
 
-        boxModel.scrollWidth = items[items.length - 1].__boxModel__.right;
+        boxModel.scrollWidth = scrollWidth;
         boxModel.scrollHeight = scrollHeight;
     };
 
@@ -135,7 +142,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             height = clientRect.height,
 
             boxModel = this.__boxModel__,
-            scrollWidth = boxModel.scrollWidth;
+            scrollWidth = boxModel.scrollWidth,
+            scrollHeight = boxModel.scrollHeight;
 
 
         for (var i = 0, length = items.length; i < length; i++)
@@ -147,18 +155,23 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             {
                 box.measure(0, y, 0, 0, width, height - y, width);
 
-                y = box.bottom + box.margin.bottom + spaceY;
-
                 if (box.width > scrollWidth)
                 {
                     scrollWidth = box.width;
                 }
+
+                if ((y = box.bottom + box.margin.bottom) > scrollHeight)
+                {
+                    scrollHeight = y;
+                }
+
+                y += spaceY;
             }
         }
 
 
         boxModel.scrollWidth = scrollWidth;
-        boxModel.scrollHeight = items[items.length - 1].__boxModel__.bottom;
+        boxModel.scrollHeight = scrollHeight;
     };
 
     //线性布局 spaceX verticalAlign
@@ -241,6 +254,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 {
                     maxHeight = cache;
                 }
+
+                x += spaceX;
             }
         }
 
@@ -321,6 +336,8 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
                 {
                     maxWidth = cache;
                 }
+
+                y += spaceY;
             }
         }
 
@@ -716,10 +733,10 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.getControlAt = function (x, y) {
+    this.find_control = function (x, y) {
 
         //判断滚动条
-        var result = flyingon.Panel.super.getControlAt.call(this, x, y);
+        var result = flyingon.Panel.super.find_control.call(this, x, y);
 
         if (result != this)
         {
@@ -751,7 +768,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                 if (item.hitTest(x, y))
                 {
-                    return item.getControlAt ? item.getControlAt(x, y) : item;
+                    return item.find_control ? item.find_control(x, y) : item;
                 }
             }
         }
@@ -804,9 +821,11 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
     };
 
-    this.deserialize = function (reader, data) {
+    this.deserialize = function (reader, data, except) {
 
-        flyingon.Panel.super.deserialize.call(this, reader, data);
+        except.children = true;
+
+        flyingon.Panel.super.deserialize.call(this, reader, data, except);
 
         var items = reader.array(this.__children__, "__items__", data["children"]);
         if (items && items.length > 0)

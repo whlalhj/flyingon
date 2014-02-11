@@ -68,49 +68,12 @@
     };
 
 
-    flyingon.encode = function (data) {
 
-        if (data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return values.length > 0 ? values.join("&") : data.toString();
-        }
-
-        return data;
-    };
-
-    flyingon.encodeURL = function (url, data) {
-
-        if (url && data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
-        }
-
-        return url;
-    };
-
-
-
-    function response(target, options) {
+    function response(request, options) {
 
         var fn;
 
-        if (target.readyState == 4)
+        if (request.readyState == 4)
         {
             if (options.timer)
             {
@@ -118,50 +81,77 @@
                 delete options.timer;
             }
 
-            if (target.status < 300)
+
+            options.responseText = request.responseText;
+
+            if (request.status < 300)
             {
-                switch (options.dataType || defaults.dataType)
+                try
                 {
-                    case "json":
-                    case "text/json":
-                        options.response = flyingon.parseJson(target.responseText);
-                        break;
+                    switch (options.dataType || defaults.dataType)
+                    {
+                        case "json":
+                        case "text/json":
+                            options.response = flyingon.parseJson(options.responseText);
+                            break;
 
-                    case "script":
-                    case "javascript":
-                    case "text/script":
-                    case "text/javascript":
-                        options.response = eval(target.responseText);
-                        break;
+                        case "script":
+                        case "javascript":
+                        case "text/script":
+                        case "text/javascript":
+                            options.response = eval(options.responseText);
+                            break;
 
-                    case "xml":
-                    case "text/xml":
-                        options.response = target.responseXML;
-                        break;
+                        case "xml":
+                        case "text/xml":
+                            options.response = request.responseXML;
+                            break;
 
-                    default:
-                        options.response = target.responseText;
-                        break;
+                        default:
+                            options.response = options.responseText;
+                            break;
+                    }
+
+                    if (fn = options.success)
+                    {
+                        fn.call(options, options.response);
+                    }
                 }
-
-                if (fn = options.success)
+                catch (error)
                 {
-                    fn(target, options.response);
+                    if (fn = (options.error || flyingon.show_error))
+                    {
+                        fn.call(options, options.responseText);
+                    }
+                    else
+                    {
+                        alert(options.responseText);
+                    }
                 }
             }
             else
             {
-                (options["error"] || defaults["error"])(target);
+                options.status = request.status;
+                options.statusText = request.statusText;
+
+                if (fn = (options.error || flyingon.show_error))
+                {
+                    fn.call(options, options.responseText);
+                }
+                else
+                {
+                    alert(options.responseText);
+                }
             }
 
             if (fn = options.complete)
             {
-                fn(target, options.response);
+                fn.call(options, options.response);
             }
         }
         else if (fn = options.progress)
         {
-            fn(options.progressValue ? ++options.progressValue : (options.progressValue = 1));
+            fn.call(options, options.progress_value ? ++options.progress_value : (options.progress_value = 1));
         }
     };
 
@@ -185,21 +175,25 @@
         timeout: 0,
     
         data: null,
+
+        progress: function(value){
+
+        },
     
-        success: function(request, response) {
+        success: function(response) {
     
         },
     
-        error: function (request) {
+        error: function (responseText) {
     
-            alert(request.status + ":" + request.statusText);
+            alert(options.status + ":" + options.statusText);
         },
     
-        abort: function(request) {
+        abort: function(responseText) {
     
         },
     
-        complete: function(request) {
+        complete: function(response) {
     
         }
     
@@ -210,7 +204,7 @@
         var url = options.url,
             type = options.type || defaults.type,
             data = options.data,
-            result = ajax_fn ? ajax_fn() : ajax(),
+            request = ajax_fn ? ajax_fn() : ajax(),
             async = options.async !== false;
 
 
@@ -218,20 +212,20 @@
         {
             options.timer = setTimeout(function () {
 
-                result.abort();
+                request.abort();
 
                 if (options.abort)
                 {
-                    options.abort(result);
+                    options.abort(options, request);
                 }
 
             }, options.timeout);
         }
 
 
-        result.onreadystatechange = function (event) {
+        request.onreadystatechange = function (event) {
 
-            response(result, options);
+            response(request, options);
         };
 
         var post;
@@ -255,16 +249,16 @@
         }
 
 
-        result.open(type, url, async, options.user, options.password);
+        request.open(type, url, async, options.user, options.password);
 
         if (post)
         {
-            result.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
+            request.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
 
             if (data && typeof data == "object")
             {
                 data = flyingon.encode(data);
-                result.setRequestHeader("Content-Length", data.length);
+                request.setRequestHeader("Content-Length", data.length);
             }
         }
 
@@ -272,17 +266,17 @@
         {
             for (var name in options.headers)
             {
-                result.setRequestHeader(name, options.headers[name]);
+                request.setRequestHeader(name, options.headers[name]);
             }
         }
 
-        result.send(data);
-        return async ? result : options.response;
+        request.send(data);
+        return async ? request : options.response;
     };
 
     //get方式提交
     //注:未传入options则默认使用同步提交
-    flyingon.get = function (url, dataType, options) {
+    flyingon.ajax_get = function (url, dataType, options) {
 
         (options || (options = { async: false })).url = url;
 
@@ -298,7 +292,7 @@
 
     //post提交 在IE6时会可能会出错 服务端可实现IHttpAsyncHandler接口解决些问题 
     //注:未传入options则默认使用同步提交
-    flyingon.post = function (url, dataType, options) {
+    flyingon.ajax_post = function (url, dataType, options) {
 
         (options || (options = { async: false })).url = url;
 
@@ -331,4 +325,6 @@
 
 
 
+
 })(flyingon);
+
