@@ -285,12 +285,12 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
 
 
     //变更插入符位置
-    this.__fn_change_caret__ = function (changedX, changedY) {
+    this.__fn_change_caret__ = function (changeX, changeY) {
 
         if (_boxModel)
         {
-            location.x -= changedX;
-            location.y -= changedY;
+            location.x -= changeX;
+            location.y -= changeY;
 
             show();
         }

@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <iframe src="typeof_iframe.html" onload="test()"></iframe>
+
+    <script type="text/javascript">
+
+
+        function test() {
+
+            var frame = document.frames[0],
+                data = [
+                    ["number", frame.document.number_value, Number, frame.Number],
+                    ["string", frame.document.string_value, String, frame.String],
+                    ["array", frame.document.array_value, Array, frame.Array],
+                    ["function", frame.document.function_value, Function, frame.Function],
+                ],
+                text = [];
+
+
+            for (var i = 0; i < data.length; i++)
+            {
+                var values = data[i],
+                    name = values[0],
+                    value = values[1];
+
+                text.push("typeof " + name + ": " + typeof value + "\n");
+                text.push("instanceof " + name + ": " + (value instanceof values[2]) + "\n");
+                text.push("instanceof frame " + name + ": " + (value instanceof values[3]) + "\n");
+                text.push("constructor " + name + ": " + (value.constructor == values[2]) + "\n");
+                text.push("constructor frame " + name + ": " + (value.constructor == values[3]) + "\n\n\n");
+            }
+
+            alert(text.join(""));
+
+        };
+
+
+
+     
+
+        //var date = new Date();
+
+        //for (var i = 0; i < 1000000; i++)
+        //{
+        //    //var type = typeof value == "string";
+        //    //var type = value.constructor == String;
+        //    var type = Object.prototype.toString.call(value) == "string";
+        //}
+
+        //alert(new Date() - date);
+
+
+
+    </script>
+
+</body>
+</html>

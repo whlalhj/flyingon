@@ -217,7 +217,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
                         default:
                             nodes.push(node = {});
-                            node.className = type;
+                            node.type = type;
                             break;
                     }
 

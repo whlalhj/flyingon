@@ -35,7 +35,7 @@
         }
     };
 
-    prototype.append = function (name, value) {
+    prototype.add = function (name, value) {
 
 
     };

@@ -1,125 +1,184 @@
 ﻿//集合
+//注: 此集合不是数组,不能像数组一样手动修改length的值,否则可能会出现无法预知的错误
 flyingon.class("Collection", function (Class, flyingon) {
 
 
-    Class.create = function () {
+    this.__push__ = Array.prototype.push;
 
-        this.__items__ = [];
-    };
-
+    this.__splice__ = Array.prototype.splice;
 
 
+    //子项数
+    this.length = 0;
 
 
-    flyingon.defineProperty(this, "length", function () {
+    //获取指定项的索引
+    this.indexOf = Array.prototype.indexOf;
 
-        return this.__items__.length;
-    });
+    //循环执行
+    this.forEach = Array.prototype.forEach;
 
 
+    //添加子项
+    this.add = function (item) {
 
-    this.item = function (index) {
+        var fn = this.__fn_validate__;
 
-        return this.__items__[index];
-    };
-
-    this.indexOf = function (item) {
-
-        return this.__items__.indexOf(item);
-    };
-
-    this.append = function (item) {
-
-        var fn = this.__fn_validate__,
-            items = this.__items__;
-
-        if (!fn || (item = fn.call(this, items.length, item)) !== false)
+        if (!fn || (item = fn.call(this, this.length, item)) !== undefined)
         {
-            items.push(item);
+            this.__push__(item);
+            return true;
         }
-
-        return this;
     };
 
+    //添加多个子项
+    this.addRange = function (items) {
+
+        if (items && items.length > 0)
+        {
+            var fn = this.__fn_validate__;
+
+            if (fn)
+            {
+                var item;
+
+                for (var i = 0, length = items.length; i < length; i++)
+                {
+                    if ((item = fn.call(this, this.length, items[i])) !== undefined)
+                    {
+                        this.__push__(item);
+                    }
+                }
+            }
+            else
+            {
+                this.__push__.apply(this, items);
+            }
+        }
+    };
+
+    //在指定位置插入子项
     this.insert = function (index, item) {
 
-        var fn = this.__fn_validate__;
-
-        if (!fn || (item = fn.call(this, index, item)) !== false)
+        if (index >= 0)
         {
-            this.__items__.splice(index, 0, item);
-        }
+            var fn = this.__fn_validate__;
 
-        return this;
+            if (!fn || (item = fn.call(this, index, item)) !== undefined)
+            {
+                this.__splice__(index, 0, item);
+                return true;
+            }
+        }
     };
 
+    //在指定位置插入多个子项
+    this.insertRange = function (index, items) {
+
+        if (index >= 0 && items && items.length > 0)
+        {
+            var fn = this.__fn_validate__,
+                item;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                if (!fn || (item = fn.call(this, index, item)) !== undefined)
+                {
+                    this.__splice__(index++, 0, item);
+                }
+            }
+        }
+    };
+
+    //替换指定位置的子项
     this.replace = function (index, item) {
 
-        var fn = this.__fn_validate__;
-
-        if (!fn || (item = fn.call(this, index, item)) !== false)
+        if (index >= 0)
         {
-            this.__items__[index] = item;
-        }
+            var fn;
 
-        return this;
+            if (this.length > index && (fn = this.__fn_remove__) && fn.call(this, index, this[index]) === false)
+            {
+                return;
+            }
+
+            if (!(fn = this.__fn_validate__) || (item = fn.call(this, index, item)) !== undefined)
+            {
+                this[index] = item;
+
+                if (this.length <= index)
+                {
+                    this.length = index + 1;
+                }
+
+                return true;
+            }
+        }
     };
 
+    //移除指定子项
     this.remove = function (item) {
 
-        var items = this.__items__,
-            index = items.indexOf(item),
+        var index = this.indexOf(item),
             fn;
 
         if (index >= 0 && (!(fn = this.__fn_remove__) || fn.call(this, index, item) !== false))
         {
-            items.splice(index, 1);
+            this.__splice__(index, 1);
+            return true;
         }
-
-        return this;
     };
 
+    //移除指定位置的子项
     this.removeAt = function (index) {
 
-        var items = this.__items__,
-            fn;
+        var fn;
 
-        if (items.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index, items[index]) !== false))
+        if (this.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index, this[index]) !== false))
         {
-            items.splice(index, 1);
+            this.__splice__(index, 1);
+            return true;
         }
-
-        return this;
     };
 
+    //清除
     this.clear = function () {
 
-        var items = this.__items__,
-            fn;
-
-        if (items.length > 0)
+        if (this.length > 0)
         {
-            if (!(fn = this.__fn_clear__) || fn.call(this, items) !== false)
+            var fn = this.__fn_clear__;
+
+            if (!fn || fn.call(this) !== false)
             {
-                items.length = 0;
+                this.__splice__(0, this.length);
+                return true;
             }
         }
-
-        return this;
     };
+
+
+
+    //扩展循环执行(for_XXX)相关方法
+    flyingon.for_extend(this);
 
 
 
     //自定义序列化
     this.serialize = function (writer) {
 
-        writer.array("items", this.__items__);
+        for (var i = 0; i < this.length; i++)
+        {
+            writer.value("" + i, this[i]);
+        }
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        reader.array(this, "__items__", data.items);
+        if (data)
+        {
+            reader.properties(this, data, excludes);
+        }
     };
 
 

@@ -559,9 +559,9 @@
 
                             decorates: [{
 
-                                className: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
+                                typeName: "Rectangle", strokeStyle: "control-border", fillStyle: "window-back", children: [{
 
-                                    className: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
+                                    typeName: "RoundRectangle", offset: [2, 2, 2, 2], anticlockwise: true
                                 }]
                             }]
                         }

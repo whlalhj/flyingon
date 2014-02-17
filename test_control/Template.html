@@ -28,14 +28,14 @@
 
         flyingon.templates["TemplateControl"] = {
 
-            className: "Panel",
+            typeName: "Panel",
             children: [
                 {
-                    className: "Button",
+                    typeName: "Button",
                     bindings: { height: "height" }
                 },
                 {
-                    className: "Button"
+                    typeName: "Button"
                 }]
         };
 
@@ -60,7 +60,7 @@
         };
 
 
-        w.children.append(control);
+        w.children.add(control);
         w.update();
 
 

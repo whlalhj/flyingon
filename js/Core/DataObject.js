@@ -48,6 +48,12 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
             body.push("\n");
         }
 
+        if (attributes.complete) //自定义值变更结束代码
+        {
+            body.push(attributes.complete);
+            body.push("\n");
+        }
+
 
         body.push("if (cache = this.__bindings__)\n");
         body.push("{\n");
@@ -194,9 +200,9 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
         writer.object("data", this.__data__);
     };
 
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        flyingon.DataObject.super.deserialize.call(this, reader, data, except);
+        flyingon.DataObject.super.deserialize.call(this, reader, data, excludes);
         reader.object(this, "__data__", data.data);
     };
 
@@ -235,7 +241,7 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
 
 
 
-    this.append = function (item) {
+    this.add = function (item) {
 
 
     };

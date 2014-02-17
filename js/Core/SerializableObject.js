@@ -16,9 +16,6 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     Class.create = function () {
 
 
-        //唯一id
-        this.__uniqueId__ = (++flyingon.__uniqueId__);
-
         //变量管理器
         this.__fields__ = Object.create(this.__defaults__);
 
@@ -37,7 +34,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
     flyingon.defineProperty(this, "uniqueId", function () {
 
-        return this.__uniqueId__;
+        return this.__uniqueId__ || (this.__uniqueId__ = ++flyingon.__uniqueId__);
     });
 
 
@@ -62,6 +59,9 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             + "{\n"
             + "this.__fn_bindings__(\"" + name + "\", cache);\n"
             + "}\n"
+
+            + (attributes.complete || "")
+            + "\n"
 
             + "return this;\n"
 
@@ -105,6 +105,12 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
         if (attributes.changed) //自定义值变更代码
         {
             body.push(attributes.changed);
+            body.push("\n");
+        }
+
+        if (attributes.complete) //自定义值变更结束代码
+        {
+            body.push(attributes.complete);
             body.push("\n");
         }
 
@@ -176,19 +182,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             //扩展至选择器(样式属性直接扩展)
             if (attributes.query || attributes.style)
             {
-                var body = "if (value === undefined)\n"
-                    + "{\n"
-                    + "return this.length > 0 ? this[0]." + name + " : defaultValue;\n"
-                    + "}\n"
+                flyingon.query[name] = function (value) {
 
-                    + "for (var i = 0, length = this.length; i < length; i++)\n"
-                    + "{\n"
-                    + "this[i]." + name + " = value;\n"
-                    + "}\n"
-
-                    + "return this;";
-
-                flyingon.query[name] = new Function("value", body);
+                    return this.property(name, value);
+                };
             }
         }
     };
@@ -251,7 +248,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
             {
                 events.length = 0;
             }
-            else if ((events.indexOf(fn)) >= 0)
+            else if (events.indexOf(fn) >= 0)
             {
                 events.splice(fn, 1);
             }
@@ -349,7 +346,11 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //引用序列化标记(为true时只序列化名称不序列化内容)
     this.serialize_reference = false;
 
-    //对象名称
+
+    //id
+    this.defineProperty("id", null);
+
+    //名称
     this.defineProperty("name", null);
 
 
@@ -369,8 +370,8 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
 
-    //获取或设置存储值
-    this.fieldsValue = function (name, value) {
+    //获取或设置存储属性值
+    this.property = function (name, value) {
 
         if (value === undefined)
         {
@@ -428,6 +429,28 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
 
+
+    //获取或设置对象JSON值
+    flyingon.defineProperty(this, "JSON",
+
+        function () {
+
+            return new flyingon.SerializeWriter().serialize(this);
+        },
+
+        function (value) {
+
+            if (Object.keys(this.__fields__).length > 0)
+            {
+                this.__fields__ = Object.create(this.__defaults__);
+            }
+
+            new flyingon.SerializeReader().deserialize(value, this);
+        });
+
+
+
+
     //自定义序列化
     this.serialize = function (writer) {
 
@@ -436,14 +459,14 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
         if (data.bindings)
         {
-            except.bindings = true;
+            excludes.bindings = true;
         }
 
-        reader.properties(this.__fields__, data, except);
+        reader.properties(this.__fields__, data, excludes);
         reader.bindings(this, data);
 
         if (this.__fields__.name)

@@ -7,12 +7,10 @@
     <title></title>
 
     <style type="text/css">
-
         html, body {
             margin: 0;
             height: 100%;
         }
-
     </style>
 
 </head>
@@ -34,7 +32,7 @@
 
     <script type="text/javascript">
 
-        
+
 
         var w = new flyingon.Window(host);
 
@@ -69,7 +67,7 @@
 
             splitter.width = 5;
 
-            w.children.append(p1).append(splitter).append(p2);
+            w.children.addRange([p1, splitter, p2]);
 
             w.layout = "dock";
             w.update();

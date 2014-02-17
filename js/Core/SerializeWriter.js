@@ -3,14 +3,13 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
 
 
-    Class.create = function () {
-
-        this.__data__ = [];
-    };
-
-
-
     this.__root__ = null;
+
+    this.__push__ = Array.prototype.push;
+
+    this.length = 0;
+
+
 
     this.serialize = function (target) {
 
@@ -78,14 +77,14 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
 
 
-    var key = function (data, name) {
+    var key = function (name) {
 
-        if (data[data.length - 1] != "{")
+        if (this[this.length - 1] != "{")
         {
-            data.push(",");
+            this.__push__(",");
         }
 
-        data.push("\"" + name + "\":");
+        this.__push__("\"" + name + "\":");
     };
 
 
@@ -93,28 +92,25 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.null = function (name) {
 
-        var data = this.__data__;
 
         if (name)
         {
-            key(data, name);
+            key(name);
         }
 
-        data.push("null");
+        this.__push__("null");
     };
 
     this.boolean = function (name, value) {
 
         if (value !== undefined)
         {
-            var data = this.__data__;
-
             if (name)
             {
-                key(data, name);
+                key(name);
             }
 
-            data.push(!!value);
+            this.__push__(!!value);
         }
     };
 
@@ -122,14 +118,12 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this.__data__;
-
             if (name)
             {
-                key(data, name);
+                key(name);
             }
 
-            data.push(value || 0);
+            this.__push__(value || 0);
         }
     };
 
@@ -137,14 +131,12 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this.__data__;
-
             if (name)
             {
-                key(data, name);
+                key(name);
             }
 
-            data.push(value != null ? "\"" + value.replace(/\"/g, "\\\"") + "\"" : "null");
+            this.__push__(value != null ? "\"" + value.replace(/\"/g, "\\\"") + "\"" : "null");
         }
     };
 
@@ -152,20 +144,18 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this.__data__;
-
             if (name)
             {
-                key(data, name);
+                key(name);
             }
 
             if (value != null)
             {
-                data.push("{");
+                this.__push__("{");
 
-                if (name = value.className)
+                if (name = value.__fullTypeName__)
                 {
-                    data.push("\"className\":\"" + name + "\"");
+                    this.__push__("\"type\":\"" + name + "\"");
                 }
 
                 if ("serialize" in value)
@@ -177,19 +167,18 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
                     this.properties(value);
                 }
 
-                data.push("}");
+                this.__push__("}");
             }
             else
             {
-                data.push("null");
+                this.__push__("null");
             }
         }
     };
 
     this.properties = function (value, keys) {
 
-        var data = this.__data__,
-            key = data[data.length - 1] != "{";
+        var key = this[this.length - 1] != "{";
 
         if (!keys)
         {
@@ -200,10 +189,10 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
         {
             if (i > 0 || key)
             {
-                data.push(",");
+                this.__push__(",");
             }
 
-            data.push("\"" + (key = keys[i]) + "\":");
+            this.__push__("\"" + (key = keys[i]) + "\":");
             this.value(null, value[key]);
         }
     };
@@ -212,32 +201,30 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            var data = this.__data__;
-
             if (name)
             {
-                key(data, name);
+                key(name);
             }
 
             if (value != null)
             {
-                data.push("[");
+                this.__push__("[");
 
                 for (var i = 0, length = value.length; i < length; i++)
                 {
                     if (i > 0)
                     {
-                        data.push(",");
+                        this.__push__(",");
                     }
 
                     this.value(null, value[i]);
                 }
 
-                data.push("]");
+                this.__push__("]");
             }
             else
             {
-                data.push("null");
+                this.__push__("null");
             }
         }
     };
@@ -283,7 +270,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
     this.toString = this.toLocaleString = function () {
 
-        return this.__data__.join("");
+        return this.join("");
     };
 
 });
@@ -291,7 +278,6 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
 
 
-//t 0:null 1:boolean 2:number 3:string 4:object 5:array 9:function
 flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, flyingon) {
 
 
@@ -300,14 +286,14 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
 
     this.null = function (name) {
 
-        this.__data__.push("<" + name + " type=\"null\"/>");
+        this.__push__("<" + name + " type=\"null\"/>");
     };
 
     this.boolean = function (name, value) {
 
         if (value !== undefined)
         {
-            this.__data__.push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
+            this.__push__("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
         }
     };
 
@@ -315,7 +301,7 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
 
         if (value !== undefined)
         {
-            this.__data__.push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
+            this.__push__("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
         }
     };
 
@@ -326,11 +312,11 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             if (value != null)
             {
                 value.indexOf("&") >= 0 && (value = flyingon.decodeXml(value));
-                this.__data__.push("<" + name + " type=\"string\">" + value + "</" + name + ">");
+                this.__push__("<" + name + " type=\"string\">" + value + "</" + name + ">");
             }
             else
             {
-                data.push("<" + name + " type=\"null\"/>");
+                this.__push__("<" + name + " type=\"null\"/>");
             }
         }
     };
@@ -342,12 +328,9 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
             return;
         }
 
-
-        var data = this.__data__;
-
-        if (data != null)
+        if (value != null)
         {
-            data.push("<" + name + " type=\"" + (value.className || "object") + "\">");
+            this.__push__("<" + name + " type=\"" + (value.__fullTypeName__ || "object") + "\">");
 
             if ("serialize" in value)
             {
@@ -358,11 +341,11 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
                 this.properties(value);
             }
 
-            data.push("</" + name + ">");
+            this.__push__("</" + name + ">");
         }
         else
         {
-            data.push("<" + name + " type=\"null\"/>");
+            this.__push__("<" + name + " type=\"null\"/>");
         }
     };
 
@@ -389,22 +372,20 @@ flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, 
         }
 
 
-        var data = this.__data__;
-
         if (value != null)
         {
-            data.push("<" + name + " type=\"array\"");
+            this.__push__("<" + name + " type=\"array\"");
 
             for (var i = 0, length = value.length; i < length; i++)
             {
                 this.value("item", value[i]);
             }
 
-            data.push("</" + name + ">");
+            this.__push__("</" + name + ">");
         }
         else
         {
-            data.push("<" + name + " type=\"null\"/>");
+            this.__push__("<" + name + " type=\"null\"/>");
         }
     };
 

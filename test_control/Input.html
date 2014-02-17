@@ -72,7 +72,7 @@
                     text.width = 190;
                     text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
 
-                    panel.children.append(text);
+                    panel.children.add(text);
                 }
 
                 panel.onmousemove = function (event) {
@@ -81,7 +81,7 @@
                     document.title += "  " + (items && items.length || "0") + " " + this._boxModel_.scrollTop;
                 };
 
-                w.children.append(panel);
+                w.children.add(panel);
             }
 
 

@@ -105,7 +105,7 @@
                     ctrl.horizontalAlign = "center";
                     ctrl.verticalAlign = "center";
 
-                    panel.children.append(ctrl);
+                    panel.children.add(ctrl);
 
                     switch (i % 5)
                     {
@@ -137,10 +137,10 @@
 
 
 
-                //panel.width = "auto";
-                //panel.height = "auto";
-                //panel.width = 600;
-                //panel.height = 400;
+                panel.width = "fill";
+                panel.height = "auto";
+                panel.width = 600;
+                panel.height = 400;
                 panel.margin = "5, 5, 5, 5";
                 panel.border = "1, 1, 1, 1";
                 panel.padding = "0, 0, 0, 0";
@@ -156,7 +156,7 @@
                 panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
 
 
-                w.children.append(panel);
+                w.children.add(panel);
 
             }
 
@@ -182,7 +182,7 @@
 
             var date = new Date();
 
-            w.children.item(0).border = [20, 20, 20, 20];
+            w.children[0].border = [20, 20, 20, 20];
             w.update();
 
             alert(new Date() - date);
@@ -194,7 +194,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children.item(i);
+                var panel = w.children[i];
                 panel.height += 100;
             }
 
@@ -210,7 +210,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children.item(i);
+                var panel = w.children[i];
                 panel.layout = value;
             }
 
@@ -226,7 +226,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children.item(i);
+                var panel = w.children[i];
                 panel.mirror = value;
             }
 
@@ -242,7 +242,7 @@
 
             for (var i = 0; i < w.children.length; i++)
             {
-                var panel = w.children.item(i);
+                var panel = w.children[i];
                 panel.orientation = value;
             }
 

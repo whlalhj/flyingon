@@ -312,7 +312,7 @@
 
     };
 
-    prototype.deserialize = function (reader, value, except) {
+    prototype.deserialize = function (reader, value, excludes) {
 
 
     };

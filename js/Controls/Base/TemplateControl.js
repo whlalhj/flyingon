@@ -4,40 +4,39 @@ flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.find_control = function (x, y) {
+    this.findAt = function (x, y) {
 
-        if (!this.__designMode__) //未实现
+        var items = this.__children__;
+
+        if (items && items.length > 0)
         {
-            var content = this.__content__;
-
-            if (content && content.hitTest(x, y))
+            if (!this.__designMode__) //未实现
             {
-                return content.find_control ? content.find_control(x, y) : content;
+                var content = items[0];
+
+                if (content && content.hitTest(x, y))
+                {
+                    return content.findAt ? content.findAt(x, y) : content;
+                }
             }
         }
 
         return this;
     };
 
-
-    this.clearTemplate = function () {
-
-        var content = this.__content__;
-        if (content)
-        {
-            content.__parent__ = null;
-            this.__content__ = null;
-        }
-    };
-
-
     this.arrange = function (clientRect) {
 
-        var content = this.__content__ || (this.__content__ = this.createTemplateControl(this.template));
+        var items = this.__children__,
+            template;
 
-        if (content)
+        if ((!items || items.length <= 0) && (template = this.template))
         {
-            this.__boxModel__.content(content);
+            items[0] = this.createTemplateControl(template)
+        }
+
+        if (items && items.length > 0)
+        {
+            this.__boxModel__.content(items[0]);
         }
     };
 

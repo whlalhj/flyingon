@@ -30,7 +30,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
             return item;
         }
 
-        throw new Error("item not a Control!");
+        return undefined;
     };
 
     this.__fn_remove__ = function (index, item) {
@@ -49,31 +49,66 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
         }
     };
 
-    this.__fn_clear__ = function (items) {
+    //注: 清除不触发相关事件
+    this.__fn_clear__ = function () {
 
-        var box = this.__ownerControl__,
-            reset = !flyingon.__initializing__;
+        this.__ownerControl__.__boxModel__.children.length = 0;
 
-        box.children.length = 0;
-
-        for (var i = 0, length = items.length; i < length; i++)
+        for (var i = 0, length = this.length; i < length; i++)
         {
-            var item = items[i],
+            var item = this[i],
                 box = item.__boxModel__;
 
+            item.__parent__ = null;
             box.parent = box.offsetParent = null;
-
-            if (reset)
-            {
-                item.__fn_parent__(null);
-            }
-        }
-
-        if (reset)
-        {
-            this.__ownerControl__.invalidate();
         }
     };
+
+
+
+    //循环执行指定函数
+    this.cascade_call = function (fn, cascade) {
+
+        var result, item;
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((result = fn(item = this[i], i)) !== undefined)
+            {
+                return result;
+            }
+
+            if (cascade && (item = item.__children__) && (result = item.cascade_call(fn, true)) !== undefined)
+            {
+                return result;
+            }
+        }
+    };
+
+
+
+    //重载自定义反序列化 
+    //注: 反序列化时不执行验证
+    this.deserialize = function (reader, data, excludes) {
+
+        if (data)
+        {
+            reader.properties(this, data, excludes);
+
+            var box = this.__ownerControl__.__boxModel__,
+                item;
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if (item = this[i])
+                {
+                    item.__boxModel__.initialize(box);
+                    item.__parent__ = this.__ownerControl__;
+                }
+            }
+        }
+    };
+
 
 
 }, true);

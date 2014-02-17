@@ -6,8 +6,8 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     Class.create = function (parentNode) {
 
 
-        //自动初始化系统
-        flyingon.initialize();
+        //初始化应用
+        this.application.initialize();
 
 
         var div = this.dom_host = document.createElement("div");
@@ -25,8 +25,8 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         }
 
 
-        //定义主窗口变更
-        flyingon.defineVariable(this, "mainWindow", this);
+        //定义主窗口变量
+        this.application.mainWindow = this;
 
         //设为活动窗口
         this.activate();

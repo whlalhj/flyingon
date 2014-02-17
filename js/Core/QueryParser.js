@@ -7,90 +7,99 @@ css1-css3选择器
 
 1.基础的选择器
 
-*               通用元素选择器，匹配任何元素
-E               标签选择器，匹配所有使用E标签的元素
-.               class选择器，匹配所有class属性中包含info的元素
-#               id选择器，匹配所有id属性等于footer的元素
+Y *               通用元素选择器，匹配任何元素
+Y E               标签选择器，匹配所有使用E标签的元素
+Y .               class选择器，匹配所有class属性中包含info的元素
+Y #               id选择器，匹配所有id属性等于footer的元素
 
 
 2.组合选择器
 
-E,F             多元素选择器，同时匹配所有E元素或F元素，E和F之间用逗号分隔
-E F             后代元素选择器，匹配所有属于E元素后代的F元素，E和F之间用空格分隔
-E>F             子元素选择器，匹配所有E元素的子元素F
-E+F             毗邻元素选择器，匹配所有紧随E元素之后的同级元素F
+Y E,F             多元素选择器，同时匹配所有E元素或F元素，E和F之间用逗号分隔
+Y E F             后代元素选择器，匹配所有属于E元素后代的F元素，E和F之间用空格分隔
+Y E>F             子元素选择器，匹配所有E元素的子元素F
+Y E+F             毗邻元素选择器，匹配所有紧随E元素之后的同级元素F
 
 
 3.CSS 2.1 属性选择器
 
-E[att]          匹配所有具有att属性的E元素，不考虑它的值。（注意：E在此处可以省略，比如“[cheacked]”。以下同。）
-E[att=val]      匹配所有att属性等于“val”的E元素
-E[att~=val]     匹配所有att属性具有多个空格分隔的值、其中一个值等于“val”的E元素
-E[att|=val]     匹配所有att属性具有多个连字号分隔（hyphen-separated）的值、其中一个值以“val”开头的E元素，主要用于lang属性，比如“en”、“en-us”、“en-gb”等等
+Y E[att]          匹配所有具有att属性的E元素，不考虑它的值。（注意：E在此处可以省略，比如“[cheacked]”。以下同。）
+Y E[att=val]      匹配所有att属性等于“val”的E元素
+Y E[att~=val]     匹配所有att属性具有多个空格分隔的值、其中一个值等于“val”的E元素
+Y E[att|=val]     匹配所有att属性具有多个连字号分隔（hyphen-separated）的值、其中一个值以“val”开头的E元素，主要用于lang属性，比如“en”、“en-us”、“en-gb”等等
 
 
 4.CSS 2.1 中的伪类
 
-E:first-child   匹配父元素的第一个子元素
-E:link          匹配所有未被点击的链接
-E:visited       匹配所有已被点击的链接
-E:active        匹配鼠标已经其上按下、还没有释放的E元素
-E:hover         匹配鼠标悬停其上的E元素
-E:focus         匹配获得当前焦点的E元素
-E:lang(c)       匹配lang属性等于c的E元素
+Y E:first-child   匹配父元素的第一个子元素
+N E:link          匹配所有未被点击的链接
+N E:visited       匹配所有已被点击的链接
+Y E:active        匹配鼠标已经其上按下、还没有释放的E元素
+Y E:hover         匹配鼠标悬停其上的E元素
+Y E:focus         匹配获得当前焦点的E元素
+N E:lang(c)       匹配lang属性等于c的E元素
 
 
 5.CSS 2.1中的伪元素
 
-E:first-line    匹配E元素的第一行
-E:first-letter  匹配E元素的第一个字母
-E:before        在E元素之前插入生成的内容
-E:after         在E元素之后插入生成的内容
+N E:first-line    匹配E元素的第一行
+N E:first-letter  匹配E元素的第一个字母
+Y E:before        在E元素之前插入生成的内容
+Y E:after         在E元素之后插入生成的内容
 
 
 6.CSS 3的同级元素通用选择器
 
-E~F             匹配任何在E元素之后的同级F元素
+Y E~F             匹配任何在E元素之后的同级F元素
 
 
 7．CSS 3 属性选择器
 
-E[att^=”val”] 属性att的值以”val”开头的元素
-E[att$=”val”] 属性att的值以”val”结尾的元素
-E[att*=”val”] 属性att的值包含”val”字符串的元素
+Y E[att^=”val”] 属性att的值以”val”开头的元素
+Y E[att$=”val”] 属性att的值以”val”结尾的元素
+Y E[att*=”val”] 属性att的值包含”val”字符串的元素
 
 
 8. CSS 3中与用户界面有关的伪类
 
-E:enabled       匹配表单中激活的元素
-E:disabled      匹配表单中禁用的元素
-E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
-E:selection     匹配用户当前选中的元素
+Y E:enabled       匹配表单中激活的元素
+Y E:disabled      匹配表单中禁用的元素
+Y E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+Y E:selection     匹配用户当前选中的元素
 
 
 9. CSS 3中的结构性伪类
 
-E:root                  匹配文档的根元素，对于HTML文档，就是HTML元素
-E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
-E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
-E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
-E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
-E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
-E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
-E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
-E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
-E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
-E:empty                 匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+Y E:root                  匹配文档的根元素，对于HTML文档，就是HTML元素
+Y E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+Y E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+Y E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+Y E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+Y E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+Y E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+Y E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+Y E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+Y E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+Y E:empty                 匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
 
 
 10.CSS 3的反选伪类
 
-E:not(s)        匹配不符合当前选择器的任何元素
+Y E:not(s)        匹配不符合当前选择器的任何元素
 
 
 11. CSS 3中的 :target 伪类
 
-E:target        匹配文档中特定”id”点击后的效果
+N E:target        匹配文档中特定”id”点击后的效果
+
+
+12. 自定义扩展的伪类
+
+Y E:end                         结束查找
+Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的余数的子元素
+Y E:fn-child(fn)                匹配符合指定函数的子元素, 函数原型 function(index) { } this指向当前元素
+Y E:expression(expression)      匹配符合指定表达式的元素
+
 
 */
 
@@ -100,239 +109,370 @@ E:target        匹配文档中特定”id”点击后的效果
 ///选择器解析器
 (function (flyingon) {
 
-    //sample: Panel,Repeater .button[text="确定",name="button1"][isMouseOver=false] :checked
-    //以下为解析过程
-    //Panel
-    //组合1[Panel]
-    //组合1[Panel, Repeater]
-    //后代1[组合1[Panel, Repeater]]
-    //后代1[组合1[Panel, Repeater], .button]
-    //后代1[组合1[Panel, Repeater], .button[[text="确定"]]]
-    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"]]]]
-    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]]]]
-    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]], [isMouseOver=false]]]
-    //后代1[组合1[Panel, Repeater], .button[组合2[[text="确定"], [name="button1"]], [isMouseOver=false], :checked]]
 
 
+    //元素节点
+    function Element(type, token, name, owner) {
 
-
-    var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\#\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g, //
-        ast_cache = {}; //语法树缓存
-
-
-
-    var QueryParser = flyingon.QueryParser = function (selector) {
-
-        var values = selector.match(split_regex);
-
-        this.selector = selector;
-        this.ast = parse.call(this, values); //语法树
-
-    }, prototype = QueryParser.prototype;
-
-
-
-    //解析选择器
-    //cache: 是否缓存
-    QueryParser.parse = function (selector, cache) {
-
-        return cache ? ast_cache[selector] || (ast_cache[selector] = new QueryParser(selector)) : new QueryParser(selector);
-    };
-
-
-    //全部元素选择器标记
-    QueryParser.token_all = "*";
-
-    //样式选择器标记
-    QueryParser.token_style = ".";
-
-    //id选择器标记
-    QueryParser.token_id = "#";
-
-    //类型选择器标记
-    QueryParser.token_type = "";
-
-    //伪类选择器标记
-    QueryParser.token_pseudo = ":";
-
-    //属性选择器标记
-    QueryParser.token_property = "[]";
-
-    //后代选择器标记
-    QueryParser.token_descendant = " ";
-
-    //组合选择器标记
-    QueryParser.token_compsite = ",";
-
-    //子元素选择器标记
-    QueryParser.token_son = ">";
-
-    //毗邻选择器标记
-    QueryParser.token_next = "+";
-
-    //之后同级元素选择器标记
-    QueryParser.token_behind = "~";
-
-
-
-
-
-    //组合节点类型
-    function composite(token) {
-
+        this.type = type;
         this.token = token;
+
+        switch (name[0])
+        {
+            case "\"":
+            case "'":
+                this.name = name.substring(1, name.length - 1);
+                break;
+
+            default:
+                this.name = name;
+                break;
+        }
+
+        if (owner)
+        {
+            owner.next = this;
+
+            if (type == ",")
+            {
+                this.previous_type = owner.type;
+            }
+        }
     };
 
-    composite.prototype = [];
+
+    (function () {
+
+        //所属组合类型
+        this.type = null;
+
+        //前一个组合类型 仅对","有效
+        this.previous_type = " ";
+
+        //token标记
+        this.token = null;
+
+        //下一个节点
+        this.next = null;
+
+        //检测当前节点
+        //返回值为false: 中止查找
+        this.check = function (item, index, exports) {
+
+            switch (this.token)
+            {
+                case "":  //类型
+                    if (item.__fullTypeName__ != this.name) return;
+                    break;
+
+                case ".": //class
+                    if (!item.hasClass(this.name)) return;
+                    break;
+
+                case "#": //id
+                    if (item.id != this.name) return;
+                    break;
+            }
+
+            if (this.length > 0)
+            {
+                for (var i = 0; i < this.length; i++)
+                {
+                    if (this[i].check(item) === false)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            exports.push(item);
+        };
+
+    }).call((flyingon.Query_Element = Element).prototype = []);
 
 
 
-    //元素类(all_element type_element style_element id_element)解析方法 
-    function parse(values) {
 
 
-        var nodes,  //节点集合
-            node,   //当前节点 
+    //属性节点
+    function Property(name) {
 
-            item,   //当前项  
+        switch (name[0])
+        {
+            case "\"":
+            case "'":
+                this.name = name.substring(1, name.length - 1);
+                break;
 
-            token,
-            token_last,
+            default:
+                this.name = name;
+                break;
+        }
+    };
 
-            cache,
+    (function () {
+
+        this.token = "[]";
+
+        this.relation = ""
+
+        this.check = function (item) {
+
+            var value = "" + item[this.name];
+
+            switch (ast.token)
+            {
+                case "=":
+                    return value == this.value;
+
+                case "*=": // *= 包含属性值XX (由属性解析)
+                    return value.indexOf(this.value) >= 0;
+
+                case "^=": // ^= 属性值以XX开头 (由属性解析)
+                    return value.indexOf(this.value) == 0;
+
+                case "$=": // $= 属性值以XX结尾 (由属性解析)
+                    return value.lastIndexOf(this.value) == value.length - this.value.length;
+
+                case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
+                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test(value);
+
+                case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test(value);
+
+                default:
+                    return false;
+            }
+        };
+
+    }).call((flyingon.Query_Property = Property).prototype);
+
+
+
+    //属性集
+    function Properties(item) {
+
+        this.push(item);
+    };
+
+    (function () {
+
+        this.token = "[][]";
+
+        this.check = function (target) {
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if (this[i].check(target))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+    }).call((flyingon.Query_Properties = Properties).prototype = []);
+
+
+
+    //伪类
+    /*
+
+    支持的伪类如下:
+
+    Y E:first-child   匹配父元素的第一个子元素
+    Y E:active        匹配鼠标已经其上按下、还没有释放的E元素
+    Y E:hover         匹配鼠标悬停其上的E元素
+    Y E:focus         匹配获得当前焦点的E元素
+    Y E:before        E之前元素
+    Y E:after         E之后元素
+    Y E:enabled       匹配表单中激活的元素
+    Y E:disabled      匹配表单中禁用的元素
+    Y E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+    Y E:selection     匹配用户当前选中的元素
+    Y E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+    Y E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+    Y E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+    Y E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+    Y E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+    Y E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+    Y E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+    Y E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+    Y E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+    Y E:empty                 匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+    Y E:not(s)                匹配不符合当前选择器的任何元素
+    Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的余数的子元素
+    Y E:fn-child(fn)                匹配符合指定函数的子元素, 函数原型 function(index) { } this指向当前元素
+    Y E:expression(expression)      匹配符合指定表达式的元素
+
+    */
+    function Pseudo_Class(name) {
+
+        switch (name[0])
+        {
+            case "\"":
+            case "'":
+                this.name = name.substring(1, name.length - 1);
+                break;
+
+            default:
+                this.name = name;
+                break;
+        }
+    };
+
+    (function () {
+
+        this.token = ":";
+
+        this.check = function (item) {
+
+            //    //第一个子元素
+            //    "first-child": function () {
+
+            //        return this.children[0];
+            //    },
+
+            //    //鼠标已经其上按下、还没有释放的元素
+            //    "active": function () {
+
+            //        return this.isPressDown ? this : null;
+            //    },
+
+            //    //鼠标悬停其上的元素
+            //    "hover": function () {
+
+            //        return this.isMouseOver ? this : null;
+            //    },
+
+            //    "focus": "if (!this.focused) return null;",
+            //    "before": "",
+            //    "after": "",
+            //    "enabled": "if (!this.enabled) return null;",
+            //    "disabled": "if (this.enabled) return null;",
+            //    "checked": "if (!this.checked) return null;",
+            //    "selection": "if (!this.selection) return null;",
+            //    "nth-child(n)": "",
+            //    "nth-last-child(n)": "",
+            //    "nth-of-type(n)": "",
+            //    "nth-last-of-type(n)": "",
+            //    "last-child": "",
+            //    "first-of-type": "",
+            //    "last-of-type": "",
+            //    "only-child": "",
+            //    "only-of-type": "",
+            //    "empty": "if (this.children.length > 0) return null;",
+            //    "not(s)": "",
+            //    "nth-mod-child(n,length)": "",
+            //    "fn-child(fn)": "",
+            //    "expression(expression)": ""
+        };
+
+    }).call((flyingon.Query_Pseudo_Class = Pseudo_Class).prototype = []);
+
+
+
+
+
+    var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g; //
+
+    //选择器解析
+    flyingon.parse_selector = function (selector) {
+
+
+        var result,
+
+            values = selector.match(split_regex),
+
+            type = " ", //组合类型
+            token,      //当前标记
 
             i = 0,
-            length = values.length;
+            length = values.length,
+
+            node,   //当前节点 
+            item;   //当前项  
 
 
+        //switch代码在chrome下的效率没有IE9好,不知道什么原因 
         while (i < length)
         {
-            //以下switch代码在chrome下的效率没有IE9好,不知道什么原因
             switch (token = values[i++])
             {
-                case ".": //样式选择器
-                case "#": //id选择器
-                    item = new composite(token);
-                    item.name = values[i++];
+                case "#":  //id选择器标记
+                case ".":  //class选择器标记
+                    node = new Element(type, token, values[i++], node);
                     break;
 
-                case ":": //伪类选择器
-                    item = parse_pseudo.call(this, values, length, i);
-                    i += this.__length__;
+                case "*":  //全部元素选择器标记
+                    node = new Element(type, "*", "*", node);
+                    break;
 
-                    if (node) //加至当前节点
+                case " ":  //后代选择器标记
+                case ">":  //子元素选择器标记
+                case "+":  //毗邻元素选择器标记
+                case "~":  //之后同级元素选择器标记
+                case ",":  //组合选择器标记
+                    type = token;
+                    continue;
+
+                case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
+                    item = parse_property(values, length, i);
+                    i += item.count;
+
+                    if (item = item.result)
                     {
-                        node.push(item);
-                        item = null;
+                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
                     }
                     break;
 
-                case "[": //开始属性
-                    item = parse_property.call(this, values, length, i);
-                    i += this.__length__;
-
-                    if (node) //加至当前节点
+                case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
+                    if (token = values[i++])
                     {
-                        node.push(item);
-                        item = null;
-                    }
-                    break;
+                        item = new Pseudo_Class(token);
 
-                case "]": //结束属性
-                    break;
-
-                case "*": // * 所有当前上下文内的元素 *= 包含属性值XX (由属性解析)
-                    item = { token: token };
-                    break;
-
-                case ">>": //后代选择器
-                case ",":  //组合选择器
-                case ">":  //子元素选择器
-                case "+":  //毗邻元素选择器
-                case "~":  //~ 之后同级元素 ~= (此处不处理)匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    if (!nodes)
-                    {
-                        nodes = new composite(token);
-
-                        if (node)
+                        //处理参数
+                        if (i < length && values[i] == "(")
                         {
-                            nodes.push(node);
+                            i += parse_parameters.call(item, values, length, ++i);
                         }
-                    }
-                    else if (nodes.token != token)
-                    {
-                        cache = new composite(token);
-                        cache.push(nodes);
-                        nodes = cache;
+
+                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
                     }
                     break;
 
-                case "=": // 属性名与值的分隔 可与其它字符组合
-                case "|": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                case "^": // ^= 属性值以XX开头 (由属性解析)
-                case "$": // $= 属性值以XX结尾 (由属性解析)
-                    //此节不处理 仅在属性中处理
-                    break;
-
-                case "(": //开始参数
-                case ")": //结束参数
-                    //此节不处理 仅在伪类中处理
-                    break;
+                case "]":  //属性选择器结束标记
+                case "=":  //属性名与值的分隔 可与其它字符组合
+                case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                case "^":  //^= 属性值以XX开头 (由属性解析)
+                case "$":  //$= 属性值以XX结尾 (由属性解析)
+                case "(":  //开始参数
+                case ")":  //结束参数
+                    //由子类处理
+                    continue;
 
                 default: //类名 token = ""
-                    item = new composite("");
-
-                    switch (token[0])
-                    {
-                        case "'":
-                        case "\"":
-                            item.name = token.substring(1, token.length - 1);
-                            break;
-
-                        default:
-                            item.name = token;
-                            break;
-                    }
+                    node = new Element(type, "", token, node);
                     break;
             }
 
 
-            //处理当前节点
-            if (item)
+            if (type != " ")
             {
-                if (nodes)
-                {
-                    if (nodes.token != " " && nodes.token != token_last) //如果组合选择器token不等前一token 按后代选择器处理
-                    {
-                        cache = new composite(" ");
-                        cache.push(nodes);
-                        nodes = cache;
-                    }
-
-                    nodes.push(node = item);
-                }
-                else if (node)
-                {
-                    nodes = new composite(" ");
-                    nodes.push(node);
-                    nodes.push(node = item);
-                }
-                else
-                {
-                    node = item;
-                }
-
-                item = null;
+                type = " ";
             }
 
 
-            token_last = token;
+            if (!result && node)
+            {
+                result = node;
+            }
         }
 
 
-        return nodes || node;
+        return result;
     };
-
 
 
     //[name?=value]属性选择器
@@ -341,16 +481,16 @@ E:target        匹配文档中特定”id”点击后的效果
 
         var nodes,
             item,
+            token,
+
+            count = 0,  //占用数组数量
             loop = true,
-            end = false,
-            token;
+            end = false;
 
-
-        this.__length__ = 0;
 
         while (loop && index < length)
         {
-            this.__length__++;
+            count++;
 
             switch (token = values[index++])
             {
@@ -361,8 +501,7 @@ E:target        匹配文档中特定”id”点击后的效果
                 case ",":
                     if (nodes == null)
                     {
-                        nodes = new composite(",");
-                        nodes.push(item);
+                        nodes = new Properties(item);
                     }
 
                     end = false;
@@ -388,19 +527,15 @@ E:target        匹配文档中特定”id”点击后的效果
                         {
                             case "\"":
                             case "'":
-                                item.value = token.substring(1, token.length - 1);
-                                break;
-
-                            default:
-                                item.value = token;
+                                token = token.substring(1, token.length - 1);
                                 break;
                         }
+
+                        item.value = token;
                     }
                     else
                     {
-                        item = { token: "[]" };
-                        item.name = token;
-                        item.relation = "";
+                        item = new Property(token);
 
                         if (nodes)
                         {
@@ -412,48 +547,43 @@ E:target        匹配文档中特定”id”点击后的效果
         }
 
 
-        return nodes || item;
+        return {
+
+            result: nodes || item,
+            count: count
+        };
     };
 
 
-    //:name :name(p1[,p2...]) 伪类(扩展)选择器
-    function parse_pseudo(values, length, index) {
+    //(p1[,p2...])
+    function parse_parameters(values, length, index) {
 
-        var result = { token: ":" };
+        var result = 0,  //占用数组数量
 
-        result.name = values[index++];
-        this.__length__ = 1;
+            token,
+            loop = true;
 
-        if (index < length && values[index] == "(") //无参数
+        while (loop && index < length)
         {
-            var loop = true,
-                token;
+            result++;
 
-            result.parameters = [];
-
-            while (loop && index < length)
+            switch (token = values[index++])
             {
-                result++;
+                case ")":
+                    loop = false;
+                    break;
 
-                switch (token = values[index++])
-                {
-                    case ")":
-                        loop = false;
-                        break;
+                case ",":
+                    break;
 
-                    case ",":
-                        break;
-
-                    default:
-                        result.parameters.push(token);
-                        break;
-                }
+                default:
+                    this.push(token);
+                    break;
             }
         }
 
         return result;
     };
-
 
 
 

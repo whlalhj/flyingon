@@ -4,58 +4,192 @@
 
 
 
-    //flyingon.query 选择器方法扩展
-    var prototype = flyingon.query = (flyingon.Query = function (selector, context) {
+    //实现解析器查询方法
+    (function () {
+
+        //查找
+        this.find = function (items) {
+
+            var exports = [],
+                node = this;
+
+            while (true)
+            {
+                node[node.type](items, exports);
+
+                if (node = node.next)
+                {
+                    if (node.type != ",") //非组合则把当前集合作为查询依据
+                    {
+                        items = exports;
+                        exports = [];
+                    }
+                }
+                else
+                {
+                    return exports;
+                }
+            }
+        };
+
+        this.find_cascade = function (items, exports) {
+
+            var cache;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                if (this.check(cache = items[i], i, exports) === false)
+                {
+                    return false;
+                }
+
+                if ((cache = cache.__children__) && cache.length > 0)
+                {
+                    if (this.find_cascade(cache, exports) === false)
+                    {
+                        return false;
+                    }
+                }
+            }
+        };
+
+        this[" "] = function (items, exports) {
+
+            var item, cache;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                item = items[i];
+
+                if ((cache = item.__children__) && cache.length > 0)
+                {
+                    this.find_cascade(cache, exports);
+                }
+            }
+        };
+
+        this[">"] = function (items, exports) {
+
+            var children;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                if ((children = items[i].__children__) && children.length > 0)
+                {
+                    for (var j = 0, length_j = children.length; j < length_j; j++)
+                    {
+                        if (this.check(children[j], j, exports) === false)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+
+        this["+"] = function (items, exports) {
+
+            var item, parent, children, index;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                if ((item = items[i]) && (parent = item.__parent__) && (children = parent.__children__))
+                {
+                    index = children.indexOf(item) + 1;
+
+                    if (children.length > index)
+                    {
+                        this.check(children[index], index, exports);
+                    }
+                }
+            }
+        };
+
+        this["~"] = function (items, exports) {
+
+            var item, parent, children;
+
+            for (var i = 0, length = items.length; i < length; i++)
+            {
+                if ((item = items[i]) && (parent = item.__parent__) && (children = parent.__children__))
+                {
+                    for (var j = children.indexOf(item) + 1, length_j = children.length; j < length_j; j++)
+                    {
+                        if (this.check(children[j], j, exports) === false)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+
+        this[","] = function (items, exports) {
+
+            this[this.previous_type](items, exports);
+        };
+
+    }).call(flyingon.Query_Element.prototype);
+
+
+
+
+    var selector_cache = {}; //缓存数据
+
+    //选择器
+    //selector: css样式选择表达式 
+    //start: 开始搜索节点
+    //cache: 是否缓存解析结果
+    var Query = flyingon.Query = function (selector, start) {
 
         if (selector)
         {
-            //字符串
-            switch (typeof selector)
+            if (typeof selector == "string")
             {
-                case "string":
-                    query_string.call(this, selector, context);
-                    break;
+                if (!start)
+                {
+                    throw new Error(flyingon_lang.query_must_start);
+                }
 
-                case "function":
-                    query_function.call(this, selector, context);
-                    break;
+                if (start.constructor != Array)
+                {
+                    start = [start];
+                }
 
-                case "object":
-                    var constructor = selector.constructor;
+                selector = (selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector))).find(start);
+            }
+            else
+            {
+                switch (selector.constructor)
+                {
+                    case flyingon.Query_Element:
+                        selector = selector.find([start]);
+                        break;
 
-                    if (constructor == Array)
-                    {
-                        for (var i = 0, length = selector.length; i < length; i++)
-                        {
-                            this[this.length++] = selector[i];
-                        }
-                    }
-                    else if (constructor == String)
-                    {
-                        query_string.call(this, selector, context);
-                    }
-                    else
-                    {
-                        this[this.length++] = selector;
-                    }
-                    break;
+                    case Array:
+                        break;
 
-                default:
-                    this[this.length++] = selector;
-                    break;
+                    default:
+                        this.push(selector);
+                        return;
+                }
+            }
+
+            if (selector.length > 0)
+            {
+                this.push.apply(this, selector);
             }
         }
+    };
 
-    }).prototype;
 
 
-    //选中项长度
-    prototype.length = 0;
+
 
 
     //扩展选择器方法
     /*
-    flyingon.extend_query({
+    flyingon.Query.extend({
 
         test: function () {
 
@@ -63,10 +197,12 @@
         }
     });
     */
-    flyingon.extend_query = function (data) {
+    Query.extend = function (data) {
 
         if (data)
         {
+            var prototype = Query.prototype;
+
             for (var name in data)
             {
                 prototype[name] = data[name];
@@ -76,46 +212,24 @@
 
 
 
+
+
+    var prototype = flyingon.query = flyingon.Query.prototype = [];
+
+
+    //循环执行指定函数
     prototype.forEach = function (fn) {
 
         for (var i = 0, length = this.length; i < length; i++)
         {
-            fn.apply(this[i]);
+            fn(this[i], i);
         }
 
         return this;
     };
 
-
-
-
-
-
-    function query_string(selector, context) {
-
-    };
-
-    function query_function(selector, context) {
-
-        //query_list:可选择对象接口
-        if (context && (context = context.query_list) && (context = context()))
-        {
-            for (var i = 0, length = context.length; i < length; i++)
-            {
-                var target = context[i];
-
-                if (selector.call(target))
-                {
-                    this[this.length++] = target;
-                }
-
-                if (target.query_list)
-                {
-                    query_function.call(this, selector, target);
-                }
-            }
-        }
-    };
+    //扩展for相关方法
+    flyingon.for_extend(prototype);
 
 
     //合并
@@ -123,11 +237,6 @@
 
         flyingon.Selector.call(this, selector, context);
         return this;
-    };
-
-    //剔除子项
-    prototype.reject = function (control) {
-
     };
 
     //筛选子项
@@ -147,45 +256,35 @@
 
     prototype.addEventListener = function (type, fn) {
 
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            this[i].addEventListener(type, fn);
-        }
-
-        return this;
+        return this.for_invoke("addEventListener", arguments);
     };
 
     prototype.removeEventListener = function (type, fn) {
 
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            this[i].removeEventListener(type, fn);
-        }
-
-        return this;
+        return this.for_invoke("removeEventListener", arguments);
     };
 
 
 
+    prototype.hasClass = function (className) {
 
-    prototype.addStyle = function (styleName) {
+        return this.for_has("hasClass", true, arguments);
+    };
 
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            this[i].add_styleName(styleName);
-        }
+    prototype.addClass = function (className) {
 
+        this.for_invoke("addClass", arguments);
         return this;
     };
 
-    prototype.removeStyle = function (styleName) {
+    prototype.removeClass = function (className) {
 
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            this[i].remove_styleName(styleName);
-        }
+        return this.for_invoke("removeClass", arguments);
+    };
 
-        return this;
+    prototype.toggleClass = function (className) {
+
+        return this.for_invoke("toggleClass", arguments);
     };
 
 

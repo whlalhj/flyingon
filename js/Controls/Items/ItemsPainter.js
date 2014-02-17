@@ -78,21 +78,21 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
         var result = [],
 
             items = this.__items__,
-            items_1 = items.__items__,
-            items_2 = items.__items_x__,
+            visible_list = items.__visible_list__,
 
             lineHeight = this.lineHeight || 16,
 
             top = 0;
+
 
         if (visibleIndex == null)
         {
             visibleIndex = this.visibleIndex || 0;
         }
 
-        for (var i = visibleIndex, length = items_1.length; i < length; i++)
+        for (var i = visibleIndex, length = items.length; i < length; i++)
         {
-            var item = items_2[i] || (items_2[i] = new flyingon.Rect());
+            var item = visible_list[i] || (visible_list[i] = new flyingon.Rect());
 
             if ((top += item.height || lineHeight) >= height)
             {
@@ -126,11 +126,11 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
         }
     };
 
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        except[items_name] = true;
+        excludes[items_name] = true;
 
-        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data, except);
+        flyingon.SerializableObject.prototype.deserialize.call(this, reader, data, excludes);
         reader.array(this.__items__, "__items__", data[items_name]);
     };
 

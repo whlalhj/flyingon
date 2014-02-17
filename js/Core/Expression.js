@@ -121,7 +121,7 @@
         writer.string("expression", this.__expression__);
     };
 
-    prototype.deserialize = function (reader, data, except) {
+    prototype.deserialize = function (reader, data, excludes) {
 
         reader.string(this, "__expression__", data.expression);
     };

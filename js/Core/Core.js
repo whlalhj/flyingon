@@ -13,10 +13,7 @@
 
 
 //根命名空间
-var flyingon = this.flyingon = function (selector, context) {
-
-    return new flyingon.Query(selector, context);
-};
+var flyingon = this.flyingon = {};
 
 
 
@@ -184,7 +181,7 @@ var flyingon = this.flyingon = function (selector, context) {
 
 
     //二分法搜索
-    prototype.binary_search = function (callbackfn, start, end) {
+    prototype.binary_search = function (callback, start, end) {
 
         if (start == null || start < 0)
         {
@@ -202,7 +199,7 @@ var flyingon = this.flyingon = function (selector, context) {
         while (start <= end)
         {
             center = Math.floor((start + end) / 2);
-            result = callbackfn.call(this, start, center, end);
+            result = callback.call(this, start, center, end);
 
             if (result < 0)
             {
@@ -276,29 +273,71 @@ var flyingon = this.flyingon = function (selector, context) {
 
     prototype = Function.prototype;
 
+    //获取函数内容
     prototype.get_body = function () {
 
         var result = this.toString();
         return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
     };
 
+    //获取函数参数
     prototype.get_parameters = function () {
 
-        var result = this.toString();
+        if (this.length > 0)
+        {
+            var result = this.toString();
 
-        result = result.match(/\([^)]*\)/)[0];
-        result = result.substring(1, result.length - 1).replace(/\s+/, "");;
+            result = result.match(/\([^)]*\)/)[0];
+            result = result.substring(1, result.length - 1).replace(/\s+/, "");;
 
-        return result ? result.split(",") : [];
+            return result.split(",");
+        }
+
+        return [];
     };
 
-    //合并函数内容
-    prototype.merge = function (body, insertBefore) {
+    //合并函数内容生成新函数
+    prototype.merge = function (body, insertBefore, parameters) {
 
-        body = typeof body == "function" ? body.get_body() : "" + body;
-        body = insertBefore ? body + this.get_body() : this.get_body() + body;
+        if (body)
+        {
+            body = typeof body == "function" ? body.get_body() : "" + body;
+            body = insertBefore ? body + this.get_body() : this.get_body() + body;
 
-        return new Function(this.get_parameters(), body);
+            return new Function(parameters || this.get_parameters(), body);
+        }
+
+        return this;
+    };
+
+    //替换函数内容生成新函数
+    prototype.replace = function (key, value, parameters) {
+
+        if (key)
+        {
+            var body = this.get_body().replace(key, value);
+
+            if (key.constructor == Array)
+            {
+                if (value.constructor == Array)
+                {
+                    for (var i = 0; i < key.length; i++)
+                    {
+                        body = body.replace(key[i], value[i]);
+                    }
+                }
+
+                throw new Error(flyingon_lang.parameter_error);
+            }
+            else //key传入数组
+            {
+                body = body.replace(key, value);
+            }
+
+            return new Function(parameters || this.get_parameters(), body);
+        }
+
+        return this;
     };
 
 
@@ -651,34 +690,155 @@ var flyingon = this.flyingon = function (selector, context) {
 
 
 
+//循环处理
+(function (flyingon) {
+
+
+    var data = {};
+
+    //循环执行指定函数
+    data.for_call = function (fn) {
+
+        var result;
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((result = fn(this[i], i)) !== undefined)
+            {
+                return result;
+            }
+        }
+    };
+
+    //循环调用指定名称的方法
+    data.for_invoke = function (name, parameters) {
+
+        var result,
+            item,
+            fn;
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((item = this[i]) && (fn = item[name]))
+            {
+                if ((result = fn.apply(item, parameters)) !== undefined)
+                {
+                    return result;
+                }
+            }
+        }
+    };
+
+    //循环检查指定方法是否具有指定的返回值
+    data.for_has = function (name, value, parameters) {
+
+        var item,
+            fn;
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    //循环检查指定属性是否具有指定值
+    data.for_exist = function (name, value) {
+
+        var item;
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((item = this[i]) && (item[name] === value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    //循环获取指定属性值或给指定属性赋值
+    data.for_value = function (name, value) {
+
+        var item;
+
+        if (value === undefined)
+        {
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if ((item = this[i]) && (item = item[name]) !== undefined)
+                {
+                    return item;
+                }
+            }
+
+            return undefined;
+        }
+
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if (item = this[i])
+            {
+                item[name] = value;
+            }
+        }
+    };
+
+
+
+    //给指定对象扩展for相关方法
+    flyingon.for_extend = function (target) {
+
+        if (target)
+        {
+            for (var name in data)
+            {
+                target[name] = data[name];
+            }
+        }
+    };
+
+
+
+})(flyingon);
+
+
+
+
 //名字空间
 (function (flyingon) {
 
 
     //缓存命名空间
     var cache = { "flyingon": flyingon },
-        global = this;
+        self = this;
 
 
     //名字空间类
     var Class = function (name) {
 
-        this.__name__ = name;
+        this.__namespace_name__ = name;
         cache[name] = this;
     };
-
 
 
     //创建或切换名字空间方法
     flyingon.namespace = function (namespace, fn) {
 
+
         var result = namespace;
+
 
         if (result)
         {
             if (result.constructor == String && !(result = cache[result]))
             {
-                result = global;
+                result = self;
 
                 var names = namespace.split("."),
                     name,
@@ -699,35 +859,22 @@ var flyingon = this.flyingon = function (selector, context) {
             result = flyingon;
         }
 
-        result = flyingon.__namespace__ = result; //切换当前命名空间
+
+        flyingon.__namespace__ = result; //切换当前命名空间
 
         if (fn)
         {
             fn(result, flyingon);
         }
 
+
         return result;
     };
 
 
-
-    //获取类全名
-    flyingon.__fn_classFullName__ = function (namespace, className, with_default) {
-
-        var name = namespace && namespace.__name__;
-
-        if (name)
-        {
-            return name + "." + className;
-        }
-
-        return with_default ? "flyingon." + className : className;
-    };
-
-
-
     //切换当前命名空间为默认命名空间
     flyingon.__namespace__ = flyingon;
+
 
 
 }).call(this, flyingon);
@@ -740,81 +887,88 @@ var flyingon = this.flyingon = function (selector, context) {
 
 
 
-    var prototype = (flyingon.RootObject = function () {
-
-
-    }).prototype;
-
-
-
-    //类名
-    prototype.className = flyingon.RootObject.className = "RootObject";
-
-
-    prototype.toString = prototype.toLocaleString = function () {
-
-        return "[object " + this.className + "]";
-    };
-
-
-
-
+    //已注册类集合
     flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
 
 
-    flyingon.registry_class = function (Class, classFullName) {
+    flyingon.registry_class = function (Class, fullTypeName) {
 
-        flyingon.__registry_list__[classFullName || Class.classFullName] = Class;
+        flyingon.__registry_list__[fullTypeName || Class.__fullTypeName__] = Class;
     };
 
-    flyingon.unregistry_class = function (classFullName) {
+    flyingon.unregistry_class = function (fullTypeName) {
 
-        delete flyingon.__registry_list__[classFullName];
+        delete flyingon.__registry_list__[fullTypeName];
     };
 
-    flyingon.get_registry_class = function (classFullName) {
+    flyingon.get_regsitry_class = function (fullTypeName) {
 
-        return flyingon.__registry_list__[classFullName];
+        return flyingon.__registry_list__[fullTypeName];
     };
 
 
 
-    var defineProperty = function (Class, prototype, name, value) {
+    //初始化类型系统
+    function initialize(Class, typeName) {
 
-        Class[name] = value;
-        prototype["__" + name + "__"] = value;
-        flyingon.defineVariable(prototype, name, value);
+
+        var namespace = flyingon.__namespace__,
+            prototype = Class.prototype,
+            name;
+
+
+        //绑定类型
+        prototype.__type__ = Class;
+
+        //开放所属类型属性
+        flyingon.defineVariable(prototype, "type", Class);
+
+        Class.namesapce = prototype.__namespace__ = namespace;
+        Class.typeName = prototype.__typeName__ = typeName;
+        Class.fullTypeName = prototype.__fullTypeName__ = (name = namespace.__namespace_name__) ? name + "." + typeName : typeName;
+
+
+
+        //输出类
+        namespace[typeName] = Class;
+        //注册类
+        flyingon.__registry_list__[name] = Class;
+
+
+        prototype.toString = prototype.toLocaleString = function () {
+
+            return "[object " + this.__fullTypeName__ + "]";
+        };
     };
+
+
+
+    //根类
+    initialize(flyingon.RootObject = function () { }, "RootObject");
+
 
 
     //定义类方法
     //body: 扩展代码 必须为函数
     //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.class = function (className, superclass, body, constructor_merge) {
+    flyingon.class = function (typeName, supertype, body, constructor_merge) {
 
 
         //处理参数
-        if (!className)
+        if (!typeName)
         {
-            throw new Error(flyingon_setting.define_class_error.format(className));
+            throw new Error(flyingon_setting.define_class_error.format(typeName));
         }
 
         if (!body || typeof body == "boolean")
         {
-            body = superclass;
-            superclass = flyingon.RootObject;
+            body = supertype;
+            supertype = flyingon.RootObject;
         }
-        else if (!superclass) //没有指定基类
+        else if (!supertype) //没有指定基类
         {
-            superclass = flyingon.RootObject;
+            supertype = flyingon.RootObject;
         }
-
-
-
-
-
-        var namespace = flyingon.__namespace__, //当前名字空间
-            classFullName = flyingon.__fn_classFullName__(namespace, className); //类全名
 
 
 
@@ -832,22 +986,22 @@ var flyingon = this.flyingon = function (selector, context) {
 
 
         //创建类原型
-        var prototype = Class.prototype = Object.create(superclass.prototype);
+        var prototype = Class.prototype = Object.create(supertype.prototype);
 
+        //父类
+        Class.supertype = supertype;
+        //父类原型
+        Class.super = supertype.prototype;
+        //子类集合
+        (supertype.subtypes || (supertype.subtypes = [])).push(Class);
 
-        defineProperty(Class, prototype, "className", className);           //类名
-        defineProperty(Class, prototype, "classFullName", classFullName);   //类全名
+        //构造函数/所属类型
+        prototype.constructor = Class;
+        //默认值
+        prototype.__defaults__ = Class.__defaults__ = Object.create(supertype.__defaults__ || null);
 
-        Class.superclass = superclass;          //父类
-        Class.super = superclass.prototype;     //父类原型
-        (superclass.subclasses || (superclass.subclasses = [])).push(Class);  //子类集合
-
-        prototype.constructor = Class;                                   //构造函数
-        prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || Object.prototype);  //默认值
-
-
-        flyingon.registry_class(Class); //注册类
-        namespace[className] = Class; //输出类
+        //初始化类型系统
+        initialize(Class, typeName);
 
 
 
@@ -874,22 +1028,22 @@ var flyingon = this.flyingon = function (selector, context) {
 
 
         //处理构造函数
-        var superclass_create = superclass.create;
-        if (superclass_create)
+        var supertype_create = supertype.create;
+        if (supertype_create)
         {
             var Class_create = Class.create,
-                create_list = superclass.__create_list__;
+                create_list = supertype.__create_list__;
 
             if (Class_create)
             {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
                 if (!create_list && constructor_merge)
                 {
-                    Class.create = Class_create.merge(superclass_create, true);
+                    Class.create = Class_create.merge(supertype_create, true);
                 }
                 else //生成构造链
                 {
-                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
+                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [supertype_create];
                     create_list.push(Class_create);
 
                     Class.create = function () {
@@ -909,7 +1063,7 @@ var flyingon = this.flyingon = function (selector, context) {
                     Class.__create_list__ = create_list;
                 }
 
-                Class.create = superclass_create;
+                Class.create = supertype_create;
             }
         }
 

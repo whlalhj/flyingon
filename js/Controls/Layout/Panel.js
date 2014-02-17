@@ -662,7 +662,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         this.__render_children__ = null;
 
-        var items = this.__children__.__items__;
+        var items = this.__children__;
 
         if (items.length > 0)
         {
@@ -733,10 +733,10 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
 
     //获取指定位置的控件
-    this.find_control = function (x, y) {
+    this.findAt = function (x, y) {
 
         //判断滚动条
-        var result = flyingon.Panel.super.find_control.call(this, x, y);
+        var result = flyingon.Panel.super.findAt.call(this, x, y);
 
         if (result != this)
         {
@@ -768,7 +768,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
                 if (item.hitTest(x, y))
                 {
-                    return item.find_control ? item.find_control(x, y) : item;
+                    return item.findAt ? item.findAt(x, y) : item;
                 }
             }
         }
@@ -789,7 +789,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         }
 
 
-        var items = this.__children__.__items__;
+        var items = this.__children__;
 
         for (var i = 0, length = items.length; i < length; i++)
         {
@@ -814,27 +814,19 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         flyingon.Panel.super.serialize.call(this, writer);
 
-        var items = this.__children__.__items__;
-        if (items && items.length > 0)
+        var items = this.__children__;
+        if (items.length > 0)
         {
             writer.array("children", items);
         }
     };
 
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        except.children = true;
+        excludes.children = true;
 
-        flyingon.Panel.super.deserialize.call(this, reader, data, except);
-
-        var items = reader.array(this.__children__, "__items__", data["children"]);
-        if (items && items.length > 0)
-        {
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                items[i].__parent__ = this;
-            }
-        }
+        flyingon.Panel.super.deserialize.call(this, reader, data, excludes);
+        this.__children__.deserialize(reader, data["children"]);
     };
 
 

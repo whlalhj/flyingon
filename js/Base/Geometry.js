@@ -152,13 +152,13 @@
 
     prototype.translate = function (x, y) {
 
-        this.append(1, 0, 0, 1, x, y);
+        this.add(1, 0, 0, 1, x, y);
         return this;
     };
 
     prototype.scale = function (scaleX, scaleY) {
 
-        this.append(scaleX, 0, 0, scaleY, 0, 0);
+        this.add(scaleX, 0, 0, scaleY, 0, 0);
         return this;
     };
 
@@ -169,7 +169,7 @@
         var cos = Math.cos(angle);
         var sin = Math.sin(angle);
 
-        this.append(-sin, cos, cos, sin, 0, 0);
+        this.add(-sin, cos, cos, sin, 0, 0);
         return this;
     };
 
@@ -178,11 +178,11 @@
         var x = Math.Tan(skewX * n);
         var y = Math.Tan(skewY * n);
 
-        this.append(1, x, y, 1, 0, 0);
+        this.add(1, x, y, 1, 0, 0);
         return this;
     };
 
-    prototype.append = function (a, b, c, d, e, f) {
+    prototype.add = function (a, b, c, d, e, f) {
 
         var a1 = this.a;
         var b1 = this.b;

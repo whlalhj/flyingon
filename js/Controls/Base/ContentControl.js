@@ -4,9 +4,15 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-    this.defaultValue("width", 100);
+    Class.create = function () {
 
-    this.defaultValue("height", 21);
+
+        //子控件集合
+        this.__children__ = new flyingon.ControlCollection(this);
+
+        //初始化子盒模型
+        this.__boxModel__.children = [];
+    };
 
 
 
@@ -15,67 +21,28 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
         function () {
 
-            return this.__content__;
+            return this.__children__[0] || null;
         },
 
         function (value) {
 
-            var oldValue = this.__content__;
-
-            if (oldValue != value)
+            if (this.__children__[0] != value)
             {
-                var box = this.__boxModel__,
-                    reset = !flyingon.__initializing__;
-
-
-                if (box.children)
-                {
-                    box.children.length = 0;
-                }
-                else
-                {
-                    box.children = [];
-                }
-
-                if (value instanceof flyingon.Control)
-                {
-                    value.__boxModel__.initialize(box);
-                    this.__content__ = value;
-
-                    if (reset)
-                    {
-                        value.__fn_parent__(null);
-                    }
-                }
-
-                if (oldValue instanceof flyingon.Control)
-                {
-                    box = oldValue.__boxModel__;
-                    box.parent = box.offsetParent = null;
-                    oldValue.__fn_parent__(null);
-                }
-
-                if (reset)
-                {
-                    this.dispatchEvent(new flyingon.ChangeEvent(this, "content", value, oldValue));
-                    this.invalidate();
-                }
+                this.__children__.replace(0, value);
             }
-
-            return this;
         });
 
 
 
 
     //查找指定位置的控件
-    this.find_control = function (x, y) {
+    this.findAt = function (x, y) {
 
-        var content = this.__content__;
+        var content = this.__children__[0];
 
         if (content && content.hitTest(x, y))
         {
-            return content.find_control ? content.find_control(x, y) : content;
+            return content.findAt ? content.findAt(x, y) : content;
         }
 
         return this;
@@ -85,7 +52,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
     this.arrange = function (clientRect) {
 
-        this.__boxModel__.content(this.__content__);
+        this.__boxModel__.content(this.__children__[0]);
     };
 
 
@@ -93,15 +60,15 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
     this.serialize = function (writer) {
 
         flyingon.ContentControl.super.serialize.call(this, writer);
-        writer.object("content", this.__content__);
+        writer.object("content", this.__children__[0]);
     };
 
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        excludes.__content__ = true;
+        excludes.children = true;
 
-        flyingon.ContentControl.super.deserialize.call(this, reader, data, except);
-        reader.object(this, "__content__", data.content);
+        flyingon.ContentControl.super.deserialize.call(this, reader, data, excludes);
+        reader.object(this.__children__, "0", data.content);
     };
 
 

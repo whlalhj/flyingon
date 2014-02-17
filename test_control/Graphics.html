@@ -61,7 +61,7 @@
                     ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "blue"]]);
                     ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
 
-                    panel.children.append(ctrl);
+                    panel.children.add(ctrl);
                 }
 
                 panel.width = 500;
@@ -70,15 +70,15 @@
                 panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "flow";
    
-                w.children.append(panel);
+                w.children.add(panel);
             };
 
             w.onmouseover = function (e) {
-                document.title = e.target.className + " " + e.target.left + " " + e.target.top;
+                document.title = e.target.typeName + " " + e.target.left + " " + e.target.top;
             };
 
             w.onmouseup = function (e) {
-                //alert("mouseup " + e.target.className + " " + e.offsetX + " " + e.offsetY);
+                //alert("mouseup " + e.target.typeName + " " + e.offsetX + " " + e.offsetY);
             };
 
             w.onclick = function (e) {
@@ -93,7 +93,7 @@
 
             w.onkeydown = function (e) {
 
-                alert(e.target.className + " " + e.keyCode);
+                alert(e.target.typeName + " " + e.keyCode);
                 e.preventDefault();
             };
 
@@ -114,7 +114,7 @@
                 t.left(p.x - e.controlX);
                 t.top(p.y - e.controlY);
 
-                e.dropTarget.children.append(e.target);
+                e.dropTarget.children.add(e.target);
                 w.update();
             };
 

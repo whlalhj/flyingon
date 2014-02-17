@@ -29,8 +29,8 @@
         {
             var control1 = new flyingon.Control();
 
-            control1.fieldsValue("中国", " v ");
-            control1.fieldsValue("key", 12345);
+            control1.property("中国", " v ");
+            control1.property("key", 12345);
 
             var source = new flyingon.DataObject();
             source.defineDataProperty("text", null);
@@ -38,7 +38,7 @@
             source._reference_ = true;
 
             control1.setBinding("text", source);
-            w.children.append(control1);
+            w.children.add(control1);
         }
 
 

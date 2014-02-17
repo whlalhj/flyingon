@@ -38,7 +38,7 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
     this.scrollType = function (x, y) {
 
         var segments = this.__boxModel__.segments,
-            value = this.isVertical ? y : x;
+            value = this.vertical ? y : x;
 
 
         if (value <= segments[0])
@@ -106,7 +106,7 @@ flyingon.class("ScrollBar", flyingon.ScrollBase, function (Class, flyingon) {
             height = boxModel.height;
 
 
-        if (this.isVertical)
+        if (this.vertical)
         {
             var thickness = boxModel.thickness = width,
                 length = boxModel.length = height - (thickness << 1),

@@ -37,7 +37,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         this.defineProperty("name", 0, {
 
             attributes: attributes || "invalidate",
-            changed: "this.__boxModel__." + name + " = value;"
+            complete: "this.__boxModel__." + name + " = value;"
         });
     };
 
@@ -61,14 +61,14 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
         var box = this.__boxModel__;
 
-        if (event.changedX)
+        if (event.changeX)
         {
-            box.scrollLeft += event.changedX;
+            box.scrollLeft += event.changeX;
         }
 
-        if (event.changedY)
+        if (event.changeY)
         {
-            box.scrollTop += event.changedY;
+            box.scrollTop += event.changeY;
         }
 
         this.__render_children__ = null;
@@ -78,10 +78,11 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
         var ownerWindow = this.ownerWindow;
         if (ownerWindow && this.isParent(ownerWindow.__focused_control__))
         {
-            ownerWindow.__fn_change_caret__(event.changedX, event.changedY);
+            ownerWindow.__fn_change_caret__(event.changeX, event.changeY);
         }
 
         event.stopPropagation();
+        event.preventDefault();
     };
 
     this.__event_mousewheel__ = function (event) {
@@ -97,7 +98,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
                 step = -step;
             }
 
-            verticalScrollBar.changeValue(step);
+            verticalScrollBar.set_value(step);
             event.stopPropagation();
             event.preventDefault();
         }
@@ -107,7 +108,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
 
-    this.find_control = function (x, y) {
+    this.findAt = function (x, y) {
 
         var horizontalScrollBar = this.__horizontalScrollBar__;
 
@@ -294,7 +295,7 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
     this.createVerticalScrollBar = function () {
 
         var result = new flyingon.ScrollBar();
-        result.isVertical = true;
+        result.vertical = true;
         return result;
     };
 

@@ -117,9 +117,9 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
     };
 
     //自定义反序列化
-    this.deserialize = function (reader, data, except) {
+    this.deserialize = function (reader, data, excludes) {
 
-        reader.properties(this.__fields__, data, except);
+        reader.properties(this.__fields__, data, excludes);
     };
 
 

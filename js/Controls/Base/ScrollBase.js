@@ -1,12 +1,15 @@
-﻿flyingon.class("ScrollEvent", flyingon.Event, function (Class, flyingon) {
+﻿
+//滚动事件
+flyingon.ScrollEvent = function (target, originalEvent) {
+
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
 
 
-    Class.create = function (target) {
+(function () {
 
-        this.target = target;
-    };
-
-
+    //事件类型
     this.type = "scroll";
 
     //水平滚动条
@@ -16,12 +19,13 @@
     this.verticalScrollBar = null;
 
     //水平变化距离
-    this.changedX = 0;
+    this.changeX = 0;
 
     //竖直变化距离
-    this.changedY = 0;
+    this.changeY = 0;
 
-});
+}).call(flyingon.ScrollEvent.prototype = new flyingon.Event());
+
 
 
 //滚动条控件
@@ -34,10 +38,10 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
     //是否竖直滚动条
-    this.defineProperty("isVertical", false, {
+    this.defineProperty("vertical", false, {
 
         attributes: "locate",
-        changed: "var width = this.width;\nthis.width = this.height;\nthis.height = width;"
+        complete: "var width = this.width;\nthis.width = this.height;\nthis.height = width;"
     });
 
 
@@ -125,12 +129,24 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
             default: //slider
                 this.ownerWindow.__capture_control__ = this;
-                dragger = { x: event.offsetX, y: event.offsetY, value: this.value };
+
+                dragger = {
+
+                    x: event.offsetX,
+                    y: event.offsetY,
+                    value: this.value
+                };
+
+                event.stopPropagation();
+                event.preventDefault();
                 return;
         }
 
 
-        this.changeValue(step, limit) && this.changeValueTime(step, limit);
+        if (this.set_value(step, limit, event))
+        {
+            this.set_value_delay(step, limit, event);
+        }
     };
 
 
@@ -138,12 +154,12 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
         if (dragger)
         {
-            var offset = this.isVertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
+            var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
                 value = Math.round(offset * (this.maxValue - this.minValue) / this.__boxModel__.length);
 
             if (value)
             {
-                this.changeValue(0, dragger.value + value);
+                this.set_value(0, dragger.value + value, event);
             }
         }
     };
@@ -163,7 +179,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
     //变更值
-    this.changeValue = function (step, limit) {
+    this.set_value = function (step, limit, originalEvent) {
 
         var value = this.value + step,
             minValue = this.minValue,
@@ -201,17 +217,17 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
         this.value = value;
 
 
-        var event = new flyingon.ScrollEvent(this);
+        var event = new flyingon.ScrollEvent(this, originalEvent);
 
-        if (this.isVertical)
+        if (this.vertical)
         {
             event.verticalScrollBar = this;
-            event.changedY = step;
+            event.changeY = step;
         }
         else
         {
             event.horizontalScrollBar = this;
-            event.changedX = step;
+            event.changeX = step;
         }
 
         this.dispatchEvent(event);
@@ -225,7 +241,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
 
     //定时变更值
-    this.changeValueTime = function (step, limit) {
+    this.set_value_delay = function (step, limit, originalEvent) {
 
         var self = this;
 
@@ -233,7 +249,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
 
             clearTimeout(timer);
 
-            if (self.changeValue(step, limit))
+            if (self.set_value(step, limit, originalEvent))
             {
                 timer = setTimeout(fn, 200);
             }
@@ -247,7 +263,7 @@ flyingon.class("ScrollBase", flyingon.Control, function (Class, flyingon) {
     this.get_value = function (x, y, exclueSlider) {
 
         var boxModel = this.__boxModel__,
-            value = this.isVertical ? y : x;
+            value = this.vertical ? y : x;
 
         if (exclueSlider)
         {

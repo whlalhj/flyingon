@@ -43,14 +43,14 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
         this.ownerWindow.close();
     };
 
-    function button(name, dock, styleName, click) {
+    function button(name, dock, className, click) {
 
         var result = this[name] = new flyingon.PictureBox();
 
         result.dock = dock;
         result.width = 20;
         result.height = "fill";
-        result.styleName = styleName;
+        result.className = className;
 
         if (click)
         {
@@ -60,7 +60,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
             };
         }
 
-        this.__children__.append(result);
+        this.__children__.add(result);
         return result;
     };
 
@@ -70,7 +70,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
     function translate(ownerWindow, left, top) {
 
 
-        var mainWindow = ownerWindow.mainWindow,
+        var mainWindow = this.application.mainWindow,
 
             left = ownerWindow.left,
             top = ownerWindow.top,
@@ -197,15 +197,15 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
 
 
-    this.find_control = function (x, y) {
+    this.findAt = function (x, y) {
 
         //判断滚动条
         if (this.title_bar.hitTest(x, y))
         {
-            return this.title_bar.find_control(x, y);
+            return this.title_bar.findAt(x, y);
         }
 
-        return flyingon.ChildWindow.super.find_control.call(this, x, y);
+        return flyingon.ChildWindow.super.findAt.call(this, x, y);
     };
 
 
@@ -228,10 +228,9 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         children.push(this);
 
         flyingon.defineVariable(this, "parentWindow", parentWindow);
-        flyingon.defineVariable(this, "mainWindow", parentWindow.mainWindow);
 
 
-        var host = this.mainWindow.dom_host;
+        var host = this.application.mainWindow.dom_host;
 
         if (showDialog) //如果是模式窗口则添加遮罩层
         {
@@ -271,7 +270,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
-                var host = this.mainWindow.dom_host;
+                var host = this.application.mainWindow.dom_host;
 
                 host.removeChild(this.dom_window);
                 if (this.dom_mask)
@@ -282,7 +281,6 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
                 parentWindow.__windows__.splice(index, 1);
 
                 delete this.parentWindow;
-                delete this.mainWindow;
 
                 this.dispatchEvent("closed");
 

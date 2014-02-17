@@ -1,6 +1,9 @@
 ﻿
 //事件类型基类
-flyingon.class("Event", function (Class, flyingon) {
+flyingon.Event = function () { };
+
+
+(function () {
 
 
     //事件类型
@@ -28,22 +31,21 @@ flyingon.class("Event", function (Class, flyingon) {
     };
 
 
-});
+}).call(flyingon.Event.prototype);
 
 
 
 
 //鼠标事件类型
-flyingon.class("MouseEvent", flyingon.Event, function (Class, flyingon) {
+flyingon.MouseEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
 
 
-    Class.create = function (type, target, originalEvent) {
-
-        this.type = type;
-        this.target = target;
-        this.originalEvent = originalEvent;
-    };
-
+(function (flyingon) {
 
     var target = this,
 
@@ -139,7 +141,6 @@ flyingon.class("MouseEvent", flyingon.Event, function (Class, flyingon) {
 
 
 
-
     //x偏移坐标
     flyingon.defineProperty(this, "offsetX", function () {
 
@@ -191,8 +192,6 @@ flyingon.class("MouseEvent", flyingon.Event, function (Class, flyingon) {
     });
 
 
-
-
     //鼠标滚轮数据
     flyingon.defineProperty(this, "wheelDelta", function () {
 
@@ -200,20 +199,21 @@ flyingon.class("MouseEvent", flyingon.Event, function (Class, flyingon) {
     });
 
 
-}, true);
-
+}).call(flyingon.MouseEvent.prototype = new flyingon.Event(), flyingon);
 
 
 
 //拖拉事件类型
-flyingon.class("DragEvent", flyingon.MouseEvent, function (Class, flyingon) {
+flyingon.DragEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.dragTargets = [target];
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
 
 
-    Class.create = function (type, target, originalEvent) {
-
-        this.dragTargets = [target];
-    };
-
+(function () {
 
     //拖动目标
     this.dragTargets = null;
@@ -222,23 +222,21 @@ flyingon.class("DragEvent", flyingon.MouseEvent, function (Class, flyingon) {
     this.dropTarget = null;
 
 
-}, true);
+}).call(flyingon.DragEvent.prototype = new flyingon.MouseEvent());
 
 
 
 
 //键盘事件类型
-flyingon.class("KeyEvent", flyingon.Event, function (Class, flyingon) {
+flyingon.KeyEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
 
 
-    Class.create = function (type, target, originalEvent) {
-
-        this.type = type;
-        this.target = target;
-        this.originalEvent = originalEvent || {};
-    };
-
-
+(function (flyingon) {
 
     //是否按下ctrl键
     flyingon.defineProperty(this, "ctrlKey", function () {
@@ -276,27 +274,23 @@ flyingon.class("KeyEvent", flyingon.Event, function (Class, flyingon) {
         return this.originalEvent.which || this.originalEvent.keyCode;
     });
 
-});
+
+}).call(flyingon.KeyEvent.prototype = new flyingon.Event(), flyingon);
 
 
 
 
 
 //属性值变更事件类型
-flyingon.class("ChangeEvent", flyingon.Event, function (Class, flyingon) {
+flyingon.ChangeEvent = function (target, name, value, oldValue) {
+
+    this.target = target;
+    this.name = name;
+    this.value = value;
+    this.oldValue = oldValue;
+};
 
 
-    Class.create = function (target, name, value, oldValue) {
-
-        this.target = target;
-        this.name = name;
-        this.value = value;
-        this.oldValue = oldValue;
-    };
-
-
-    this.type = "change";
-
-});
+(flyingon.ChangeEvent.prototype = new flyingon.Event()).type = "change";
 
 

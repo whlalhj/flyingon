@@ -25,7 +25,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
     Class.create = function (OwnerControl) {
 
-        this.__items_x__ = [];
+        this.__visible_list__ = [];
         this.OwnerControl = OwnerControl;
     };
 
@@ -43,7 +43,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
     this.__fn_remove__ = function (index, item) {
 
-        var items = this.__items_x__;
+        var items = this.__visible_list__;
         if (items.length > index)
         {
             items.splice(index, 1);
@@ -55,9 +55,9 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
         }
     };
 
-    this.__fn_clear__ = function (items) {
+    this.__fn_clear__ = function () {
 
-        this.__items_x__.length = 0;
+        this.__visible_list__.length = 0;
 
         if (!flyingon.__initializing__)
         {

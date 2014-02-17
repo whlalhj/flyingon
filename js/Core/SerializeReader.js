@@ -17,7 +17,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                 data = data[0] == "<" ? flyingon.parseXml : this.parse(data);
             }
 
-            var result = this[data instanceof Array ? "array" : "object"](null, null, data);
+            var result = this[data.constructor == Array ? "array" : "object"](null, null, data);
 
             this.__fn_complete__(this, context || result);
             return result;
@@ -81,6 +81,25 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
 
 
+    var parse_value = function (value) {
+
+        if (value == null)
+        {
+            return null;
+        }
+
+        switch (typeof value)
+        {
+            case "object":
+                return this[value.constructor == Array ? "array" : "object"](null, null, value);
+
+            case "function":
+                return value ? new Function("" + value) : null;
+        }
+
+        return value;
+    };
+
 
     this.parse = flyingon.parseJson;
 
@@ -97,7 +116,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            return target[name] = parseFloat("" + value);
+            return target[name] = +value;
         }
     };
 
@@ -109,6 +128,13 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
         }
     };
 
+    this.value = function (target, name, value) {
+
+        if (value !== undefined)
+        {
+            return target[name] = value == null ? null : parse_value(value);
+        }
+    };
 
     this.object = function (target, name, value) {
 
@@ -118,10 +144,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             if (!target || !(result = target[name]))
             {
-                if ((result = value.className) && (result = registryList[value.className]))
-                {
-                    result = (result && new result()) || {};
-                }
+                result = ((result = value.type) && (result = registryList[result])) ? new result() : {};
 
                 if (target)
                 {
@@ -153,8 +176,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
     this.properties = function (target, value, excludes) {
 
         var keys = Object.keys(value),
-            key,
-            item;
+            key;
 
         for (var i = 0, length = keys.length; i < length; i++)
         {
@@ -165,28 +187,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                 continue;
             }
 
-            if ((item = value[key]) != null)
-            {
-                switch (typeof item)
-                {
-                    case "object":
-                        if (item instanceof Array)
-                        {
-                            item = this.array(null, null, item);
-                        }
-                        else if (flyingon.isObject)
-                        {
-                            item = this.object(null, null, item);
-                        }
-                        break;
-
-                    case "function":
-                        item = item ? new Function("" + item) : null;
-                        break;
-                }
-            }
-
-            target[key] = item;
+            target[key] = parse_value(value[key]);
         }
     };
 
@@ -212,30 +213,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
             for (var i = 0, length = value.length; i < length; i++)
             {
-                var item = value[i];
-
-                if (item != null)
-                {
-                    switch (typeof item)
-                    {
-                        case "object":
-                            if (item instanceof Array)
-                            {
-                                item = this.array(null, null, item);
-                            }
-                            else if (flyingon.isObject)
-                            {
-                                item = this.object(null, null, item);
-                            }
-                            break;
-
-                        case "function":
-                            item = item ? new Function("" + item) : null;
-                            break;
-                    }
-                }
-
-                result.push(item);
+                result.push(parse_value(value[i]));
             }
 
             return result;
