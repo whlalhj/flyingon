@@ -7,7 +7,7 @@ Canvas2D绘图扩展
 
 */
 
-(function (flyingon) {
+(function (flyingon, fonts, colors) {
 
 
 
@@ -161,7 +161,7 @@ Canvas2D绘图扩展
 
         this["set_" + name] = function (value) {
 
-            var color = value && (flyingon.colors[value] || value);
+            var color = value && (colors[value] || value);
 
             this[name] = color && color.createBrush ? color.createBrush(this) : color;
             return this;
@@ -248,7 +248,7 @@ Canvas2D绘图扩展
     */
     prototype.set_font = function (value) {
 
-        var font = flyingon.fonts[value] || value;
+        var font = fonts[value] || value;
 
         this.font = font && (font.value || font);
         return this;
@@ -695,4 +695,4 @@ Canvas2D绘图扩展
 
 
 
-})(flyingon);
+})(flyingon, flyingon_fonts, flyingon_colors);

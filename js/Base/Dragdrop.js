@@ -55,7 +55,7 @@
         var style = ownerLayer.dom_layer.style;
 
         style.overflow = "visible";
-        style.cursor = flyingon.cursors[dragger.drop_cursor || "allow-drop"];
+        style.cursor = dragger.drop_cursor || "move";
         style.opacity = dragger.opacity || 0.5;
 
         ownerWindow.appendLayer(9999, ownerLayer);
@@ -129,8 +129,8 @@
                 }
 
 
-                var cursor = droppable ? (dragger.drop_cursor || "allow-drop") : (dragger.nodrop_cursor || "no-drop");
-                ownerLayer.dom_layer.style.cursor = flyingon.cursors[cursor];
+                var cursor = droppable ? (dragger.drop_cursor || "move") : (dragger.nodrop_cursor || "no-drop");
+                ownerLayer.dom_layer.style.cursor = cursor;
             }
 
 

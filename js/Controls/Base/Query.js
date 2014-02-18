@@ -129,7 +129,7 @@
             this[this.previous_type](items, exports);
         };
 
-    }).call(flyingon.Query_Element.prototype);
+    }).call(flyingon.SelectorElement.prototype);
 
 
 
@@ -162,7 +162,7 @@
             {
                 switch (selector.constructor)
                 {
-                    case flyingon.Query_Element:
+                    case flyingon.SelectorElement:
                         selector = selector.find([start]);
                         break;
 

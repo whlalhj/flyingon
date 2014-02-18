@@ -19,13 +19,16 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
         this.paint_text(context, boxModel.clientRect);
     };
 
+
+    var images = flyingon_images;
+
     this.paint_image = function (context, clientRect) {
 
         var image = this.image;
 
         if (image)
         {
-            if (image.constructor == String && (image = flyingon.images[image]) == null)
+            if (image.constructor == String && (image = images[image]) == null)
             {
                 return;
             }

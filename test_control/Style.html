@@ -28,26 +28,22 @@
 
         var button = new flyingon.Button();
 
-        button.style = {
-
-            states: {
-
-                "hover-states": {
-
-                    //选中时
-                    hover: {
-
-                        background: "white"
-                    }
-                }
-            }
-        };
 
         w.children.add(button);
 
         var background = button.background;
 
         w.update();
+
+
+        var date = new Date();
+
+        for (var i = 0; i < 10000; i++)
+        {
+            var background = button.background;
+        }
+
+        alert(new Date() - date);
 
 
     </script>

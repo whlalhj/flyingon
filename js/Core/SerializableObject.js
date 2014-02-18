@@ -238,7 +238,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
     //移除事件处理
-    this.removeListener = function (type, fn) {
+    this.removeEventListener = function (type, fn) {
 
         var events = this.__events__;
 

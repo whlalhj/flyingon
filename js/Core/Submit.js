@@ -6,7 +6,7 @@
 
 
     var id = 0,
-        pool = []; //缓存池
+        items = []; //缓存池
 
 
     function form() {
@@ -34,7 +34,7 @@
 
     function get_form(options) {
 
-        var result = pool.length > 0 ? pool.shift() : new form();
+        var result = items.length > 0 ? items.pop() : new form();
 
         result.iframe.onload = function fn(event) {
 
@@ -48,7 +48,7 @@
             result.form.innerHTML = "";
             result.iframe.innerHTML = "";
 
-            pool.push(result);
+            items.push(result);
         };
 
         if (result.iframe.attachEvent) //解决IE6不能触发onload事件的bug
@@ -109,7 +109,7 @@
             }
             else
             {
-                alert(options.responseText);
+                alert(error);
             }
         }
 

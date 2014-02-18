@@ -23,7 +23,7 @@
 
 
 */
-(function (flyingon) {
+(function (flyingon, fonts, colors) {
 
 
 
@@ -81,11 +81,6 @@
         return this.__inlines__ || (this.__inlines__ = []);
     });
 
-
-
-
-    var fonts = flyingon.fonts,
-        colors = flyingon.colors;
 
 
     prototype.render = function (context) {
@@ -233,4 +228,4 @@
 
 
 
-})(flyingon);
+})(flyingon, flyingon_fonts, flyingon_colors);

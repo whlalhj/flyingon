@@ -125,7 +125,7 @@
                     }
                     else
                     {
-                        alert(options.responseText);
+                        alert(error);
                     }
                 }
             }

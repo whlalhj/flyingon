@@ -70,7 +70,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
     function translate(ownerWindow, left, top) {
 
 
-        var mainWindow = this.application.mainWindow,
+        var mainWindow = ownerWindow.mainWindow,
 
             left = ownerWindow.left,
             top = ownerWindow.top,
@@ -230,7 +230,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         flyingon.defineVariable(this, "parentWindow", parentWindow);
 
 
-        var host = this.application.mainWindow.dom_host;
+        var host = parentWindow.mainWindow.dom_host;
 
         if (showDialog) //如果是模式窗口则添加遮罩层
         {
@@ -270,7 +270,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
-                var host = this.application.mainWindow.dom_host;
+                var host = ownerWindow.mainWindow.dom_host;
 
                 host.removeChild(this.dom_window);
                 if (this.dom_mask)

@@ -29,7 +29,7 @@
             <input type="text" id="propertyvalue" value="5" />
 
             <input type="button" value="query" onclick="query()" />
-            <input type="button" value="query_cache" onclick="query(true)" />
+            <input type="button" value="performance" onclick="performance()" />
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
@@ -59,9 +59,15 @@
     <script type="text/javascript">
 
 
-        var values = flyingon.parse_selector(">Panel .class+A[a=1,b=2]:test:checked(true)");
+        var date = new Date();
 
-        
+        for (var i = 0; i < 10000; i++)
+        {
+            var values = flyingon.parse_selector(">Panel .class+A[a=1,b=2]:test:checked(true)");
+        }
+
+        alert(new Date() - date);
+
 
         //var date = new Date();
 
@@ -89,7 +95,7 @@
 
         w.layout = "flow";
 
- 
+
 
 
         function create() {
@@ -152,7 +158,7 @@
                             break;
                     }
 
-                    ctrl.id = "button" + k * i;
+                    ctrl.id = "button" + (k * 200) + i;
                     ctrl.className = "class" + (i % 20);
                 }
 
@@ -206,7 +212,7 @@
             alert(new Date() - date);
         };
 
-        function query(cache) {
+        function query() {
 
             var date = new Date();
 
@@ -215,6 +221,19 @@
             alert(new Date() - date);
         };
 
+
+        function performance() {
+
+            var result;
+            var date = new Date();
+
+            for (var i = 0; i < 100; i++)
+            {
+                result = w.find(selector.value);
+            }
+
+            alert("loop:1000 controls:" + result.length + " time:" + (new Date() - date));
+        };
 
 
     </script>

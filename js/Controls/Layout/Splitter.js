@@ -6,7 +6,7 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
     Class.create = function () {
 
         var fields = this.__fields__;
-        fields.cursor = flyingon.cursors["col-resize"];
+        fields.cursor = "col-resize";
         fields.dock = "left";
         fields.draggable = true;
     };

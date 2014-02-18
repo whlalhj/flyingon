@@ -801,6 +801,7 @@ var flyingon = this.flyingon = {};
                 target[name] = data[name];
             }
         }
+
     };
 
 
@@ -1475,13 +1476,16 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 
-///选择器解析器
+//选择器解析器(类css选择器语法)
+//分正向解析和逆向解析
+//正向解析用于Query 是一种从上到下选择元素的方式
+//逆向解析用于Style 目的是判读当前元素是否符合要求
 (function (flyingon) {
 
 
 
     //元素节点
-    function Element(type, token, name, owner) {
+    var SelectorElement = flyingon.SelectorElement = function (type, token, name, owner) {
 
         this.type = type;
         this.token = token;
@@ -1501,6 +1505,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
         if (owner)
         {
             owner.next = this;
+            this.previous = owner;
 
             if (type == ",")
             {
@@ -1520,6 +1525,9 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         //token标记
         this.token = null;
+
+        //上一个节点
+        this.previous = null;
 
         //下一个节点
         this.next = null;
@@ -1547,7 +1555,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             {
                 for (var i = 0; i < this.length; i++)
                 {
-                    if (this[i].check(item) === false)
+                    if (this[i].check(item, index) === false)
                     {
                         return false;
                     }
@@ -1557,14 +1565,69 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             exports.push(item);
         };
 
-    }).call((flyingon.Query_Element = Element).prototype = []);
+
+        /*
+        css选择器权重
+        类型选择符的权重为：0001
+        类选择符的权重为：0010
+        通用选择符的权重为：0000
+        子选择符的权重为：0000
+        属性选择符的权重为：0010
+        伪类选择符的权重为：0010
+        伪元素选择符的权重为：0010
+        包含选择符的权重为：包含的选择符权重值之和
+        内联样式的权重为：1000
+        继承的样式的权重为：0000
+        */
+
+        //计算选择器的权重
+        this.weight = function () {
+
+            var result = 0,
+                element = this;
+
+            do
+            {
+                switch (element.token)
+                {
+                    case "#":
+                        result += 100;
+                        break;
+
+                    case ".":
+                        result += 10;
+                        break;
+
+                    case ".":
+                        result += 1;
+                        break;
+                }
+
+                if (this.length > 0)
+                {
+                    result += this.length * 10;
+                }
+
+            } while (element = element.next);
+
+            return result;
+        };
+
+
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+
+    }).call(SelectorElement.prototype = []);
 
 
 
 
 
     //属性节点
-    function Property(name) {
+    var SelectorProperty = flyingon.SelectorProperty = function (name) {
 
         switch (name[0])
         {
@@ -1585,41 +1648,48 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.relation = ""
 
-        this.check = function (item) {
+        this.check = function (item, index) {
 
-            var value = "" + item[this.name];
-
-            switch (ast.token)
+            switch (this.relation)
             {
+                case "":
+                    return item[this.name] !== undefined;
+
                 case "=":
-                    return value == this.value;
+                    return item[this.name] == this.value;
 
                 case "*=": // *= 包含属性值XX (由属性解析)
-                    return value.indexOf(this.value) >= 0;
+                    return ("" + item[this.name]).indexOf(this.value) >= 0;
 
                 case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return value.indexOf(this.value) == 0;
+                    return ("" + item[this.name]).indexOf(this.value) == 0;
 
                 case "$=": // $= 属性值以XX结尾 (由属性解析)
+                    var value = "" + item[this.name];
                     return value.lastIndexOf(this.value) == value.length - this.value.length;
 
                 case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test(value);
+                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + item[this.name]);
 
                 case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test(value);
+                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + item[this.name]);
 
                 default:
                     return false;
             }
         };
 
-    }).call((flyingon.Query_Property = Property).prototype);
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+    }).call(SelectorProperty.prototype);
 
 
 
     //属性集
-    function Properties(item) {
+    var SelectorProperties = flyingon.SelectorProperties = function (item) {
 
         this.push(item);
     };
@@ -1628,24 +1698,28 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = "[][]";
 
-        this.check = function (target) {
+        this.check = function (item, index) {
 
             for (var i = 0, length = this.length; i < length; i++)
             {
-                if (this[i].check(target))
+                if (this[i].check(item, index) === false)
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         };
 
-    }).call((flyingon.Query_Properties = Properties).prototype = []);
+        this.toString = this.toLocaleString = function () {
+
+            return this.token;
+        };
+
+    }).call(SelectorProperties.prototype = []);
 
 
 
-    //伪类
     /*
 
     支持的伪类如下:
@@ -1676,7 +1750,8 @@ Y E:expression(expression)      匹配符合指定表达式的元素
     Y E:expression(expression)      匹配符合指定表达式的元素
 
     */
-    function Pseudo_Class(name) {
+    //伪类
+    var SelectorPseudo = flyingon.SelectorPseudo = function (name) {
 
         switch (name[0])
         {
@@ -1695,7 +1770,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = ":";
 
-        this.check = function (item) {
+        this.check = function (item, index) {
 
             //    //第一个子元素
             //    "first-child": function () {
@@ -1736,112 +1811,24 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             //    "nth-mod-child(n,length)": "",
             //    "fn-child(fn)": "",
             //    "expression(expression)": ""
+
+            return true;
         };
 
-    }).call((flyingon.Query_Pseudo_Class = Pseudo_Class).prototype = []);
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+    }).call(SelectorPseudo.prototype = []);
+
+
 
 
 
 
 
     var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g; //
-
-    //选择器解析
-    flyingon.parse_selector = function (selector) {
-
-
-        var result,
-
-            values = selector.match(split_regex),
-
-            type = " ", //组合类型
-            token,      //当前标记
-
-            i = 0,
-            length = values.length,
-
-            node,   //当前节点 
-            item;   //当前项  
-
-
-        //switch代码在chrome下的效率没有IE9好,不知道什么原因 
-        while (i < length)
-        {
-            switch (token = values[i++])
-            {
-                case "#":  //id选择器标记
-                case ".":  //class选择器标记
-                    node = new Element(type, token, values[i++], node);
-                    break;
-
-                case "*":  //全部元素选择器标记
-                    node = new Element(type, "*", "*", node);
-                    break;
-
-                case " ":  //后代选择器标记
-                case ">":  //子元素选择器标记
-                case "+":  //毗邻元素选择器标记
-                case "~":  //之后同级元素选择器标记
-                case ",":  //组合选择器标记
-                    type = token;
-                    continue;
-
-                case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
-                    item = parse_property(values, length, i);
-                    i += item.count;
-
-                    if (item = item.result)
-                    {
-                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
-                    }
-                    break;
-
-                case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
-                    if (token = values[i++])
-                    {
-                        item = new Pseudo_Class(token);
-
-                        //处理参数
-                        if (i < length && values[i] == "(")
-                        {
-                            i += parse_parameters.call(item, values, length, ++i);
-                        }
-
-                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
-                    }
-                    break;
-
-                case "]":  //属性选择器结束标记
-                case "=":  //属性名与值的分隔 可与其它字符组合
-                case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                case "^":  //^= 属性值以XX开头 (由属性解析)
-                case "$":  //$= 属性值以XX结尾 (由属性解析)
-                case "(":  //开始参数
-                case ")":  //结束参数
-                    //由子类处理
-                    continue;
-
-                default: //类名 token = ""
-                    node = new Element(type, "", token, node);
-                    break;
-            }
-
-
-            if (type != " ")
-            {
-                type = " ";
-            }
-
-
-            if (!result && node)
-            {
-                result = node;
-            }
-        }
-
-
-        return result;
-    };
 
 
     //[name?=value]属性选择器
@@ -1870,7 +1857,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                 case ",":
                     if (nodes == null)
                     {
-                        nodes = new Properties(item);
+                        nodes = new SelectorProperties(item);
                     }
 
                     end = false;
@@ -1904,7 +1891,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                     }
                     else
                     {
-                        item = new Property(token);
+                        item = new SelectorProperty(token);
 
                         if (nodes)
                         {
@@ -1956,6 +1943,111 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 
+    //解析选择器
+    flyingon.parse_selector = function (selector) {
+
+
+        var result,
+            node,   //当前节点
+
+            type = " ", //组合类型
+            token,      //当前标记
+
+            values = selector.match(split_regex),
+            i = 0,
+            length = values.length;
+
+
+        if (length == 0)
+        {
+            result = new SelectorElement(type, "*", "*");
+            return result.last = result;
+        }
+
+
+        do
+        {
+            //switch代码在chrome下的效率没有IE9好,不知道什么原因,有可能是其操作非合法变量名的时候性能太差
+            switch (token = values[i++])
+            {
+                case "#":  //id选择器标记
+                case ".":  //class选择器标记
+                    node = new SelectorElement(type, token, values[i++], node);
+                    break;
+
+                case "*":  //全部元素选择器标记
+                    node = new SelectorElement(type, "*", "*", node);
+                    break;
+
+                case " ":  //后代选择器标记
+                case ">":  //子元素选择器标记
+                case "+":  //毗邻元素选择器标记
+                case "~":  //之后同级元素选择器标记
+                case ",":  //组合选择器标记
+                    type = token;
+                    continue;
+
+                case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
+                    var item = parse_property(values, length, i);
+                    i += item.count;
+
+                    if (item = item.result)
+                    {
+                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                    }
+                    break;
+
+                case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
+                    if (token = values[i++])
+                    {
+                        var item = new SelectorPseudo(token);
+
+                        //处理参数
+                        if (i < length && values[i] == "(")
+                        {
+                            i += parse_parameters.call(item, values, length, ++i);
+                        }
+
+                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                    }
+                    break;
+
+                case "]":  //属性选择器结束标记
+                case "=":  //属性名与值的分隔 可与其它字符组合
+                case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                case "^":  //^= 属性值以XX开头 (由属性解析)
+                case "$":  //$= 属性值以XX结尾 (由属性解析)
+                case "(":  //开始参数
+                case ")":  //结束参数
+                    //由子类处理
+                    continue;
+
+                default: //类名 token = ""
+                    node = new SelectorElement(type, "", token, node);
+                    break;
+            }
+
+
+            if (type != " ")
+            {
+                type = " ";
+            }
+
+
+            if (!result && node)
+            {
+                result = node;
+            }
+
+        } while (i < length)
+
+
+        result.last = node;
+        return result;
+    };
+
+
+
 })(flyingon);
 
 
@@ -1969,7 +2061,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
     var id = 0,
-        pool = []; //缓存池
+        items = []; //缓存池
 
 
     function form() {
@@ -1997,7 +2089,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
     function get_form(options) {
 
-        var result = pool.length > 0 ? pool.shift() : new form();
+        var result = items.length > 0 ? items.pop() : new form();
 
         result.iframe.onload = function fn(event) {
 
@@ -2011,7 +2103,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             result.form.innerHTML = "";
             result.iframe.innerHTML = "";
 
-            pool.push(result);
+            items.push(result);
         };
 
         if (result.iframe.attachEvent) //解决IE6不能触发onload事件的bug
@@ -2072,7 +2164,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             }
             else
             {
-                alert(options.responseText);
+                alert(error);
             }
         }
 
@@ -2269,7 +2361,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                     }
                     else
                     {
-                        alert(options.responseText);
+                        alert(error);
                     }
                 }
             }
@@ -2951,7 +3043,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     };
 
     //移除事件处理
-    this.removeListener = function (type, fn) {
+    this.removeEventListener = function (type, fn) {
 
         var events = this.__events__;
 
@@ -4743,321 +4835,458 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
 
 
 
+﻿
+//事件类型基类
+flyingon.Event = function () { };
+
+
+(function () {
+
+
+    //事件类型
+    this.type = null;
+
+    //事件目标
+    this.target = null;
+
+    //是否取消冒泡
+    this.cancelBubble = false;
+
+    //是否阻止默认动作
+    this.defaultPrevented = false;
+
+
+
+    this.stopPropagation = function () {
+
+        this.cancelBubble = true;
+    };
+
+    this.preventDefault = function () {
+
+        this.defaultPrevented = true;
+    };
+
+
+}).call(flyingon.Event.prototype);
+
+
+
+
+//鼠标事件类型
+flyingon.MouseEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
+
+
+(function (flyingon) {
+
+    var target = this,
+
+        defineProperty = function (name) {
+
+            flyingon.defineProperty(target, name, function () {
+
+                return this.originalEvent[name];
+            });
+        };
+
+
+    //是否按下ctrl键
+    defineProperty("ctrlKey");
+
+    //是否按下shift键
+    defineProperty("shiftKey");
+
+    //是否按下alt键
+    defineProperty("altKey");
+
+    //是否按下meta键
+    defineProperty("metaKey");
+
+    //事件触发时间
+    defineProperty("timeStamp");
+
+    //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
+    defineProperty("button");
+
+    //相对屏幕的x坐标
+    defineProperty("screenX");
+
+    //相对屏幕的y坐标
+    defineProperty("screenY");
+
+    //相对窗口客户区的x坐标
+    defineProperty("clientX");
+
+    //相对窗口客户区的y坐标
+    defineProperty("clientY");
+
+
+
+
+
+    function offsetToTarget() {
+
+        var event = this.originalEvent;
+
+        if (!event.__targetX__)
+        {
+            var offset = this.target.__boxModel__.offsetToTarget(event.__offsetX__, event.__offsetY__);
+
+            event.__targetX__ = offset.x;
+            event.__targetY__ = offset.y;
+        }
+
+        return event;
+    };
+
+
+    function offsetToWindow() {
+
+        var event = this.originalEvent;
+
+        if (!event.__windowX__)
+        {
+            var offset = this.target.__boxModel__.offsetToWindow(event.__offsetX__, event.__offsetY__);
+
+            event.__windowX__ = offset.x;
+            event.__windowY__ = offset.y;
+        }
+
+        return event;
+    };
+
+
+    function offsetToControl() {
+
+        var event = this.originalEvent;
+
+        if (!event.__controlX__)
+        {
+            var offset = this.target.__boxModel__.offsetToControl(event.__offsetX__, event.__offsetY__);
+
+            event.__controlX__ = offset.x;
+            event.__controlY__ = offset.y;
+        }
+
+        return event;
+    };
+
+
+
+    //x偏移坐标
+    flyingon.defineProperty(this, "offsetX", function () {
+
+        return this.originalEvent.__offsetX__;
+    });
+
+    //y偏移坐标
+    flyingon.defineProperty(this, "offsetY", function () {
+
+        return this.originalEvent.__offsetY__;
+    });
+
+
+    //x目标坐标
+    flyingon.defineProperty(this, "targetX", function () {
+
+        return this.originalEvent.__targetX__ || offsetToTarget.call(this).__targetX__;
+    });
+
+    //y目标坐标
+    flyingon.defineProperty(this, "targetY", function () {
+
+        return this.originalEvent.__targetY__ || offsetToTarget.call(this).__targetY__;
+    });
+
+
+    //x窗口坐标
+    flyingon.defineProperty(this, "windowX", function () {
+
+        return this.originalEvent.__windowX__ || offsetToWindow.call(this).__windowX__;
+    });
+
+    //y窗口坐标
+    flyingon.defineProperty(this, "windowY", function () {
+
+        return this.originalEvent.__windowY__ || offsetToWindow.call(this).__windowY__;
+    });
+
+    //x相对坐标
+    flyingon.defineProperty(this, "controlX", function () {
+
+        return this.originalEvent.__controlX__ || offsetToControl.call(this).__controlX__;
+    });
+
+    //y相对坐标
+    flyingon.defineProperty(this, "controlY", function () {
+
+        return this.originalEvent.__controlY__ || offsetToControl.call(this).__controlY__;
+    });
+
+
+    //鼠标滚轮数据
+    flyingon.defineProperty(this, "wheelDelta", function () {
+
+        return this.originalEvent.wheelDelta || (-this.originalEvent.detail * 40);
+    });
+
+
+}).call(flyingon.MouseEvent.prototype = new flyingon.Event(), flyingon);
+
+
+
+//拖拉事件类型
+flyingon.DragEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.dragTargets = [target];
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
+
+
+(function () {
+
+    //拖动目标
+    this.dragTargets = null;
+
+    //接收目标
+    this.dropTarget = null;
+
+
+}).call(flyingon.DragEvent.prototype = new flyingon.MouseEvent());
+
+
+
+
+//键盘事件类型
+flyingon.KeyEvent = function (type, target, originalEvent) {
+
+    this.type = type;
+    this.target = target;
+    this.originalEvent = originalEvent;
+};
+
+
+(function (flyingon) {
+
+    //是否按下ctrl键
+    flyingon.defineProperty(this, "ctrlKey", function () {
+
+        return this.originalEvent.ctrlKey;
+    });
+
+    //是否按下shift键
+    flyingon.defineProperty(this, "shiftKey", function () {
+
+        return this.originalEvent.shiftKey;
+    });
+
+    //是否按下alt键
+    flyingon.defineProperty(this, "altKey", function () {
+
+        return this.originalEvent.altKey;
+    });
+
+    //是否按下meta键
+    flyingon.defineProperty(this, "metaKey", function () {
+
+        return this.originalEvent.metaKey;
+    });
+
+    //事件触发时间
+    flyingon.defineProperty(this, "timeStamp", function () {
+
+        return this.originalEvent.timeStamp;
+    });
+
+    //键码
+    flyingon.defineProperty(this, "keyCode", function () {
+
+        return this.originalEvent.which || this.originalEvent.keyCode;
+    });
+
+
+}).call(flyingon.KeyEvent.prototype = new flyingon.Event(), flyingon);
+
+
+
+
+
+//属性值变更事件类型
+flyingon.ChangeEvent = function (target, name, value, oldValue) {
+
+    this.target = target;
+    this.name = name;
+    this.value = value;
+    this.oldValue = oldValue;
+};
+
+
+(flyingon.ChangeEvent.prototype = new flyingon.Event()).type = "change";
+
+
+
+
+
+
 ﻿/*
+
+字体对象 注:字体的属性一旦创建就不能够更改 只能根据当前字体衍生(derive)出新字体
+
 
 */
 (function (flyingon) {
 
 
-    var prototype = (flyingon.Point = function (x, y) {
 
-        this.x = x || 0;
-        this.y = y || 0;
-
-    }).prototype;
-
-
-
-    prototype.toString = prototype.toLocaleString = function () {
-
-        return "{ x:" + this.x + ", y:" + this.y + " }";
-    };
-
-
-})(flyingon);
-
-
-
-
-(function (flyingon) {
-
-
-    var prototype = (flyingon.Size = function (width, height) {
-
-        this.width = width || 0;
-        this.height = height || 0;
-
-    }).prototype;
-
-
-
-    prototype.toString = prototype.toLocaleString = function () {
-
-        return "{ width:" + this.width + ", height:" + this.height + " }";
-    };
-
-
-})(flyingon);
-
-
-
-
-(function (flyingon) {
-
-
-    var prototype = (flyingon.Rect = function (x, y, width, height) {
+    var prototype = (flyingon.Font = function (style, variant, weight, size, family) {
 
         if (arguments.length > 0)
         {
-            this.x = x || 0;
-            this.y = y || 0;
-            this.width = width || 0;
-            this.height = height || 0;
+            this.__fields__ = [style, variant, weight, size, family];
+            initialize.call(this);
         }
 
     }).prototype;
 
 
 
-    prototype.x = 0;
+    function initialize() {
 
-    prototype.y = 0;
+        var fields = this.__fields__;
 
-    prototype.width = 0;
+        if (typeof fields[3] == "number")
+        {
+            this.height = fields[3];
+            fields[3] += "px";
+        }
+        else
+        {
+            this.height = parseInt(fields[3]);
+        }
 
-    prototype.height = 0;
+        var cache = this.__cache__ = {},
+            context = this.__context__ = document.createElement("canvas").getContext("2d"),
+            text = "a b";
 
+        context.font = fields[5] = fields.join(" ");
 
-
-    flyingon.defineProperty(prototype, "right", function () {
-
-        return this.x + this.width;
-    });
-
-    flyingon.defineProperty(prototype, "bottom", function () {
-
-        return this.y + this.height;
-    });
-
-
-
-    prototype.copy = function (width_delta, height_delta) {
-
-        return new flyingon.Rect(this.x, this.y, this.width + (width_delta || 0), this.height + (height_delta || 0));
+        cache["汉"] = context.measureText("汉").width;
+        cache[" "] = context.measureText(" ").width;
     };
 
-    prototype.toString = prototype.toLocaleString = function () {
 
-        return "{ x:" + this.x + ", y:" + this.y + ", width:" + this.width + ", height:" + this.height + " }";
+
+
+    var defineProperty = function (name, index) {
+
+        flyingon.defineProperty(prototype, name, function () {
+
+            return this.__fields__[index];
+        });
     };
+
+
+
+    //字体样式 normal italic oblique
+    defineProperty("style", 0);
+
+    //字体变体 normal small-caps
+    defineProperty("variant", 1);
+
+    //字体粗细 normal bold bolder lighter 100 200 300 400 500 600 700 800 900
+    defineProperty("weight", 2);
+
+    //字号
+    defineProperty("size", 3);
+
+    //字体系列
+    defineProperty("family", 4);
+
+    //字体值
+    defineProperty("value", 5);
+
+    //字体高度
+    prototype.height = 12;
+
+
+    ////start     文本在指定的位置开始
+    ////end       文本在指定的位置结束
+    ////center    文本的中心被放置在指定的位置
+    ////left      文本左对齐
+    ////right     文本右对齐
+    //prototype.align = "start";
+
+    ////alphabetic    文本基线是普通的字母基线
+    ////top           文本基线是 em 方框的顶端
+    ////hanging       文本基线是悬挂基线
+    ////middle        文本基线是 em 方框的正中
+    ////ideographic   文本基线是表意基线
+    ////bottom        文本基线是 em 方框的底端
+    //prototype.baseline = "alphabetic";
+
+
+
+
+    //以当前字体为原型衍生出新字体  properties : { style:XXX, variant:XXX, weight:XXX, size:XXX, family:XXX }
+    prototype.derive = function (properties) {
+
+        var result = new flyingon.Font(),
+            data = result.__fields__ = this.__fields__.slice(0, 4);
+
+        data[0] = properties.style || data[0];
+        data[1] = properties.variant || data[1];
+        data[2] = properties.weight || data[2];
+        data[3] = properties.size || data[3];
+        data[4] = properties.family || data[4];
+
+        initialize.call(result);
+
+        return result;
+    };
+
+
+    //根据当前字体衍生出粗体
+    prototype.derive_bold = function () {
+
+        return this.bold = this.derive({ weight: "bold" });
+    };
+
+    //根据当前字体衍生出斜体
+    prototype.derive_italic = function () {
+
+        return this.italic = this.derive({ style: "italic" });
+    };
+
+    //根据当前字体衍生出粗斜体
+    prototype.derive_bold_italic = function () {
+
+        var result = this.derive({ weight: "bold", style: "italic" }),
+            cache;
+
+        if (cache = this.bold)
+        {
+            cache.italic = result;
+        }
+
+        if (cache = this.italic)
+        {
+            cache.bold = result;
+        }
+
+        return this.bold_italic = result;
+    };
+
 
 
 })(flyingon);
 
-
-
-
-(function (flyingon) {
-
-
-    //角度转弧度系数
-    var radian = Math.PI / 180;
-
-
-    //2D仿射变换矩阵
-    //a	水平旋转绘图
-    //b	水平倾斜绘图
-    //c	垂直倾斜绘图
-    //d	垂直缩放绘图
-    //e	水平移动绘图
-    //f	垂直移动绘图
-    var prototype = (flyingon.Matrix = function () {
-
-        this.a = 1;
-
-        this.b = 0;
-
-        this.c = 0;
-
-        this.d = 1;
-
-        this.e = 0;
-
-        this.f = 0;
-
-    }).prototype;
-
-
-    prototype.fromArray = function (array) {
-
-        this.a = array[0];
-        this.b = array[1];
-        this.c = array[2];
-        this.d = array[3];
-        this.e = array[4];
-        this.f = array[5];
-
-        return this;
-    };
-
-    prototype.toArray = function () {
-
-        return [this.a, this.b, this.c, this.d, this.e, this.f];
-    };
-
-    prototype.translate = function (x, y) {
-
-        this.add(1, 0, 0, 1, x, y);
-        return this;
-    };
-
-    prototype.scale = function (scaleX, scaleY) {
-
-        this.add(scaleX, 0, 0, scaleY, 0, 0);
-        return this;
-    };
-
-    prototype.rotate = function (angle) {
-
-        angle *= radian;
-
-        var cos = Math.cos(angle);
-        var sin = Math.sin(angle);
-
-        this.add(-sin, cos, cos, sin, 0, 0);
-        return this;
-    };
-
-    prototype.skew = function (skewX, skewY) {
-
-        var x = Math.Tan(skewX * n);
-        var y = Math.Tan(skewY * n);
-
-        this.add(1, x, y, 1, 0, 0);
-        return this;
-    };
-
-    prototype.add = function (a, b, c, d, e, f) {
-
-        var a1 = this.a;
-        var b1 = this.b;
-        var c1 = this.c;
-        var d1 = this.d;
-
-        this.a = a * a1 + b * c1;
-        this.b = a * b1 + b * d1;
-        this.c = c * a1 + d * c1;
-        this.d = c * b1 + d * d1;
-        this.e = e * a1 + f * c1 + this.e;
-        this.f = e * b1 + f * d1 + this.f;
-
-        return this;
-    };
-
-
-    prototype.transform = function (x, y) {
-
-        return {
-            x: Math.round(x * this.a + y * this.b + this.e, 0),
-            y: Math.round(x * this.c + y * this.d + this.f, 0)
-        };
-    };
-
-    prototype.reverse = function (x, y) {
-
-        return {
-            x: Math.round((this.b * y - this.d * x + this.d * this.e - this.b * this.f) / (this.c * this.b - this.a * this.d)),
-            y: Math.round((this.c * x - this.a * y - this.c * this.e + this.a * this.f) / (this.c * this.b - this.a * this.d))
-        };
-    };
-
-
-})(flyingon);
-
-
-
-
-﻿(function (flyingon) {
-
-
-    var regex = /\s*,\s*/g,
-
-        prototype = (flyingon.Thickness = function (value) {
-
-
-            if (value)
-            {
-                switch (typeof value)
-                {
-                    case "number":
-                        this.left = this.top = this.right = this.bottom = value;
-                        return;
-
-                    case "string":
-                        var values = value.split(regex);
-                        break;
-
-                    case "object":
-                        values = value.constructor == Array ? value : ("" + value).split(regex);
-                        break;
-                }
-
-                switch (values.length) //上右下左 与html保持一致
-                {
-                    case 1:
-                        if (value = values[0] - 0)
-                        {
-                            this.left = this.top = this.right = this.bottom = value;
-                        }
-                        break;
-
-                    case 2:
-                    case 3:
-                    case 4:
-                        if (value = values[0])
-                        {
-                            this.top = value - 0;
-                        }
-
-                        if (value = values[1])
-                        {
-                            this.right = value - 0;
-                        }
-
-                        this.bottom = (value = values[2]) ? value - 0 : this.top;
-                        this.left = (value = values[3]) ? value - 0 : this.right;
-                        break;
-                }
-            }
-
-        }).prototype;
-
-
-
-    //左空间
-    prototype.left = 0;
-
-    //上部空间
-    prototype.top = 0;
-
-    //右空间
-    prototype.right = 0;
-
-    //底部空间
-    prototype.bottom = 0;
-
-    //转换为字符串
-    prototype.toString = prototype.toLocaleString = function () {
-
-        return this.top + "," + this.left + "," + this.right + "," + this.bottom;
-    };
-
-
-    //左右空间和
-    flyingon.defineProperty(prototype, "spaceX", function () {
-
-        return this.left + this.right;
-    });
-
-    //上下空间和
-    flyingon.defineProperty(prototype, "spaceY", function () {
-
-        return this.top + this.bottom;
-    });
-
-
-
-})(flyingon);
 
 
 
@@ -5584,19 +5813,93 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
 
 
 
-﻿/*
-
-*/
-(function (flyingon) {
+﻿(function (flyingon) {
 
 
+    var regex = /\s*,\s*/g,
+
+        prototype = (flyingon.Thickness = function (value) {
 
 
-    var prototype = (flyingon.Text = function () {
+            if (value)
+            {
+                switch (typeof value)
+                {
+                    case "number":
+                        this.left = this.top = this.right = this.bottom = value;
+                        return;
+
+                    case "string":
+                        var values = value.split(regex);
+                        break;
+
+                    case "object":
+                        values = value.constructor == Array ? value : ("" + value).split(regex);
+                        break;
+                }
+
+                switch (values.length) //上右下左 与html保持一致
+                {
+                    case 1:
+                        if (value = values[0] - 0)
+                        {
+                            this.left = this.top = this.right = this.bottom = value;
+                        }
+                        break;
+
+                    case 2:
+                    case 3:
+                    case 4:
+                        if (value = values[0])
+                        {
+                            this.top = value - 0;
+                        }
+
+                        if (value = values[1])
+                        {
+                            this.right = value - 0;
+                        }
+
+                        this.bottom = (value = values[2]) ? value - 0 : this.top;
+                        this.left = (value = values[3]) ? value - 0 : this.right;
+                        break;
+                }
+            }
+
+        }).prototype;
 
 
-    }).prototype;
 
+    //左空间
+    prototype.left = 0;
+
+    //上部空间
+    prototype.top = 0;
+
+    //右空间
+    prototype.right = 0;
+
+    //底部空间
+    prototype.bottom = 0;
+
+    //转换为字符串
+    prototype.toString = prototype.toLocaleString = function () {
+
+        return this.top + "," + this.left + "," + this.right + "," + this.bottom;
+    };
+
+
+    //左右空间和
+    flyingon.defineProperty(prototype, "spaceX", function () {
+
+        return this.left + this.right;
+    });
+
+    //上下空间和
+    flyingon.defineProperty(prototype, "spaceY", function () {
+
+        return this.top + this.bottom;
+    });
 
 
 
@@ -5604,155 +5907,261 @@ flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
 
 
 
+﻿
 
-﻿/*
+var flyingon_fonts = {},
 
-字体对象 注:字体的属性一旦创建就不能够更改 只能根据当前字体衍生(derive)出新字体
+    flyingon_colors = {},
+
+    flyingon_images = {};
 
 
-*/
+
+
+//定义字体
+flyingon.defineFonts = function (fonts) {
+
+    flyingon.mearge(flyingon_fonts, fonts);
+};
+
+
+
+//定义颜色
+flyingon.defineColors = function (colors) {
+
+    flyingon.mearge(flyingon_colors, colors);
+};
+
+
+
+//定义图像
+flyingon.defineImages = function (images, conver_at_once) {
+
+    //转成Image对象
+    if (conver_at_once !== false)
+    {
+        for (var name in images)
+        {
+            images[name] = new Image().src = images[name];
+        }
+    }
+
+    flyingon.mearge(flyingon_images, images);
+};
+
+
+
+//定义样式
 (function (flyingon) {
 
 
 
-    var prototype = (flyingon.Font = function (style, variant, weight, size, family) {
+    var styles = {},  //样式集
 
-        if (arguments.length > 0)
+        styles_cache = {}, //样式缓存
+
+        thickness = ["margin", "border", "padding"];
+
+
+
+    //获取样式值
+    flyingon.styleValue = function (target, name) {
+
+        var style = styles[name],
+            keys,
+            items,
+            element;
+
+        if (style)
         {
-            this.__fields__ = [style, variant, weight, size, family];
-            initialize.call(this);
+            keys = style.__keys__ || (style.__keys__ = Object.keys(style));
+
+            loop:
+                for (var i = keys.length - 1; i >= 0; i--)
+                {
+                    element = (items = style[keys[i]])[0];
+
+                    switch (element.token)
+                    {
+                        case "":  //类型
+                            if (target.__fullTypeName__ != element.name) continue;
+                            break;
+
+                        case ".": //class
+                            if (!target.hasClass(element.name)) continue;
+                            break;
+
+                        case "#": //id
+                            if (target.id != element.name) continue;
+                            break;
+                    }
+
+                    if (element.length > 0)
+                    {
+                        for (var j = 0; j < element.length; j++)
+                        {
+                            if (element[j].check(target) === false)
+                            {
+                                continue loop;
+                            }
+                        }
+                    }
+
+                    return items[1];
+                }
+        }
+    };
+
+
+    //处理样式 按样式属性名存储 再根据
+    function handle_style(element, style) {
+
+        //当前权重
+        var weight = element.weight() * 100,
+            item;
+
+        for (var name in style)
+        {
+            //已有属性
+            if (item = styles[name])
+            {
+                while (item[weight])
+                {
+                    weight++;
+                }
+
+                item[weight] = [element, style[name]];
+                delete item.__keys__;
+            }
+            else
+            {
+                (styles[name] = {})[weight] = [element, style[name]];
+            }
+        }
+    };
+
+
+    //定义样式
+    var defineStyle = flyingon.defineStyle = function (selector, style, super_selector) {
+
+        if (selector && style)
+        {
+            var items, cache;
+
+            //处理thickness
+            for (var i = 0; i < 3; i++)
+            {
+                if (style[cache = thickness[i]])
+                {
+                    style[cache] = new flyingon.Thickness(cache);
+                }
+            }
+
+            //处理继承
+            if (super_selector && (cache = styles_cache[super_selector]))
+            {
+                cache = Object.create(cache);
+
+                for (var name in style)
+                {
+                    cache[name] = style[name];
+                }
+
+                style = cache;
+            }
+
+            //解析选择器
+            var element = flyingon.parse_selector(selector).last;
+
+            //拆分选择器 把最后的组合选择器拆分成单独的元素进行处理
+            if (element.type != ",")
+            {
+                handle_style(element, style);
+            }
+            else
+            {
+                items = [element];
+
+                while (element = element.previous)
+                {
+                    items.push(element);
+
+                    if (element.type != ",")
+                    {
+                        break;
+                    }
+                }
+
+                element.next = null;
+
+                for (var i = 0; i < items.length; i++)
+                {
+                    (cache = items[i]).previous = element;
+                    handle_style(cache, style);
+                }
+            }
         }
 
-    }).prototype;
-
-
-
-    function initialize() {
-
-        var fields = this.__fields__;
-
-        if (typeof fields[3] == "number")
-        {
-            this.height = fields[3];
-            fields[3] += "px";
-        }
-        else
-        {
-            this.height = parseInt(fields[3]);
-        }
-
-        var cache = this.__cache__ = {},
-            context = this.__context__ = document.createElement("canvas").getContext("2d"),
-            text = "a b";
-
-        context.font = fields[5] = fields.join(" ");
-
-        cache["汉"] = context.measureText("汉").width;
-        cache[" "] = context.measureText(" ").width;
     };
 
 
+    //初始化默认样式 注意伪类的初始化顺序
+    defineStyle("*", {
+
+        width: "default", //宽度 default|fill|auto|number|number%
+        height: "default", //高度 default|fill|auto|number|number%
+        background: "control-back",
+        foreground: "control-text",
+        borderColor: "control-border"
+    });
+
+    //选中时控件默认样式
+    defineStyle("*:checked", {
+
+        background: "checked-back",
+        foreground: "checked-text",
+        borderColor: "checked-border"
+    });
+
+    //获取焦点时控件默认样式
+    defineStyle("*:focus", {
+
+        background: "focus-back",
+        foreground: "focus-text",
+        borderColor: "focus-border"
+    });
 
 
-    var defineProperty = function (name, index) {
+    //捕获鼠标时控件默认样式
+    defineStyle("*:hover", {
 
-        flyingon.defineProperty(prototype, name, function () {
+        background: "hover-back",
+        foreground: "hover-text",
+        borderColor: "hover-border"
+    });
 
-            return this.__fields__[index];
-        });
-    };
+    //活动状态时控件默认样式
+    defineStyle("*:active", {
 
+        background: "active-back",
+        foreground: "active-text",
+        borderColor: "active-border"
+    });
 
+    //禁用时控件默认样式
+    defineStyle("*:disabled", {
 
-    //字体样式 normal italic oblique
-    defineProperty("style", 0);
-
-    //字体变体 normal small-caps
-    defineProperty("variant", 1);
-
-    //字体粗细 normal bold bolder lighter 100 200 300 400 500 600 700 800 900
-    defineProperty("weight", 2);
-
-    //字号
-    defineProperty("size", 3);
-
-    //字体系列
-    defineProperty("family", 4);
-
-    //字体值
-    defineProperty("value", 5);
-
-    //字体高度
-    prototype.height = 12;
+        background: "disabled-back",
+        foreground: "disabled-text",
+        borderColor: "disabled-border"
+    });
 
 
-    ////start     文本在指定的位置开始
-    ////end       文本在指定的位置结束
-    ////center    文本的中心被放置在指定的位置
-    ////left      文本左对齐
-    ////right     文本右对齐
-    //prototype.align = "start";
+    defineStyle(".window-maximize.hover", {
 
-    ////alphabetic    文本基线是普通的字母基线
-    ////top           文本基线是 em 方框的顶端
-    ////hanging       文本基线是悬挂基线
-    ////middle        文本基线是 em 方框的正中
-    ////ideographic   文本基线是表意基线
-    ////bottom        文本基线是 em 方框的底端
-    //prototype.baseline = "alphabetic";
-
-
-
-
-    //以当前字体为原型衍生出新字体  properties : { style:XXX, variant:XXX, weight:XXX, size:XXX, family:XXX }
-    prototype.derive = function (properties) {
-
-        var result = new flyingon.Font(),
-            data = result.__fields__ = this.__fields__.slice(0, 4);
-
-        data[0] = properties.style || data[0];
-        data[1] = properties.variant || data[1];
-        data[2] = properties.weight || data[2];
-        data[3] = properties.size || data[3];
-        data[4] = properties.family || data[4];
-
-        initialize.call(result);
-
-        return result;
-    };
-
-
-    //根据当前字体衍生出粗体
-    prototype.deriveBold = function () {
-
-        return this.bold = this.derive({ weight: "bold" });
-    };
-
-    //根据当前字体衍生出斜体
-    prototype.deriveItalic = function () {
-
-        return this.italic = this.derive({ style: "italic" });
-    };
-
-    //根据当前字体衍生出粗斜体
-    prototype.deriveBoldItalic = function () {
-
-        var result = this.derive({ weight: "bold", style: "italic" }),
-            cache;
-
-        if (cache = this.bold)
-        {
-            cache.italic = result;
-        }
-
-        if (cache = this.italic)
-        {
-            cache.bold = result;
-        }
-
-        return this.bold_italic = result;
-    };
-
+        background: "white",
+        image: "window-maximize-hover"
+    });
 
 
 })(flyingon);
@@ -5769,7 +6178,7 @@ Canvas2D绘图扩展
 
 */
 
-(function (flyingon) {
+(function (flyingon, fonts, colors) {
 
 
 
@@ -5923,7 +6332,7 @@ Canvas2D绘图扩展
 
         this["set_" + name] = function (value) {
 
-            var color = value && (flyingon.colors[value] || value);
+            var color = value && (colors[value] || value);
 
             this[name] = color && color.createBrush ? color.createBrush(this) : color;
             return this;
@@ -6010,7 +6419,7 @@ Canvas2D绘图扩展
     */
     prototype.set_font = function (value) {
 
-        var font = flyingon.fonts[value] || value;
+        var font = fonts[value] || value;
 
         this.font = font && (font.value || font);
         return this;
@@ -6457,307 +6866,231 @@ Canvas2D绘图扩展
 
 
 
+})(flyingon, flyingon_fonts, flyingon_colors);
+
+
+
+
+﻿/*
+
+*/
+(function (flyingon) {
+
+
+    var prototype = (flyingon.Point = function (x, y) {
+
+        this.x = x || 0;
+        this.y = y || 0;
+
+    }).prototype;
+
+
+
+    prototype.toString = prototype.toLocaleString = function () {
+
+        return "{ x:" + this.x + ", y:" + this.y + " }";
+    };
+
+
 })(flyingon);
 
 
 
 
-﻿
-//事件类型基类
-flyingon.Event = function () { };
+(function (flyingon) {
 
 
-(function () {
+    var prototype = (flyingon.Size = function (width, height) {
 
+        this.width = width || 0;
+        this.height = height || 0;
 
-    //事件类型
-    this.type = null;
-
-    //事件目标
-    this.target = null;
-
-    //是否取消冒泡
-    this.cancelBubble = false;
-
-    //是否阻止默认动作
-    this.defaultPrevented = false;
+    }).prototype;
 
 
 
-    this.stopPropagation = function () {
+    prototype.toString = prototype.toLocaleString = function () {
 
-        this.cancelBubble = true;
-    };
-
-    this.preventDefault = function () {
-
-        this.defaultPrevented = true;
+        return "{ width:" + this.width + ", height:" + this.height + " }";
     };
 
 
-}).call(flyingon.Event.prototype);
+})(flyingon);
 
 
-
-
-//鼠标事件类型
-flyingon.MouseEvent = function (type, target, originalEvent) {
-
-    this.type = type;
-    this.target = target;
-    this.originalEvent = originalEvent;
-};
 
 
 (function (flyingon) {
 
-    var target = this,
 
-        defineProperty = function (name) {
+    var prototype = (flyingon.Rect = function (x, y, width, height) {
 
-            flyingon.defineProperty(target, name, function () {
+        if (arguments.length > 0)
+        {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.width = width || 0;
+            this.height = height || 0;
+        }
 
-                return this.originalEvent[name];
-            });
+    }).prototype;
+
+
+
+    prototype.x = 0;
+
+    prototype.y = 0;
+
+    prototype.width = 0;
+
+    prototype.height = 0;
+
+
+
+    flyingon.defineProperty(prototype, "right", function () {
+
+        return this.x + this.width;
+    });
+
+    flyingon.defineProperty(prototype, "bottom", function () {
+
+        return this.y + this.height;
+    });
+
+
+
+    prototype.copy = function (width_delta, height_delta) {
+
+        return new flyingon.Rect(this.x, this.y, this.width + (width_delta || 0), this.height + (height_delta || 0));
+    };
+
+    prototype.toString = prototype.toLocaleString = function () {
+
+        return "{ x:" + this.x + ", y:" + this.y + ", width:" + this.width + ", height:" + this.height + " }";
+    };
+
+
+})(flyingon);
+
+
+
+
+(function (flyingon) {
+
+
+    //角度转弧度系数
+    var radian = Math.PI / 180;
+
+
+    //2D仿射变换矩阵
+    //a	水平旋转绘图
+    //b	水平倾斜绘图
+    //c	垂直倾斜绘图
+    //d	垂直缩放绘图
+    //e	水平移动绘图
+    //f	垂直移动绘图
+    var prototype = (flyingon.Matrix = function () {
+
+        this.a = 1;
+
+        this.b = 0;
+
+        this.c = 0;
+
+        this.d = 1;
+
+        this.e = 0;
+
+        this.f = 0;
+
+    }).prototype;
+
+
+    prototype.fromArray = function (array) {
+
+        this.a = array[0];
+        this.b = array[1];
+        this.c = array[2];
+        this.d = array[3];
+        this.e = array[4];
+        this.f = array[5];
+
+        return this;
+    };
+
+    prototype.toArray = function () {
+
+        return [this.a, this.b, this.c, this.d, this.e, this.f];
+    };
+
+    prototype.translate = function (x, y) {
+
+        this.add(1, 0, 0, 1, x, y);
+        return this;
+    };
+
+    prototype.scale = function (scaleX, scaleY) {
+
+        this.add(scaleX, 0, 0, scaleY, 0, 0);
+        return this;
+    };
+
+    prototype.rotate = function (angle) {
+
+        angle *= radian;
+
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+
+        this.add(-sin, cos, cos, sin, 0, 0);
+        return this;
+    };
+
+    prototype.skew = function (skewX, skewY) {
+
+        var x = Math.Tan(skewX * n);
+        var y = Math.Tan(skewY * n);
+
+        this.add(1, x, y, 1, 0, 0);
+        return this;
+    };
+
+    prototype.add = function (a, b, c, d, e, f) {
+
+        var a1 = this.a;
+        var b1 = this.b;
+        var c1 = this.c;
+        var d1 = this.d;
+
+        this.a = a * a1 + b * c1;
+        this.b = a * b1 + b * d1;
+        this.c = c * a1 + d * c1;
+        this.d = c * b1 + d * d1;
+        this.e = e * a1 + f * c1 + this.e;
+        this.f = e * b1 + f * d1 + this.f;
+
+        return this;
+    };
+
+
+    prototype.transform = function (x, y) {
+
+        return {
+            x: Math.round(x * this.a + y * this.b + this.e, 0),
+            y: Math.round(x * this.c + y * this.d + this.f, 0)
         };
+    };
 
+    prototype.reverse = function (x, y) {
 
-    //是否按下ctrl键
-    defineProperty("ctrlKey");
-
-    //是否按下shift键
-    defineProperty("shiftKey");
-
-    //是否按下alt键
-    defineProperty("altKey");
-
-    //是否按下meta键
-    defineProperty("metaKey");
-
-    //事件触发时间
-    defineProperty("timeStamp");
-
-    //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-    defineProperty("button");
-
-    //相对屏幕的x坐标
-    defineProperty("screenX");
-
-    //相对屏幕的y坐标
-    defineProperty("screenY");
-
-    //相对窗口客户区的x坐标
-    defineProperty("clientX");
-
-    //相对窗口客户区的y坐标
-    defineProperty("clientY");
-
-
-
-
-
-    function offsetToTarget() {
-
-        var event = this.originalEvent;
-
-        if (!event.__targetX__)
-        {
-            var offset = this.target.__boxModel__.offsetToTarget(event.__offsetX__, event.__offsetY__);
-
-            event.__targetX__ = offset.x;
-            event.__targetY__ = offset.y;
-        }
-
-        return event;
+        return {
+            x: Math.round((this.b * y - this.d * x + this.d * this.e - this.b * this.f) / (this.c * this.b - this.a * this.d)),
+            y: Math.round((this.c * x - this.a * y - this.c * this.e + this.a * this.f) / (this.c * this.b - this.a * this.d))
+        };
     };
 
 
-    function offsetToWindow() {
-
-        var event = this.originalEvent;
-
-        if (!event.__windowX__)
-        {
-            var offset = this.target.__boxModel__.offsetToWindow(event.__offsetX__, event.__offsetY__);
-
-            event.__windowX__ = offset.x;
-            event.__windowY__ = offset.y;
-        }
-
-        return event;
-    };
-
-
-    function offsetToControl() {
-
-        var event = this.originalEvent;
-
-        if (!event.__controlX__)
-        {
-            var offset = this.target.__boxModel__.offsetToControl(event.__offsetX__, event.__offsetY__);
-
-            event.__controlX__ = offset.x;
-            event.__controlY__ = offset.y;
-        }
-
-        return event;
-    };
-
-
-
-    //x偏移坐标
-    flyingon.defineProperty(this, "offsetX", function () {
-
-        return this.originalEvent.__offsetX__;
-    });
-
-    //y偏移坐标
-    flyingon.defineProperty(this, "offsetY", function () {
-
-        return this.originalEvent.__offsetY__;
-    });
-
-
-    //x目标坐标
-    flyingon.defineProperty(this, "targetX", function () {
-
-        return this.originalEvent.__targetX__ || offsetToTarget.call(this).__targetX__;
-    });
-
-    //y目标坐标
-    flyingon.defineProperty(this, "targetY", function () {
-
-        return this.originalEvent.__targetY__ || offsetToTarget.call(this).__targetY__;
-    });
-
-
-    //x窗口坐标
-    flyingon.defineProperty(this, "windowX", function () {
-
-        return this.originalEvent.__windowX__ || offsetToWindow.call(this).__windowX__;
-    });
-
-    //y窗口坐标
-    flyingon.defineProperty(this, "windowY", function () {
-
-        return this.originalEvent.__windowY__ || offsetToWindow.call(this).__windowY__;
-    });
-
-    //x相对坐标
-    flyingon.defineProperty(this, "controlX", function () {
-
-        return this.originalEvent.__controlX__ || offsetToControl.call(this).__controlX__;
-    });
-
-    //y相对坐标
-    flyingon.defineProperty(this, "controlY", function () {
-
-        return this.originalEvent.__controlY__ || offsetToControl.call(this).__controlY__;
-    });
-
-
-    //鼠标滚轮数据
-    flyingon.defineProperty(this, "wheelDelta", function () {
-
-        return this.originalEvent.wheelDelta || (-this.originalEvent.detail * 40);
-    });
-
-
-}).call(flyingon.MouseEvent.prototype = new flyingon.Event(), flyingon);
-
-
-
-//拖拉事件类型
-flyingon.DragEvent = function (type, target, originalEvent) {
-
-    this.type = type;
-    this.dragTargets = [target];
-    this.target = target;
-    this.originalEvent = originalEvent;
-};
-
-
-(function () {
-
-    //拖动目标
-    this.dragTargets = null;
-
-    //接收目标
-    this.dropTarget = null;
-
-
-}).call(flyingon.DragEvent.prototype = new flyingon.MouseEvent());
-
-
-
-
-//键盘事件类型
-flyingon.KeyEvent = function (type, target, originalEvent) {
-
-    this.type = type;
-    this.target = target;
-    this.originalEvent = originalEvent;
-};
-
-
-(function (flyingon) {
-
-    //是否按下ctrl键
-    flyingon.defineProperty(this, "ctrlKey", function () {
-
-        return this.originalEvent.ctrlKey;
-    });
-
-    //是否按下shift键
-    flyingon.defineProperty(this, "shiftKey", function () {
-
-        return this.originalEvent.shiftKey;
-    });
-
-    //是否按下alt键
-    flyingon.defineProperty(this, "altKey", function () {
-
-        return this.originalEvent.altKey;
-    });
-
-    //是否按下meta键
-    flyingon.defineProperty(this, "metaKey", function () {
-
-        return this.originalEvent.metaKey;
-    });
-
-    //事件触发时间
-    flyingon.defineProperty(this, "timeStamp", function () {
-
-        return this.originalEvent.timeStamp;
-    });
-
-    //键码
-    flyingon.defineProperty(this, "keyCode", function () {
-
-        return this.originalEvent.which || this.originalEvent.keyCode;
-    });
-
-
-}).call(flyingon.KeyEvent.prototype = new flyingon.Event(), flyingon);
-
-
-
-
-
-//属性值变更事件类型
-flyingon.ChangeEvent = function (target, name, value, oldValue) {
-
-    this.target = target;
-    this.name = name;
-    this.value = value;
-    this.oldValue = oldValue;
-};
-
-
-(flyingon.ChangeEvent.prototype = new flyingon.Event()).type = "change";
-
-
+})(flyingon);
 
 
 
@@ -6819,7 +7152,7 @@ flyingon.ChangeEvent = function (target, name, value, oldValue) {
         var style = ownerLayer.dom_layer.style;
 
         style.overflow = "visible";
-        style.cursor = flyingon.cursors[dragger.drop_cursor || "allow-drop"];
+        style.cursor = dragger.drop_cursor || "move";
         style.opacity = dragger.opacity || 0.5;
 
         ownerWindow.appendLayer(9999, ownerLayer);
@@ -6893,8 +7226,8 @@ flyingon.ChangeEvent = function (target, name, value, oldValue) {
                 }
 
 
-                var cursor = droppable ? (dragger.drop_cursor || "allow-drop") : (dragger.nodrop_cursor || "no-drop");
-                ownerLayer.dom_layer.style.cursor = flyingon.cursors[cursor];
+                var cursor = droppable ? (dragger.drop_cursor || "move") : (dragger.nodrop_cursor || "no-drop");
+                ownerLayer.dom_layer.style.cursor = cursor;
             }
 
 
@@ -7519,7 +7852,7 @@ flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
             this[this.previous_type](items, exports);
         };
 
-    }).call(flyingon.Query_Element.prototype);
+    }).call(flyingon.SelectorElement.prototype);
 
 
 
@@ -7552,7 +7885,7 @@ flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
             {
                 switch (selector.constructor)
                 {
-                    case flyingon.Query_Element:
+                    case flyingon.SelectorElement:
                         selector = selector.find([start]);
                         break;
 
@@ -9088,10 +9421,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     Class.create = function () {
 
 
-        //绑定当前应用以公用全局数据
-        //注:自定义对象请勿使用application作为属性名以免冲突
-        this.application = flyingon.__application__;
-
         //盒模型
         this.__boxModel__ = new flyingon.BoxModel(this);
     };
@@ -9149,7 +9478,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //主窗口
     this.defineProperty("mainWindow", function () {
 
-        return this.application.mainWindow;
+        var ownerWindow = this.ownerWindow;
+        return ownerWindow && ownerWindow.mainWindow;
     });
 
     //所属窗口
@@ -9221,7 +9551,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return "var oldValue = fields." + name + ", defaults;\n"
             + "if (oldValue === undefined || (defaults = this.__defaults__." + name + ") === oldValue)\n"
             + "{\n"
-            + "if ((oldValue = (this.__fn_style__ || this.__fn_style_template__())(\"" + name + "\")) === undefined)\n"
+            + "if ((oldValue = flyingon.styleValue(this, \"" + name + "\")) === undefined)\n"
             + "{\n"
             + "oldValue = defaults;\n"
             + "}\n"
@@ -9343,7 +9673,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         attributes: "invalidate|query",
         changing: "if (value) value = value.replace(/^\\s+|\\s+$/g, '');",
-        complete: "this.__fn_style__ = null;\nthis.__class_list__ = value ? value.split(/\\s+/g) : null;"
+        complete: "this.__class_list__ = value ? value.split(/\\s+/g) : null;"
     });
 
     //是否包含指定class
@@ -9402,11 +9732,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
     //自定义样式
-    this.defineProperty("style", null, {
-
-        attributes: "invalidate|query",
-        changed: "this.__fn_style__ = null;"
-    });
+    this.defineProperty("style", null, "invalidate|query");
 
 
 
@@ -9418,7 +9744,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     focus-states:   焦点状态组(focused leaver-animate)
     hover-states:   鼠标悬停状态组(hover leaver-animate)
     */
-    this.__states__ = ["common-states", "focus-states", "hover-states"];
+    this.__states__ = ["enabled", "focused", "hover"];
 
     //自定义状态组
     this.defineStates = function (statesName, defaultValue, index) {
@@ -9432,95 +9758,25 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
     };
 
-    this.defaultValue("common-states", null);
+    this.defaultValue("enabled", "yes");
 
-    this.defaultValue("focus-states", null);
+    this.defaultValue("focused", "no");
 
-    this.defaultValue("hover-states", null);
+    this.defaultValue("hover", "no");
 
     //切换状态
     this.stateTo = function (statesName, stateName) {
 
         if (statesName && stateName)
         {
-            this.__fields__[statesName] = (stateName == "enter-animate" || stateName == "leave-animate") ? null : stateName;
+            this.__fields__[statesName] = stateName;
 
             //记录最后变更的状态组以作为状态变更动画依据
             this.__statesName__ = statesName;
             this.__stateName__ = stateName;
 
-            this.__fn_style__ = null; //重置获取样式值的方法
-
             this.invalidate();
         }
-    };
-
-
-
-    //缓存获取样式方法以加快检索
-    this.__fn_style_template__ = function () {
-
-        var result = [],
-            fields = this.__fields__,
-            states = this.__states__,
-            statesName,
-            stateName;
-
-
-        for (var i = states.length - 1; i >= 0; i--)
-        {
-            if ((statesName = states[i]) && (stateName = fields[statesName]))
-            {
-                if (result.length == 0)
-                {
-                    result.push("var states = style.states;\n");
-                }
-
-                result.push("if ((result = states[\"");
-                result.push(statesName);
-                result.push("\"]) && (result = result[\"");
-                result.push(stateName);
-                result.push("\"]) && (result = result[name]) !== undefined)\n");
-                result.push("return result;\n");
-            }
-        }
-
-        result.push("if ((result = style[name]) !== undefined) return result;\n");
-
-
-        var body = result.join(""); //方法片断
-
-
-        result.length = 0;
-        result.push("var result, style;\n");
-
-        if (this.style)
-        {
-            result.push("if (style = this.style)\n");
-            result.push("{\n");
-            result.push(body);
-            result.push("}\n");
-        }
-
-        result.push("var styles = flyingon.styles;\n");
-
-        if (fields.__styles__)
-        {
-            for (var i = 0, length = fields.__styles__.length; i < length; i++)
-            {
-                result.push("if (style = styles[\"." + fields.__styles[i] + "\"])\n");
-                result.push("{\n");
-                result.push(body);
-                result.push("}\n");
-            }
-        }
-
-        result.push("if (style = styles[\"" + this.__fullTypeName__ + "\"])\n");
-        result.push("{\n");
-        result.push(body);
-        result.push("}\n");
-
-        return this.__fn_style__ = new Function("name", result.join(""));
     };
 
 
@@ -9608,13 +9864,15 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //变换器
     this.defineProperty("transform", null, "measure|style");
 
+    var fonts = flyingon_fonts;
+
     //字体
     this.defineProperty("font", "normal", {
 
         attributes: "measure|style",
         getter: function () {
 
-            return flyingon.fonts[this.font || "normal"] || flyingon.fonts.normal;
+            return fonts[this.font || "normal"] || fonts.normal;
         }
 
     }, "this.__textMetrics__ = null;");
@@ -9628,8 +9886,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     this.__fn_cursor__ = function (event) {
 
-        var cursor = this.cursor || "default";
-        return flyingon.cursors[cursor] || cursor;
+        return this.cursor || "default";
     };
 
 
@@ -9672,7 +9929,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否可用
     this.defineProperty("enabled", true, {
 
-        changed: "this.stateTo('common-states', value ? 'disabled' : 'enter-animate');"
+        changed: "this.stateTo('enabled', value ? 'yes' : 'no');"
     });
 
 
@@ -9820,7 +10077,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
                 if (this.dispatchEvent("focus"))
                 {
-                    this.stateTo("focus-states", "focused");
+                    this.stateTo("focused", "yes");
                 }
             }
 
@@ -9841,7 +10098,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (this.dispatchEvent("blur"))
             {
-                this.stateTo("focus-states", "leave-animate");
+                this.stateTo("focused", "no");
             }
 
             return true;
@@ -9863,14 +10120,14 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //查找指定id的子控件集合
     this.findById = function (id, cascade) {
 
-        return new flyingon.Query(new flyingon.Query_Element(cascade ? " " : ">", "#", id), this);
+        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", "#", id), this);
     };
 
     //查找指定名称的子控件集合
     this.findByName = function (name, cascade) {
 
-        var element = new flyingon.Query_Element(cascade ? " " : ">", "*"),
-            property = new flyingon.Query_Property("name");
+        var element = new flyingon.SelectorElement(cascade ? " " : ">", "*"),
+            property = new flyingon.SelectorProperty("name");
 
         property.relation = "=";
         property.value = name;
@@ -9883,16 +10140,16 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //查找指定类型的子控件集合
     this.findByTypeName = function (fullTypeName, cascade) {
 
-        return new flyingon.Query(new flyingon.Query_Element(cascade ? " " : ">", "", fullTypeName), this);
+        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", "", fullTypeName), this);
     };
 
     //查找指定class的控件子控件集合
     this.findByClassName = function (className, cascade) {
 
-        return new flyingon.Query(new flyingon.Query_Element(cascade ? " " : ">", ".", className), this);
+        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", ".", className), this);
     };
 
- 
+
 
 
 
@@ -12951,7 +13208,7 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
     Class.create = function () {
 
         var fields = this.__fields__;
-        fields.cursor = flyingon.cursors["col-resize"];
+        fields.cursor = "col-resize";
         fields.dock = "left";
         fields.draggable = true;
     };
@@ -13156,179 +13413,6 @@ flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
 
 
 
-﻿
-
-//应用程序
-(function (flyingon) {
-
-
-
-    function Class() { };
-
-
-    (function (flyingon) {
-
-
-        var default_style,  //默认样式
-
-            parse_setting = {
-
-                margin: parse_thickness,
-                border: parse_thickness,
-                padding: parse_thickness
-            };
-
-
-
-        //加载默认样式
-        function load_default_style() {
-
-            var data = flyingon.require(flyingon_setting.style_file || "themes/default.js");
-
-            if (data)
-            {
-                flyingon.fonts = data.fonts || {};
-                flyingon.cursors = data.cursors || {};
-                flyingon.images = data.images || {};
-                flyingon.colors = data.colors || {};
-
-                flyingon.styles = data.styles || {};
-                flyingon.templates = data.templates || {};
-
-                parse_style(flyingon.styles);
-                initialize_style(flyingon.Control);
-            }
-        };
-
-        //复制样式
-        function initialize_style(Class) {
-
-            var subtypes = Class.subtypes;
-            if (subtypes)
-            {
-                var styles = flyingon.styles,
-                    templates = flyingon.templates,
-                    parent_style = styles[Class.fullTypeName],
-                    parent_template = templates[Class.fullTypeName];
-
-                for (var i = 0, length = subtypes.length; i < length; i++)
-                {
-                    var target = subtypes[i],
-                        fullTypeName = target.fullTypeName,
-                        style = styles[fullTypeName] || (styles[fullTypeName] = {}),
-                        template = templates[fullTypeName] || (templates[fullTypeName] = {});
-
-
-                    //复制上级样式
-                    if (parent_style)
-                    {
-                        flyingon.mearge(parent_style, style, true);
-                    }
-
-                    //复制上级模板
-                    if (parent_template)
-                    {
-                        flyingon.mearge(parent_template, template, true);
-                    }
-
-
-                    //递归
-                    initialize_style(target);
-                }
-            }
-        };
-
-
-        function parse_thickness(name) {
-
-            this[name] = new flyingon.Thickness(this[name]);
-        };
-
-
-        function parse_style(target) {
-
-            var names = Object.keys(target),
-                name,
-                value,
-                fn;
-
-            for (var i = 0, length = names.length; i < length; i++)
-            {
-                if ((name = names[i]) && (fn = parse_setting[name]))
-                {
-                    fn.call(target, name);
-                }
-                else if ((value = target[name]) && typeof value == "object" && value.constructor != Array)
-                {
-                    parse_style(value);
-                }
-            }
-
-        };
-
-
-
-        //加载样式
-        this.load_style = function (url) {
-
-            if (url)
-            {
-                load_default_style();
-
-                var data = flyingon.require(url);
-
-                if (data)
-                {
-                    parse_style(data);
-                    flyingon.mearge(data, flyingon);
-                }
-            }
-        };
-
-
-
-        //初始化应用
-        this.initialize = function (reset) {
-
-            if (!flyingon.styles)
-            {
-                //加载资源包
-                flyingon.require(flyingon_setting.language_file);
-
-                //加载默认样式
-                load_default_style();
-            }
-        };
-
-
-
-    }).call(Class.prototype, flyingon);
-
-
-
-
-    var cache = {},
-        system = flyingon.__application__ = new Class();
-
-
-    //创建或切换应用程序
-    flyingon.application = function (name, fn) {
-
-        flyingon.__application__ = name ? cache[name] || (cache[name] = {}) : system;
-
-        if (typeof fn == "function")
-        {
-            fn.call(flyingon.__application__, flyingon);
-        }
-    };
-
-
-
-})(flyingon);
-
-
-
-
 ﻿//窗口基类
 flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
@@ -13471,21 +13555,21 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
     //定义活动状态
-    this.defineStates("activate-states", "activate");
+    this.defineStates("activate", "yes");
 
 
     this.__fn_activate__ = function () {
 
         this.dom_window.style.zIndex = 9991;
         this.dispatchEvent("activate");
-        this.stateTo("activate-states", "activate");
+        this.stateTo("activate", "yes");
     };
 
     this.__fn_deactivate__ = function () {
 
         this.dom_window.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
-        this.stateTo("activate-states", "deactivate");
+        this.stateTo("activate", "no");
     };
 
 
@@ -13623,7 +13707,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             {
                 dispatchEvent("mouseout", source, dom_MouseEvent);
 
-                source.stateTo("hover-states", "leave-animate");
+                source.stateTo("hover", "no");
             }
 
             if (target && target.enabled)
@@ -13633,7 +13717,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
 
-                target.stateTo("hover-states", "hover");
+                target.stateTo("hover", "yes");
             }
         }
     };
@@ -13651,7 +13735,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.application.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
+        if (ownerWindow != ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
         {
             ownerWindow.activate(true);
         }
@@ -13730,7 +13814,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             flyingon.__hover_control__ = null;
 
             dispatchEvent("mouseout", target, dom_MouseEvent);
-            target.stateTo("hover-states", "leave-animate");
+            target.stateTo("hover", "no");
         }
     };
 
@@ -13894,8 +13978,12 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     Class.create = function (parentNode) {
 
 
-        //初始化应用
-        this.application.initialize();
+        //加载资源包
+        flyingon.require(flyingon_setting.language_file);
+
+        //加载默认样式
+        flyingon.require(flyingon_setting.style_file || "themes/default.js");
+
 
 
         var div = this.dom_host = document.createElement("div");
@@ -13914,7 +14002,7 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
         //定义主窗口变量
-        this.application.mainWindow = this;
+        flyingon.defineVariable(this, "mainWindow", this);
 
         //设为活动窗口
         this.activate();
@@ -13958,7 +14046,6 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         var r = this.__fn_getBoundingClientRect__(true);
         this.__fn_resize__(0, 0, r.width, r.height);
     };
-
 
 
 }, true);
@@ -14039,7 +14126,7 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
     function translate(ownerWindow, left, top) {
 
 
-        var mainWindow = this.application.mainWindow,
+        var mainWindow = ownerWindow.mainWindow,
 
             left = ownerWindow.left,
             top = ownerWindow.top,
@@ -14199,7 +14286,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         flyingon.defineVariable(this, "parentWindow", parentWindow);
 
 
-        var host = this.application.mainWindow.dom_host;
+        var host = parentWindow.mainWindow.dom_host;
 
         if (showDialog) //如果是模式窗口则添加遮罩层
         {
@@ -14239,7 +14326,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
-                var host = this.application.mainWindow.dom_host;
+                var host = ownerWindow.mainWindow.dom_host;
 
                 host.removeChild(this.dom_window);
                 if (this.dom_mask)
@@ -14495,13 +14582,16 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
         this.paint_text(context, boxModel.clientRect);
     };
 
+
+    var images = flyingon_images;
+
     this.paint_image = function (context, clientRect) {
 
         var image = this.image;
 
         if (image)
         {
-            if (image.constructor == String && (image = flyingon.images[image]) == null)
+            if (image.constructor == String && (image = images[image]) == null)
             {
                 return;
             }

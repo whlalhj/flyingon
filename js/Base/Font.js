@@ -116,19 +116,19 @@
 
 
     //根据当前字体衍生出粗体
-    prototype.deriveBold = function () {
+    prototype.derive_bold = function () {
 
         return this.bold = this.derive({ weight: "bold" });
     };
 
     //根据当前字体衍生出斜体
-    prototype.deriveItalic = function () {
+    prototype.derive_italic = function () {
 
         return this.italic = this.derive({ style: "italic" });
     };
 
     //根据当前字体衍生出粗斜体
-    prototype.deriveBoldItalic = function () {
+    prototype.derive_bold_italic = function () {
 
         var result = this.derive({ weight: "bold", style: "italic" }),
             cache;

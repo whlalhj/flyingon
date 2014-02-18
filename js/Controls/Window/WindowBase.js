@@ -140,21 +140,21 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
     //定义活动状态
-    this.defineStates("activate-states", "activate");
+    this.defineStates("activate", "yes");
 
 
     this.__fn_activate__ = function () {
 
         this.dom_window.style.zIndex = 9991;
         this.dispatchEvent("activate");
-        this.stateTo("activate-states", "activate");
+        this.stateTo("activate", "yes");
     };
 
     this.__fn_deactivate__ = function () {
 
         this.dom_window.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
-        this.stateTo("activate-states", "deactivate");
+        this.stateTo("activate", "no");
     };
 
 
@@ -292,7 +292,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             {
                 dispatchEvent("mouseout", source, dom_MouseEvent);
 
-                source.stateTo("hover-states", "leave-animate");
+                source.stateTo("hover", "no");
             }
 
             if (target && target.enabled)
@@ -302,7 +302,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
 
-                target.stateTo("hover-states", "hover");
+                target.stateTo("hover", "yes");
             }
         }
     };
@@ -320,7 +320,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.application.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
+        if (ownerWindow != ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
         {
             ownerWindow.activate(true);
         }
@@ -399,7 +399,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             flyingon.__hover_control__ = null;
 
             dispatchEvent("mouseout", target, dom_MouseEvent);
-            target.stateTo("hover-states", "leave-animate");
+            target.stateTo("hover", "no");
         }
     };
 

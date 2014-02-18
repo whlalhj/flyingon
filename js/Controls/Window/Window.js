@@ -6,8 +6,12 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     Class.create = function (parentNode) {
 
 
-        //初始化应用
-        this.application.initialize();
+        //加载资源包
+        flyingon.require(flyingon_setting.language_file);
+
+        //加载默认样式
+        flyingon.require(flyingon_setting.style_file || "themes/default.js");
+
 
 
         var div = this.dom_host = document.createElement("div");
@@ -26,7 +30,7 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
 
 
         //定义主窗口变量
-        this.application.mainWindow = this;
+        flyingon.defineVariable(this, "mainWindow", this);
 
         //设为活动窗口
         this.activate();
@@ -70,7 +74,6 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
         var r = this.__fn_getBoundingClientRect__(true);
         this.__fn_resize__(0, 0, r.width, r.height);
     };
-
 
 
 }, true);

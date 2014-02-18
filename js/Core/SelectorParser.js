@@ -106,13 +106,16 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 
-///选择器解析器
+//选择器解析器(类css选择器语法)
+//分正向解析和逆向解析
+//正向解析用于Query 是一种从上到下选择元素的方式
+//逆向解析用于Style 目的是判读当前元素是否符合要求
 (function (flyingon) {
 
 
 
     //元素节点
-    function Element(type, token, name, owner) {
+    var SelectorElement = flyingon.SelectorElement = function (type, token, name, owner) {
 
         this.type = type;
         this.token = token;
@@ -132,6 +135,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
         if (owner)
         {
             owner.next = this;
+            this.previous = owner;
 
             if (type == ",")
             {
@@ -151,6 +155,9 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         //token标记
         this.token = null;
+
+        //上一个节点
+        this.previous = null;
 
         //下一个节点
         this.next = null;
@@ -178,7 +185,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             {
                 for (var i = 0; i < this.length; i++)
                 {
-                    if (this[i].check(item) === false)
+                    if (this[i].check(item, index) === false)
                     {
                         return false;
                     }
@@ -188,14 +195,69 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             exports.push(item);
         };
 
-    }).call((flyingon.Query_Element = Element).prototype = []);
+
+        /*
+        css选择器权重
+        类型选择符的权重为：0001
+        类选择符的权重为：0010
+        通用选择符的权重为：0000
+        子选择符的权重为：0000
+        属性选择符的权重为：0010
+        伪类选择符的权重为：0010
+        伪元素选择符的权重为：0010
+        包含选择符的权重为：包含的选择符权重值之和
+        内联样式的权重为：1000
+        继承的样式的权重为：0000
+        */
+
+        //计算选择器的权重
+        this.weight = function () {
+
+            var result = 0,
+                element = this;
+
+            do
+            {
+                switch (element.token)
+                {
+                    case "#":
+                        result += 100;
+                        break;
+
+                    case ".":
+                        result += 10;
+                        break;
+
+                    case ".":
+                        result += 1;
+                        break;
+                }
+
+                if (this.length > 0)
+                {
+                    result += this.length * 10;
+                }
+
+            } while (element = element.next);
+
+            return result;
+        };
+
+
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+
+    }).call(SelectorElement.prototype = []);
 
 
 
 
 
     //属性节点
-    function Property(name) {
+    var SelectorProperty = flyingon.SelectorProperty = function (name) {
 
         switch (name[0])
         {
@@ -216,41 +278,48 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.relation = ""
 
-        this.check = function (item) {
+        this.check = function (item, index) {
 
-            var value = "" + item[this.name];
-
-            switch (ast.token)
+            switch (this.relation)
             {
+                case "":
+                    return item[this.name] !== undefined;
+
                 case "=":
-                    return value == this.value;
+                    return item[this.name] == this.value;
 
                 case "*=": // *= 包含属性值XX (由属性解析)
-                    return value.indexOf(this.value) >= 0;
+                    return ("" + item[this.name]).indexOf(this.value) >= 0;
 
                 case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return value.indexOf(this.value) == 0;
+                    return ("" + item[this.name]).indexOf(this.value) == 0;
 
                 case "$=": // $= 属性值以XX结尾 (由属性解析)
+                    var value = "" + item[this.name];
                     return value.lastIndexOf(this.value) == value.length - this.value.length;
 
                 case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test(value);
+                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + item[this.name]);
 
                 case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test(value);
+                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + item[this.name]);
 
                 default:
                     return false;
             }
         };
 
-    }).call((flyingon.Query_Property = Property).prototype);
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+    }).call(SelectorProperty.prototype);
 
 
 
     //属性集
-    function Properties(item) {
+    var SelectorProperties = flyingon.SelectorProperties = function (item) {
 
         this.push(item);
     };
@@ -259,24 +328,28 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = "[][]";
 
-        this.check = function (target) {
+        this.check = function (item, index) {
 
             for (var i = 0, length = this.length; i < length; i++)
             {
-                if (this[i].check(target))
+                if (this[i].check(item, index) === false)
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         };
 
-    }).call((flyingon.Query_Properties = Properties).prototype = []);
+        this.toString = this.toLocaleString = function () {
+
+            return this.token;
+        };
+
+    }).call(SelectorProperties.prototype = []);
 
 
 
-    //伪类
     /*
 
     支持的伪类如下:
@@ -307,7 +380,8 @@ Y E:expression(expression)      匹配符合指定表达式的元素
     Y E:expression(expression)      匹配符合指定表达式的元素
 
     */
-    function Pseudo_Class(name) {
+    //伪类
+    var SelectorPseudo = flyingon.SelectorPseudo = function (name) {
 
         switch (name[0])
         {
@@ -326,7 +400,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = ":";
 
-        this.check = function (item) {
+        this.check = function (item, index) {
 
             //    //第一个子元素
             //    "first-child": function () {
@@ -367,112 +441,24 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             //    "nth-mod-child(n,length)": "",
             //    "fn-child(fn)": "",
             //    "expression(expression)": ""
+
+            return true;
         };
 
-    }).call((flyingon.Query_Pseudo_Class = Pseudo_Class).prototype = []);
+        this.toString = this.toLocaleString = function () {
+
+            return this.name;
+        };
+
+    }).call(SelectorPseudo.prototype = []);
+
+
 
 
 
 
 
     var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g; //
-
-    //选择器解析
-    flyingon.parse_selector = function (selector) {
-
-
-        var result,
-
-            values = selector.match(split_regex),
-
-            type = " ", //组合类型
-            token,      //当前标记
-
-            i = 0,
-            length = values.length,
-
-            node,   //当前节点 
-            item;   //当前项  
-
-
-        //switch代码在chrome下的效率没有IE9好,不知道什么原因 
-        while (i < length)
-        {
-            switch (token = values[i++])
-            {
-                case "#":  //id选择器标记
-                case ".":  //class选择器标记
-                    node = new Element(type, token, values[i++], node);
-                    break;
-
-                case "*":  //全部元素选择器标记
-                    node = new Element(type, "*", "*", node);
-                    break;
-
-                case " ":  //后代选择器标记
-                case ">":  //子元素选择器标记
-                case "+":  //毗邻元素选择器标记
-                case "~":  //之后同级元素选择器标记
-                case ",":  //组合选择器标记
-                    type = token;
-                    continue;
-
-                case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
-                    item = parse_property(values, length, i);
-                    i += item.count;
-
-                    if (item = item.result)
-                    {
-                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
-                    }
-                    break;
-
-                case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
-                    if (token = values[i++])
-                    {
-                        item = new Pseudo_Class(token);
-
-                        //处理参数
-                        if (i < length && values[i] == "(")
-                        {
-                            i += parse_parameters.call(item, values, length, ++i);
-                        }
-
-                        (node || (node = new Element(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
-                    }
-                    break;
-
-                case "]":  //属性选择器结束标记
-                case "=":  //属性名与值的分隔 可与其它字符组合
-                case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                case "^":  //^= 属性值以XX开头 (由属性解析)
-                case "$":  //$= 属性值以XX结尾 (由属性解析)
-                case "(":  //开始参数
-                case ")":  //结束参数
-                    //由子类处理
-                    continue;
-
-                default: //类名 token = ""
-                    node = new Element(type, "", token, node);
-                    break;
-            }
-
-
-            if (type != " ")
-            {
-                type = " ";
-            }
-
-
-            if (!result && node)
-            {
-                result = node;
-            }
-        }
-
-
-        return result;
-    };
 
 
     //[name?=value]属性选择器
@@ -501,7 +487,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                 case ",":
                     if (nodes == null)
                     {
-                        nodes = new Properties(item);
+                        nodes = new SelectorProperties(item);
                     }
 
                     end = false;
@@ -535,7 +521,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                     }
                     else
                     {
-                        item = new Property(token);
+                        item = new SelectorProperty(token);
 
                         if (nodes)
                         {
@@ -582,6 +568,111 @@ Y E:expression(expression)      匹配符合指定表达式的元素
             }
         }
 
+        return result;
+    };
+
+
+
+    //解析选择器
+    flyingon.parse_selector = function (selector) {
+
+
+        var result,
+            node,   //当前节点
+
+            type = " ", //组合类型
+            token,      //当前标记
+
+            values = selector.match(split_regex),
+            i = 0,
+            length = values.length;
+
+
+        if (length == 0)
+        {
+            result = new SelectorElement(type, "*", "*");
+            return result.last = result;
+        }
+
+
+        do
+        {
+            //switch代码在chrome下的效率没有IE9好,不知道什么原因,有可能是其操作非合法变量名的时候性能太差
+            switch (token = values[i++])
+            {
+                case "#":  //id选择器标记
+                case ".":  //class选择器标记
+                    node = new SelectorElement(type, token, values[i++], node);
+                    break;
+
+                case "*":  //全部元素选择器标记
+                    node = new SelectorElement(type, "*", "*", node);
+                    break;
+
+                case " ":  //后代选择器标记
+                case ">":  //子元素选择器标记
+                case "+":  //毗邻元素选择器标记
+                case "~":  //之后同级元素选择器标记
+                case ",":  //组合选择器标记
+                    type = token;
+                    continue;
+
+                case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
+                    var item = parse_property(values, length, i);
+                    i += item.count;
+
+                    if (item = item.result)
+                    {
+                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                    }
+                    break;
+
+                case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
+                    if (token = values[i++])
+                    {
+                        var item = new SelectorPseudo(token);
+
+                        //处理参数
+                        if (i < length && values[i] == "(")
+                        {
+                            i += parse_parameters.call(item, values, length, ++i);
+                        }
+
+                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                    }
+                    break;
+
+                case "]":  //属性选择器结束标记
+                case "=":  //属性名与值的分隔 可与其它字符组合
+                case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                case "^":  //^= 属性值以XX开头 (由属性解析)
+                case "$":  //$= 属性值以XX结尾 (由属性解析)
+                case "(":  //开始参数
+                case ")":  //结束参数
+                    //由子类处理
+                    continue;
+
+                default: //类名 token = ""
+                    node = new SelectorElement(type, "", token, node);
+                    break;
+            }
+
+
+            if (type != " ")
+            {
+                type = " ";
+            }
+
+
+            if (!result && node)
+            {
+                result = node;
+            }
+
+        } while (i < length)
+
+
+        result.last = node;
         return result;
     };
 

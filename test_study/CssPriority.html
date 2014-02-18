@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+
+        /*
+        css选择器权重
+        类型选择符的权重为：0001
+        类选择符的权重为：0010
+        通用选择符的权重为：0000
+        子选择符的权重为：0000
+        属性选择符的权重为：0010
+        伪类选择符的权重为：0010
+        伪元素选择符的权重为：0010
+        包含选择符的权重为：包含的选择符权重值之和
+        内联样式的权重为：1000
+        继承的样式的权重为：0000
+        */
+
+        #body #id {
+            background-color: blue;
+        }
+
+         #id :disabled {
+            background-color: silver;
+        }
+
+        /*input[type] {
+            background-color: red;
+        }*/
+
+
+
+        /*input[type] {
+            background-color: blue;
+        }
+
+        input:hover {
+            background-color: red;
+        }*/
+    </style>
+</head>
+<body class="body" id="body">
+
+    <input id="id" class="class" type="text" value="ddddddddddddd" disabled="disabled" />
+    <input class="class" type="text" value="ddddddddddddd" />
+
+    <div>
+        <input type="text" value="ddddddddddddd" />
+        <input type="text" value="ddddddddddddd" />
+    </div>
+
+</body>
+</html>
