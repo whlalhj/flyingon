@@ -54,9 +54,8 @@
 
     </script>
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
-
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
@@ -64,25 +63,13 @@
 
         var w = new flyingon.Window(host);
 
-        var selector = flyingon(w);
-
-
-        alert(new Date() - date);
-
-
         w.layout = "flow";
-
-
 
 
         function create() {
 
 
             var date = new Date();
-
-            flyingon.beginInit();
-            w.layout = "flow";
-
 
             for (var k = 0; k < 200; k++)
             {
@@ -161,8 +148,6 @@
             }
 
 
-
-            flyingon.endInit();
             alert(new Date() - date);
 
             w.update();

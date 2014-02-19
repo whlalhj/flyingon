@@ -6,14 +6,6 @@ flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
     Class.create = function (parentNode) {
 
 
-        //加载资源包
-        flyingon.require(flyingon_setting.language_file);
-
-        //加载默认样式
-        flyingon.require(flyingon_setting.style_file || "themes/default.js");
-
-
-
         var div = this.dom_host = document.createElement("div");
 
         div.setAttribute("flyingon", "window-host");

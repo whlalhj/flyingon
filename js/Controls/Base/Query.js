@@ -3,138 +3,9 @@
 (function (flyingon) {
 
 
+    //缓存数据
+    var selector_cache = {}; 
 
-    //实现解析器查询方法
-    (function () {
-
-        //查找
-        this.find = function (items) {
-
-            var exports = [],
-                node = this;
-
-            while (true)
-            {
-                node[node.type](items, exports);
-
-                if (node = node.next)
-                {
-                    if (node.type != ",") //非组合则把当前集合作为查询依据
-                    {
-                        items = exports;
-                        exports = [];
-                    }
-                }
-                else
-                {
-                    return exports;
-                }
-            }
-        };
-
-        this.find_cascade = function (items, exports) {
-
-            var cache;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if (this.check(cache = items[i], i, exports) === false)
-                {
-                    return false;
-                }
-
-                if ((cache = cache.__children__) && cache.length > 0)
-                {
-                    if (this.find_cascade(cache, exports) === false)
-                    {
-                        return false;
-                    }
-                }
-            }
-        };
-
-        this[" "] = function (items, exports) {
-
-            var item, cache;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                item = items[i];
-
-                if ((cache = item.__children__) && cache.length > 0)
-                {
-                    this.find_cascade(cache, exports);
-                }
-            }
-        };
-
-        this[">"] = function (items, exports) {
-
-            var children;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if ((children = items[i].__children__) && children.length > 0)
-                {
-                    for (var j = 0, length_j = children.length; j < length_j; j++)
-                    {
-                        if (this.check(children[j], j, exports) === false)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-        };
-
-        this["+"] = function (items, exports) {
-
-            var item, parent, children, index;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if ((item = items[i]) && (parent = item.__parent__) && (children = parent.__children__))
-                {
-                    index = children.indexOf(item) + 1;
-
-                    if (children.length > index)
-                    {
-                        this.check(children[index], index, exports);
-                    }
-                }
-            }
-        };
-
-        this["~"] = function (items, exports) {
-
-            var item, parent, children;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if ((item = items[i]) && (parent = item.__parent__) && (children = parent.__children__))
-                {
-                    for (var j = children.indexOf(item) + 1, length_j = children.length; j < length_j; j++)
-                    {
-                        if (this.check(children[j], j, exports) === false)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-        };
-
-        this[","] = function (items, exports) {
-
-            this[this.previous_type](items, exports);
-        };
-
-    }).call(flyingon.SelectorElement.prototype);
-
-
-
-
-    var selector_cache = {}; //缓存数据
 
     //选择器
     //selector: css样式选择表达式 
@@ -156,7 +27,7 @@
                     start = [start];
                 }
 
-                selector = (selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector))).find(start);
+                selector = (selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector))).query(start);
             }
             else
             {

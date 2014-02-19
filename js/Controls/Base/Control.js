@@ -56,7 +56,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.__fn_parent__ = function (parent) {
 
         this.__parent__ = parent;
-        this.dispatchEvent(new flyingon.ChangeEvent(this, "parent", parent, this.__parent__));
+        this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent__));
     };
 
 
@@ -131,7 +131,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-
+    //是否输入背景风格
+    this.input_style = false;
 
 
 
@@ -325,48 +326,64 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
+    //状态变更事件
+    this.defineEvent("statechange");
+
+    //状态优先级
+    this.__states_priority__ = ["checked", "selection", "focus", "hover", "active", "disabled"];
 
     /*
-    预定义状态组:
-    common-states:  普通状态组(enter-animate disabled pressed)
-    check-states:   选中状态组(checked unchecked unkown)
-    focus-states:   焦点状态组(focused leaver-animate)
-    hover-states:   鼠标悬停状态组(hover leaver-animate)
+
+    支持状态 优先级从低到高排列
+
+    checked       被选中
+    selection     用户当前选中的元素
+    focus         获得当前焦点
+    hover         鼠标悬停其上
+    active        鼠标已经其上按下、还没有释放
+    disabled      禁用
+
     */
-    this.__states__ = ["enabled", "focused", "hover"];
+    //切换状态 
+    //name: checked || selection || focus || hover || active || disabled
+    //value: true || false
+    this.stateTo = function (name, value) {
 
-    //自定义状态组
-    this.defineStates = function (statesName, defaultValue, index) {
+        var names = this.__states_priority__,
+            length = names.length,
+            states = this.states || (this.states = Object.create(null)),
+            result = this.__states__;
 
-        var states = this.__states__ = this.__states__.slice(0);
-        states.splice(index || states.length - 2, 0, statesName);
+        states[name] = value;
 
-        if (defaultValue !== undefined)
+        if (result)
         {
-            this.defaultValue(statesName, defaultValue);
+            result.length = 1;
         }
+        else
+        {
+            result = this.__states__ = ["__"];
+        }
+
+        for (var i = 0; i < length; i++)
+        {
+            if (states[names[i]])
+            {
+                result.push(names[i]);
+            }
+        }
+
+        //检测是否有状态变更动画 有则播放 状态动画命名规则: 状态名 + "-animation"
+        //var animation = flyingon.styleValue(this, name + "-animation");
+
+
+        //状态变更事件
+        this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+
+        //重绘
+        this.invalidate();
     };
 
-    this.defaultValue("enabled", "yes");
-
-    this.defaultValue("focused", "no");
-
-    this.defaultValue("hover", "no");
-
-    //切换状态
-    this.stateTo = function (statesName, stateName) {
-
-        if (statesName && stateName)
-        {
-            this.__fields__[statesName] = stateName;
-
-            //记录最后变更的状态组以作为状态变更动画依据
-            this.__statesName__ = statesName;
-            this.__stateName__ = stateName;
-
-            this.invalidate();
-        }
-    };
 
 
 
@@ -518,7 +535,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //是否可用
     this.defineProperty("enabled", true, {
 
-        changed: "this.stateTo('enabled', value ? 'yes' : 'no');"
+        changed: "this.stateTo('disabled', !value);"
     });
 
 
@@ -633,8 +650,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-
-
     //执行验证
     this.validate = function () {
 
@@ -666,7 +681,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
                 if (this.dispatchEvent("focus"))
                 {
-                    this.stateTo("focused", "yes");
+                    this.stateTo("focus", true);
                 }
             }
 
@@ -687,7 +702,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
             if (this.dispatchEvent("blur"))
             {
-                this.stateTo("focused", "no");
+                this.stateTo("focus", false);
             }
 
             return true;
@@ -696,6 +711,48 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return false;
     };
 
+
+
+    //以下代码扩展子项查找功能 查询器及样式以此为基础
+
+    //指定索引的子项
+    this.index_child = function (index) {
+
+        var children = this.__children__;
+        return children && children.length > 0 + index ? children[index] : undefined;
+    };
+
+    //指定倒序索引的子项
+    this.last_index_child = function (index) {
+
+        var children = this.__children__;
+        return children && (index = children.length - index - 1) > 0 ? children[index] : undefined;
+    };
+
+    //某子项指定偏移位置的值 子项不存在时永远返回undefined
+    this.child_offset = function (item, offset) {
+
+        var children = this.__children__, index;
+
+        if (children && (index = children.indexOf(item)) >= 0 && (index += offset) >= 0)
+        {
+            return children[index];
+        }
+    };
+
+    //获取指定子项的索引号
+    this.child_indexOf = function (item) {
+
+        var children = this.__children__;
+        return children ? children.indexOf(item) : -1;
+    };
+
+    //获取指定子项的倒序索引号
+    this.child_lastIndexOf = function (item) {
+
+        var children = this.__children__;
+        return children ? children.lastIndexOf(item) : -1;
+    };
 
 
 

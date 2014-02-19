@@ -40,8 +40,6 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
     //this.__selected_list__ = 
 
 
-    //定义索引状态(根据不同的索引状态显示不同的值)
-    this.defineStates("index-states", 0);
 
     //最大索引号(小于0则不启用索引状态)
     this.defineProperty("maxIndex", 0, "invalidate");

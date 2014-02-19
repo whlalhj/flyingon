@@ -281,8 +281,22 @@ flyingon.KeyEvent = function (type, target, originalEvent) {
 
 
 
+//值变更事件类型
+flyingon.ChangeEvent = function (type, target, name, value, oldValue) {
+
+    this.type = type;
+    this.target = target;
+    this.name = name;
+    this.value = value;
+    this.oldValue = oldValue;
+};
+
+flyingon.ChangeEvent.prototype = new flyingon.Event();
+
+
+
 //属性值变更事件类型
-flyingon.ChangeEvent = function (target, name, value, oldValue) {
+flyingon.PropertyChangeEvent = function (target, name, value, oldValue) {
 
     this.target = target;
     this.name = name;
@@ -290,7 +304,5 @@ flyingon.ChangeEvent = function (target, name, value, oldValue) {
     this.oldValue = oldValue;
 };
 
-
-(flyingon.ChangeEvent.prototype = new flyingon.Event()).type = "change";
-
+(flyingon.PropertyChangeEvent.prototype = new flyingon.Event()).type = "change";
 

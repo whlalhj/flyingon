@@ -10,40 +10,151 @@
         }
     </style>
 </head>
-<body style="background-color: yellow;">
+<body>
 
-    <span id="message"></span>
-    <div id="host" style="width: 100%; height: 100%;">
+    <div style="width: 100%; height: 100%;">
+
+        <div id="drag" style="background-color: yellow;">
+
+            <input type="button" value="Create" onclick="create()" />
+            <input type="button" value="Paint" onclick="paint()" />
+
+            <span id="message"></span>
+        </div>
+
+        <div id="host" style="width: 100%; height: 100%;">
+        </div>
     </div>
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
+
     <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../themes/default.js"></script>
+    <script src="../themes/sample.js"></script>
 
     <script type="text/javascript">
 
 
 
+        flyingon.defineStyle("Button", {
+
+            //margin : "10, 10, 10, 10",
+            border: "1, 1, 1, 1",
+            borderColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]),
+            background: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]),
+            horizontalAlign: "center",
+            verticalAlign: "center"
+        });
+
+
         var w = new flyingon.Window(host);
+        w.layout = "flow";
 
 
-        var button = new flyingon.Button();
 
 
-        w.children.add(button);
-
-        var background = button.background;
-
-        w.update();
+        function create() {
 
 
-        var date = new Date();
+            var date = new Date();
 
-        for (var i = 0; i < 10000; i++)
-        {
-            var background = button.background;
-        }
 
-        alert(new Date() - date);
+            for (var k = 0; k < 200; k++)
+            {
+                var panel = new flyingon.Panel();
+
+                for (var i = 0; i < 50; i++)
+                {
+
+                    var ctrl = new flyingon.Button();
+
+                    ctrl.left = i % 5 * 100;
+                    ctrl.top = i / 5 * 30;
+
+                    ctrl.width = 20;
+                    ctrl.height = 21;
+
+                    panel.children.add(ctrl);
+
+                    switch (i % 5)
+                    {
+                        case 0:
+                            ctrl.dock = "left";
+                            break;
+
+                        case 1:
+                            ctrl.dock = "top";
+                            break;
+
+                        case 2:
+                            ctrl.dock = "right";
+                            break;
+
+                        case 3:
+                            ctrl.dock = "bottom";
+                            ctrl.width = "fill";
+                            ctrl.height = "fill";
+                            break;
+
+                        case 4:
+                            ctrl.dock = "fill";
+                            break;
+                    }
+
+                }
+
+
+
+                panel.width = 600;
+                panel.height = 400;
+                panel.margin = "5, 5, 5, 5";
+                panel.border = "1, 1, 1, 1";
+                panel.padding = "0, 0, 0, 0";
+                panel.layout = "line";
+                panel.spaceX = 5;
+                panel.spaceY = 5;
+                panel.lineHeight = 50;
+                panel.lineWidth = 160;
+                panel.rows = 4;
+                panel.columns = 4;
+                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+
+
+                w.children.add(panel);
+            }
+
+
+            alert(new Date() - date);
+
+            w.update();
+
+        };
+
+        function paint() {
+
+            var date = new Date();
+
+            w.update();
+
+            alert(new Date() - date);
+        };
+
+
+
+        //w.onmouseover = function (event) {
+
+        //    message.innerHTML = event.target.background;
+        //};
+
+        w.onstatechange = function (event) {
+
+            message.innerHTML = event.target.background;
+        };
+
+        w.onclick = function (event) {
+
+            message.innerHTML = event.target.background;
+            event.target.invalidate();
+        };
 
 
     </script>

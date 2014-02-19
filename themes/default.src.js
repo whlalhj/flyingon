@@ -51,11 +51,11 @@
         "control-border": "blue",
 
 
-        "window-back": "#FFFFFF",
+        "input-back": "#FFFFFF",
 
-        "window-text": "#000000",
+        "input-text": "#000000",
 
-        "window-border": "#CCCCCC",
+        "input-border": "#CCCCCC",
 
 
         "checked-back": "#FFFFFF",
@@ -105,6 +105,13 @@
         "hightlight-text": "#000000",
 
         "hightlight-border": "#CCCCCC",
+
+
+
+        "scrollbar-arrow-back": "control-back",
+
+        "scrollbar-slider-back": "control-back",
+
 
         "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
 
@@ -259,7 +266,39 @@
 
 
 /*
+
 定义样式
+
+注1: 使用类css选择器样式字符串
+注2: 子类直接继承父类控件样式
+注3: 注意控件的继承顺序 父类在前子类后面 否则子类样式可能无法应用
+
+
+支持的伪类如下:
+    
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+    
+E:before        E之前元素
+E:after         E之后元素
+    
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:first-child           匹配父元素的第一个子元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的余数的子元素
 
 */
 (function (flyingon) {
@@ -267,6 +306,69 @@
 
     //缓存定义样式方法
     var $ = flyingon.defineStyle;
+
+
+
+    //默认样式
+    $("*", {
+
+        width: "default", //宽度 default|fill|auto|number|number%
+        height: "default", //高度 default|fill|auto|number|number%
+        background: "control-back",
+        foreground: "control-text",
+        borderColor: "control-border"
+    });
+
+    //默认窗口背景样式
+    $("*[input_style=true]", {
+
+        background: "input-back",
+        foreground: "input-text",
+        borderColor: "input-border",
+        border: 1,
+        borderRadius: 0
+    });
+
+    //选中时控件默认样式
+    $("*:checked", {
+
+        background: "checked-back",
+        foreground: "checked-text",
+        borderColor: "checked-border"
+    });
+
+    //获取焦点时控件默认样式
+    $("*:focus", {
+
+        background: "focus-back",
+        foreground: "focus-text",
+        borderColor: "focus-border"
+    });
+
+
+    //捕获鼠标时控件默认样式
+    $("*:hover", {
+
+        background: "hover-back",
+        foreground: "hover-text",
+        borderColor: "hover-border"
+    });
+
+    //活动状态时控件默认样式
+    $("*:active", {
+
+        background: "active-back",
+        foreground: "active-text",
+        borderColor: "active-border"
+    });
+
+    //禁用时控件默认样式
+    $("*:disabled", {
+
+        background: "disabled-back",
+        foreground: "disabled-text",
+        borderColor: "disabled-border"
+    });
 
 
 
@@ -282,37 +384,6 @@
         background: "yellow"
     });
 
-
-    $(".scrollbar-arrow", {
-
-        background: "control-back"
-    });
-
-    $(".scrollbar-arrow-left", {
-
-        image: null
-    });
-
-    $(".scrollbar-arrow-top", {
-
-        image: null
-    });
-
-    $(".scrollbar-arrow-right", {
-
-        image: null
-    });
-
-    $(".scrollbar-arrow-bottom", {
-
-        image: null
-    });
-
-    $(".scrollbar-slider", {
-
-        background: null,
-        image: null
-    });
 
 
 
@@ -333,8 +404,6 @@
     //文本框样式
     $("TextBoxBase", {
 
-        background: "window-back",
-        border: 1,
         cursor: "text"
     });
 
@@ -344,7 +413,7 @@
 
             type: "Rectangle",
             strokeStyle: "control-border",
-            fillStyle: "window-back",
+            fillStyle: "input-back",
             children: [{
 
                 type: "RoundRectangle",
@@ -359,8 +428,6 @@
     //文本框样式
     $("ListBox", {
 
-        background: "window-back",
-        border: 1
     });
 
 
@@ -369,8 +436,6 @@
     $("Button", {
 
         background: "button-background",
-        border: 1,
-        borderRadius: 0,
         cursor: "pointer"
     });
 
@@ -378,45 +443,6 @@
 
     $("Window", {
 
-        background: "window-back"
-    });
-
-    $(".window-icon", {
-
-        image: "window-icon"
-    });
-
-    $(".window-close", {
-
-        image: "window-close"
-    });
-
-    $(".window-close:hover", {
-
-        background: "white",
-        image: "window-close-hover"
-    });
-
-    $(".window-maximize", {
-
-        image: "window-maximize"
-    });
-
-    $(".window-maximize:hover", {
-
-        background: "white",
-        image: "window-maximize-hover"
-    });
-
-    $(".window-minimize", {
-
-        image: "window-minimize"
-    });
-
-    $(".window-minimize:hover", {
-
-        background: "white",
-        image: "window-minimize-hover"
     });
 
 
@@ -431,8 +457,6 @@
 
     $("ChildWindow", {
 
-        background: "window-back",
-        border: 1
     });
 
 

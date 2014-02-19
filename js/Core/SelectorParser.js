@@ -70,7 +70,7 @@ Y E:selection     匹配用户当前选中的元素
 
 9. CSS 3中的结构性伪类
 
-Y E:root                  匹配文档的根元素，对于HTML文档，就是HTML元素
+N E:root                  匹配文档的根元素，对于HTML文档，就是HTML元素
 Y E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
 Y E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
 Y E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
@@ -85,7 +85,7 @@ Y E:empty                 匹配一个不包含任何子元素的元素，注意
 
 10.CSS 3的反选伪类
 
-Y E:not(s)        匹配不符合当前选择器的任何元素
+N E:not(s)        匹配不符合当前选择器的任何元素
 
 
 11. CSS 3中的 :target 伪类
@@ -95,10 +95,7 @@ N E:target        匹配文档中特定”id”点击后的效果
 
 12. 自定义扩展的伪类
 
-Y E:end                         结束查找
 Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的余数的子元素
-Y E:fn-child(fn)                匹配符合指定函数的子元素, 函数原型 function(index) { } this指向当前元素
-Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 */
@@ -107,9 +104,6 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 //选择器解析器(类css选择器语法)
-//分正向解析和逆向解析
-//正向解析用于Query 是一种从上到下选择元素的方式
-//逆向解析用于Style 目的是判读当前元素是否符合要求
 (function (flyingon) {
 
 
@@ -162,87 +156,6 @@ Y E:expression(expression)      匹配符合指定表达式的元素
         //下一个节点
         this.next = null;
 
-        //检测当前节点
-        //返回值为false: 中止查找
-        this.check = function (item, index, exports) {
-
-            switch (this.token)
-            {
-                case "":  //类型
-                    if (item.__fullTypeName__ != this.name) return;
-                    break;
-
-                case ".": //class
-                    if (!item.hasClass(this.name)) return;
-                    break;
-
-                case "#": //id
-                    if (item.id != this.name) return;
-                    break;
-            }
-
-            if (this.length > 0)
-            {
-                for (var i = 0; i < this.length; i++)
-                {
-                    if (this[i].check(item, index) === false)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            exports.push(item);
-        };
-
-
-        /*
-        css选择器权重
-        类型选择符的权重为：0001
-        类选择符的权重为：0010
-        通用选择符的权重为：0000
-        子选择符的权重为：0000
-        属性选择符的权重为：0010
-        伪类选择符的权重为：0010
-        伪元素选择符的权重为：0010
-        包含选择符的权重为：包含的选择符权重值之和
-        内联样式的权重为：1000
-        继承的样式的权重为：0000
-        */
-
-        //计算选择器的权重
-        this.weight = function () {
-
-            var result = 0,
-                element = this;
-
-            do
-            {
-                switch (element.token)
-                {
-                    case "#":
-                        result += 100;
-                        break;
-
-                    case ".":
-                        result += 10;
-                        break;
-
-                    case ".":
-                        result += 1;
-                        break;
-                }
-
-                if (this.length > 0)
-                {
-                    result += this.length * 10;
-                }
-
-            } while (element = element.next);
-
-            return result;
-        };
-
 
         this.toString = this.toLocaleString = function () {
 
@@ -256,7 +169,7 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 
-    //属性节点
+    //属性节点 
     var SelectorProperty = flyingon.SelectorProperty = function (name) {
 
         switch (name[0])
@@ -276,33 +189,36 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = "[]";
 
-        this.relation = ""
+        this.relation = "";
 
-        this.check = function (item, index) {
+        this.value = null;
+
+        this.check = function (item) {
+
+            var value = item[this.name];
 
             switch (this.relation)
             {
                 case "":
-                    return item[this.name] !== undefined;
+                    return value !== undefined;
 
                 case "=":
-                    return item[this.name] == this.value;
+                    return value == this.value;
 
                 case "*=": // *= 包含属性值XX (由属性解析)
-                    return ("" + item[this.name]).indexOf(this.value) >= 0;
+                    return value && ("" + value).indexOf(this.value) >= 0;
 
                 case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return ("" + item[this.name]).indexOf(this.value) == 0;
+                    return value && ("" + value).indexOf(this.value) == 0;
 
                 case "$=": // $= 属性值以XX结尾 (由属性解析)
-                    var value = "" + item[this.name];
-                    return value.lastIndexOf(this.value) == value.length - this.value.length;
+                    return value && (value = "" + value).lastIndexOf(this.value) == value.length - this.value.length;
 
                 case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + item[this.name]);
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value);
 
                 case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    return (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + item[this.name]);
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value);
 
                 default:
                     return false;
@@ -328,11 +244,11 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
         this.token = "[][]";
 
-        this.check = function (item, index) {
+        this.check = function (item) {
 
             for (var i = 0, length = this.length; i < length; i++)
             {
-                if (this[i].check(item, index) === false)
+                if (this[i].check(item) === false)
                 {
                     return false;
                 }
@@ -350,36 +266,6 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
 
-    /*
-
-    支持的伪类如下:
-
-    Y E:first-child   匹配父元素的第一个子元素
-    Y E:active        匹配鼠标已经其上按下、还没有释放的E元素
-    Y E:hover         匹配鼠标悬停其上的E元素
-    Y E:focus         匹配获得当前焦点的E元素
-    Y E:before        E之前元素
-    Y E:after         E之后元素
-    Y E:enabled       匹配表单中激活的元素
-    Y E:disabled      匹配表单中禁用的元素
-    Y E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
-    Y E:selection     匹配用户当前选中的元素
-    Y E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
-    Y E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
-    Y E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
-    Y E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
-    Y E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
-    Y E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
-    Y E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
-    Y E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
-    Y E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
-    Y E:empty                 匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
-    Y E:not(s)                匹配不符合当前选择器的任何元素
-    Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的余数的子元素
-    Y E:fn-child(fn)                匹配符合指定函数的子元素, 函数原型 function(index) { } this指向当前元素
-    Y E:expression(expression)      匹配符合指定表达式的元素
-
-    */
     //伪类
     var SelectorPseudo = flyingon.SelectorPseudo = function (name) {
 
@@ -399,51 +285,6 @@ Y E:expression(expression)      匹配符合指定表达式的元素
     (function () {
 
         this.token = ":";
-
-        this.check = function (item, index) {
-
-            //    //第一个子元素
-            //    "first-child": function () {
-
-            //        return this.children[0];
-            //    },
-
-            //    //鼠标已经其上按下、还没有释放的元素
-            //    "active": function () {
-
-            //        return this.isPressDown ? this : null;
-            //    },
-
-            //    //鼠标悬停其上的元素
-            //    "hover": function () {
-
-            //        return this.isMouseOver ? this : null;
-            //    },
-
-            //    "focus": "if (!this.focused) return null;",
-            //    "before": "",
-            //    "after": "",
-            //    "enabled": "if (!this.enabled) return null;",
-            //    "disabled": "if (this.enabled) return null;",
-            //    "checked": "if (!this.checked) return null;",
-            //    "selection": "if (!this.selection) return null;",
-            //    "nth-child(n)": "",
-            //    "nth-last-child(n)": "",
-            //    "nth-of-type(n)": "",
-            //    "nth-last-of-type(n)": "",
-            //    "last-child": "",
-            //    "first-of-type": "",
-            //    "last-of-type": "",
-            //    "only-child": "",
-            //    "only-of-type": "",
-            //    "empty": "if (this.children.length > 0) return null;",
-            //    "not(s)": "",
-            //    "nth-mod-child(n,length)": "",
-            //    "fn-child(fn)": "",
-            //    "expression(expression)": ""
-
-            return true;
-        };
 
         this.toString = this.toLocaleString = function () {
 
@@ -541,6 +382,38 @@ Y E:expression(expression)      匹配符合指定表达式的元素
     };
 
 
+    //转换元素伪类为元素节点
+    function convert_element(previous, name) {
+
+        switch (name)
+        {
+            case "nth-child":
+            case "nth-last-child":
+            case "first-child":
+            case "last-child":
+            case "only-child":
+            case "nth-mod-child":
+                return new SelectorElement(">", "*", "*", previous);
+
+            case "nth-of-type":
+            case "nth-last-of-type":
+            case "first-of-type":
+            case "last-of-type":
+            case "only-of-type":
+                return new SelectorElement(">", "", item[0], previous);
+
+            case "before":
+                return new SelectorElement("<", "*", "*", previous);
+
+            case "after":
+                return new SelectorElement("+", "*", "*", previous);
+        }
+
+        return previous;
+    };
+
+
+
     //(p1[,p2...])
     function parse_parameters(values, length, index) {
 
@@ -574,6 +447,8 @@ Y E:expression(expression)      匹配符合指定表达式的元素
 
 
     //解析选择器
+    //注1: 按从左至右的顺序解析
+    //注2: 元素伪类会升级为*元素节点
     flyingon.parse_selector = function (selector) {
 
 
@@ -638,7 +513,9 @@ Y E:expression(expression)      匹配符合指定表达式的元素
                             i += parse_parameters.call(item, values, length, ++i);
                         }
 
-                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                        //元素伪类提升为节点
+                        node = convert_element(node, token) || new SelectorElement(type, "*", "*");  //无节点则默认添加*节点
+                        node.push(item); 
                     }
                     break;
 

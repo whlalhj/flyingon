@@ -15,6 +15,9 @@ flyingon.class("Collection", function (Class, flyingon) {
     //获取指定项的索引
     this.indexOf = Array.prototype.indexOf;
 
+    //获取指定项的倒序索引
+    this.lastIndexOf = Array.prototype.lastIndexOf;
+
     //循环执行
     this.forEach = Array.prototype.forEach;
 

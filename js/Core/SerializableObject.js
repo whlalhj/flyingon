@@ -72,7 +72,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         return "if ((cache = this.__events__) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
-            + "var event = new flyingon.ChangeEvent(this, \"" + name + "\", value, oldValue);\n"
+            + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
             + "if (this.dispatchEvent(event) === false) return this;\n"
             + "value = event.value;\n"
             + "}\n";

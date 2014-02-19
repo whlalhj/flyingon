@@ -91,6 +91,10 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
+    //设为输入背景风格
+    this.input_style = true;
+
+
 
     //窗口切换为活动窗口事件
     this.defineEvent("activate");
@@ -139,22 +143,20 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    //定义活动状态
-    this.defineStates("activate", "yes");
-
-
     this.__fn_activate__ = function () {
 
         this.dom_window.style.zIndex = 9991;
         this.dispatchEvent("activate");
-        this.stateTo("activate", "yes");
+
+        this.stateTo("active", true);
     };
 
     this.__fn_deactivate__ = function () {
 
         this.dom_window.style.zIndex = 9990;
         this.dispatchEvent("deactivate");
-        this.stateTo("activate", "no");
+
+        this.stateTo("active", false);
     };
 
 
@@ -292,7 +294,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             {
                 dispatchEvent("mouseout", source, dom_MouseEvent);
 
-                source.stateTo("hover", "no");
+                source.stateTo("hover", false);
             }
 
             if (target && target.enabled)
@@ -302,7 +304,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
 
-                target.stateTo("hover", "yes");
+                target.stateTo("hover", true);
             }
         }
     };
@@ -399,7 +401,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             flyingon.__hover_control__ = null;
 
             dispatchEvent("mouseout", target, dom_MouseEvent);
-            target.stateTo("hover", "no");
+            target.stateTo("hover", false);
         }
     };
 

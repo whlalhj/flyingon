@@ -132,7 +132,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
         if (value !== undefined)
         {
-            return target[name] = value == null ? null : parse_value(value);
+            return target[name] = value == null ? null : parse_value.call(this, value);
         }
     };
 
@@ -187,7 +187,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                 continue;
             }
 
-            target[key] = parse_value(value[key]);
+            target[key] = parse_value.call(this, value[key]);
         }
     };
 
@@ -210,10 +210,9 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
                 result = [];
             }
 
-
             for (var i = 0, length = value.length; i < length; i++)
             {
-                result.push(parse_value(value[i]));
+                result.push(parse_value.call(this, value[i]));
             }
 
             return result;

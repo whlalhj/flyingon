@@ -17,6 +17,40 @@ var flyingon = this.flyingon = {};
 
 
 
+//全局设定
+var flyingon_setting = flyingon_setting = {
+
+
+    //版本
+    version: "0.0.0.1",
+
+    //语言
+    language: "zh-CHS",
+
+    //滚动条厚度
+    scroll_thickness: 16,
+
+    //不支持html5提醒
+    html5_not_surpport: "对不起,需要支持Html5特性的浏览器才可以运行本系统!",
+
+    //定义类出错提醒
+    define_class_error: "定义类{0}出错!"
+
+},
+
+//系统字体 可由flyingon.defineFonts方法进行定义
+flyingon_fonts = {},
+
+//系统颜色 可由flyingon.defineColors方法进行定义
+flyingon_colors = {},
+
+//系统图像 可由flyingon.defineImages方法进行定义
+flyingon_images = {};
+
+
+
+
+
 
 //扩展函数
 (function (flyingon) {
@@ -354,7 +388,6 @@ var flyingon = this.flyingon = {};
     var support = flyingon.support = {};
 
 
-
     //是否支持canvas
     support.canvas = document && (function () {
 
@@ -492,83 +525,46 @@ var flyingon = this.flyingon = {};
         return false;
     };
 
-    //复制对象
-    flyingon.copy = function (source, ignore_check) {
 
-        var isObject = flyingon.isObjectOrArray;
+    //把源对象的属性复制至目标对象
+    flyingon.copyTo = function (source, target) {
 
-        if (ignore_check === true || isObject(source))
+        for (var name in source)
         {
-            var result = new source.constructor(),
-                cache;
-
-            if (result instanceof Array)
-            {
-                for (var i = 0, length = source.length; i < length; i++)
-                {
-                    result[i] = isObject(cache = source[i]) ? flyingon.copy(cache, true) : cache;
-                }
-            }
-            else
-            {
-                var keys = Object.keys(source);
-
-                for (var i = 0, length = keys.length; i < length; i++)
-                {
-                    result[cache = keys[i]] = isObject(cache = source[cache]) ? flyingon.copy(cache, true) : cache;
-                }
-            }
-
-            return result;
+            target[name] = source[name];
         }
-
-        return source;
     };
 
-    //合并源对象属性至目标对象
-    //ignore_exist: 是否忽略已存在的属性
-    flyingon.mearge = function (source, target, ignore_exist) {
 
-        var keys = Object.keys(source),
-            isObject = flyingon.isObject;
+    //定义字体
+    flyingon.defineFonts = function (fonts) {
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        flyingon.copyTo(fonts, flyingon_fonts);
+    };
+
+
+    //定义颜色
+    flyingon.defineColors = function (colors) {
+
+        flyingon.copyTo(colors, flyingon_colors);
+    };
+
+
+    //定义图像
+    flyingon.defineImages = function (images, conver_at_once) {
+
+        //转成Image对象
+        if (conver_at_once !== false)
         {
-            var key = keys[i],
-                source_value = source[key],
-                target_value;
-
-            if (isObject(source_value)) //源是对象且不是数组
+            for (var name in images)
             {
-                if ((target_value = target[key]) && isObject(target_value))
-                {
-                    flyingon.mearge(source_value, target_value, ignore_exist);
-                }
-                else if (!ignore_exist || target_value === undefined)
-                {
-                    target[key] = flyingon.copy(source_value);
-                }
-            }
-            else if (!ignore_exist || (target_value = target[key]) === undefined)
-            {
-                if (source_value instanceof Array) //源是数组
-                {
-                    target_value = target[key] = new source_value.constructor();
-
-                    for (var j = 0, count = source_value.length; j < count; j++)
-                    {
-                        target_value.push(flyingon.copy(source_value[j]));
-                    }
-                }
-                else //简单对象
-                {
-                    target[key] = source_value;
-                }
+                images[name] = new Image().src = images[name];
             }
         }
 
-        return target;
+        flyingon.copyTo(images, flyingon_images);
     };
+
 
 
 
@@ -889,7 +885,7 @@ var flyingon = this.flyingon = {};
 
 
     //已注册类集合
-    flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
+    var registry_list = flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
 
 
     flyingon.registry_class = function (Class, fullTypeName) {
@@ -915,7 +911,7 @@ var flyingon = this.flyingon = {};
 
         var namespace = flyingon.__namespace__,
             prototype = Class.prototype,
-            name;
+            fullTypeName = namespace.__namespace_name__ ? namespace.__namespace_name__ + "." + typeName : typeName;
 
 
         //绑定类型
@@ -926,20 +922,21 @@ var flyingon = this.flyingon = {};
 
         Class.namesapce = prototype.__namespace__ = namespace;
         Class.typeName = prototype.__typeName__ = typeName;
-        Class.fullTypeName = prototype.__fullTypeName__ = (name = namespace.__namespace_name__) ? name + "." + typeName : typeName;
+        Class.fullTypeName = prototype.__fullTypeName__ = fullTypeName;
 
 
 
         //输出类
         namespace[typeName] = Class;
         //注册类
-        flyingon.__registry_list__[name] = Class;
+        registry_list[fullTypeName] = Class;
 
 
         prototype.toString = prototype.toLocaleString = function () {
 
             return "[object " + this.__fullTypeName__ + "]";
         };
+
     };
 
 
