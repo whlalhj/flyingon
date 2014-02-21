@@ -4,7 +4,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title></title>
     <style type="text/css">
-
         /*
         css选择器权重
         类型选择符的权重为：0001
@@ -19,13 +18,13 @@
         继承的样式的权重为：0000
         */
 
-        #body #id {
+        /*#body #id {
             background-color: blue;
         }
 
-         #id :disabled {
+        #id :disabled {
             background-color: silver;
-        }
+        }*/
 
         /*input[type] {
             background-color: red;
@@ -40,14 +39,21 @@
         input:hover {
             background-color: red;
         }*/
+
+
+        div>.class2 {
+            background-color: blue;
+        }
     </style>
 </head>
 <body class="body" id="body">
 
-    <input id="id" class="class" type="text" value="ddddddddddddd" disabled="disabled" />
-    <input class="class" type="text" value="ddddddddddddd" />
+    <div class="panel1">
+        <input id="id" class="class1" type="text" value="ddddddddddddd" disabled="disabled" />
+        <input class="class2" type="text" value="ddddddddddddd" />
+    </div>
 
-    <div>
+    <div class="panel2">
         <input type="text" value="ddddddddddddd" />
         <input type="text" value="ddddddddddddd" />
     </div>

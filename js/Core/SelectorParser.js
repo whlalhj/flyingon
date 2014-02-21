@@ -93,15 +93,39 @@ N E:not(s)        匹配不符合当前选择器的任何元素
 N E:target        匹配文档中特定”id”点击后的效果
 
 
-12. 自定义扩展的伪类
-
-Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的余数的子元素
-
-
 */
 
 
 
+
+/*
+
+支持的伪类如下:
+
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+
+E:before        E之前元素
+E:after         E之后元素
+
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:first-child           匹配父元素的第一个子元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+
+*/
 
 //选择器解析器(类css选择器语法)
 (function (flyingon) {
@@ -109,7 +133,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
 
     //元素节点
-    var SelectorElement = flyingon.SelectorElement = function (type, token, name, owner) {
+    var Selector_Element = flyingon.Selector_Element = function (type, token, name, previous) {
 
         this.type = type;
         this.token = token;
@@ -126,14 +150,14 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                 break;
         }
 
-        if (owner)
+        if (previous)
         {
-            owner.next = this;
-            this.previous = owner;
+            previous.next = this;
+            this.previous = previous;
 
             if (type == ",")
             {
-                this.previous_type = owner.type;
+                this.previous_type = previous.type;
             }
         }
     };
@@ -156,21 +180,46 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
         //下一个节点
         this.next = null;
 
+        //改变构造函数
+        this.constructor = Selector_Element;
 
         this.toString = this.toLocaleString = function () {
 
-            return this.name;
+            var result = [];
+
+            result.push(this.type);
+            result.push(this.token);
+
+            if (this.name != "*")
+            {
+                result.push(this.name);
+            }
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                result.push(this[i].toString());
+            }
+
+            var next = this.next;
+
+            while (next)
+            {
+                result.push(next.toString());
+                next = next.next;
+            }
+
+            return result.join("");
         };
 
 
-    }).call(SelectorElement.prototype = []);
+    }).call(Selector_Element.prototype = []);
 
 
 
 
 
     //属性节点 
-    var SelectorProperty = flyingon.SelectorProperty = function (name) {
+    var Selector_Property = flyingon.Selector_Property = function (name) {
 
         switch (name[0])
         {
@@ -187,55 +236,61 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
     (function () {
 
+        //符号
         this.token = "[]";
 
-        this.relation = "";
+        //操作符
+        this.operator = "";
 
+        //属性值
         this.value = null;
 
-        this.check = function (item) {
+        //条件检测 通过返回目标对象 否则返回false
+        this.check = function (target) {
 
-            var value = item[this.name];
+            var value = target[this.name];
 
-            switch (this.relation)
+            switch (this.operator)
             {
                 case "":
-                    return value !== undefined;
+                    return value !== undefined ? target : false;
 
                 case "=":
-                    return value == this.value;
+                    return value == this.value ? target : false;
 
                 case "*=": // *= 包含属性值XX (由属性解析)
-                    return value && ("" + value).indexOf(this.value) >= 0;
+                    return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
 
                 case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return value && ("" + value).indexOf(this.value) == 0;
+                    return value && ("" + value).indexOf(this.value) == 0 ? target : false;
 
                 case "$=": // $= 属性值以XX结尾 (由属性解析)
-                    return value && (value = "" + value).lastIndexOf(this.value) == value.length - this.value.length;
+                    return value && (value = "" + value).lastIndexOf(this.value) == value.length - this.value.length ? target : false;
 
                 case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value);
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
 
                 case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value);
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value) ? target : false;
 
                 default:
                     return false;
             }
+
+            return target;
         };
 
         this.toString = this.toLocaleString = function () {
 
-            return this.name;
+            return "[" + this.name + "]";
         };
 
-    }).call(SelectorProperty.prototype);
+    }).call(Selector_Property.prototype);
 
 
 
     //属性集
-    var SelectorProperties = flyingon.SelectorProperties = function (item) {
+    var Selector_Properties = flyingon.Selector_Properties = function (item) {
 
         this.push(item);
     };
@@ -244,30 +299,39 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
         this.token = "[][]";
 
-        this.check = function (item) {
+        //条件检测 通过返回目标对象 否则返回false
+        this.check = function (target) {
 
             for (var i = 0, length = this.length; i < length; i++)
             {
-                if (this[i].check(item) === false)
+                if (this[i].check(target) === false)
                 {
                     return false;
                 }
             }
 
-            return true;
+            return target;
         };
 
         this.toString = this.toLocaleString = function () {
 
-            return this.token;
+            var result = [];
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                result.push(this[i].name);
+            }
+
+            return "[" + result.join(",") + "]";
         };
 
-    }).call(SelectorProperties.prototype = []);
+    }).call(Selector_Properties.prototype = []);
 
 
 
-    //伪类
-    var SelectorPseudo = flyingon.SelectorPseudo = function (name) {
+
+    //伪类(不包含伪元素)
+    var Selector_Pseudo_Class = flyingon.Selector_Pseudo_Class = function (name) {
 
         switch (name[0])
         {
@@ -286,20 +350,46 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
         this.token = ":";
 
-        this.toString = this.toLocaleString = function () {
+        //条件检测 通过返回目标对象 否则返回false
+        //注: 返回的目标对象可能与传入的对象不同(伪类元素会改变目标对象)
+        this.check = function (target, element_fn) {
 
-            return this.name;
+            switch (this.name)
+            {
+                case "active":
+                case "hover":
+                case "focus":
+                case "disabled":
+                case "checked":
+                case "selection":
+                    return target.states && target.states[this.name] ? target : false;
+
+                case "enabled":
+                    return !target.states || !target.states.disabled ? target : false;
+
+                case "empty":
+                    return !target.__children__ || target.__children__.length == 0 ? target : false;
+
+                default: //伪元素 element_fn:伪元素查询方法
+                    return element_fn ? element_fn[this.name].call(this, target) : false;
+            }
+
+            return target;
         };
 
-    }).call(SelectorPseudo.prototype = []);
+        this.toString = this.toLocaleString = function () {
+
+            return ":" + this.name;
+        };
+
+    }).call(Selector_Pseudo_Class.prototype = []);
 
 
 
 
 
 
-
-    var split_regex = /\"[^\"]*\"|\'[^\']*\'|[\w\-\@\%\&]+|[\.\#\:\[\]\,\>\+\=\~\|\^\$\*\(\)]/g; //
+    var split_regex = /"[^"]*"|'[^']*'|[\w-@%&]+|[.#* ,>+:=~|^$()\[\]]/g; //选择器拆分正则表达式
 
 
     //[name?=value]属性选择器
@@ -328,7 +418,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                 case ",":
                     if (nodes == null)
                     {
-                        nodes = new SelectorProperties(item);
+                        nodes = new Selector_Properties(item);
                     }
 
                     end = false;
@@ -339,12 +429,15 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                 case "$": // $= 属性值以XX结尾 (由属性解析)
                 case "~": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
                 case "|": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    item.relation += token;
+                    item.operator += token;
                     break;
 
                 case "=":
-                    item.relation += "=";
+                    item.operator += "=";
                     end = true;
+                    break;
+
+                case " ":
                     break;
 
                 default:
@@ -362,7 +455,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                     }
                     else
                     {
-                        item = new SelectorProperty(token);
+                        item = new Selector_Property(token);
 
                         if (nodes)
                         {
@@ -379,37 +472,6 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
             result: nodes || item,
             count: count
         };
-    };
-
-
-    //转换元素伪类为元素节点
-    function convert_element(previous, name) {
-
-        switch (name)
-        {
-            case "nth-child":
-            case "nth-last-child":
-            case "first-child":
-            case "last-child":
-            case "only-child":
-            case "nth-mod-child":
-                return new SelectorElement(">", "*", "*", previous);
-
-            case "nth-of-type":
-            case "nth-last-of-type":
-            case "first-of-type":
-            case "last-of-type":
-            case "only-of-type":
-                return new SelectorElement(">", "", item[0], previous);
-
-            case "before":
-                return new SelectorElement("<", "*", "*", previous);
-
-            case "after":
-                return new SelectorElement("+", "*", "*", previous);
-        }
-
-        return previous;
     };
 
 
@@ -432,6 +494,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                     loop = false;
                     break;
 
+                case " ":
                 case ",":
                     break;
 
@@ -446,9 +509,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
 
 
-    //解析选择器
-    //注1: 按从左至右的顺序解析
-    //注2: 元素伪类会升级为*元素节点
+    //解析选择器 按从左至右的顺序解析
     flyingon.parse_selector = function (selector) {
 
 
@@ -463,28 +524,27 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
             length = values.length;
 
 
-        if (length == 0)
-        {
-            result = new SelectorElement(type, "*", "*");
-            return result.last = result;
-        }
-
-
-        do
+        while (i < length)
         {
             //switch代码在chrome下的效率没有IE9好,不知道什么原因,有可能是其操作非合法变量名的时候性能太差
             switch (token = values[i++])
             {
                 case "#":  //id选择器标记
                 case ".":  //class选择器标记
-                    node = new SelectorElement(type, token, values[i++], node);
+                    node = new Selector_Element(type, token, values[i++], node);
                     break;
 
                 case "*":  //全部元素选择器标记
-                    node = new SelectorElement(type, "*", "*", node);
+                    node = new Selector_Element(type, "*", "*", node);
                     break;
 
                 case " ":  //后代选择器标记
+                    if (i == 1 || values[i - 2] != type) //前一个节点是类型则忽略
+                    {
+                        type = token;
+                    }
+                    continue;
+
                 case ">":  //子元素选择器标记
                 case "+":  //毗邻元素选择器标记
                 case "~":  //之后同级元素选择器标记
@@ -498,14 +558,14 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
 
                     if (item = item.result)
                     {
-                        (node || (node = new SelectorElement(type, "*", "*"))).push(item);  //未指定则默认添加 * 节点
+                        (node || (node = new Selector_Element(type, "*", "*"))).push(item);  //未指定节点则默认添加*节点
                     }
                     break;
 
                 case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
                     if (token = values[i++])
                     {
-                        var item = new SelectorPseudo(token);
+                        var item = new Selector_Pseudo_Class(token);
 
                         //处理参数
                         if (i < length && values[i] == "(")
@@ -513,9 +573,7 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                             i += parse_parameters.call(item, values, length, ++i);
                         }
 
-                        //元素伪类提升为节点
-                        node = convert_element(node, token) || new SelectorElement(type, "*", "*");  //无节点则默认添加*节点
-                        node.push(item); 
+                        (node || (node = new Selector_Element(type, "*", "*"))).push(item); //未指定节点则默认添加*节点
                     }
                     break;
 
@@ -530,27 +588,21 @@ Y E:nth-mod-child(n,length)     匹配其父元素的第n个以length为商的�
                     continue;
 
                 default: //类名 token = ""
-                    node = new SelectorElement(type, "", token, node);
+                    node = new Selector_Element(type, "", token, node);
                     break;
             }
 
 
-            if (type != " ")
-            {
-                type = " ";
-            }
-
+            type = " "; //容错处理(css不支持容错) 未指定组合类型则默认使用" "
 
             if (!result && node)
             {
                 result = node;
             }
+        }
 
-        } while (i < length)
 
-
-        result.last = node;
-        return result;
+        return result || new Selector_Element(type, "*", "*");
     };
 
 

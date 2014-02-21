@@ -33,10 +33,10 @@
 
 
     //是否需要重绘
-    prototype.__update__ = false;
+    prototype.__dirty__ = false;
 
     //子模型是否需要重绘
-    prototype.__update_children__ = false;
+    prototype.__children_dirty__ = false;
 
     //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
     prototype.__update_mode__ = 0;
@@ -343,7 +343,7 @@
 
 
         //标记更新状态
-        this.__update__ = true;
+        this.__dirty__ = true;
         return this;
     };
 
@@ -511,9 +511,9 @@
     //使当前盒模型无效
     prototype.invalidate = function () {
 
-        if (!this.__update__)
+        if (!this.__dirty__)
         {
-            this.__update__ = true;
+            this.__dirty__ = true;
 
             var parent = this.parent,
                 update = this.__update_mode__;
@@ -521,15 +521,15 @@
 
             while (parent)
             {
-                if (!parent.__update__)
+                if (!parent.__dirty__)
                 {
                     if (update == 0) //如果重绘模式为重绘自身
                     {
-                        parent.__update_children__ = true;
+                        parent.__children_dirty__ = true;
                     }
                     else
                     {
-                        parent.__update__ = true;
+                        parent.__dirty__ = true;
 
                         if (update == 1)
                         {
@@ -550,13 +550,13 @@
     //更新
     prototype.update = function (context) {
 
-        if (this.__update__) //如果需要更新
+        if (this.__dirty__) //如果需要更新
         {
             this.render(context);
         }
-        else if (this.__update_children__) //如果子控件需要更新
+        else if (this.__children_dirty__) //如果子控件需要更新
         {
-            this.__update_children__ = false;
+            this.__children_dirty__ = false;
 
             if (this.children)
             {
@@ -633,7 +633,7 @@
         }
 
         //修改状态
-        this.__update__ = false;
+        this.__dirty__ = false;
 
         return this;
     };

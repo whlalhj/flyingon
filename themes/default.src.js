@@ -298,7 +298,6 @@ E:first-of-type         匹配父元素下使用同种标签的第一个子元�
 E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
 E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
 E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
-E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的余数的子元素
 
 */
 (function (flyingon) {
@@ -317,16 +316,6 @@ E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的�
         background: "control-back",
         foreground: "control-text",
         borderColor: "control-border"
-    });
-
-    //默认窗口背景样式
-    $("*[input_style=true]", {
-
-        background: "input-back",
-        foreground: "input-text",
-        borderColor: "input-border",
-        border: 1,
-        borderRadius: 0
     });
 
     //选中时控件默认样式
@@ -372,6 +361,7 @@ E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的�
 
 
 
+
     //滚动条样式
     $("ScrollBase", {
 
@@ -404,6 +394,11 @@ E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的�
     //文本框样式
     $("TextBoxBase", {
 
+        background: "input-back",
+        foreground: "input-text",
+        borderColor: "input-border",
+        border: 1,
+        borderRadius: 0,
         cursor: "text"
     });
 
@@ -440,11 +435,18 @@ E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的�
     });
 
 
+    $("WindowBase", {
+
+        background: "input-back",
+        foreground: "input-text",
+        borderColor: "input-border",
+        border: 1,
+        borderRadius: 0
+    });
 
     $("Window", {
 
     });
-
 
     $("WindowTitleBar", {
 

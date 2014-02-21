@@ -166,6 +166,84 @@ flyingon.class("Collection", function (Class, flyingon) {
 
 
 
+    this.first_child = function () {
+
+        return this.length > 0 ? this[0] : undefined;
+    };
+
+    this.last_child = function () {
+
+        return this.length > 0 ? this[this.length - 1] : undefined;
+    };
+
+    this.only_child = function () {
+
+        return this.length == 1 ? this[0] : undefined;
+    };
+
+    this.nth_child = function (index) {
+
+        return this.length > index ? this[index] : undefined;
+    };
+
+    this.nth_last_child = function (index) {
+
+        return (index = this.length - index - 1) >= 0 ? this[index] : undefined;
+    };
+
+
+    this.first_of_type = function (type) {
+
+        var item = this[0];
+        return item && item.__fullTypeName == type ? item : undefined;
+    };
+
+    this.last_of_type = function (type) {
+
+        var item = this[this.length - 1];
+        return item && item.__fullTypeName == type ? item : undefined;
+    };
+
+    this.only_of_type = function (type) {
+
+        var item;
+        return this.length == 1 && (item = this[0]) && item.__fullTypeName__ == type ? item : undefined;
+    };
+
+    this.nth_of_type = function (type, index) {
+
+        var item;
+        return this.length > index && (item = this[index]) && item.__fullTypeName__ == type ? item : undefined;
+    };
+
+    this.nth_last_of_type = function (type, index) {
+
+        var item;
+        return (index = this.length - index - 1) >= 0 && (item = this[index]) && item.__fullTypeName__ == type ? item : undefined;
+    };
+
+    //某子项指定偏移位置的值 子项不存在时永远返回undefined
+    this.offset_child = function (item, offset) {
+
+        var index = this.indexOf(item);
+        return index >= 0 && (index += offset) >= 0 ? this[inde] : undefined;
+    };
+
+    this.mod_children = function (mod, step) {
+
+        var result = [];
+
+        for (var i = mod, length = this.length; i < length; i += step)
+        {
+            result.push(this[i]);
+        }
+
+        return result;
+    };
+
+
+
+
     //自定义序列化
     this.serialize = function (writer) {
 

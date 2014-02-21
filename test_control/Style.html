@@ -35,19 +35,24 @@
 
 
 
-        flyingon.defineStyle("Button", {
+        flyingon.defineStyle("Panel>Button:hover", {
 
-            //margin : "10, 10, 10, 10",
-            border: "1, 1, 1, 1",
-            borderColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]),
+            margin: 10,
+            border: 1,
+            borderColor: "red",
             background: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]),
             horizontalAlign: "center",
             verticalAlign: "center"
         });
 
 
+
+
+
+
         var w = new flyingon.Window(host);
-        w.layout = "flow";
+
+        var color = w.background;
 
 
 
@@ -61,63 +66,24 @@
             for (var k = 0; k < 200; k++)
             {
                 var panel = new flyingon.Panel();
+                panel.spaceX = 10;
+                panel.spaceY = 10;
+
+                panel.id = "id" + k;
+                panel.className = "class" + (k % 10);
+
+                var color = panel.background;
 
                 for (var i = 0; i < 50; i++)
                 {
-
                     var ctrl = new flyingon.Button();
-
-                    ctrl.left = i % 5 * 100;
-                    ctrl.top = i / 5 * 30;
-
-                    ctrl.width = 20;
-                    ctrl.height = 21;
-
                     panel.children.add(ctrl);
 
-                    switch (i % 5)
-                    {
-                        case 0:
-                            ctrl.dock = "left";
-                            break;
+                    ctrl.id = "id" + i;
+                    ctrl.className = "class" + (i % 10);
 
-                        case 1:
-                            ctrl.dock = "top";
-                            break;
-
-                        case 2:
-                            ctrl.dock = "right";
-                            break;
-
-                        case 3:
-                            ctrl.dock = "bottom";
-                            ctrl.width = "fill";
-                            ctrl.height = "fill";
-                            break;
-
-                        case 4:
-                            ctrl.dock = "fill";
-                            break;
-                    }
-
+                    var color = ctrl.background;
                 }
-
-
-
-                panel.width = 600;
-                panel.height = 400;
-                panel.margin = "5, 5, 5, 5";
-                panel.border = "1, 1, 1, 1";
-                panel.padding = "0, 0, 0, 0";
-                panel.layout = "line";
-                panel.spaceX = 5;
-                panel.spaceY = 5;
-                panel.lineHeight = 50;
-                panel.lineWidth = 160;
-                panel.rows = 4;
-                panel.columns = 4;
-                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
-
 
                 w.children.add(panel);
             }

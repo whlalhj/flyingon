@@ -1,13 +1,419 @@
 ﻿
 
+/*
+
+支持的伪类如下:
+
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+
+//之后的元素会转为节点元素
+
+E:before        E之前元素
+E:after         E之后元素
+
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:first-child           匹配父元素的第一个子元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+
+*/
+
 //扩展选择器条件检测
 (function (flyingon) {
 
 
-    //扩展选择器元素
-    var SelectorElement = flyingon.SelectorElement,
-        prototype = SelectorElement.prototype;
+    //组合查询方法
+    //注: ","组合类型已被拆分,此处不处理
+    var type_fn = (function () {
 
+        this[" "] = function (target) {
+
+            var cache = target.__parent__;
+
+            while (cache)
+            {
+                if (target = this.style_check(cache))
+                {
+                    return target;
+                }
+
+                cache = cache.__parent__;
+            }
+
+            return false;
+        };
+
+        this[">"] = function (target) {
+
+            return (target = target.__parent__) ? this.style_check(target) : false;
+        };
+
+        this["+"] = function (target) {
+
+            var cache = target.__parent__, index;
+
+            target = cache && (cache = cache.__children__) && (index = cache.indexOf(this)) > 0 && cache[--index];
+            return target ? this.style_check(target) : false;
+        };
+
+        this["~"] = function (target) {
+
+            var cache = target.__parent__, index;
+
+            if (cache && (cache = cache.__children__) && (index = cache.indexOf(this)) > 0)
+            {
+                for (var i = index - 1; i >= 0; i--)
+                {
+                    if (target = this.style_check(cache[i]))
+                    {
+                        return target;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        return this;
+
+    }).call({});
+
+
+    //伪类元素查询方法  
+    //注:此处为反向查找 即:已知目标反查条件
+    var element_fn = (function () {
+
+        //获取后一节点
+        this.before = function (target) {
+
+            var cache = target.__parent__, index;
+            return (cache && (cache = cache.__children__) && (index = cache.indexOf(this)) >= 0 && cache[++index]) || false;
+        };
+
+        //获取前一节点
+        this.after = function (target) {
+
+            var cache = target.__parent__, index;
+            return (cache && (cache = cache.__children__) && (index = cache.indexOf(this)) > 0 && cache[--index]) || false;
+        };
+
+        //检测当前节点是否唯一子节点,是则返回父节点
+        this["first-child"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] == target ? parent : false;
+        };
+
+        this["first-of-type"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+        };
+
+        this["last-child"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] == target ? parent : false;
+        };
+
+        this["last-of-type"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+        };
+
+        this["only-child"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length == 1 ? parent : false;
+        };
+
+        this["only-of-type"] = function (target) {
+
+            var parent = target.__parent__, cache;
+            return parent && (cache = parent.__children__) && cache.length == 1 && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+        };
+
+        this["nth-child"] = function (target) {
+
+            var parent = target.__parent__, cache, index = 0 + this.value;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target ? parent : false;
+        };
+
+        this["nth-of-type"] = function (target) {
+
+            var parent = target.__parent__, cache, index = 0 + this.value;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+        };
+
+        this["nth-last-child"] = function (target) {
+
+            var parent = target.__parent__, cache, index = 0 + this.value;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target ? parent : false;
+        };
+
+        this["nth-last-of-type"] = function (target) {
+
+            var parent = target.__parent__, cache, index = 0 + this.value;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+        };
+
+        return this;
+
+    }).call({});
+
+
+    //扩展样式检测 检测指定对象是否符合当前选择器
+    this.style_check = function (target) {
+
+        //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((target = this[i].check(target, element_fn)) === false)
+            {
+                return false;
+            }
+        }
+
+        switch (this.token)
+        {
+            case "":  //类型
+                if (target.__fullTypeName__ != this.name)
+                {
+                    return false;
+                }
+                break;
+
+            case ".": //class
+                if (!target.hasClass(this.name))
+                {
+                    return false;
+                }
+                break;
+
+            case "#": //id
+                if (target.id != this.name)
+                {
+                    return false;
+                }
+                break;
+        }
+
+        //继续检测上一节点
+        if (this.previous && type_fn[this.type].call(this.previous, target) === false)
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+
+}).call(flyingon.Selector_Element.prototype, flyingon);
+
+
+
+
+//定义样式
+(function (flyingon) {
+
+
+    var Selector_Element = flyingon.Selector_Element,  //缓存元素类
+
+        styles_data = {},  //样式集  注:为加快样式值查找对所有样式按元素类型进行分类存储 此处的优先级可能与css样式有些差异???
+
+        styles_cache = {}, //样式缓存
+
+        group_data = {},   //缓存组名
+
+        pseudo_data = {},  //伪元素存储
+
+        thickness = ["margin", "border", "padding"], //需处理边框属性
+
+        pseudo_keys = {  //伪类key 不在此列即为伪元素
+
+            active: true,
+            hover: true,
+            focus: true,
+            enabled: true,
+            disabled: true,
+            checked: true,
+            selection: true
+        };
+
+
+
+
+    //获取样式组 按元素类型进行分组 如果有伪元素则类型设为*
+    function style_group(element) {
+
+        var result = element.token == "*" ? "Control" : element.token + element.name,
+            pseudo, //伪元素
+            item;
+
+        for (var i = 0, length = element.length; i < length; i++)
+        {
+            if ((item = element[i]).token == ":" && !pseudo_keys[item.name]) //伪元素作特殊处理以加快检索
+            {
+                pseudo = pseudo ? pseudo + ":" : ":";
+            }
+        }
+
+        if (pseudo)
+        {
+            pseudo_data[pseudo.length] = pseudo; //记录第n级父元素的样式组
+
+            if (!(pseudo_data.max >= pseudo.length))
+            {
+                pseudo_data.max = pseudo.length;
+            }
+
+            result = pseudo + result; //前面叠加":"作为组名
+        }
+
+        return element.__group__ = result;
+    };
+
+
+
+    //生成样式组缓存 先排除无关的样式
+    function initialize_group(target) {
+
+
+        var result = target.__style_group__ = [],
+
+            group = group_data,
+            pseudo = pseudo_data,
+
+            items,
+            item,
+
+            length,
+            cache;
+
+
+        //预处理伪元素 记下最多可用父节点
+        if ((length = pseudo.max) > 0)
+        {
+            item = target;
+
+            for (var i = length; i > 0; i--)
+            {
+                if (item = item.__parent__)
+                {
+                    (items || (items = [])).push(pseudo[i] ? item : null); //中空的不记录
+                }
+            }
+        }
+
+
+        //1. id伪元素
+        if (items)
+        {
+            length = items.length; //items从子到父排列
+
+            for (var i = length - 1; i >= 0; i--)
+            {
+                if ((item = items[i]) && (cache = item.id) && (group[cache = pseudo[i + 1] + "#" + cache]))
+                {
+                    result.push(cache);
+                }
+            }
+        }
+
+
+        //2. id
+        if ((cache = target.id) && (group[cache = "#" + cache]))
+        {
+            result.push(cache);
+        }
+
+
+        //3. class伪元素
+        if (items)
+        {
+            for (var i = length - 1; i >= 0; i--)
+            {
+                if ((item = items[i]) && (item = item.__class_list__))
+                {
+                    for (var j = 0, count = item.length; j < count; j++)
+                    {
+                        if (group[cache = pseudo[i + 1] + "." + item[j]])
+                        {
+                            result.push(cache);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        //4. class
+        if (item = target.__class_list__)
+        {
+            for (var i = 0, count = item.length; i < count; i++)
+            {
+                if (group[cache = "." + item[i]])
+                {
+                    result.push(cache);
+                }
+            }
+        }
+
+
+        //5. type伪元素
+        if (items)
+        {
+            for (var i = length - 1; i >= 0; i--)
+            {
+                if ((item = items[i]) && (cache = item.__fullTypeName__) && (group[cache = pseudo[i + 1] + cache]))
+                {
+                    result.push(cache);
+                }
+            }
+        }
+
+
+        //6. type
+        cache = target.__type__;
+        while (cache && cache != flyingon.SerializableObject)
+        {
+            if (group[cache.fullTypeName])
+            {
+                result.push(cache.fullTypeName);
+            }
+
+            cache = cache.supertype;
+        }
+
+
+        return result;
+    };
+
+
+    //样式key
+    function style_key(element) {
+
+        while (element.previous)
+        {
+            element = element.previous;
+        }
+
+        return element.toString();
+    };
 
 
     /*
@@ -25,11 +431,9 @@
     */
 
     //计算选择器的权重
-    //注: 本系统与css权重做法有些差别 本系统先按状态分组再对比权重 组级高的永远比组级低的优先
-    prototype.style_weight = function () {
+    function style_weight(element) {
 
-        var result = 0,
-            element = this;
+        var result = 0;
 
         do
         {
@@ -48,202 +452,52 @@
                     break;
             }
 
-            if (this.length > 0)
+            if (element.length > 0)
             {
-                result += this.length * 10;
+                result += element.length * 10;
             }
 
-        } while (element = element.next);
+        } while (element.next && (element = element.next));
 
 
-        return this.__weight__ = result << 8; //左移8个字节以留足中间插入的空间(即中间最多可插入256个元素)
+        return element.__weight__ = result << 8; //左移8个字节以留足中间插入的空间(即中间最多可插入256个元素)
     };
-
-
-    //获取样式组 抽出第一个与状态有关的伪类作为样式组名
-    prototype.style_group = function () {
-
-        var item, key;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]).token == ":")
-            {
-                switch (key = item.name)
-                {
-                    case "active":  //此组伪类转换为样式组
-                    case "hover":
-                    case "focus":
-                    case "disabled":
-                    case "checked":
-                    case "selection":
-                        this.splice(i, 1);
-                        return key;
-                }
-            }
-        }
-
-        return this.__group__ = "__";
-    };
-
-
-    //扩展属性查找检测
-    (prototype = flyingon.SelectorProperty.prototype).style_check = prototype.check;
-
-
-    //扩展属性组查找检测
-    (prototype = flyingon.SelectorProperties.prototype).style_check = prototype.check;
-
-
-    /*
-
-    支持的伪类如下:
-    
-    E:active        匹配鼠标已经其上按下、还没有释放的E元素
-    E:hover         匹配鼠标悬停其上的E元素
-    E:focus         匹配获得当前焦点的E元素
-    E:enabled       匹配表单中激活的元素
-    E:disabled      匹配表单中禁用的元素
-    E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
-    E:selection     匹配用户当前选中的元素
-    E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
-    
-    E:before        E之前元素
-    E:after         E之后元素
-    
-    E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
-    E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
-    E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
-    E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
-    E:first-child           匹配父元素的第一个子元素
-    E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
-    E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
-    E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
-    E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
-    E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
-    E:nth-mod-child(n,length)     匹配其父元素的第n个以length为基数的余数的子元素
-
-    */
-    //扩展伪类查找检测
-    flyingon.SelectorPseudo.prototype.style_check = function (element, item) {
-
-        switch (this.name)
-        {
-            case "active":
-            case "hover":
-            case "focus":
-            case "disabled":
-            case "checked":
-            case "selection":
-                return item.states && item.states[this.name];
-
-            case "enabled":
-                return !item.states || !item.states.disabled;
-
-            case "empty":
-                return item.__parent__.index_child(0) === undefined;
-
-            case "before": //后面有节点
-                return item.__parent__.child_offset(item, 1) !== undefined;
-
-            case "after": //前面有节点
-                return item.__parent__.child_offset(item, -1) !== undefined;
-
-            case "nth-child":
-            case "nth-of-type":
-                return item.__parent__.child_indexOf(item) == this[0];
-
-            case "nth-last-child":
-            case "nth-last-of-type":
-                return item.__parent__.child_lastIndexOf(item) == this[0];
-
-            case "first-child":
-            case "first-of-type":
-                return item.__parent__.index_child(0) === item;
-
-            case "last-child":
-            case "last-of-type":
-                return item.__parent__.last_index_child(0) === item;
-
-            case "only-child":
-            case "only-of-type":
-                return item.__parent__.index_child(1) === undefined;
-
-            case "nth-mod-child":
-                return item.__parent__.child_indexOf(item) % this[1] == this[0];
-        }
-
-        return true;
-    };
-
-
-})(flyingon);
-
-
-
-
-//定义样式
-(function (flyingon) {
-
-
-
-    var styles = {},  //样式集
-
-        styles_cache = {}, //样式缓存
-
-        thickness = ["margin", "border", "padding"],
-
-        registry_list = flyingon.__registry_list__;
 
 
 
     //获取样式值
     flyingon.styleValue = function (target, name) {
 
-        var states = target.__states__ || ["__"],
-            style;
 
-        for (var i = states.length - 1; i >= 0; i--)
+        var style = target.style;
+
+        if (style && (data = style[name]))
         {
-            if ((style = styles[name]) && (style = style[states[i]]))
-            {
-                var names = style.__names__ || (style.__names__ = Object.keys(style));
+            return data;
+        }
 
-                loop:
+
+        if (style = styles_data[name])
+        {
+            var group = target.__style_group__ || initialize_group(target),
+                data,
+                names,
+                items;
+
+            for (var i = 0, length = group.length; i < length; i++)
+            {
+                if (data = style[group[i]])
+                {
+                    names = data.__names__ || (data.__names__ = Object.keys(data));
+
                     for (var j = names.length - 1; j >= 0; j--)
                     {
-                        var items = style[names[j]],
-                            element = items[0],
-                            length;
-
-                        switch (element.token)
+                        if ((items = data[names[j]])[0].style_check(target))
                         {
-                            case "":  //类型
-                                if (!(target instanceof element.__type__)) continue;
-                                break;
-
-                            case ".": //class
-                                if (!target.hasClass(element.name)) continue;
-                                break;
-
-                            case "#": //id
-                                if (target.id != element.name) continue;
-                                break;
+                            return items[1];
                         }
-
-                        if ((length = element.length) > 0)
-                        {
-                            for (var k = 0; k < length; k++)
-                            {
-                                if (element[k].style_check(element, target) === false)
-                                {
-                                    continue loop;
-                                }
-                            }
-                        }
-
-                        return items[1];
                     }
+                }
             }
         }
     };
@@ -252,31 +506,28 @@
     //处理样式 按样式属性名存储 再根据
     function handle_style(element, style) {
 
-        //类
-        if (element.token == "")
-        {
-            element.__type__ = registry_list[element.name] || flyingon.Control;
-        }
-
         var target,
-            group = element.__group__ || element.style_group(), //先处理样式组
-            weight = element.__weight__ || element.style_weight(), //当前权重
+            group = element.__group__ || style_group(element), //处理样式组
+            weight = element.__weight__ || style_weight(element), //当前权重
             value,
             index;
+
+        group_data[group] = true; //缓存组名
+        element.key = style_key(element); //保存选择器名
 
         loop:
             for (var name in style)
             {
                 if ((value = style[name]) !== undefined) //样式属性值设置为undefined则不处理
                 {
-                    if (target = styles[name]) //已有属性
+                    if (target = styles_data[name]) //已有属性
                     {
                         target = target[group] || (target[group] = {});
                         index = weight;
 
                         while (target[index])
                         {
-                            if (target[index][0].selector == element.selector) //如果选择器相等则后面冲掉前面的值
+                            if (target[index][0].key == element.key) //如果选择器相等则后面冲掉前面的值
                             {
                                 target[index] = [element, value];
                                 continue loop;
@@ -286,15 +537,100 @@
                         }
 
                         target[index] = [element, value];
-                        delete target.__keys__;
+                        delete target.__names__;
                     }
                     else
                     {
-                        ((styles[name] = {})[group] = {})[weight] = [element, value];
+                        ((styles_data[name] = {})[group] = {})[weight] = [element, value];
                     }
                 }
             }
     };
+
+
+
+    //复制元素
+    function copy_element(element, previous, cascade) {
+
+        var result = new Selector_Element(element.type, element.token, element.name, previous);
+
+        for (var i = 0, length = element.length; i < length; i++)
+        {
+            result[i] = element[i];
+        }
+
+        //级联复制上级
+        if (cascade && (previous = element.previous))
+        {
+            previous = element.previous = copy_element(previous, null, true);
+            previous.next = element;
+        }
+
+        return result;
+    };
+
+
+    //拆分元素 把组合元素拆成多组非组合元素
+    function split_element(element) {
+
+        var next, items, cache;
+
+        while (next = element.next)
+        {
+            if (next && next.type == ",")
+            {
+                cache = [];
+
+                cache.push(element);
+                element.next = null;
+                element = next;
+
+                do
+                {
+                    element.previous = null;
+                    element.type = element.previous_type;
+                    delete element.previous_type;
+
+                    cache.push(element);
+
+                } while ((element = element.next) && element.type == ",")
+
+                if (items) //交叉
+                {
+                    var exports = [];
+
+                    for (var i = 0, length = items.length; i < length; i++)
+                    {
+                        for (var j = 0, length_j = cache.length; j < length_j; j++)
+                        {
+                            exports.push(copy_element(cache[j], items[i], true)); //复制生成新节点
+                        }
+                    }
+
+                    items = exports;
+                }
+                else
+                {
+                    items = cache;
+                }
+            }
+            else
+            {
+                if (items)
+                {
+                    for (var i = 0, length = items.length; i < length; i++)
+                    {
+                        items[i] = copy_element(element, items[i]); //复制生成新节点
+                    }
+                }
+            }
+
+            element = next;
+        }
+
+        return items || element;
+    };
+
 
 
     //定义样式
@@ -302,7 +638,7 @@
 
         if (selector && style)
         {
-            var items, cache;
+            var cache;
 
             //处理thickness
             for (var i = 0; i < 3; i++)
@@ -326,38 +662,22 @@
                 style = cache;
             }
 
-            //解析选择器
-            var element = flyingon.parse_selector(selector).last;
+            //缓存样式
+            styles_cache[selector] = style;
 
-            //拆分选择器 把最后的组合选择器拆分成单独的元素进行处理
-            if (element.type != ",")
+            //解析选择器
+            var element = flyingon.parse_selector(selector);
+
+            if ((cache = split_element(element)).constructor == Array)
             {
-                element.selector = selector;
-                handle_style(element, style);
+                for (var i = 0, length = cache.length; i < length; i++)
+                {
+                    handle_style(cache[i], style);
+                }
             }
             else
             {
-                items = [element];
-
-                while (element = element.previous)
-                {
-                    items.push(element);
-
-                    if (element.type != ",")
-                    {
-                        break;
-                    }
-                }
-
-                element.next = null;
-
-                for (var i = 0; i < items.length; i++)
-                {
-                    (cache = items[i]).previous = element;
-                    cache.selector = selector;
-
-                    handle_style(cache, style);
-                }
+                handle_style(cache, style);
             }
         }
 

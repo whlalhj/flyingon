@@ -66,8 +66,9 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
 
 
+
     //循环执行指定函数
-    this.cascade_call = function (fn, cascade) {
+    this.cascade_call = function (fn) {
 
         var result, item;
 
@@ -78,7 +79,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
                 return result;
             }
 
-            if (cascade && (item = item.__children__) && (result = item.cascade_call(fn, true)) !== undefined)
+            if ((item = item.__children__) && (result = item.cascade_call(fn, true)) !== undefined)
             {
                 return result;
             }

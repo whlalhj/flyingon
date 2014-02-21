@@ -56,6 +56,8 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.__fn_parent__ = function (parent) {
 
         this.__parent__ = parent;
+        this.__style_group__ = null;  //清空缓存的样式组
+
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent__));
     };
 
@@ -129,10 +131,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         return this;
     };
 
-
-
-    //是否输入背景风格
-    this.input_style = false;
 
 
 
@@ -262,9 +260,20 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("className", null, {
 
         attributes: "invalidate|query",
-        changing: "if (value) value = value.replace(/^\\s+|\\s+$/g, '');",
-        complete: "this.__class_list__ = value ? value.split(/\\s+/g) : null;"
+        complete: "this.__fn_className__(value);"
     });
+
+    //处理className
+    this.__fn_className__ = function (value) {
+
+        if (value && (value = this.__class_list__ = value.match(/\S+/g)))
+        {
+            value.remove_repeat();
+            this.__fields__.className = value.join(" ");
+        }
+
+        this.__style_group__ = null;  //清空缓存的样式组
+    };
 
     //是否包含指定class
     this.hasClass = function (className) {
@@ -278,33 +287,19 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (className)
         {
-            var class_list = this.__class_list__;
-
-            if (class_list)
-            {
-                if (class_list.indexOf(className) < 0)
-                {
-                    this.className += " " + className;
-                }
-            }
-            else
-            {
-                this.className = className;
-            }
+            this.className += " " + className;
         }
     };
 
     //移除class
     this.removeClass = function (className) {
 
-        var class_list = this.__class_list__,
-            index;
+        var class_list = this.__class_list__, index;
 
         if (class_list && className && (index = class_list.indexOf(className)) >= 0)
         {
-            class_list.removeAt(index);
-
-            this.className = class_list.join(" ");
+            class_list.splice(index, 1);
+            this.__fields__.className = class_list.join(" ");
             return true;
         }
     };
@@ -326,15 +321,13 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
+
     //状态变更事件
     this.defineEvent("statechange");
 
-    //状态优先级
-    this.__states_priority__ = ["checked", "selection", "focus", "hover", "active", "disabled"];
-
     /*
 
-    支持状态 优先级从低到高排列
+    支持状态
 
     checked       被选中
     selection     用户当前选中的元素
@@ -349,33 +342,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //value: true || false
     this.stateTo = function (name, value) {
 
-        var names = this.__states_priority__,
-            length = names.length,
-            states = this.states || (this.states = Object.create(null)),
-            result = this.__states__;
-
-        states[name] = value;
-
-        if (result)
-        {
-            result.length = 1;
-        }
-        else
-        {
-            result = this.__states__ = ["__"];
-        }
-
-        for (var i = 0; i < length; i++)
-        {
-            if (states[names[i]])
-            {
-                result.push(names[i]);
-            }
-        }
+        (this.states || (this.states = Object.create(null)))[name] = value;
 
         //检测是否有状态变更动画 有则播放 状态动画命名规则: 状态名 + "-animation"
         //var animation = flyingon.styleValue(this, name + "-animation");
-
 
         //状态变更事件
         this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
@@ -713,49 +683,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
 
-    //以下代码扩展子项查找功能 查询器及样式以此为基础
-
-    //指定索引的子项
-    this.index_child = function (index) {
-
-        var children = this.__children__;
-        return children && children.length > 0 + index ? children[index] : undefined;
-    };
-
-    //指定倒序索引的子项
-    this.last_index_child = function (index) {
-
-        var children = this.__children__;
-        return children && (index = children.length - index - 1) > 0 ? children[index] : undefined;
-    };
-
-    //某子项指定偏移位置的值 子项不存在时永远返回undefined
-    this.child_offset = function (item, offset) {
-
-        var children = this.__children__, index;
-
-        if (children && (index = children.indexOf(item)) >= 0 && (index += offset) >= 0)
-        {
-            return children[index];
-        }
-    };
-
-    //获取指定子项的索引号
-    this.child_indexOf = function (item) {
-
-        var children = this.__children__;
-        return children ? children.indexOf(item) : -1;
-    };
-
-    //获取指定子项的倒序索引号
-    this.child_lastIndexOf = function (item) {
-
-        var children = this.__children__;
-        return children ? children.lastIndexOf(item) : -1;
-    };
-
-
-
 
     //查找控件 selector: css选择器样式字符串
     this.find = function (selector) {
@@ -766,16 +693,16 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //查找指定id的子控件集合
     this.findById = function (id, cascade) {
 
-        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", "#", id), this);
+        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", "#", id), this);
     };
 
     //查找指定名称的子控件集合
     this.findByName = function (name, cascade) {
 
-        var element = new flyingon.SelectorElement(cascade ? " " : ">", "*"),
-            property = new flyingon.SelectorProperty("name");
+        var element = new flyingon.Selector_Element(cascade ? " " : ">", "*"),
+            property = new flyingon.Selector_Property("name");
 
-        property.relation = "=";
+        property.operator = "=";
         property.value = name;
 
         element.push(property);
@@ -786,13 +713,13 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //查找指定类型的子控件集合
     this.findByTypeName = function (fullTypeName, cascade) {
 
-        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", "", fullTypeName), this);
+        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", "", fullTypeName), this);
     };
 
     //查找指定class的控件子控件集合
     this.findByClassName = function (className, cascade) {
 
-        return new flyingon.Query(new flyingon.SelectorElement(cascade ? " " : ">", ".", className), this);
+        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", ".", className), this);
     };
 
 

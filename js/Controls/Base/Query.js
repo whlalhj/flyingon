@@ -33,7 +33,7 @@
             {
                 switch (selector.constructor)
                 {
-                    case flyingon.SelectorElement:
+                    case flyingon.Selector_Element:
                         selector = selector.find([start]);
                         break;
 
@@ -127,12 +127,12 @@
 
     prototype.addEventListener = function (type, fn) {
 
-        return this.for_invoke("addEventListener", arguments);
+        return this.for_apply("addEventListener", arguments);
     };
 
     prototype.removeEventListener = function (type, fn) {
 
-        return this.for_invoke("removeEventListener", arguments);
+        return this.for_apply("removeEventListener", arguments);
     };
 
 
@@ -144,18 +144,18 @@
 
     prototype.addClass = function (className) {
 
-        this.for_invoke("addClass", arguments);
+        this.for_apply("addClass", arguments);
         return this;
     };
 
     prototype.removeClass = function (className) {
 
-        return this.for_invoke("removeClass", arguments);
+        return this.for_apply("removeClass", arguments);
     };
 
     prototype.toggleClass = function (className) {
 
-        return this.for_invoke("toggleClass", arguments);
+        return this.for_apply("toggleClass", arguments);
     };
 
 

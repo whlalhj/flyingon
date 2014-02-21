@@ -693,7 +693,7 @@ flyingon_images = {};
     var data = {};
 
     //循环执行指定函数
-    data.for_call = function (fn) {
+    data.for_execute = function (fn) {
 
         var result;
 
@@ -706,8 +706,8 @@ flyingon_images = {};
         }
     };
 
-    //循环调用指定名称的方法
-    data.for_invoke = function (name, parameters) {
+    //以apply的方式循环调用指定名称的方法
+    data.for_apply = function (name, parameters) {
 
         var result,
             item,

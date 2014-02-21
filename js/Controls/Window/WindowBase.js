@@ -91,10 +91,6 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-    //设为输入背景风格
-    this.input_style = true;
-
-
 
     //窗口切换为活动窗口事件
     this.defineEvent("activate");

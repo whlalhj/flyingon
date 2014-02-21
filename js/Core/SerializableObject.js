@@ -348,7 +348,10 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
 
     //id
-    this.defineProperty("id", null);
+    this.defineProperty("id", null, {
+
+        changed: "this.__style_group__ = null;"
+    });
 
     //名称
     this.defineProperty("name", null);
