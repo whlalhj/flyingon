@@ -1,138 +1,18 @@
 ﻿/// <reference path="../Base/Core.js" />
 
 
-//控件基类
-flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon) {
+//可视化组件基类
+//注: 此组件支持样式及自绘, 但不支持事件, 某些特殊的绘图要求可从此继承, 一般情况下尽量从Control类继承
+flyingon.class("Visual", flyingon.SerializableObject, function (Class, flyingon) {
 
 
 
 
     Class.create = function () {
 
-        //唯一id
-        this.__uniqueId__ = ++flyingon.__uniqueId__;
-
         //盒模型
         this.__boxModel__ = new flyingon.BoxModel(this);
     };
-
-
-
-
-    //引用序列化标记(为true时只序列化名称不序列化内容)
-    this.serialize_reference = true;
-
-
-
-    //父控件
-    this.defineProperty("parent", null, {
-
-        getter: function () {
-
-            return this.__parent__;
-        },
-
-        setter: function (value) {
-
-            var oldValue = this.__parent__;
-
-            if (value != oldValue)
-            {
-                if (oldValue)
-                {
-                    oldValue.__children__.remove(this);
-                }
-
-                if (value)
-                {
-                    value.__children__.add(this);
-                }
-            }
-
-            return this;
-        }
-    });
-
-
-    //触发父控件变更
-    this.__fn_parent__ = function (parent) {
-
-        this.__parent__ = parent;
-        this.__style_group__ = null;  //清空缓存的样式组
-
-        this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent__));
-    };
-
-    //当前控件是否指定控件的父控件
-    this.isParent = function (control) {
-
-        if (!control || control == this)
-        {
-            return false;
-        }
-
-        var target = control.__parent__;
-
-        while (target)
-        {
-            if (target == this)
-            {
-                return true;
-            }
-
-            target = target.__parent__;
-        }
-
-        return false;
-    };
-
-    //指定控件是否当前控件的父控件
-    this.isParentTo = function (control) {
-
-        return control ? control.isParent(this) : false;
-    };
-
-
-    //子索引号
-    this.defineProperty("childIndex", function () {
-
-        var cache = this.__parent__;
-        return (cache && (cache = cache.__children__) && cache.indexOf(this)) || -1;
-    });
-
-
-    //从父控件中移除自身
-    this.remove = function () {
-
-        var parent = this.__parent__;
-
-        if (parent)
-        {
-            parent.__children__.remove(this);
-        }
-
-        return this;
-    };
-
-
-
-
-
-    //主窗口
-    this.defineProperty("mainWindow", function () {
-
-        var ownerWindow = this.ownerWindow;
-        return ownerWindow && ownerWindow.mainWindow;
-    });
-
-    //所属窗口
-    this.defineProperty("ownerWindow", function () {
-
-        var parent = this.__parent__;
-        return parent && parent.ownerWindow;
-    });
-
-
 
 
 
@@ -377,7 +257,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //value: true || false
     this.stateTo = function (name, value) {
 
-
         (this.states || (this.states = Object.create(null)))[name] = value;
 
         //检测是否有状态变更动画 有则播放 状态动画命名规则: 状态名 + "-animation"
@@ -388,36 +267,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         //样式变更可能需要重新定位
         (this.__parent__ || this).__boxModel__.invalidate(true);
-    };
-
-
-    //获取状态图片(图片资源有命名规则要求) active -> hover -> checked -> common
-    this.__fn_state_image__ = function (image, checked) {
-
-        var states = this.__states__,
-            images = [];
-
-        if (states)
-        {
-            if (states.activate)
-            {
-                images.push(image + "-active");
-            }
-
-            if (states.hover)
-            {
-                images.push(image + "-hover");
-            }
-        }
-
-        if (checked)
-        {
-            images.push(image + "-checked");
-        }
-
-        images.push(image);
-
-        return flyingon.get_image_any(images);
     };
 
 
@@ -461,15 +310,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
     this.defineProperty("verticalAlign", "top", "locate|style");
 
-    //流式布局 auto:自动 inline:同行 newline:新行
-    this.defineProperty("flow", "auto", "locate|style");
 
-    //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
-    this.defineProperty("dock", "left", "locate|style");
+
 
     /*********************************************/
-
-
 
 
     /***************BoxModel及样式相关属性***************/
@@ -497,10 +341,10 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperty("backColor", null, "style");
 
     //前景色
-    this.defineProperty("foreColor", "control-text", "style");
+    this.defineProperty("foreColor", "black", "style");
 
-    //边框颜色
-    this.defineProperty("borderColor", "control-border", "style");
+    //边框色
+    this.defineProperty("borderColor", "rgb(100,100,100)", "style");
 
     //透明度
     this.defineProperty("opacity", 1, "style");
@@ -535,325 +379,31 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     /*********************************************/
 
 
-    //鼠标样式
-    this.defineProperty("cursor", "default", "style");
+    //获取状态图片(图片资源有命名规则要求) active -> hover -> checked -> common
+    this.__fn_state_image__ = function (image, checked) {
 
+        var states = this.__states__,
+           images = [];
 
-    this.__fn_cursor__ = function (event) {
-
-        return this.cursor || "default";
-    };
-
-
-    //装饰
-    this.defineProperty("decorates", null, "invalidate|style");
-
-
-    /*********************************************/
-
-
-    //快捷键(按下alt+accesskey)
-    this.defineProperty("accesskey", null);
-
-
-    //是否可用
-    this.defineProperty("enabled", true, {
-
-        changed: "this.stateTo('disabled', !value);"
-    });
-
-
-    //是否可具有焦点
-    this.defineProperty("focusable", true);
-
-
-    //是否为焦点控件
-    this.defineProperty("focused", function () {
-
-        return this.ownerWindow && this.ownerWindow.__focused_control__ == this;
-    });
-
-    //是否为焦点控件或包含焦点控件
-    this.defineProperty("containsFocused", function () {
-
-        var focused = this.ownerWindow && this.ownerWindow.__focused_control__;
-        return focused && (focused == this || this.isParent(focused));
-    });
-
-
-
-
-
-    //是否可以拖动
-    this.defineProperty("draggable", false);
-
-    //是否可以接受拖放
-    this.defineProperty("droppable", false);
-
-
-
-    //值变更事件
-    this.defineEvent("change");
-
-    //定义鼠标事件
-    this.defineEvents(["mousedown", "mousemove", "click", "dblclick", "mouseup", "mouseover", "mouseout", "mousewheel"]);
-
-    //定义拖拉事件
-    this.defineEvents(["dragstart", "drag", "dragend", "dragenter", "dragover", "dragleave", "drop"]);
-
-    //定义键盘事件
-    this.defineEvents(["keydown", "keypress", "keyup"]);
-
-    //定义其它事件
-    this.defineEvents(["focus", "blur", "validate"]);
-
-
-
-
-    //调整自动大小
-    this.adjustAutoSize = function (boxModel, auto_width, auto_height) {
-
-        if (auto_width)
+        if (states.activate)
         {
-            boxModel.width = boxModel.width - boxModel.clientRect.width;
+            images.push(image + "-active");
         }
-    };
 
-    
-
-    //模板
-    this.defineProperty("template", null, {
-
-        attributes: "measure",
-        changed: "this.clearTemplate();",
-
-        getter: function () {
-
-            var template = this.__fields__.template,
-                defaults;
-
-            if (template && !(defaults = this.__defaults__.template))
-            {
-                return template;
-            }
-
-            return flyingon.templates[this.__fullTypeName__] || defaults;
-        }
-    });
-
-    //创建模板控件
-    this.createTemplateControl = function (template, context) {
-
-        var items = this.__children__;
-
-        if (items)
+        if (states.hover)
         {
-            items.clear();
+            images.push(image + "-hover");
         }
-        else
+
+        if (checked)
         {
-            //子控件集合
-            items = this.__children__ = new flyingon.ControlCollection(this);
-
-            //初始化子盒模型
-            this.__boxModel__.children = [];
+            images.push(image + "-checked");
         }
 
-        var result = new flyingon.SerializeReader().deserialize(template, context || this);
-        if (result)
-        {
-            items.add(result);
+        images.push(image);
 
-            result.__template__ = true;
-            return result;
-        }
+        return flyingon.get_image_any(images);
     };
-
-    //清除模板控件
-    this.clearTemplate = function () {
-
-        var items = this.__children__;
-
-        if (items && items.length > 0)
-        {
-            items.clear();
-        }
-    };
-
-
-
-
-    //捕获鼠标
-    this.setCapture = function () {
-
-        var ownerWindow = this.ownerWindow;
-
-        if (ownerWindow)
-        {
-            ownerWindow.__capture_control__ = this;
-        }
-    };
-
-    //释放鼠标
-    this.releaseCapture = function () {
-
-        var ownerWindow = this.ownerWindow;
-
-        if (ownerWindow)
-        {
-            ownerWindow.__capture_control__ = null;
-        }
-    };
-
-
-
-    //执行验证
-    this.validate = function () {
-
-        return this.dispatchEvent("validate");
-    };
-
-    this.__fn_focus__ = function (event) {
-
-        return this.focus();
-    };
-
-    this.__fn_blur__ = function () {
-
-        return this.blur();
-    };
-
-
-    //设置当前控件为焦点控件
-    //注:需此控件focusable为true时才可设为焦点控件
-    this.focus = function () {
-
-        if (this.focusable)
-        {
-            var ownerWindow = this.ownerWindow;
-
-            if (ownerWindow && ownerWindow.__focused_control__ != this)
-            {
-                ownerWindow.__focused_control__ = this;
-
-                if (this.dispatchEvent("focus"))
-                {
-                    this.stateTo("focus", true);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    };
-
-    //此控件失去焦点
-    this.blur = function () {
-
-        var ownerWindow = this.ownerWindow;
-
-        if (ownerWindow && ownerWindow.__focused_control__ == this)
-        {
-            ownerWindow.__focused_control__ = null;
-
-            if (this.dispatchEvent("blur"))
-            {
-                this.stateTo("focus", false);
-            }
-
-            return true;
-        }
-
-        return false;
-    };
-
-
-
-
-    //查找控件 selector: css选择器样式字符串
-    this.find = function (selector) {
-
-        return new flyingon.Query(selector, this);
-    };
-
-    //查找指定id的子控件集合
-    this.findById = function (id, cascade) {
-
-        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", "#", id), this);
-    };
-
-    //查找指定名称的子控件集合
-    this.findByName = function (name, cascade) {
-
-        var element = new flyingon.Selector_Element(cascade ? " " : ">", "*"),
-            property = new flyingon.Selector_Property("name");
-
-        property.operator = "=";
-        property.value = name;
-
-        element.push(property);
-
-        return new flyingon.Query(element, this);
-    };
-
-    //查找指定类型的子控件集合
-    this.findByTypeName = function (fullTypeName, cascade) {
-
-        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", "", fullTypeName), this);
-    };
-
-    //查找指定class的控件子控件集合
-    this.findByClassName = function (className, cascade) {
-
-        return new flyingon.Query(new flyingon.Selector_Element(cascade ? " " : ">", ".", className), this);
-    };
-
-
-
-
-    //显示弹出控件
-    this.showPopup = function (x, y) {
-
-        var ownerWindow = this.ownerWindow;
-
-        if (ownerWindow)
-        {
-            var layer = ownerWindow.__popup_layer__;
-
-            if (!layer)
-            {
-                layer = ownerWindow.__popup_layer__ = ownerWindow.appendLayer(9997);
-                layer.layout = "absolute";
-                layer.paint_background = function () { };
-            }
-
-            if (x != null)
-            {
-                this.left = x;
-            }
-
-            if (y != null)
-            {
-                this.top = y;
-            }
-
-            layer.__children__.add(this);
-            layer.invalidate(false);
-        }
-    };
-
-    //关闭弹出控件
-    this.closePopup = function () {
-
-        var ownerWindow = this.ownerWindow;
-
-        if (ownerWindow)
-        {
-            ownerWindow.removeLayer(ownerWindow.__popup_layer__);
-        }
-    };
-
 
 
 
@@ -1057,7 +607,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
             return true;
         }
     };
-
 
 
 

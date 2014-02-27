@@ -228,4 +228,4 @@
 
 
 
-})(flyingon, flyingon_fonts, flyingon_colors);
+})(flyingon, flyingon.fonts, flyingon.colors);

@@ -6,96 +6,57 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
 
 
 
-    //填充色
-    this.defineProperty("fillStyle", null);
+    //背景色
+    this.defineProperty("backColor", null);
 
-    //边框色
-    this.defineProperty("strokeStyle", "control-border");
+    //前景色
+    this.defineProperty("foreColor", "control-text");
 
     //线宽
     this.defineProperty("lineWidth", 1);
 
 
-
     //固定宽度
-    this.defineProperty("width", 0);
+    this.defineProperty("width", "fill");
 
     //固定高度
-    this.defineProperty("height", 0);
+    this.defineProperty("height", "fill");
 
-    //x轴缩放比例
-    this.defineProperty("scaleX", 1);
+    //外边距
+    this.defineProperty("margin", null);
 
-    //y轴缩放比例
-    this.defineProperty("scaleY", 1);
-
-    //偏移距离 上->右->底->左
-    this.defineProperty("offset", [0, 0, 0, 0]);
+    //内边距
+    this.defineProperty("padding", null);
 
     //是否逆时针绘制
     this.defineProperty("anticlockwise", false);
-
-    //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
-    this.defineProperty("updateMode", 0);
 
     //子形状
     this.defineProperty("children", null);
 
 
 
-
-    function children(context, items, insideRect) {
-
-        for (var i = 0, length = items.length; i < length; i++)
-        {
-            var item = items[i],
-                offset = item.offset;
-
-            item.buildPath(context,
-                insideRect.windowX + offset[3],
-                insideRect.windowY + offset[0],
-                item.width <= 0 ? insideRect.width * item.scaleX - offset[3] - offset[1] : item.width,
-                item.height <= 0 ? insideRect.height * item.scaleY - offset[0] - offset[2] : item.height);
-
-            if (item = item.children)
-            {
-                children(context, item, insideRect);
-            }
-        }
-    };
-
-
     this.paint = function (context, boxModel) {
 
-
-        var insideRect = boxModel.insideRect,
-            width = this.width,
-            height = this.height,
-            offset = this.offset,
+        var r = measure.call(this, boxModel.usableRect),
             cache;
-
 
         context.beginPath();
 
-        this.buildPath(context,
-            insideRect.windowX + offset[3],
-            insideRect.windowY + offset[0],
-            width <= 0 ? insideRect.width * this.scaleX - offset[3] - offset[1] : width,
-            height <= 0 ? insideRect.height * this.scaleY - offset[0] - offset[2] : height);
+        this.draw(context, r.windowX, r.windowY, r.width, r.height);
 
-
-        if (cache = this.children)
+        if (cache = this.children && cache.length > 0)
         {
-            children(context, cache, insideRect);
+            paint_children(context, cache, r);
         }
 
-        if (cache = this.fillStyle)
+        if (cache = this.backColor)
         {
             context.set_fillStyle(cache);
             context.fill();
         }
 
-        if (cache = this.strokeStyle)
+        if (cache = this.foreColor)
         {
             context.lineWidth = this.lineWidth;
             context.set_strokeStyle(cache);
@@ -103,24 +64,84 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
         }
     };
 
-    this.buildPath = function (context, x, y, width, height) {
 
+    function measure(usableRect) {
+
+        var result = usableRect.copy(),
+            margin = this.margin,
+            width = this.width,
+            height = this.height;
+
+        if (margin)
+        {
+            result.x -= margin.left;
+            result.y -= margin.top;
+            result.width -= margin.spaceX;
+            result.height -= margin.spaceY;
+        }
+
+        switch (typeof width)
+        {
+            case "number":
+                result.width = width;
+                break;
+
+            case "string":
+                if (width.length > 1 && width[width.length - 1] == "%")
+                {
+                    result.width = Math.round(parseFloat(width) * result.width / 100);
+                }
+                break;
+        }
+
+        switch (typeof height)
+        {
+            case "number":
+                result.height = height;
+                break;
+
+            case "string":
+                if (height.length > 1 && height[height.length - 1] == "%")
+                {
+                    result.height = Math.round(parseFloat(height) * result.height / 100);
+                }
+                break;
+        }
+
+        return result;
+    };
+
+    function paint_children(context, items, clientRect) {
+
+        var padding = this.padding;
+        if (padding)
+        {
+            clientRect.x -= padding.left;
+            clientRect.y -= padding.top;
+            clientRect.width -= padding.spaceX;
+            clientRect.height -= padding.spaceY;
+        }
+
+        for (var i = 0, length = items.length; i < length; i++)
+        {
+            var item = items[i],
+                r = measure.call(item, clientRect);
+
+            item.draw(context, r.windowX, r.windowY, r.width, r.height);
+
+            if (item = item.children && item.length > 0)
+            {
+                paint_children(context, item, r);
+            }
+        }
     };
 
 
 
+    this.draw = function (context, x, y, width, height) {
 
-    //自定义序列化
-    this.serialize = function (writer) {
-
-        writer.properties(this.__fields__);
     };
 
-    //自定义反序列化
-    this.deserialize = function (reader, data, excludes) {
-
-        reader.properties(this.__fields__, data, excludes);
-    };
 
 
 });

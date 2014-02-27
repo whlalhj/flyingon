@@ -9,7 +9,9 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
 
 
 
-    this.defineProperty("image", null, "invalidate|style");
+    //图片
+    this.defineProperty("image", null);
+
 
 
     //绘制内框
@@ -20,19 +22,12 @@ flyingon.class("PictureBox", flyingon.Control, function (Class, flyingon) {
     };
 
 
-    var images = flyingon_images;
-
     this.paint_image = function (context, clientRect) {
 
         var image = this.image;
 
-        if (image)
+        if (image && (image instanceof Image || flyingon.get_image(image)))
         {
-            if (image.constructor == String && (image = images[image]) == null)
-            {
-                return;
-            }
-
             context.drawImage(image, clientRect.windowX, clientRect.windowY);
         }
     };

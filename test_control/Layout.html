@@ -60,7 +60,6 @@
     <script type="text/javascript">
 
 
-
         var w = new flyingon.Window(host);
 
         w.layout = "flow";
@@ -83,12 +82,10 @@
                     ctrl.left = i % 5 * 100;
                     ctrl.top = i / 5 * 30;
 
-                    ctrl.width = 20;
-                    ctrl.height = 21;
                     //ctrl.margin = "10, 10, 10, 10";
                     ctrl.border = "1, 1, 1, 1";
                     ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.backColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                     ctrl.horizontalAlign = "center";
                     ctrl.verticalAlign = "center";
 
@@ -110,9 +107,7 @@
 
                         case 3:
                             ctrl.dock = "bottom";
-                            ctrl.width = "fill";
-                            ctrl.height = "fill";
-                            break;
+                             break;
 
                         case 4:
                             ctrl.dock = "fill";
@@ -132,7 +127,7 @@
                 panel.border = "1, 1, 1, 1";
                 panel.padding = "0, 0, 0, 0";
                 panel.borderColor = "orange";
-                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                //panel.backColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;

@@ -35,6 +35,80 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 (function (flyingon) {
 
 
+
+
+    var Selector_Element = flyingon.Selector_Element,  //缓存元素类
+
+        registry_list = flyingon.__registry_list__, //已注册类型集合
+
+        styles_data = {},  //样式集  注:为加快样式值查找对所有样式按元素类型进行分类存储 此处的优先级可能与css样式有些差异???
+
+        styles_cache = {}, //样式缓存
+
+        group_data = {},   //缓存组名
+
+        pseudo_data = {},  //伪元素存储
+
+        pseudo_keys = {  //伪类key 不在此列即为伪元素 value为伪元素权重 默认为10
+
+            selection: 16,
+            enabled: 15,
+            disabled: 15,
+            active: 14,
+            hover: 13,
+            focus: 12,
+            checked: 11
+        };
+
+
+
+
+    //扩展样式检测 检测指定对象是否符合当前选择器
+    Selector_Element.prototype.style_check = function (target) {
+
+        //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象
+        for (var i = 0, length = this.length; i < length; i++)
+        {
+            if ((target = this[i].check(target, element_fn)) === false)
+            {
+                return false;
+            }
+        }
+
+        switch (this.token)
+        {
+            case "":  //类型
+                if (!(target instanceof (this.__type__ || (this.__type__ = registry_list[this.name]) || flyingon.Visual)))
+                {
+                    return false;
+                }
+                break;
+
+            case ".": //class
+                if (!target.__class__ || !target.__class__[this.name])
+                {
+                    return false;
+                }
+                break;
+
+            case "#": //id
+                if (target.id != this.name)
+                {
+                    return false;
+                }
+                break;
+        }
+
+        //继续检测上一节点
+        if (this.previous && type_fn[this.type].call(this.previous, target) === false)
+        {
+            return false;
+        }
+
+        return true;
+    };
+
+
     //组合查询方法
     //注: ","组合类型已被拆分,此处不处理
     var type_fn = (function () {
@@ -176,91 +250,12 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     }).call({});
 
 
-    //扩展样式检测 检测指定对象是否符合当前选择器
-    this.style_check = function (target) {
-
-        //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((target = this[i].check(target, element_fn)) === false)
-            {
-                return false;
-            }
-        }
-
-        switch (this.token)
-        {
-            case "":  //类型
-                if (target.__fullTypeName__ != this.name)
-                {
-                    return false;
-                }
-                break;
-
-            case ".": //class
-                if (!target.hasClass(this.name))
-                {
-                    return false;
-                }
-                break;
-
-            case "#": //id
-                if (target.id != this.name)
-                {
-                    return false;
-                }
-                break;
-        }
-
-        //继续检测上一节点
-        if (this.previous && type_fn[this.type].call(this.previous, target) === false)
-        {
-            return false;
-        }
-
-        return true;
-    };
-
-
-}).call(flyingon.Selector_Element.prototype, flyingon);
-
-
-
-
-//定义样式
-(function (flyingon) {
-
-
-    var Selector_Element = flyingon.Selector_Element,  //缓存元素类
-
-        styles_data = {},  //样式集  注:为加快样式值查找对所有样式按元素类型进行分类存储 此处的优先级可能与css样式有些差异???
-
-        styles_cache = {}, //样式缓存
-
-        group_data = {},   //缓存组名
-
-        pseudo_data = {},  //伪元素存储
-
-        thickness = ["margin", "border", "padding"], //需处理边框属性
-
-        pseudo_keys = {  //伪类key 不在此列即为伪元素
-
-            active: true,
-            hover: true,
-            focus: true,
-            enabled: true,
-            disabled: true,
-            checked: true,
-            selection: true
-        };
-
-
 
 
     //获取样式组 按元素类型进行分组 如果有伪元素则类型设为*
     function style_group(element) {
 
-        var result = element.token == "*" ? "Control" : element.token + element.name,
+        var result = element.token == "*" ? "Visual" : element.token + element.name,
             pseudo, //伪元素
             item;
 
@@ -286,7 +281,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         return element.__group__ = result;
     };
-
 
 
     //生成样式组缓存 先排除无关的样式
@@ -347,7 +341,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         {
             for (var i = length - 1; i >= 0; i--)
             {
-                if ((item = items[i]) && (item = item.__class_list__))
+                if ((item = items[i]) && (item = item.__class__) && (item = item.__names__))
                 {
                     for (var j = 0, count = item.length; j < count; j++)
                     {
@@ -362,7 +356,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
         //4. class
-        if (item = target.__class_list__)
+        if ((item = target.__class__) && (item = item.__names__))
         {
             for (var i = 0, count = item.length; i < count; i++)
             {
@@ -423,7 +417,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     通用选择符的权重为：0000
     子选择符的权重为：0000
     属性选择符的权重为：0010
-    伪类选择符的权重为：0010
+    伪类选择符的权重为：0010 (此处做了特殊处理:默认为10, 其它伪类提升至11-16)
     伪元素选择符的权重为：0010
     包含选择符的权重为：包含的选择符权重值之和
     内联样式的权重为：1000
@@ -452,9 +446,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     break;
             }
 
-            if (element.length > 0)
+            for (var i = 0; i < element.length; i++)
             {
-                result += element.length * 10;
+                result += (element[i].token == ":" && pseudo_keys[element[i].name]) || 10;
             }
 
         } while (element.next && (element = element.next));
@@ -468,40 +462,91 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //获取样式值
     flyingon.styleValue = function (target, name) {
 
+        var style = styles_data[name];
 
-        var style = target.style;
-
-        if (style && (data = style[name]))
+        if (style)
         {
-            return data;
-        }
-
-
-        if (style = styles_data[name])
-        {
-            var group = target.__style_group__ || initialize_group(target),
-                data,
-                names,
-                items;
+            var group = target.__style_group__ || initialize_group(target);
 
             for (var i = 0, length = group.length; i < length; i++)
             {
-                if (data = style[group[i]])
-                {
-                    names = data.__names__ || (data.__names__ = Object.keys(data));
+                var data = style[group[i]];
 
-                    for (var j = names.length - 1; j >= 0; j--)
-                    {
-                        if ((items = data[names[j]])[0].style_check(target))
+                if (data)
+                {
+                    var names = data.__names__ || (data.__names__ = Object.keys(data));
+
+                    loop:
+                        for (var j = names.length - 1; j >= 0; j--)
                         {
+                            var items = data[names[j]],
+                                element = items[0]
+                                control = target;
+
+                            //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象 此处直接处理减少函数调用以提升性能
+                            for (var i = 0, length = element.length; i < length; i++)
+                            {
+                                if ((control = element[i].check(control, element_fn)) === false)
+                                {
+                                    continue loop;
+                                }
+                            }
+
+                            //继续检测上一节点
+                            if (element.previous && type_fn[element.type].call(element.previous, control) === false)
+                            {
+                                continue;
+                            }
+
                             return items[1];
                         }
-                    }
                 }
             }
         }
     };
 
+    //通过className获取样式值 此方法不能查询组合选择器 也不能包含属性 但可包含状态型伪类
+    flyingon.styleValue_by_class = function (className, name, states) {
+
+        var style = styles_data[name], data;
+
+        if (style && (data = style["." + className]))
+        {
+            var names = data.__names__ || (data.__names__ = Object.keys(data));
+
+            loop:
+                for (var j = names.length - 1; j >= 0; j--)
+                {
+                    var items = data[names[j]],
+                        item,
+                        element = items[0];
+
+                    for (var i = 0, length = element.length; i < length; i++)
+                    {
+                        if ((item = element[i]).token != ":" || !states[item.name])
+                        {
+                            continue loop;
+                        }
+                    }
+
+                    return items[1];
+                }
+        }
+    };
+
+
+    var Thickness = flyingon.Thickness,
+
+        convert_fn = (function () {
+
+            this.margin = this.border = this.padding = function (value) {
+
+                return value instanceof Thickness ? value : new Thickness(value);
+            };
+
+            return this;
+
+        }).call({});
 
     //处理样式 按样式属性名存储 再根据
     function handle_style(element, style) {
@@ -518,7 +563,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         loop:
             for (var name in style)
             {
-                if ((value = style[name]) !== undefined) //样式属性值设置为undefined则不处理
+                value = (value = convert_fn[name]) && value(style[name]) || style[name];
+
+                if (value !== undefined) //样式属性值设置为undefined则不处理
                 {
                     if (target = styles_data[name]) //已有属性
                     {
@@ -639,15 +686,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         if (selector && style)
         {
             var cache;
-
-            //处理thickness
-            for (var i = 0; i < 3; i++)
-            {
-                if (style[cache = thickness[i]])
-                {
-                    style[cache] = new flyingon.Thickness(cache);
-                }
-            }
 
             //处理继承
             if (super_selector && (cache = styles_cache[super_selector]))

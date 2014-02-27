@@ -18,7 +18,9 @@
 
             <input type="button" value="Create" onclick="create()" />
             <input type="button" value="Paint" onclick="paint()" />
-
+            <input type="button" value="IndexOf_First" onclick="indexOf('first')" />
+            <input type="button" value="IndexOf_Middle" onclick="indexOf('middle')" />
+            <input type="button" value="IndexOf_Last" onclick="indexOf('last')" />
             <span id="message"></span>
         </div>
 
@@ -34,7 +36,7 @@
     <script type="text/javascript">
 
 
-   
+
         flyingon.defineStyle("Control>Button:hover", {
 
             offsetX: 2,
@@ -62,32 +64,27 @@
             var date = new Date();
 
 
-            //for (var k = 0; k < 200; k++)
-            for (var k = 0; k < 1; k++)
+
+            var panel = new flyingon.Panel();
+            panel.spaceX = 10;
+            panel.spaceY = 10;
+
+ 
+            var color = panel.backColor;
+
+            for (var i = 0; i < 10000; i++)
             {
-                var panel = new flyingon.Panel();
-                panel.spaceX = 10;
-                panel.spaceY = 10;
+                var ctrl = new flyingon.Button();
+                ctrl.text = i;
+                panel.children.add(ctrl);
 
-                panel.id = "id" + k;
-                panel.className = "class" + (k % 10);
+                ctrl.id = "id" + i;
+                ctrl.className = "class" + (i % 10);
 
-                var color = panel.backColor;
-
-                for (var i = 0; i < 50; i++)
-                {
-                    var ctrl = new flyingon.Button();
-                    ctrl.text = i;
-                    panel.children.add(ctrl);
-
-                    ctrl.id = "id" + i;
-                    ctrl.className = "class" + (i % 10);
-
-                    var color = ctrl.backColor;
-                }
-
-                w.children.add(panel);
+                var color = ctrl.backColor;
             }
+
+            w.children.add(panel);
 
 
             alert(new Date() - date);
@@ -105,6 +102,35 @@
             alert(new Date() - date);
         };
 
+
+        function indexOf(type) {
+
+            var children = w.children[0].children, item;
+
+            switch (type)
+            {
+                case "first":
+                    item = children[0];
+                    break;
+
+                case "middle":
+                    item = children[children.length >> 1];
+                    break;
+
+                default:
+                    item = children[children.length - 1];
+                    break;
+            }
+
+            var date = new Date();
+
+            for (var i = 0; i < 10000; i++)
+            {
+                children.indexOf(item);
+            }
+
+            alert(new Date() - date);
+        };
 
 
         //w.onmouseover = function (event) {

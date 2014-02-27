@@ -36,16 +36,7 @@ var flyingon_setting = flyingon_setting = {
     //定义类出错提醒
     define_class_error: "定义类{0}出错!"
 
-},
-
-//系统字体 可由flyingon.defineFonts方法进行定义
-flyingon_fonts = {},
-
-//系统颜色 可由flyingon.defineColors方法进行定义
-flyingon_colors = {},
-
-//系统图像 可由flyingon.defineImages方法进行定义
-flyingon_images = {};
+};
 
 
 
@@ -350,24 +341,6 @@ flyingon_images = {};
         if (key)
         {
             var body = this.get_body().replace(key, value);
-
-            if (key.constructor == Array)
-            {
-                if (value.constructor == Array)
-                {
-                    for (var i = 0; i < key.length; i++)
-                    {
-                        body = body.replace(key[i], value[i]);
-                    }
-                }
-
-                throw new Error(flyingon_lang.parameter_error);
-            }
-            else //key传入数组
-            {
-                body = body.replace(key, value);
-            }
-
             return new Function(parameters || this.get_parameters(), body);
         }
 
@@ -536,36 +509,6 @@ flyingon_images = {};
     };
 
 
-    //定义字体
-    flyingon.defineFonts = function (fonts) {
-
-        flyingon.copyTo(fonts, flyingon_fonts);
-    };
-
-
-    //定义颜色
-    flyingon.defineColors = function (colors) {
-
-        flyingon.copyTo(colors, flyingon_colors);
-    };
-
-
-    //定义图像
-    flyingon.defineImages = function (images, conver_at_once) {
-
-        //转成Image对象
-        if (conver_at_once !== false)
-        {
-            for (var name in images)
-            {
-                images[name] = new Image().src = images[name];
-            }
-        }
-
-        flyingon.copyTo(images, flyingon_images);
-    };
-
-
 
 
     //编码对象
@@ -679,6 +622,98 @@ flyingon_images = {};
         return this;
     };
 
+
+
+})(flyingon);
+
+
+
+
+//字体,颜色及图像管理
+(function (flyingon) {
+
+
+    var _fonts = flyingon.fonts = {}, //字体集
+        _colors = flyingon.colors = {}, //颜色集
+        _images = flyingon.images = {}, //图片集
+
+        font,  //默认字体
+        image = null; //默认图片
+
+
+    //定义字体
+    flyingon.defineFonts = function (fonts) {
+
+        if (fonts.normal)
+        {
+            font = fonts.normal;
+        }
+
+        for (var name in fonts)
+        {
+            _fonts[name] = fonts[name];
+        }
+    };
+
+
+    //定义颜色
+    flyingon.defineColors = function (colors) {
+
+        for (var name in colors)
+        {
+            _colors[name] = colors[name];
+        }
+    };
+
+
+    //定义图像
+    flyingon.defineImages = function (images) {
+
+        for (var name in images)
+        {
+            (_images[name] = new Image()).src = images[name]; //直接转成Image对象
+        }
+
+        if (!image)
+        {
+            image = images.blank;
+        }
+    };
+
+
+    //获取字体
+    flyingon.get_font = function (name) {
+
+        return _fonts[name] || font || (font = new flyingon.Font("normal", "normal", "normal", 12, "Times New Roman"));
+    };
+
+    //获取颜色
+    flyingon.get_color = function (name) {
+
+        return _colors[name] || null;
+    };
+
+    //获取图片
+    flyingon.get_image = function (name) {
+
+        return _images[name] || image;
+    };
+
+    //按顺序获取其中一张有效的图片
+    flyingon.get_image_any = function (names) {
+
+        var result;
+
+        for (var i = 0, length = names.length; i < length; i++)
+        {
+            if (result = _images[names[i]])
+            {
+                return result;
+            }
+        }
+
+        return image;
+    };
 
 
 })(flyingon);

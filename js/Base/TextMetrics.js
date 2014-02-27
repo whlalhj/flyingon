@@ -106,7 +106,7 @@
 
 
     //获取指定索引的行信息
-    prototype["line-by"] = function (textIndex) {
+    prototype.lineBy = function (textIndex) {
 
         if (textIndex < 0)
         {
@@ -117,7 +117,7 @@
     };
 
     //查找指定位置的行信息
-    prototype["line-at"] = function (y) {
+    prototype.lineAt = function (y) {
 
         return this[(this.__cache2__ || initialize.call(this).__cache2__).binary_between(y)];
     };

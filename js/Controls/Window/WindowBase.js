@@ -1,5 +1,5 @@
 ﻿//窗口基类
-flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
+flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
 
 
 
@@ -17,16 +17,22 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         div.setAttribute("flyingon", "window");
         div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
         div.setAttribute("tabindex", "0");
-        div.appendChild(this.dom_layer);
 
-        div.__ownerWindow__ = this.dom_layer.__ownerWindow__ = this.dom_canvas.__ownerWindow__ = this; //缓存当前对象
+        //创建图层
+        flyingon.__fn_create_layer__.call(this, div);
+
+        //缓存当前对象
+        div.__ownerWindow__ = this.dom_layer.__ownerWindow__ = this.dom_canvas.__ownerWindow__ = this;
 
         //IE禁止选中文本 其它浏览器使用样式控件 -moz-user-select:none;-webkit-user-select:none;
         div.onselectstart = function (event) { return false; };
 
 
-        this.layers = [this]; //初始化图层
-        this.__windows__ = [];   //子窗口集合
+        //初始化图层
+        this.layers = [this];
+
+        //子窗口集合
+        this.__windows__ = [];
 
 
         //默认设置为初始化状态,在渲染窗口后终止
@@ -83,12 +89,23 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         return this;
     });
 
-    //图层
-    this.defineProperty("ownerLayer", function () {
+    //修改透明度属性
+    this.defineProperty("opacity", 1, {
 
-        return this;
+        complete: "this.dom_layer.style.opacity = value;"
     });
 
+    //修改宽度属性
+    this.defineProperty("width", function () {
+
+        return this.dom_canvas.width;
+    });
+
+    //修改高度属性
+    this.defineProperty("height", function () {
+
+        return this.dom_canvas.height;
+    });
 
 
 
@@ -288,19 +305,17 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
             if (source)
             {
-                dispatchEvent("mouseout", source, dom_MouseEvent);
-
                 source.stateTo("hover", false);
+                dispatchEvent("mouseout", source, dom_MouseEvent);
             }
 
             if (target && target.enabled)
             {
                 this.dom_window.style.cursor = target.__fn_cursor__(dom_MouseEvent);
+                target.stateTo("hover", true);
 
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
-
-                target.stateTo("hover", true);
             }
         }
     };
@@ -338,10 +353,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
             }
             else
             {
-                //分发事件
-                var event = new flyingon.MouseEvent("mousedown", target, dom_MouseEvent);
-                target.dispatchEvent(event);
-
+                target.stateTo("active", true);
 
                 //处理焦点
                 if (target.focusable)
@@ -354,6 +366,10 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
                     target.__fn_focus__(event);
                 }
+
+                //分发事件
+                var event = new flyingon.MouseEvent("mousedown", target, dom_MouseEvent);
+                target.dispatchEvent(event);
             }
 
 
@@ -396,8 +412,8 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
         {
             flyingon.__hover_control__ = null;
 
-            dispatchEvent("mouseout", target, dom_MouseEvent);
             target.stateTo("hover", false);
+            dispatchEvent("mouseout", target, dom_MouseEvent);
         }
     };
 
@@ -425,6 +441,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                     }
                 }
 
+                target.stateTo("active", false);
                 target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, dom_MouseEvent));
             }
 
@@ -492,23 +509,7 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
 
 
 
-
-    //使区域无效
-    this.invalidate = function () {
-
-        this.__boxModel__.invalidate();
-
-        //绘制窗口内容
-        var layers = this.layers;
-
-        for (var i = 0, length = layers.length; i < length; i++)
-        {
-            layers[i].registryUpdate();
-        }
-    };
-
-
-
+    //获取窗口范围
     this.__fn_getBoundingClientRect__ = function (fill) {
 
         flyingon.__initializing__ = false;
@@ -535,11 +536,10 @@ flyingon.class("WindowBase", flyingon.Layer, function (Class, flyingon) {
                 canvas = layer.dom_canvas,
                 box = layer.__boxModel__;
 
-            layer.unregistryUpdate();
-
             canvas.width = width; //清空画布
             canvas.height = height;
 
+            box.__unregistry_update__();
             box.measure(offsetX, offsetY, width - offsetX, height - offsetY);
             box.render(layer.context);
         }

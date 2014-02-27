@@ -72,9 +72,12 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
 
         return "if ((cache = this.__events__) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
-            + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
-            + "if (this.dispatchEvent(event) === false) return this;\n"
-            + "value = event.value;\n"
+                + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
+                + "if (this.dispatchEvent(event) === false)\n"
+                + "{\n"
+                    + "return this;\n"
+                + "}\n"
+                + "value = event.value;\n"
             + "}\n";
     };
 
@@ -350,6 +353,7 @@ flyingon.class("SerializableObject", function (Class, flyingon) {
     //id
     this.defineProperty("id", null, {
 
+        attributes: "locate",
         changed: "this.__style_group__ = null;"
     });
 

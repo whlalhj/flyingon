@@ -1,7 +1,6 @@
 ﻿
-
 //窗口标题栏
-flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
+flyingon.class("WindowToolBar", flyingon.Panel, function (Class, flyingon) {
 
 
     Class.create = function (parent) {
@@ -22,10 +21,10 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
 
     this.__fn_initialize_button__ = function () {
 
-        button.call(this, "icon-button", "left", "window-icon");
-        button.call(this, "close-button", "right", "window-close", close);
-        button.call(this, "maximize-button", "right", "window-maximize", close);
-        button.call(this, "minimize-button", "right", "window-minimize", close);
+        button.call(this, "window-icon", "left");
+        button.call(this, "window-close", "right", close);
+        button.call(this, "window-maximize", "right", close);
+        button.call(this, "window-minimize", "right", close);
     };
 
 
@@ -43,14 +42,12 @@ flyingon.class("WindowTitleBar", flyingon.Panel, function (Class, flyingon) {
         this.ownerWindow.close();
     };
 
-    function button(name, dock, className, click) {
+    function button(image, dock, click) {
 
-        var result = this[name] = new flyingon.PictureBox();
+        var result = this[image] = new flyingon.ImageButton();
 
+        result.image = result.className = image;
         result.dock = dock;
-        result.width = 20;
-        result.height = "fill";
-        result.className = className;
 
         if (click)
         {
@@ -161,7 +158,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
 
     Class.create = function () {
 
-        this.title_bar = new flyingon.WindowTitleBar(this);
+        this.toolbar = new flyingon.WindowToolBar(this);
     };
 
 
@@ -200,9 +197,9 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
     this.findAt = function (x, y) {
 
         //判断滚动条
-        if (this.title_bar.hitTest(x, y))
+        if (this.toolbar.hitTest(x, y))
         {
-            return this.title_bar.findAt(x, y);
+            return this.toolbar.findAt(x, y);
         }
 
         return flyingon.ChildWindow.super.findAt.call(this, x, y);
@@ -317,7 +314,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
         style.height = height + "px";
 
 
-        var y = this.title_bar.__fn_measure__(this.__boxModel__, width);
+        var y = this.toolbar.__fn_measure__(this.__boxModel__, width);
         this.__fn_resize__(0, y, width, height);
     };
 

@@ -11,7 +11,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
 
 
 
-
+    //添加进集合时进行验证
     this.__fn_validate__ = function (index, item) {
 
         if (item instanceof flyingon.Control)
@@ -33,6 +33,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
         return undefined;
     };
 
+    //移\\\\\
     this.__fn_remove__ = function (index, item) {
 
         var box = item.__boxModel__;
@@ -45,7 +46,7 @@ flyingon.class("ControlCollection", flyingon.Collection, function (Class, flying
         if (!flyingon.__initializing__)
         {
             item.__fn_parent__(null);
-            this.__ownerControl__.invalidate();
+            this.__ownerControl__.invalidate(false);
         }
     };
 

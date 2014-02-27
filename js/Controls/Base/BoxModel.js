@@ -38,16 +38,16 @@
     //子模型是否需要重绘
     prototype.__children_dirty__ = false;
 
-    //重绘模式 0:重绘自身  1:重绘父级  2:重绘图层
-    prototype.__update_mode__ = 0;
+    //父模型是否需要重绘
+    prototype.__parent_dirty__ = false;
 
 
 
     //是否需要测量
     prototype.__measure__ = true;
 
-    //是否图层
-    prototype.layer = null;
+    //绘图环境
+    prototype.context = null;
 
 
 
@@ -377,10 +377,10 @@
             {
                 this.windowX += x;
 
-                this.insideRect.x += x;
+                this.usableRect.x += x;
                 this.clientRect.x += x;
 
-                this.insideRect.windowX += x;
+                this.usableRect.windowX += x;
                 this.clientRect.windowX += x;
             }
 
@@ -388,10 +388,10 @@
             {
                 this.windowY += y;
 
-                this.insideRect.y += y;
+                this.usableRect.y += y;
                 this.clientRect.y += y;
 
-                this.insideRect.windowY += y;
+                this.usableRect.windowY += y;
                 this.clientRect.windowY += y;
             }
         }
@@ -420,8 +420,6 @@
 
         //测量
         this.__measure__ = false;
-        this.__update_mode__ = 0;
-
 
         var fn = ownerControl.measure;
         if (fn)
@@ -446,11 +444,11 @@
             windowX = r ? r.windowX : 0,
             windowY = r ? r.windowY : 0,
 
-            insideRect = this.insideRect = new flyingon.Rect(), //内部区域(除边框及滚动条外的区域,含padding)
+            usableRect = this.usableRect = new flyingon.Rect(), //可用区域(除边框及滚动条外的区域,含padding)
             clientRect = this.clientRect = new flyingon.Rect(), //客户区域(内容区,不含padding)
 
-            x = this.x,
-            y = this.y,
+            x = this.x + ownerControl.offsetX,
+            y = this.y + ownerControl.offsetY,
             width = this.width,
             height = this.height,
 
@@ -475,28 +473,28 @@
         this.windowX = x + windowX;
         this.windowY = y + windowY;
 
-        insideRect.windowX = (insideRect.x = x + border.left) + windowX;
-        insideRect.windowY = (insideRect.y = y + border.top) + windowY;
+        usableRect.windowX = (usableRect.x = x + border.left) + windowX;
+        usableRect.windowY = (usableRect.y = y + border.top) + windowY;
 
-        if ((insideRect.width = width - border.spaceX) < 0)
+        if ((usableRect.width = width - border.spaceX) < 0)
         {
-            insideRect.width = 0;
+            usableRect.width = 0;
         }
 
-        if ((insideRect.height = height - border.spaceY) < 0)
+        if ((usableRect.height = height - border.spaceY) < 0)
         {
-            insideRect.height = 0;
+            usableRect.height = 0;
         }
 
         clientRect.windowX = (clientRect.x = x + (clientRect.spaceX = border.left + padding.left)) + windowX;
         clientRect.windowY = (clientRect.y = y + (clientRect.spaceY = border.top + padding.top)) + windowY;
 
-        if ((clientRect.width = insideRect.width - padding.spaceX) < 0)
+        if ((clientRect.width = usableRect.width - padding.spaceX) < 0)
         {
             clientRect.width = 0;
         }
 
-        if ((clientRect.height = insideRect.height - padding.spaceY) < 0)
+        if ((clientRect.height = usableRect.height - padding.spaceY) < 0)
         {
             clientRect.height = 0;
         }
@@ -509,40 +507,49 @@
 
 
     //使当前盒模型无效
-    prototype.invalidate = function () {
+    prototype.invalidate = function (measure, update) {
 
-        if (!this.__dirty__)
+        var target = this, parent;
+
+        if (measure)
         {
-            this.__dirty__ = true;
-
-            var parent = this.parent,
-                update = this.__update_mode__;
-
-
-            while (parent)
-            {
-                if (!parent.__dirty__)
-                {
-                    if (update == 0) //如果重绘模式为重绘自身
-                    {
-                        parent.__children_dirty__ = true;
-                    }
-                    else
-                    {
-                        parent.__dirty__ = true;
-
-                        if (update == 1)
-                        {
-                            update = 0;
-                        }
-                    }
-                }
-
-                parent = !parent.layer && parent.parent;
-            }
+            target.__measure__ = true;
         }
 
-        return this;
+        if (!target.__dirty__)
+        {
+            target.__dirty__ = true;
+        }
+
+        while (!target.context && (parent = target.parent))
+        {
+            if (!parent.__dirty__)
+            {
+                if (target.__dirty__ && target.__parent_dirty__)
+                {
+                    parent.__dirty__ = true;
+                }
+                else
+                {
+                    parent.__children_dirty__ = true;
+                }
+            }
+
+            target = parent;
+        }
+
+        if (target.context)
+        {
+            if (update)
+            {
+                target.__unregistry_update__();
+                target.update(target.context);
+            }
+            else
+            {
+                target.__registry_update__();
+            }
+        }
     };
 
 
@@ -568,8 +575,6 @@
                 this.__fn_render_additions__(context, "update");
             }
         }
-
-        return this;
     };
 
 
@@ -594,12 +599,12 @@
 
         //设置渲染环境
         context.boxModel = this;
+        context.save();
+        context.globalAlpha = ownerControl.opacity;
+
 
         //绘制背景
-        if (!ownerControl.paint_background(context, this) || context.globalAlpha < 1)
-        {
-            this.__update_mode__ = 1;
-        }
+        this.__parent_dirty__ = !ownerControl.paint_background(context, this) || context.globalAlpha < 1;
 
 
         //绘制子项
@@ -632,10 +637,11 @@
             this.__fn_paint_decorates__(context, decorates);
         }
 
+
+        context.restore();
+
         //修改状态
         this.__dirty__ = false;
-
-        return this;
     };
 
 
@@ -713,12 +719,6 @@
             if (!(item instanceof flyingon.Shape))
             {
                 item = decorates[i] = (reader || (reader = new flyingon.SerializeReader())).deserialize(item);
-            }
-
-            //重绘模式
-            if (item.updateMode > this.__update_mode__)
-            {
-                this.__update_mode__ = item.updateMode;
             }
 
             item.paint(context, this);

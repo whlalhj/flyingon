@@ -10,7 +10,7 @@ flyingon.class("DashLine", flyingon.Shape, function (Class, flyingon) {
 
 
 
-    this.buildPath = function (context, x, y, width, height) {
+    this.draw = function (context, x, y, width, height) {
 
         context.dashLine(x, y, x + width, y + height, this.dashArray);
     };

@@ -101,7 +101,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
             y = _textMetrics.y + _textMetrics.caret.y;
 
 
-        //自动滚动调整["line-at"](y)
+        //自动滚动调整.lineAt(y)
         if (x < _boxModel.scrollTop)
         {
             _boxModel.scrollLeft = x;
@@ -142,7 +142,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
 
 
         //更新控件
-        _ownerControl.invalidate();
+        _ownerControl.invalidate(false);
     };
 
 

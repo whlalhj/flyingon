@@ -39,7 +39,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //示例
     flyingon.defineStyle("*:hover", {
 
-        background: "hover-back"
+        bor: "hover-back"
     });
 
 

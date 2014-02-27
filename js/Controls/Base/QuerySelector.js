@@ -194,7 +194,7 @@
                 break;
 
             case ".": //class
-                if (!target.hasClass(this.name))
+                if (!target.__class__ || !target.__class__[this.name])
                 {
                     return false;
                 }

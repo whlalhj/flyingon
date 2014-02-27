@@ -695,4 +695,4 @@ Canvas2D绘图扩展
 
 
 
-})(flyingon, flyingon_fonts, flyingon_colors);
+})(flyingon, flyingon.fonts, flyingon.colors);

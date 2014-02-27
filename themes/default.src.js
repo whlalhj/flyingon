@@ -44,7 +44,7 @@
     flyingon.defineColors({
 
 
-        "control-back": "#888888",
+        "control-back": "#AAAAAA",
 
         "control-text": "#000000",
 
@@ -72,28 +72,28 @@
         "focus-border": "#CCCCCC",
 
 
-        "hover-back": "#AAAAAA",
+        "hover-back": "#888888",
 
         "hover-text": "#000000",
 
         "hover-border": "#CCCCCC",
 
 
-        "active-back": "#888888",
+        "active-back": "#666666",
 
         "active-text": "#222222",
 
         "active-border": "#222222",
 
 
-        "disabled-back": "#888888",
+        "disabled-back": "#444444",
 
         "disabled-text": "#222222",
 
         "disabled-border": "#222222",
 
 
-        "dark-back": "#888888",
+        "dark-back": "#666666",
 
         "dark-text": "#000000",
 
@@ -135,125 +135,143 @@
 
     flyingon.defineImages({
 
+
+        //空白图片 找不到相关图片时显示的图片
+        "blank": null,
+
         //窗口图标
-        "window-icon": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "window-icon": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //窗口关闭按钮
-        "window-close": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "window-close": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口关闭按钮
+        "window-close-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时窗口关闭按钮
-        "window-close-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "window-close-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //窗口最小化按钮
-        "window-minimize": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "window-minimize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最小化按钮
+        "window-minimize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时窗口最小化按钮
-        "window-minimize-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "window-minimize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //窗口最大化按钮
-        "window-maximize": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "window-maximize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最大化按钮
+        "window-maximize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时窗口最大化按钮
-        "window-maximize-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "window-maximize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
 
 
-        //向左箭头图标
-        "arrow-left": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        //向左滚动条图标
+        "scroll-left": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //鼠标划过时向左箭头图标
-        "arrow-left-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        //鼠标按下时向左滚动条图标
+        "scroll-left-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //向上箭头图标
-        "arrow-up": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        //鼠标划过时向左滚动条图标
+        "scroll-left-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //鼠标划过时向上箭头图标
-        "arrow-up-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        //向右滚动条图标
+        "scroll-right": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //向右箭头图标
-        "arrow-right": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        //鼠标按下时向右滚动条图标
+        "scroll-right-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //鼠标划过时向右箭头图标
-        "arrow-right-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        //鼠标划过时向右滚动条图标
+        "scroll-right-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //向下箭头图标
-        "arrow-down": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        //向上滚动条图标
+        "scroll-up": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //鼠标划过时向下箭头图标
-        "arrow-down-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        //鼠标按下时向上滚动条图标
+        "scroll-up-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //滚动条滑块图标
-        "scroll-slider": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        //鼠标划过时向上滚动条图标
+        "scroll-up-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //鼠标划过时滚动条滑块图标
-        "scroll-slider-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        //向下滚动条图标
+        "scroll-down": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
+        //鼠标按下时向下滚动条图标
+        "scroll-down-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向下滚动条图标
+        "scroll-down-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
 
 
         //选择选中图标
-        "check-checked": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时选择选中图标
-        "check-checked-focus": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "check-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时选择选中图标
-        "check-checked-hover": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "check-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //选择未选中图标
-        "check-unchecked": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时选择未选中图标
-        "check-unchecked-focus": "data:image/gif,base64,R0lGODlhEgASAMQRAOjo6N/f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39/dDQ0Pr6+pubm4mJif///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO+8HM+TG3bzozsPJ+bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU+jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8/fhwAAOw==",
+        "check-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时选择未选中图标
-        "check-unchecked-hover": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //选择未知选择图标
-        "check-unkown": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时选择未知选择图标
-        "check-unkown-focus": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时选择未知选择图标
-        "check-unkown-hover": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "check-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
 
 
         //单选选中图标
-        "radio-checked": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时单选选中图标
-        "radio-checked-focus": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时单选选中图标
-        "radio-checked-hover": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //单选未选中图标
-        "radio-unchecked": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时单选未选中图标
-        "radio-unchecked-focus": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时单选未选中图标
-        "radio-unchecked-hover": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //单选未知选择图标
-        "radio-unkown": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //捕获焦点时单选未知选择图标
-        "radio-unkown-focus": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //鼠标划过时单选未知选择图标
-        "radio-unkown-hover": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "radio-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
 
 
         //树收拢图标
-        "tree-collapse": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7",
+        "tree-collapse": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
         //树展开图标
-        "tree-expand": "data:image/gif,base64,R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt/f3/r6+tnZ2f39/dTU1Hp6epubmwAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS+sHRKVG3b0XzvuSk9wAci+OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv+9ssgYKBIQA7"
+        "tree-expand": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw=="
 
     });
 
@@ -307,30 +325,36 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     var $ = flyingon.defineStyle;
 
 
+    /*
+    
+    注意伪类的书写顺序(后写优先) disabled > active> hover > focus > checked  
+    
+    */
+
 
     //默认样式
     $("*", {
 
         width: "default", //宽度 default|fill|auto|number|number%
         height: "default", //高度 default|fill|auto|number|number%
-        background: "control-back",
-        foreground: "control-text",
+        backColor: "control-back",
+        foreColor: "control-text",
         borderColor: "control-border"
     });
 
     //选中时控件默认样式
     $("*:checked", {
 
-        background: "checked-back",
-        foreground: "checked-text",
+        backColor: "checked-back",
+        foreColor: "checked-text",
         borderColor: "checked-border"
     });
 
     //获取焦点时控件默认样式
     $("*:focus", {
 
-        background: "focus-back",
-        foreground: "focus-text",
+        backColor: "focus-back",
+        foreColor: "focus-text",
         borderColor: "focus-border"
     });
 
@@ -338,42 +362,89 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //捕获鼠标时控件默认样式
     $("*:hover", {
 
-        background: "hover-back",
-        foreground: "hover-text",
+        backColor: "hover-back",
+        //foreColor: "hover-text",
         borderColor: "hover-border"
     });
 
     //活动状态时控件默认样式
     $("*:active", {
 
-        background: "active-back",
-        foreground: "active-text",
+        backColor: "active-back",
+        foreColor: "active-text",
         borderColor: "active-border"
     });
 
     //禁用时控件默认样式
     $("*:disabled", {
 
-        background: "disabled-back",
-        foreground: "disabled-text",
+        backColor: "disabled-back",
+        foreColor: "disabled-text",
         borderColor: "disabled-border"
     });
 
 
 
 
-    //滚动条样式
-    $("ScrollBase", {
+    //滚动条
+    $("ScrollBar", {
 
-        background: "dark-back",
-    }, "*");
-
-    //滚动条样式
-    $("ScrollBase:hover", {
-
-        background: "yellow"
+        backColor: "control-back",
     });
 
+    $("ScrollBar:hover", {
+
+        backColor: "silver"
+    });
+
+
+    //滚动条按钮
+    $("ScrollButton", {
+
+        backColor: "dark-back",
+    });
+
+    $("ScrollButton:active", {
+
+        backColor: "red"
+    });
+
+    $("ScrollButton:hover", {
+
+        backColor: "yellow"
+    });
+
+
+    //滚动条滑块
+    $("ScrollSlider", {
+
+        margin: 2,
+        backColor: "dark-back",
+    });
+
+    $("ScrollSlider:active", {
+
+        backColor: "red"
+    });
+
+    $("ScrollSlider:hover", {
+
+        backColor: "yellow"
+    });
+
+
+    //滚动条拐角
+    $("ScrollCorner", {
+
+    });
+
+    $("ScrollCorner:active", {
+
+    });
+
+    $("ScrollCorner:hover", {
+
+    });
 
 
 
@@ -394,8 +465,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //文本框样式
     $("TextBoxBase", {
 
-        background: "input-back",
-        foreground: "input-text",
+        backColor: "input-back",
+        foreColor: "input-text",
         borderColor: "input-border",
         border: 1,
         borderRadius: 0,
@@ -430,15 +501,15 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //文本框样式
     $("Button", {
 
-        background: "button-background",
+        backColor: "button-background",
         cursor: "pointer"
     });
 
 
     $("WindowBase", {
 
-        background: "input-back",
-        foreground: "input-text",
+        backColor: "input-back",
+        foreColor: "input-text",
         borderColor: "input-border",
         border: 1,
         borderRadius: 0
@@ -446,14 +517,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
     $("Window", {
 
-    });
-
-    $("WindowTitleBar", {
-
-        width: "fill",
-        height: "fill",
-        background: "window-title-background",
-        border: 1
     });
 
 

@@ -35,7 +35,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
         if (!flyingon.__initializing__)
         {
-            this.ownerControl.invalidate();
+            this.ownerControl.invalidate(false);
         }
 
         return item;
@@ -51,7 +51,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
         if (!flyingon.__initializing__)
         {
-            this.ownerControl.invalidate();
+            this.ownerControl.invalidate(false);
         }
     };
 
@@ -61,7 +61,7 @@ flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon)
 
         if (!flyingon.__initializing__)
         {
-            this.ownerControl.invalidate();
+            this.ownerControl.invalidate(false);
         }
     };
 

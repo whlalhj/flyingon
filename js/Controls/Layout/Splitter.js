@@ -46,14 +46,14 @@ flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
 
         paint: function (context, dragTargets) {
 
-            var boxModel = this.__boxModel__,
-                r = boxModel.clientRect;
+            var box = this.__boxModel__,
+                r = box.clientRect;
 
             context.fillStyle = "rgba(255,0,0,0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
-            this.paint(context, boxModel);
-            this.paint_border(context, boxModel);
+            this.paint(context, box);
+            this.paint_border(context, box);
         },
 
         move: function (event, offsetX, offsetY) {
