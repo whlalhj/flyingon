@@ -390,7 +390,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 result.push(cache.fullTypeName);
             }
 
-            cache = cache.supertype;
+            cache = cache.superclass;
         }
 
 
@@ -480,7 +480,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                         for (var j = names.length - 1; j >= 0; j--)
                         {
                             var items = data[names[j]],
-                                element = items[0]
+                                element = items[0],
                                 control = target;
 
                             //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象 此处直接处理减少函数调用以提升性能
@@ -537,11 +537,18 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
     var Thickness = flyingon.Thickness,
 
+        Align = flyingon.Align,
+
         convert_fn = (function () {
 
             this.margin = this.border = this.padding = function (value) {
 
                 return value instanceof Thickness ? value : new Thickness(value);
+            };
+
+            this.align = this.textAlign = function (value) {
+
+                return value instanceof Align ? value : new Align(value);
             };
 
             return this;

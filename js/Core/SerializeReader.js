@@ -1,5 +1,5 @@
 ﻿
-flyingon.class("SerializeReader", function (Class, flyingon) {
+flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
 
 
@@ -266,7 +266,7 @@ flyingon.class("SerializeReader", function (Class, flyingon) {
 
 
 
-flyingon.class("XmlSerializeReader", flyingon.SerializeReader, function (Class, flyingon) {
+flyingon.defineClass("XmlSerializeReader", flyingon.SerializeReader, function (Class, base, flyingon) {
 
 
     this.parse = flyingon.parseXml;

@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-flyingon.class("ControlCollection", flyingon.Collection, function (Class, flyingon) {
+flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, base, flyingon) {
 
 
     Class.create = function (ownerControl) {

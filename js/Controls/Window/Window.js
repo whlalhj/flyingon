@@ -1,5 +1,5 @@
 ﻿//主窗口
-flyingon.class("Window", flyingon.WindowBase, function (Class, flyingon) {
+flyingon.defineClass("Window", flyingon.WindowBase, function (Class, base, flyingon) {
 
 
 

@@ -1,6 +1,37 @@
 ﻿
+//窗口标题栏按钮
+flyingon.defineClass("WindowToolButton", flyingon.Control, function (Class, base, flyingon) {
+
+
+    //修改默认值为充满
+    this.defaultValue("width", "fill");
+
+    //修改默认值为充满
+    this.defaultValue("height", "fill");
+
+    //图片
+    this.defineProperty("image", null);
+
+
+    //绘制图像
+    this.paint = function (context, boxModel) {
+
+        var image = this.__fn_state_image__(this.image);
+
+        if (image)
+        {
+            var r = boxModel.clientRect;
+            context.paint_image(image, r.windowX, r.windowY, r.width, r.height, this.textAlign);
+        }
+    };
+
+
+});
+
+
+
 //窗口标题栏
-flyingon.class("WindowToolBar", flyingon.Panel, function (Class, flyingon) {
+flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, flyingon) {
 
 
     Class.create = function (parent) {
@@ -44,9 +75,9 @@ flyingon.class("WindowToolBar", flyingon.Panel, function (Class, flyingon) {
 
     function button(image, dock, click) {
 
-        var result = this[image] = new flyingon.ImageButton();
+        var result = this[image] = new flyingon.WindowToolButton();
 
-        result.image = result.className = image;
+        result.image = image;
         result.dock = dock;
 
         if (click)
@@ -151,7 +182,7 @@ flyingon.class("WindowToolBar", flyingon.Panel, function (Class, flyingon) {
 
 
 //子窗口
-flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
+flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, flyingon) {
 
 
 
@@ -202,7 +233,7 @@ flyingon.class("ChildWindow", flyingon.WindowBase, function (Class, flyingon) {
             return this.toolbar.findAt(x, y);
         }
 
-        return flyingon.ChildWindow.super.findAt.call(this, x, y);
+        return base.findAt.call(this, x, y);
     };
 
 

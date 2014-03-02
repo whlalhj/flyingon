@@ -2,7 +2,7 @@
 椭圆
 
 */
-flyingon.class("Ellipse", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("Ellipse", flyingon.Shape, function (Class, base, flyingon) {
 
 
 

@@ -1,6 +1,6 @@
 ﻿
 //内容控件
-flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("ContentControl", flyingon.Control, function (Class, base, flyingon) {
 
 
 
@@ -59,7 +59,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
     this.serialize = function (writer) {
 
-        flyingon.ContentControl.super.serialize.call(this, writer);
+        base.serialize.call(this, writer);
         writer.object("content", this.__children__[0]);
     };
 
@@ -67,7 +67,7 @@ flyingon.class("ContentControl", flyingon.Control, function (Class, flyingon) {
 
         excludes.children = true;
 
-        flyingon.ContentControl.super.deserialize.call(this, reader, data, excludes);
+        base.deserialize.call(this, reader, data, excludes);
         reader.object(this.__children__, "0", data.content);
     };
 

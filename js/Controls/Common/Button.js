@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-flyingon.class("Button", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("Button", flyingon.Control, function (Class, base, flyingon) {
 
 
 

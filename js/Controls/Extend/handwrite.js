@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-flyingon.class("HandWirte", flyingon.HtmlFrame, function (Class, flyingon) {
+flyingon.defineClass("HandWirte", flyingon.HtmlFrame, function (Class, base, flyingon) {
 
     var html = "<html><head><body style='margin:0;padding:0;width:100%;height:100%;'>";
 

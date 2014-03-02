@@ -2,7 +2,7 @@
 椭圆
 
 */
-flyingon.class("Polygon", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("Polygon", flyingon.Shape, function (Class, base, flyingon) {
 
 
 

@@ -2,7 +2,7 @@
 形状基类
 
 */
-flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) {
+flyingon.defineClass("Shape", flyingon.SerializableObject, function (Class, base, flyingon) {
 
 
 
@@ -45,7 +45,7 @@ flyingon.class("Shape", flyingon.SerializableObject, function (Class, flyingon) 
 
         this.draw(context, r.windowX, r.windowY, r.width, r.height);
 
-        if (cache = this.children && cache.length > 0)
+        if ((cache = this.children) && cache.length > 0)
         {
             paint_children(context, cache, r);
         }

@@ -20,7 +20,7 @@
 
 
 //
-flyingon.class("ItemCollection", flyingon.Collection, function (Class, flyingon) {
+flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, base, flyingon) {
 
 
     Class.create = function (OwnerControl) {

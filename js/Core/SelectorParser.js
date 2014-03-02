@@ -212,7 +212,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         };
 
 
-    }).call(Selector_Element.prototype = []);
+    }).call(Selector_Element.prototype = flyingon.__pseudo_array__());
 
 
 
@@ -325,7 +325,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             return "[" + result.join(",") + "]";
         };
 
-    }).call(Selector_Properties.prototype = []);
+    }).call(Selector_Properties.prototype = flyingon.__pseudo_array__());
 
 
 
@@ -382,7 +382,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             return ":" + this.name;
         };
 
-    }).call(Selector_Pseudo_Class.prototype = []);
+    }).call(Selector_Pseudo_Class.prototype = flyingon.__pseudo_array__());
 
 
 

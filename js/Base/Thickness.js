@@ -68,7 +68,7 @@
     prototype.bottom = 0;
 
     //转换为字符串
-    prototype.toString = prototype.toLocaleString = function () {
+    prototype.toString = prototype.toLocaleString = prototype.serializeTo = function () {
 
         return this.top + "," + this.left + "," + this.right + "," + this.bottom;
     };

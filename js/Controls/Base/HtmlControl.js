@@ -1,5 +1,5 @@
 ﻿//Html控件基类
-flyingon.class("HtmlControl", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("HtmlControl", flyingon.Control, function (Class, base, flyingon) {
 
 
     Class.create = function () {
@@ -16,7 +16,7 @@ flyingon.class("HtmlControl", flyingon.Control, function (Class, flyingon) {
 
 
 
-flyingon.class("HtmlFrame", flyingon.HtmlControl, function (Class, flyingon) {
+flyingon.defineClass("HtmlFrame", flyingon.HtmlControl, function (Class, base, flyingon) {
 
     var fn;
     //if (flyingon.Browser.IE) {

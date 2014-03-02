@@ -1,5 +1,5 @@
 ﻿//模板控件
-flyingon.class("TemplateControl", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base, flyingon) {
 
 
 

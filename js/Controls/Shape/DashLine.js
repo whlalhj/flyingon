@@ -2,7 +2,7 @@
 线条
 
 */
-flyingon.class("DashLine", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("DashLine", flyingon.Shape, function (Class, base, flyingon) {
 
 
     //虚线规则

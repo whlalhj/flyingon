@@ -9,7 +9,7 @@
         this.font = font;
         this.text = text;
 
-    }).prototype = [];
+    }).prototype = flyingon.__pseudo_array__();
 
 
 

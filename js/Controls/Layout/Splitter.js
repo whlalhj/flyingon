@@ -1,5 +1,5 @@
 ﻿//分隔条控件
-flyingon.class("Splitter", flyingon.ContentControl, function (Class, flyingon) {
+flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base, flyingon) {
 
 
 

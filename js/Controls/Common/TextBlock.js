@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-flyingon.class("TextBlock", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("TextBlock", flyingon.Control, function (Class, base, flyingon) {
 
 
 

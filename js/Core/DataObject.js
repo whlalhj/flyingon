@@ -3,7 +3,7 @@
 
 
 //数据对象
-flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyingon) {
+flyingon.defineClass("DataObject", flyingon.SerializableObject, function (Class, base, flyingon) {
 
 
     function getter(name, attributes) {
@@ -196,13 +196,13 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
     //自定义序列化
     this.serialize = function (writer) {
 
-        flyingon.DataObject.super.serialize.call(this, writer);
+        base.serialize.call(this, writer);
         writer.object("data", this.__data__);
     };
 
     this.deserialize = function (reader, data, excludes) {
 
-        flyingon.DataObject.super.deserialize.call(this, reader, data, excludes);
+        base.deserialize.call(this, reader, data, excludes);
         reader.object(this, "__data__", data.data);
     };
 
@@ -213,7 +213,7 @@ flyingon.class("DataObject", flyingon.SerializableObject, function (Class, flyin
 
 
 //
-flyingon.class("DataArray", flyingon.DataObject, function (Class, flyingon) {
+flyingon.defineClass("DataArray", flyingon.DataObject, function (Class, base, flyingon) {
 
 
 

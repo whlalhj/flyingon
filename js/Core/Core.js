@@ -354,373 +354,6 @@ var flyingon_setting = flyingon_setting = {
 
 
 
-//特性支持判断
-(function (flyingon) {
-
-
-    var support = flyingon.support = {};
-
-
-    //是否支持canvas
-    support.canvas = document && (function () {
-
-        var dom = document.createElement("canvas");
-
-        if (!dom.getContext)
-        {
-            alert(flyingon_setting.html5_not_surpport);
-            return false;
-        }
-
-        return true;
-
-    })();
-
-
-    //是否支持get或set封装属性
-    support.defineProperty = (function () {
-
-        var obj = {};
-        Object.defineProperty(obj, "fn", { get: function () { return true; } });
-        return obj.fn;
-
-    })();
-
-
-    //是否支持flash
-    support.flash = window && (function () {
-
-        var navigator = window.navigator;
-
-        if (navigator.plugins && navigator.mimeTypes.length)
-        {
-            var flash = navigator.plugins["Shockwave Flash"];
-
-            if (flash && flash.description)
-            {
-                return flash.description.replace(/([a-zA-Z]|\s)+/, "").replace(/(\s)+r/, ".") + "#0"
-            }
-        }
-        else if (window.ActiveXObject && !window.opera)
-        {
-            for (var i = 10; i >= 2; i--)
-            {
-                try
-                {
-                    var activeX = new ActiveXObject("ShockwaveFlash.ShockwaveFlash." + i);
-                    if (activeX)
-                    {
-                        var version = activeX.GetVariable("\x24version");
-                        return version.replace(/WIN/g, "").replace(/,/g, ".")
-                    }
-                }
-                catch (e)
-                {
-                }
-            }
-        }
-
-    })();
-
-
-})(flyingon);
-
-
-
-
-//通用函数区
-(function (flyingon) {
-
-
-
-    //转换字符串为整数 支持"%"
-    flyingon.parseInt = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] == "%")
-        {
-            return Math.floor(parseFloat(value) * total / 100);
-        }
-
-        return parseInt(value);
-    };
-
-    //转换字符串为浮点数 支持"%"
-    flyingon.parseFloat = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] == "%")
-        {
-            return parseFloat(value) * total / 100;
-        }
-
-        return parseFloat(value);
-    };
-
-
-
-    //判断目标是否对象或数组(除undefined null boolean number string function外的数据类型)
-    flyingon.isObjectOrArray = function (target) {
-
-        if (target != null && typeof target == "object")
-        {
-            switch (target.constructor)
-            {
-                case Boolean:
-                case Number:
-                case String:
-                    return false;
-
-                default:
-                    return true;
-            }
-        }
-
-        return false;
-    };
-
-    //判断目标是否对象(除undefined null boolean number string function及数组外的数据类型)
-    flyingon.isObject = function (target) {
-
-        if (target != null && typeof target == "object")
-        {
-            switch (target.constructor)
-            {
-                case Boolean:
-                case Number:
-                case String:
-                case Array:
-                    return false;
-
-                default:
-                    return !(target instanceof Array);
-            }
-        }
-
-        return false;
-    };
-
-
-    //把源对象的属性复制至目标对象
-    flyingon.copyTo = function (source, target) {
-
-        for (var name in source)
-        {
-            target[name] = source[name];
-        }
-    };
-
-
-
-
-    //编码对象
-    flyingon.encode = function (data) {
-
-        if (data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return values.length > 0 ? values.join("&") : data.toString();
-        }
-
-        return data;
-    };
-
-    //url编码
-    flyingon.encodeURL = function (url, data) {
-
-        if (url && data)
-        {
-            var values = [],
-                encode = encodeURIComponent;
-
-            for (var name in data)
-            {
-                values.push(encode(name) + "=" + encode((data[name].toString())));
-            }
-
-            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
-        }
-
-        return url;
-    };
-
-    //解析json数据
-    flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
-
-        return ("(" + data + ")");
-    };
-
-
-
-
-    //定义变量
-    flyingon.defineVariable = function (target, name, value) {
-
-        //target[name] = value;
-        Object.defineProperty(target, name, {
-
-            value: value,
-            writable: false,
-            configurable: true,
-            enumerable: true
-        });
-    };
-
-    //定义属性
-    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
-    flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
-
-        var attributes = {
-
-            configurable: true,
-            enumerable: true
-        };
-
-        if (getter)
-        {
-            attributes.get = getter;
-        }
-
-        if (setter)
-        {
-            attributes.set = setter;
-        }
-
-        Object.defineProperty(target, name, attributes);
-
-    } : function (target, name, getter, setter) {
-
-        if (getter)
-        {
-            target.__defineGetter__(name, getter);
-        }
-
-        if (setter)
-        {
-            target.__defineSetter__(name, setter);
-        }
-    };
-
-
-
-    //开始初始化
-    flyingon.beginInit = function () {
-
-        flyingon.__initializing__ = true;
-        return this;
-    };
-
-    //结束初始化
-    flyingon.endInit = function () {
-
-        flyingon.__initializing__ = false;
-        return this;
-    };
-
-
-
-})(flyingon);
-
-
-
-
-//字体,颜色及图像管理
-(function (flyingon) {
-
-
-    var _fonts = flyingon.fonts = {}, //字体集
-        _colors = flyingon.colors = {}, //颜色集
-        _images = flyingon.images = {}, //图片集
-
-        font,  //默认字体
-        image = null; //默认图片
-
-
-    //定义字体
-    flyingon.defineFonts = function (fonts) {
-
-        if (fonts.normal)
-        {
-            font = fonts.normal;
-        }
-
-        for (var name in fonts)
-        {
-            _fonts[name] = fonts[name];
-        }
-    };
-
-
-    //定义颜色
-    flyingon.defineColors = function (colors) {
-
-        for (var name in colors)
-        {
-            _colors[name] = colors[name];
-        }
-    };
-
-
-    //定义图像
-    flyingon.defineImages = function (images) {
-
-        for (var name in images)
-        {
-            (_images[name] = new Image()).src = images[name]; //直接转成Image对象
-        }
-
-        if (!image)
-        {
-            image = images.blank;
-        }
-    };
-
-
-    //获取字体
-    flyingon.get_font = function (name) {
-
-        return _fonts[name] || font || (font = new flyingon.Font("normal", "normal", "normal", 12, "Times New Roman"));
-    };
-
-    //获取颜色
-    flyingon.get_color = function (name) {
-
-        return _colors[name] || null;
-    };
-
-    //获取图片
-    flyingon.get_image = function (name) {
-
-        return _images[name] || image;
-    };
-
-    //按顺序获取其中一张有效的图片
-    flyingon.get_image_any = function (names) {
-
-        var result;
-
-        for (var i = 0, length = names.length; i < length; i++)
-        {
-            if (result = _images[names[i]])
-            {
-                return result;
-            }
-        }
-
-        return image;
-    };
-
-
-})(flyingon);
-
-
-
-
 //循环处理
 (function (flyingon) {
 
@@ -836,26 +469,373 @@ var flyingon_setting = flyingon_setting = {
     };
 
 
+    //生成伪数组对象
+    //此方法主要作为某些类数组对象的原型
+    //注: 直接使用[]作为原型在ie6时会出错(无法更改length值), 此方法的原型链也会短一些, 但实例化性能也会差一些
+    flyingon.__pseudo_array__ = function () {
+
+        var result = { length: 0 },
+            prototype = Array.prototype;
+
+        ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString"].forEach(function (name) {
+
+            this[name] = prototype[name];
+
+        }, result);
+
+        return result;
+    };
+
+
 
 })(flyingon);
 
 
 
 
-//名字空间
+//特性支持判断
 (function (flyingon) {
 
 
-    //缓存命名空间
-    var cache = { "flyingon": flyingon },
-        self = this;
+    var support = flyingon.support = {};
+
+
+    //是否ie ie不对"\v"作转义处理
+    support.ie = !+"\v1";
+
+
+    //是否支持canvas
+    support.canvas = document && (function () {
+
+        var dom = document.createElement("canvas");
+
+        if (!dom.getContext)
+        {
+            alert(flyingon_setting.html5_not_surpport);
+            return false;
+        }
+
+        return true;
+
+    })();
+
+
+    //是否支持get或set封装属性
+    support.defineProperty = (function () {
+
+        var obj = {};
+        Object.defineProperty(obj, "fn", { get: function () { return true; } });
+        return obj.fn;
+
+    })();
+
+
+    //是否支持flash
+    support.flash = window && (function () {
+
+        var navigator = window.navigator;
+
+        if (navigator.plugins && navigator.mimeTypes.length)
+        {
+            var flash = navigator.plugins["Shockwave Flash"];
+
+            if (flash && flash.description)
+            {
+                return flash.description.replace(/([a-zA-Z]|\s)+/, "").replace(/(\s)+r/, ".") + "#0"
+            }
+        }
+        else if (window.ActiveXObject && !window.opera)
+        {
+            for (var i = 10; i >= 2; i--)
+            {
+                try
+                {
+                    var activeX = new ActiveXObject("ShockwaveFlash.ShockwaveFlash." + i);
+                    if (activeX)
+                    {
+                        var version = activeX.GetVariable("\x24version");
+                        return version.replace(/WIN/g, "").replace(/,/g, ".")
+                    }
+                }
+                catch (e)
+                {
+                }
+            }
+        }
+
+    })();
+
+
+})(flyingon);
+
+
+
+
+//通用函数区
+(function (flyingon) {
+
+
+
+    //转换字符串为整数 支持"%"
+    flyingon.parseInt = function (value, total) {
+
+        if ((value = "" + value) && value[value.length - 1] == "%")
+        {
+            return Math.floor(parseFloat(value) * total / 100);
+        }
+
+        return parseInt(value);
+    };
+
+    //转换字符串为浮点数 支持"%"
+    flyingon.parseFloat = function (value, total) {
+
+        if ((value = "" + value) && value[value.length - 1] == "%")
+        {
+            return parseFloat(value) * total / 100;
+        }
+
+        return parseFloat(value);
+    };
+
+
+
+    //编码对象
+    flyingon.encode = function (data) {
+
+        if (data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return values.length > 0 ? values.join("&") : data.toString();
+        }
+
+        return data;
+    };
+
+    //url编码
+    flyingon.encodeURL = function (url, data) {
+
+        if (url && data)
+        {
+            var values = [],
+                encode = encodeURIComponent;
+
+            for (var name in data)
+            {
+                values.push(encode(name) + "=" + encode((data[name].toString())));
+            }
+
+            return url + "?" + (values.length > 0 ? values.join("&") : data.toString());
+        }
+
+        return url;
+    };
+
+    //解析json数据
+    flyingon.parseJson = (window.JSON && window.JSON.parse) || function (data) {
+
+        return ("(" + data + ")");
+    };
+
+
+
+    //定义变量
+    flyingon.defineVariable = function (target, name, value) {
+
+        //target[name] = value;
+        Object.defineProperty(target, name, {
+
+            value: value,
+            writable: false,
+            configurable: true,
+            enumerable: true
+        });
+    };
+
+    //定义属性
+    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
+    flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
+
+        var attributes = {
+
+            configurable: true,
+            enumerable: true
+        };
+
+        if (getter)
+        {
+            attributes.get = getter;
+        }
+
+        if (setter)
+        {
+            attributes.set = setter;
+        }
+
+        Object.defineProperty(target, name, attributes);
+
+    } : function (target, name, getter, setter) {
+
+        if (getter)
+        {
+            target.__defineGetter__(name, getter);
+        }
+
+        if (setter)
+        {
+            target.__defineSetter__(name, setter);
+        }
+    };
+
+
+
+})(flyingon);
+
+
+
+
+//字体,颜色及图像管理
+(function (flyingon) {
+
+
+    var _fonts = flyingon.fonts = {}, //字体集
+        _colors = flyingon.colors = {}, //颜色集
+        _images = flyingon.images = {}, //图片集
+
+        font,  //默认字体
+        image = null; //默认图片
+
+
+    //定义字体
+    flyingon.defineFonts = function (fonts) {
+
+        if (fonts.normal)
+        {
+            font = fonts.normal;
+        }
+
+        for (var name in fonts)
+        {
+            _fonts[name] = fonts[name];
+        }
+    };
+
+
+    //定义颜色
+    flyingon.defineColors = function (colors) {
+
+        for (var name in colors)
+        {
+            _colors[name] = colors[name];
+        }
+    };
+
+
+    //定义图像
+    flyingon.defineImages = function (images) {
+
+        for (var name in images)
+        {
+            (_images[name] = new Image()).src = images[name]; //直接转成Image对象
+        }
+
+        if (!image)
+        {
+            image = images.blank;
+        }
+    };
+
+
+    //获取字体
+    flyingon.get_font = function (name) {
+
+        return _fonts[name] || font || (font = new flyingon.Font("normal", "normal", "normal", 12, "Times New Roman"));
+    };
+
+    //获取颜色
+    flyingon.get_color = function (name) {
+
+        return _colors[name] || null;
+    };
+
+    //获取图片
+    flyingon.get_image = function (name) {
+
+        return _images[name] || image;
+    };
+
+    //按顺序获取其中一张有效的图片
+    flyingon.get_image_any = function (names) {
+
+        var result;
+
+        for (var i = 0, length = names.length; i < length; i++)
+        {
+            if (result = _images[names[i]])
+            {
+                return result;
+            }
+        }
+
+        return image;
+    };
+
+
+})(flyingon);
+
+
+
+
+//名字空间及类实现
+(function (flyingon) {
+
+
+    var registry_list = flyingon.__registry_list__ = { "RootObject": flyingon.RootObject }, //已注册类型集合
+
+        RootObject = flyingon.RootObject = function () { }, //根类
+
+        namespace_cache = { "flyingon": flyingon }, //缓存命名空间
+
+        self = this; //记下根对象
+
+
+
+    //注册类型
+    flyingon.registry_class = function (Class, fullTypeName) {
+
+        flyingon.__registry_list__[fullTypeName || Class.__fullTypeName__] = Class;
+    };
+
+    //注销类型
+    flyingon.unregistry_class = function (fullTypeName) {
+
+        delete flyingon.__registry_list__[fullTypeName];
+    };
+
+    //获取注册的类型
+    flyingon.get_regsitry_class = function (fullTypeName) {
+
+        return flyingon.__registry_list__[fullTypeName];
+    };
+
+
 
 
     //名字空间类
-    var Class = function (name) {
+    function namespace_fn(name) {
 
-        this.__namespace_name__ = name;
-        cache[name] = this;
+        //名字空间名
+        this.name = name;
+
+        //缓存
+        namespace_cache[name] = this;
     };
 
 
@@ -868,7 +848,7 @@ var flyingon_setting = flyingon_setting = {
 
         if (result)
         {
-            if (result.constructor == String && !(result = cache[result]))
+            if (result.constructor == String && !(result = namespace_cache[result]))
             {
                 result = self;
 
@@ -881,7 +861,7 @@ var flyingon_setting = flyingon_setting = {
                     if (name = names[i])
                     {
                         value = (value && value + "." + name) || name;
-                        result = result[name] || (result[name] = new Class(value));
+                        result = result[name] || (result[name] = new namespace_fn(value));
                     }
                 }
             }
@@ -892,11 +872,9 @@ var flyingon_setting = flyingon_setting = {
         }
 
 
-        flyingon.__namespace__ = result; //切换当前命名空间
-
         if (fn)
         {
-            fn(result, flyingon);
+            fn.call(result, flyingon);
         }
 
 
@@ -904,56 +882,23 @@ var flyingon_setting = flyingon_setting = {
     };
 
 
-    //切换当前命名空间为默认命名空间
-    flyingon.__namespace__ = flyingon;
-
-
-
-}).call(this, flyingon);
-
-
-
-
-//基类及继承实现
-(function (flyingon) {
-
-
-
-    //已注册类集合
-    var registry_list = flyingon.__registry_list__ = { "RootObject": flyingon.RootObject };
-
-
-    flyingon.registry_class = function (Class, fullTypeName) {
-
-        flyingon.__registry_list__[fullTypeName || Class.__fullTypeName__] = Class;
-    };
-
-    flyingon.unregistry_class = function (fullTypeName) {
-
-        delete flyingon.__registry_list__[fullTypeName];
-    };
-
-    flyingon.get_regsitry_class = function (fullTypeName) {
-
-        return flyingon.__registry_list__[fullTypeName];
-    };
-
-
 
     //初始化类型系统
-    function initialize(Class, typeName) {
+    function initialize(namespace, Class, typeName) {
 
 
-        var namespace = flyingon.__namespace__,
-            prototype = Class.prototype,
-            fullTypeName = namespace.__namespace_name__ ? namespace.__namespace_name__ + "." + typeName : typeName;
+        var prototype = Class.prototype,
+            fullTypeName = namespace.name ? namespace.name + "." + typeName : typeName;
 
 
         //绑定类型
         prototype.__type__ = Class;
 
-        //开放所属类型属性
-        flyingon.defineVariable(prototype, "type", Class);
+        //获取当前类型
+        prototype.getType = function () {
+
+            return Class;
+        };
 
         Class.namesapce = prototype.__namespace__ = namespace;
         Class.typeName = prototype.__typeName__ = typeName;
@@ -976,33 +921,33 @@ var flyingon_setting = flyingon_setting = {
 
 
 
-    //根类
-    initialize(flyingon.RootObject = function () { }, "RootObject");
+    //初始化根类
+    initialize(flyingon, RootObject, "RootObject");
+
 
 
 
     //定义类方法
-    //body: 扩展代码 必须为函数
+    //class_fn: 类型扩展函数 共有三个参数 Class:当前类型 base:父类 flyingon:系统对象 
     //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.class = function (typeName, supertype, body, constructor_merge) {
+    flyingon.defineClass = namespace_fn.prototype.defineClass = function (typeName, superclass, class_fn, constructor_merge) {
 
 
         //处理参数
-        if (!typeName)
+        if (!class_fn || typeof class_fn == "boolean")
+        {
+            class_fn = superclass;
+            superclass = RootObject;
+        }
+        else if (!superclass) //没有指定基类
+        {
+            superclass = RootObject;
+        }
+
+        if (!typeName || typeof class_fn != "function")
         {
             throw new Error(flyingon_setting.define_class_error.format(typeName));
         }
-
-        if (!body || typeof body == "boolean")
-        {
-            body = supertype;
-            supertype = flyingon.RootObject;
-        }
-        else if (!supertype) //没有指定基类
-        {
-            supertype = flyingon.RootObject;
-        }
-
 
 
 
@@ -1019,64 +964,48 @@ var flyingon_setting = flyingon_setting = {
 
 
         //创建类原型
-        var prototype = Class.prototype = Object.create(supertype.prototype);
+        var prototype = Class.prototype = Object.create(superclass.prototype);
 
         //父类
-        Class.supertype = supertype;
+        Class.superclass = superclass;
+
         //父类原型
-        Class.super = supertype.prototype;
+        Class.base = superclass.prototype;
+
         //子类集合
-        (supertype.subtypes || (supertype.subtypes = [])).push(Class);
+        (superclass.subtypes || (superclass.subtypes = [])).push(Class);
 
         //构造函数/所属类型
         prototype.constructor = Class;
         //默认值
-        prototype.__defaults__ = Class.__defaults__ = Object.create(supertype.__defaults__ || null);
+        prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || null);
 
         //初始化类型系统
-        initialize(Class, typeName);
-
+        initialize(this, Class, typeName);
 
 
         //扩展
-        if (typeof body == "function")
-        {
-            body.call(prototype, Class, flyingon);
-        }
-        else//兼容类似{ __init__: function(Class, flyingon) { }, p1: 1 }写法扩展
-        {
-            for (var name in body)
-            {
-                if (name == "__init__" && typeof body[name] == "function") //初始化
-                {
-                    body[name].call(prototype, Class, flyingon);
-                }
-                else
-                {
-                    prototype[name] = body[name];
-                }
-            }
-        }
+        class_fn.call(prototype, Class, Class.base, flyingon);
 
 
 
-        //处理构造函数
-        var supertype_create = supertype.create;
-        if (supertype_create)
+        //处理构造函数(自动调用父类的构造函数)
+        var superclass_create = superclass.create;
+        if (superclass_create)
         {
             var Class_create = Class.create,
-                create_list = supertype.__create_list__;
+                create_list = superclass.__create_list__;
 
             if (Class_create)
             {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
                 if (!create_list && constructor_merge)
                 {
-                    Class.create = Class_create.merge(supertype_create, true);
+                    Class.create = Class_create.merge(superclass_create, true);
                 }
                 else //生成构造链
                 {
-                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [supertype_create];
+                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
                     create_list.push(Class_create);
 
                     Class.create = function () {
@@ -1096,7 +1025,7 @@ var flyingon_setting = flyingon_setting = {
                     Class.__create_list__ = create_list;
                 }
 
-                Class.create = supertype_create;
+                Class.create = superclass_create;
             }
         }
 

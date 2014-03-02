@@ -8,7 +8,7 @@
         this.text = text;
         this.height = font.height;
 
-    }).prototype = [];
+    }).prototype = flyingon.__pseudo_array__();
 
 
 

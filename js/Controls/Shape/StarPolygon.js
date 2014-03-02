@@ -2,7 +2,7 @@
 椭圆
 
 */
-flyingon.class("StarPolygon", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("StarPolygon", flyingon.Shape, function (Class, base, flyingon) {
 
 
 

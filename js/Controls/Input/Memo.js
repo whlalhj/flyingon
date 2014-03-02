@@ -5,7 +5,7 @@
 /*
 
 */
-flyingon.class("Memo", flyingon.ScrollableControl, function (Class, flyingon) {
+flyingon.defineClass("Memo", flyingon.ScrollableControl, function (Class, base, flyingon) {
 
 
 

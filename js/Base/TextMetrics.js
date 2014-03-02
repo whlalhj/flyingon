@@ -7,7 +7,7 @@
 
     var prototype = (flyingon.TextMetrics = function () {
 
-    }).prototype = [];
+    }).prototype = flyingon.__pseudo_array__();
 
 
 

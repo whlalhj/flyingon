@@ -1,5 +1,5 @@
 ﻿//可滚动控件
-flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon) {
+flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, base, flyingon) {
 
 
 
@@ -26,7 +26,10 @@ flyingon.class("ScrollableControl", flyingon.Control, function (Class, flyingon)
 
 
 
-    //定义水平及竖直滚动条显示方式 auto always never  见枚举flyingon.ScrollBarVisibility对象
+    //定义水平及竖直滚动条显示方式
+    //auto   自动显示
+    //always 总是显示
+    //never  从不显示
     this.defineProperties(["horizontalScroll", "verticalScroll"], "auto", "measure");
 
 

@@ -1,6 +1,6 @@
 ﻿
 //可序列化类
-flyingon.class("SerializableObject", function (Class, flyingon) {
+flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
 

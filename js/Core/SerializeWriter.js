@@ -1,5 +1,5 @@
 ﻿
-flyingon.class("SerializeWriter", function (Class, flyingon) {
+flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
 
 
@@ -151,23 +151,30 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
             if (value != null)
             {
-                this.__push__("{");
-
-                if (name = value.__fullTypeName__)
+                if (value.serializeTo) //支持直接序列化为字符串
                 {
-                    this.__push__("\"type\":\"" + name + "\"");
-                }
-
-                if ("serialize" in value)
-                {
-                    value.serialize(this);
+                    this.__push__("\"" + value.serializeTo() + "\"");
                 }
                 else
                 {
-                    this.properties(value);
-                }
+                    this.__push__("{");
 
-                this.__push__("}");
+                    if (name = value.__fullTypeName__)
+                    {
+                        this.__push__("\"type\":\"" + name + "\"");
+                    }
+
+                    if ("serialize" in value)
+                    {
+                        value.serialize(this);
+                    }
+                    else
+                    {
+                        this.properties(value);
+                    }
+
+                    this.__push__("}");
+                }
             }
             else
             {
@@ -278,7 +285,7 @@ flyingon.class("SerializeWriter", function (Class, flyingon) {
 
 
 
-flyingon.class("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, flyingon) {
+flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, base, flyingon) {
 
 
     this.__root__ = "xml";

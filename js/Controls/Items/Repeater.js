@@ -1,5 +1,5 @@
 ﻿
-flyingon.class("Repeater", flyingon.TemplateControl, function (Class, flyingon) {
+flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base, flyingon) {
 
 
 

@@ -1,5 +1,5 @@
 ﻿//窗口基类
-flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
+flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
@@ -18,8 +18,8 @@ flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
         div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
         div.setAttribute("tabindex", "0");
 
-        //创建图层
-        flyingon.__fn_create_layer__.call(this, div);
+        //订阅图层服务
+        flyingon.__layer_service__.call(this, div);
 
         //缓存当前对象
         div.__ownerWindow__ = this.dom_layer.__ownerWindow__ = this.dom_canvas.__ownerWindow__ = this;
@@ -44,6 +44,24 @@ flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
         //初始化输入符
         flyingon.__fn_initialize_caret__.call(this, this.dom_window);
     };
+
+
+
+
+    //开始初始化
+    flyingon.beginInit = function () {
+
+        flyingon.__initializing__ = true;
+        return this;
+    };
+
+    //结束初始化
+    flyingon.endInit = function () {
+
+        flyingon.__initializing__ = false;
+        return this;
+    };
+
 
 
 
@@ -246,7 +264,7 @@ flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
             {
-                return flyingon.WindowBase.super.findAt.call(layer, x, y);
+                return base.findAt.call(layer, x, y);
             }
         }
 
@@ -254,6 +272,8 @@ flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
     };
 
 
+    //缓存html节点
+    var html_node = document.documentElement;
 
     //计算偏移,处理firefox没有offsetX及offsetY的问题
     function offset(event) {
@@ -262,12 +282,11 @@ flyingon.class("WindowBase", flyingon.Panel, function (Class, flyingon) {
         {
             var x = 0,
                 y = 0,
-                target = this.dom_window || event.target,
-                body = document.body;
+                target = this.dom_window || event.target;
 
             while (target)
             {
-                x += target.scrollLeft;
+                x += target.offsetLeft;
                 y += target.offsetTop;
 
                 target = target.offsetParent;

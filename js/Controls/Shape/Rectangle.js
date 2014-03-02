@@ -2,7 +2,7 @@
 矩形
 
 */
-flyingon.class("Rectangle", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("Rectangle", flyingon.Shape, function (Class, base, flyingon) {
 
 
 

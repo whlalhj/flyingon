@@ -1,6 +1,6 @@
 ﻿
 //多子项面板
-flyingon.class("ListBox", flyingon.TemplateControl, function (Class, flyingon) {
+flyingon.defineClass("ListBox", flyingon.TemplateControl, function (Class, base, flyingon) {
 
 
 

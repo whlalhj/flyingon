@@ -1,6 +1,6 @@
 ﻿
-//图层创造者
-flyingon.__fn_create_layer__ = function (host) {
+//图层服务
+flyingon.__layer_service__ = function (host) {
 
 
     //创建绘图环境
@@ -73,13 +73,14 @@ flyingon.__fn_create_layer__ = function (host) {
 /*
 
 */
-flyingon.class("Layer", flyingon.Panel, function (Class, flyingon) {
+flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
     Class.create = function () {
 
-        flyingon.__fn_create_layer__.call(this);
+        //订阅图层服务
+        flyingon.__layer_service__.call(this);
     };
 
 

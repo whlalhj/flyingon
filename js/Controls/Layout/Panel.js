@@ -1,5 +1,5 @@
 ﻿//面板控件
-flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
+flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base, flyingon) {
 
 
 
@@ -44,11 +44,20 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //当前布局 见枚举flyingon.Layout对象
+    //当前布局
+    //line:     线性布局
+    //flow:     流式布局
+    //single:   单个显示
+    //dock:     停靠布局
+    //queue:    队列布局
+    //grid:     网格布局
+    //absolute: 绝对定位
     this.defineProperty("layout", "flow", attributes);
 
 
-    //排列方向 horizontal(横向)或vertical(纵向)
+    //排列方向
+    //horizontal: 横向
+    //vertical:   纵向
     this.defineProperty("orientation", "horizontal", attributes);
 
     //镜向变换 以容器中心点作为变换坐标原点
@@ -91,7 +100,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     //布局集
     var layouts = {};
 
-    //单行布局 spaceX verticalAlign
+    //单行布局 spaceX
     function line_horizontal(items, clientRect, spaceX, spaceY) {
 
         var x = 0,
@@ -133,7 +142,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //单列排列 spaceY horizontalAlign
+    //单列排列 spaceY
     function line_vertical(items, clientRect, spaceX, spaceY) {
 
         var y = 0,
@@ -174,7 +183,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         boxModel.scrollHeight = scrollHeight;
     };
 
-    //线性布局 spaceX verticalAlign
+    //线性布局 spaceX
     layouts.line = function (items, clientRect, orientation, spaceX, spaceY) {
 
         var fn = orientation == "horizontal" ? line_horizontal : line_vertical;
@@ -182,7 +191,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //多行排列 spaceX spaceY lineHeight verticalAlign
+    //多行排列 spaceX spaceY lineHeight
     function flow_horizontal(items, clientRect, spaceX, spaceY) {
 
         var x = 0,
@@ -265,7 +274,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //多列排列 spaceX spaceY lineWidth  horizontalAlign
+    //多列排列 spaceX spaceY lineWidth
     function flow_vertical(items, clientRect, spaceX, spaceY) {
 
         var x = 0,
@@ -346,7 +355,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
         boxModel.scrollHeight = scrollHeight;
     };
 
-    //流式布局 spaceX verticalAlign
+    //流式布局 spaceX
     layouts.flow = function (items, clientRect, orientation, spaceX, spaceY) {
 
         var fn = orientation == "horizontal" ? flow_horizontal : flow_vertical;
@@ -354,7 +363,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //单个显示 layoutPage  horizontalAlign verticalAlign
+    //单个显示 index
     layouts.single = function (items, clientRect, orientation, spaceX, spaceY) {
 
         var index = this.index,
@@ -382,7 +391,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //停靠布局 spaceX spaceY dock  horizontalAlign verticalAlign
+    //停靠布局 spaceX spaceY dock
     layouts.dock = function (items, clientRect, orientation, spaceX, spaceY) {
 
         var x = 0,
@@ -470,7 +479,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //队列布局 columns rows gridLineColor spaceX spaceY  horizontalAlign verticalAlign
+    //队列布局 columns rows spaceX spaceY
     layouts.queue = function (items, clientRect, orientation, spaceX, spaceY) {
 
 
@@ -550,7 +559,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     };
 
 
-    //网格布局 table spaceX spaceY  horizontalAlign verticalAlign
+    //网格布局 grid spaceX spaceY
     //示例: "T R* C* C* C* R* C* C* C* R* C* C* C* END"
     layouts.grid = function (items, clientRect, orientation, spaceX, spaceY) {
 
@@ -613,7 +622,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     //测量
     this.measure = function (boxModel) {
 
-        flyingon.Panel.super.measure.call(this, boxModel);
+        base.measure.call(this, boxModel);
 
         var mirror = this.mirror,
             items,
@@ -736,7 +745,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
     this.findAt = function (x, y) {
 
         //判断滚动条
-        var result = flyingon.Panel.super.findAt.call(this, x, y);
+        var result = base.findAt.call(this, x, y);
 
         if (result != this)
         {
@@ -799,12 +808,12 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
             }
         }
 
-        return flyingon.Panel.super.focus.call(this, event);
+        return base.focus.call(this, event);
     };
 
     this.blur = function () {
 
-        return this.containsFocused ? flyingon.Panel.super.blur.call(this, event) : false;
+        return this.containsFocused ? base.blur.call(this, event) : false;
     };
 
 
@@ -812,7 +821,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
     this.serialize = function (writer) {
 
-        flyingon.Panel.super.serialize.call(this, writer);
+        base.serialize.call(this, writer);
 
         var items = this.__children__;
         if (items.length > 0)
@@ -825,7 +834,7 @@ flyingon.class("Panel", flyingon.ScrollableControl, function (Class, flyingon) {
 
         excludes.children = true;
 
-        flyingon.Panel.super.deserialize.call(this, reader, data, excludes);
+        base.deserialize.call(this, reader, data, excludes);
         this.__children__.deserialize(reader, data["children"]);
     };
 

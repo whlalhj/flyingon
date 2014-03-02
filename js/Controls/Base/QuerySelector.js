@@ -221,9 +221,10 @@
 
 
     //扩展元素查询 查询符合当前选择器的元素
-    this.query = function (items) {
+    this.query = function (start) {
 
-        var exports = [],
+        var items = [start],
+            exports = [],
             element = this;
 
         while (true)

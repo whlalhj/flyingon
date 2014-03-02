@@ -156,6 +156,7 @@
             spaceX = margin.spaceX,
             spaceY = margin.spaceY,
 
+            align = ownerControl.align,
             width_value = ownerControl.width,
             height_value = ownerControl.height,
 
@@ -170,17 +171,24 @@
         this.origin_y = y;
 
 
+        //减去外框
+        x += margin.left;
+        y += margin.top;
+
+        cache = width;
+        width = width > spaceX ? width - spaceX : 0;
+
         switch (width_value)
         {
             case "default": //默认
-                width_value = width > 0 ? (width > spaceX ? width - spaceX : 0) : ownerControl.__defaults__.width;
+                width_value = cache > 0 ? width : ownerControl.__defaults__.width;
                 break;
 
             case "fill": //充满可用区域
             case "auto": //自动大小
-                if (width > 0)
+                if (cache > 0)
                 {
-                    width_value = width > spaceX ? width - spaceX : 0;
+                    width_value = width;
                 }
                 else if (maxWidth > 0)
                 {
@@ -210,18 +218,20 @@
             width_value = cache;
         }
 
+        cache = height;
+        height = height > spaceY ? height - spaceY : 0;
 
         switch (height_value)
         {
             case "default": //默认
-                height_value = height > 0 ? (height > spaceY ? height - spaceY : 0) : ownerControl.__defaults__.height;
+                height_value = cache > 0 ? height : ownerControl.__defaults__.height;
                 break;
 
             case "fill": //充满可用区域
             case "auto": //自动大小
-                if (height > 0)
+                if (cache > 0)
                 {
-                    height_value = height > spaceY ? height - spaceY : 0;
+                    height_value = height;
                 }
                 else if (maxHeight > 0)
                 {
@@ -251,16 +261,10 @@
         }
 
 
-
-        //减去外框
-        x += margin.left;
-        y += margin.top;
-
-
         //修正位置
         if ((align_width || (width > 0 && (align_width = width))) && (cache = (align_width - width_value)))
         {
-            switch (align_width = ownerControl.horizontalAlign)
+            switch (align_width = align.horizontal)
             {
                 case "center":
                     x += cache >> 1;
@@ -274,9 +278,9 @@
 
         if ((align_height || (height > 0 && (align_height = height))) && (cache = (align_height - height_value)))
         {
-            switch (align_height = ownerControl.verticalAlign)
+            switch (align_height = align.vertical)
             {
-                case "center":
+                case "middle":
                     y += cache >> 1;
                     break;
 
@@ -322,7 +326,7 @@
             {
                 switch (align_height)
                 {
-                    case "center":
+                    case "middle":
                         this.y += (height_value - this.height) >> 1;
                         break;
 

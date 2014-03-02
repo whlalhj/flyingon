@@ -2,7 +2,7 @@
 线条
 
 */
-flyingon.class("Line", flyingon.Shape, function (Class, flyingon) {
+flyingon.defineClass("Line", flyingon.Shape, function (Class, base, flyingon) {
 
 
     this.draw = function (context, x, y, width, height) {

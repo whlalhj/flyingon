@@ -403,7 +403,85 @@ Canvas2D绘图扩展
 
     /****************************以下为方法扩展********************************/
 
+   
+    //绘制图像
+    prototype.paint_image = function (image, x, y, width, height, align, stretch) {
 
+        var _width = image.width,
+            _height = image.height,
+            cache;
+
+        if (stretch)
+        {
+            switch (stretch)
+            {
+                case "clip":
+                    if (_width > width)
+                    {
+                        _width = width;
+                    }
+
+                    if (_height > height)
+                    {
+                        _height = height;
+                    }
+                    break;
+
+                case "zoom":
+                    cache = Math.min(_width / width, _height / height);
+                    _width *= cache;
+                    _height *= cache;
+                    break;
+
+                case "stretch":
+                    this.drawImage(image, x, y, width, height);
+                    return;
+            }
+        }
+
+        if (align)
+        {
+            if (cache = width - _width)
+            {
+                switch (align.horizontal)
+                {
+                    case "center":
+                        x += cache >> 1;
+                        break;
+
+                    case "right":
+                        x += cache;
+                        break;
+                }
+            }
+
+            if (cache = height - _height)
+            {
+                switch (align.vertical)
+                {
+                    case "middle":
+                        y += cache >> 1;
+                        break;
+
+                    case "bottom":
+                        y += cache;
+                        break;
+                }
+            }
+        }
+
+        if (stretch)
+        {
+            this.drawImage(image, 0, 0, _width, _height, x, y, width, height);
+        }
+        else
+        {
+            this.drawImage(image, x, y);
+        }
+    };
+
+
+    //绘制边框
     prototype.paint_border = function (x, y, width, height, border) {
 
         this.beginPath();

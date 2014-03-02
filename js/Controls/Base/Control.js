@@ -2,7 +2,7 @@
 
 
 //控件基类
-flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon) {
+flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, base, flyingon) {
 
 
 
@@ -426,12 +426,12 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     /***************BoxModel相关属性***************/
 
+
     //盒式模型
     this.defineProperty("boxModel", function () {
 
         return this.__boxModel__;
     });
-
 
 
     //控件左上角x及y坐标 仅绝对定位时有效
@@ -448,24 +448,55 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
     this.defineProperties(["width", "height"], 100, "locate|style");
 
 
-
-    //是否显示 visible:显示 hidden:不显示但保留占位 collapsed:不显示也不占位 见枚举flyingon.Visibility对象
+    //是否显示
+    //visible:  显示
+    //hidden:   不显示但保留占位
+    //collapsed:不显示也不占位
     this.defineProperty("visibility", "visible", "locate|style");
 
     //最小最大宽度 最小最大高度
     this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "locate|style");
 
-    //水平对齐 left center right 见枚举flyingon.HorizontalAlign对象
-    this.defineProperty("horizontalAlign", "left", "locate|style");
 
-    //垂直对齐 top center bottom 见枚举flyingon.VerticalAlign对象
-    this.defineProperty("verticalAlign", "top", "locate|style");
+    //对齐属性
+    var attributes = {
+
+        attributes: "locate|style",
+        changing: "if (!(value instanceof flyingon.Align)) value = new flyingon.Align(value);"
+    };
+
+    //位置对齐方式
+    //top:      顶部对齐
+    //middle:   垂直居中对齐
+    //bottom:   底部对齐
+    //left:     左边对齐
+    //center:   水平居中对齐
+    //right:    右边对齐
+    //可用逗号分隔同时设置水平及垂直对齐方式 如: "middle,center"
+    this.defineProperty("align", new flyingon.Align(), attributes);
+
+    //内容对齐方式
+    //top:      顶部对齐
+    //middle:   垂直居中对齐
+    //bottom:   底部对齐
+    //left:     左边对齐
+    //center:   水平居中对齐
+    //right:    右边对齐
+    //可用逗号分隔同时设置水平及垂直对齐方式 如: "middle,center"
+    this.defineProperty("textAlign", new flyingon.Align("middle"), attributes);
+
 
     //流式布局 auto:自动 inline:同行 newline:新行
     this.defineProperty("flow", "auto", "locate|style");
 
-    //停靠方式 left top right bottom fill 见枚举flyingon.Dock对象
+    //停靠方式
+    //left:   左见枚举
+    //top:    顶部见枚举
+    //right:  右见枚举
+    //bottom: 底部见枚举
+    //fill:   充满
     this.defineProperty("dock", "left", "locate|style");
+
 
     /*********************************************/
 
@@ -474,17 +505,17 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
     /***************BoxModel及样式相关属性***************/
 
-    var attributes = {
+    attributes = {
 
         attributes: "locate|style",
         changing: "if (!(value instanceof flyingon.Thickness)) value = new flyingon.Thickness(value);"
     };
 
-    this.defineProperty("margin", new flyingon.Thickness(0), attributes);
+    this.defineProperty("margin", new flyingon.Thickness(), attributes);
 
-    this.defineProperty("border", new flyingon.Thickness(0), attributes);
+    this.defineProperty("border", new flyingon.Thickness(), attributes);
 
-    this.defineProperty("padding", new flyingon.Thickness(0), attributes);
+    this.defineProperty("padding", new flyingon.Thickness(), attributes);
 
     this.defineProperty("borderRadius", 0, "measure|style");
 
@@ -619,7 +650,7 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
         }
     };
 
-    
+
 
     //模板
     this.defineProperty("template", null, {
@@ -1012,8 +1043,6 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
         if (textMetrics)
         {
-            var font = textMetrics.font;
-
             context.save();
 
 
@@ -1033,23 +1062,52 @@ flyingon.class("Control", flyingon.SerializableObject, function (Class, flyingon
 
 
             context.set_fillStyle(this.foreColor);
-            context.set_font(font);
+            context.set_font(textMetrics.font);
 
 
             var x = clientRect.windowX,
-                y = clientRect.windowY + textMetrics.height;
+                y = clientRect.windowY + textMetrics.height,
+                align = this.textAlign,
+                line = textMetrics[0];
 
-            for (var i = 0, length = textMetrics.length; i < length; i++)
+            if (align)
             {
-                var line = textMetrics[i];
-
-                for (var j = 0, count = line.length; j < count; j++)
+                if (cache = clientRect.width - line.width)
                 {
-                    var element = line[j];
-                    context.fillText(element.text, x, y);
+                    switch (align.horizontal)
+                    {
+                        case "center":
+                            x += cache >> 1;
+                            break;
 
-                    x += element.width;
+                        case "right":
+                            x += cache;
+                            break;
+                    }
                 }
+
+                if (cache = clientRect.height - line.height)
+                {
+                    switch (align.vertical)
+                    {
+                        case "middle":
+                            y += cache >> 1;
+                            break;
+
+                        case "bottom":
+                            y += cache;
+                            break;
+                    }
+                }
+            }
+
+
+            for (var j = 0, count = line.length; j < count; j++)
+            {
+                var element = line[j];
+                context.fillText(element.text, x, y);
+
+                x += element.width;
             }
 
 

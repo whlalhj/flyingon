@@ -1,1 +1,509 @@
-eval(function(){var c='(e(9){var S=new 9.Font("S","S","S",14,"微软雅黑,15,Times New Roman");9.defineFonts({S:S,z:S.u_z(),j:S.u_j(),z_j:S.u_z_j()});})(9);(e(9){9.defineColors({"J-I":"#AAAAAA","J-T":"#W","J-D":"v","V-I":"#k","V-T":"#W","V-D":"#f","H-I":"#k","H-T":"#W","H-D":"#f","P-I":"#k","P-T":"#W","P-D":"#f","E-I":"#888888","E-T":"#W","E-D":"#f","F-I":"#16","F-T":"#l","F-D":"#l","Q-I":"#17","Q-T":"#l","Q-D":"#l","w-I":"#16","w-T":"#W","w-D":"#17","g-I":"#k","g-T":"#W","g-D":"#f","x-arrow-I":"J-I","x-slider-I":"J-I","18-h":new 9.m(d,d,d,p,[[d,"i"],[d.s,"v"],[d.s,"v"],[p,"i"]]),"O-title-h":new 9.m(d,d,d,p,[[d,"i"],[d.s,"v"],[d.s,"v"],[p,"i"]])});})(9);(e(9){9.defineImages({"blank":null,"O-icon":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-10":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-10-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-10-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-n":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-n-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-n-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-o":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-o-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","O-o-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-19":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-19-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-19-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-11":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-11-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-11-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-12":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-12-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-12-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-1A":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-1A-F":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","L-1A-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-H":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-H-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-H-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-R":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-R-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-R-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-Z":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-Z-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","X-Z-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-H":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-H-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-H-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-R":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-R-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-R-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-Z":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-Z-P":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","Y-Z-E":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","tree-collapse":"A:6/N;5,4//////B//7//K/C/2///0+3+1==","tree-expand":"A:6/N;5,4//////B//7//K/C/2///0+3+1=="});})(9);(e(9){var U=9.defineStyle;U("*",{width:"13",height:"13",8:"J-I",M:"J-T",G:"J-D"});U("*:H",{8:"H-I",M:"H-T",G:"H-D"});U("*:P",{8:"P-I",M:"P-T",G:"P-D"});U("*:E",{8:"E-I",G:"E-D"});U("*:F",{8:"F-I",M:"F-T",G:"F-D"});U("*:Q",{8:"Q-I",M:"Q-T",G:"Q-D"});U("y",{8:"J-I",});U("y:E",{8:"silver"});U("a",{8:"w-I",});U("a:F",{8:"red"});U("a:E",{8:"1B"});U("b",{margin:q,8:"w-I",});U("b:F",{8:"red"});U("b:E",{8:"1B"});U("c",{});U("c:F",{});U("c:E",{});U("ContentControl",{});U("Panel",{});U("t",{8:"V-I",M:"V-T",G:"V-D",D:p,r:d,1C:"T"});U("t:E",{decorates:[{type:"Rectangle",strokeStyle:"J-D",fillStyle:"V-I",children:[{type:"RoundRectangle",offset:[q,q,q,q],anticlockwise:true}]}]});U("ListBox",{});U("Button",{8:"18-h",1C:"pointer"});U("WindowBase",{8:"V-I",M:"V-T",G:"V-D",D:p,r:d});U("Window",{});U("ChildWindow",{});})(9);',k='wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU|spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw|wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f|IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9|R0lGODlhDAAMAMQAAP|base64|image|8AAAD|backColor|flyingon|data|AP8A|AAAA|border|hover|active|borderColor|checked|back|control|wD|scroll|foreColor|gif|window|focus|disabled|unchecked|normal|text|$|input|000000|check|radio|unkown|ScrollButton|ScrollSlider|ScrollCorner|0|function|CCCCCC|hightlight|background|skyblue|italic|FFFFFF|222222|LinearGradient|minimize|maximize|1|2|borderRadius|5|TextBoxBase|derive|blue|dark|scrollbar|ScrollBar|bold|close|right|up|default|12|宋体|666666|444444|button|left|down|yellow|cursor'.split('|'),w='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',l=w.length,m={'$':'__'};for(var i=0;i<k.length;i++){m[i<l?w[i]:(w[parseInt(i/l)]+w[i%l])]=k[i];};c=c.replace(/[A-Za-z0-9]+|\$/g,function(e){return m.hasOwnProperty(e)?m[e]:e;});return c;}());
+﻿/// <reference path="../js/flyingon.js" />
+
+
+/*
+定义系统字体
+可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
+*/
+(function (flyingon) {
+
+
+    var normal = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
+
+    flyingon.defineFonts({
+
+        //普通字体
+        normal: normal,
+
+        //粗体
+        bold: normal.derive_bold(),
+
+        //斜体
+        italic: normal.derive_italic(),
+
+        //粗斜体
+        bold_italic: normal.derive_bold_italic()
+    });
+
+
+})(flyingon);
+
+
+
+
+
+/*
+定义系统颜色
+1. 可使用flyingon.LinearGradient创建线性渐变色
+2. 可使用flyingon.RadialGradient创建径向渐变色
+3. 可使用flyingon.ImagePattern创建图像背景
+*/
+(function (flyingon) {
+
+
+    flyingon.defineColors({
+
+
+        "control-back": "#AAAAAA",
+
+        "control-text": "#000000",
+
+        "control-border": "blue",
+
+
+        "input-back": "#FFFFFF",
+
+        "input-text": "#000000",
+
+        "input-border": "#CCCCCC",
+
+
+        "checked-back": "#FFFFFF",
+
+        "checked-text": "#000000",
+
+        "checked-border": "#CCCCCC",
+
+
+        "focus-back": "#FFFFFF",
+
+        "focus-text": "#000000",
+
+        "focus-border": "#CCCCCC",
+
+
+        "hover-back": "#888888",
+
+        "hover-text": "#000000",
+
+        "hover-border": "#CCCCCC",
+
+
+        "active-back": "#666666",
+
+        "active-text": "#222222",
+
+        "active-border": "#222222",
+
+
+        "disabled-back": "#444444",
+
+        "disabled-text": "#222222",
+
+        "disabled-border": "#222222",
+
+
+        "dark-back": "#666666",
+
+        "dark-text": "#000000",
+
+        "dark-border": "#444444",
+
+
+        "hightlight-back": "#FFFFFF",
+
+        "hightlight-text": "#000000",
+
+        "hightlight-border": "#CCCCCC",
+
+
+
+        "scrollbar-arrow-back": "control-back",
+
+        "scrollbar-slider-back": "control-back",
+
+
+        "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
+
+
+        "window-title-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
+
+    });
+
+
+})(flyingon);
+
+
+
+
+
+/*
+定义系统图片
+*/
+(function (flyingon) {
+
+
+    flyingon.defineImages({
+
+
+        //空白图片 找不到相关图片时显示的图片
+        "blank": null,
+
+        //窗口图标
+        "window-icon": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口关闭按钮
+        "window-close": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口关闭按钮
+        "window-close-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口关闭按钮
+        "window-close-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口最小化按钮
+        "window-minimize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最小化按钮
+        "window-minimize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口最小化按钮
+        "window-minimize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口最大化按钮
+        "window-maximize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最大化按钮
+        "window-maximize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口最大化按钮
+        "window-maximize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //向左滚动条图标
+        "scroll-left": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向左滚动条图标
+        "scroll-left-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向左滚动条图标
+        "scroll-left-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向右滚动条图标
+        "scroll-right": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向右滚动条图标
+        "scroll-right-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向右滚动条图标
+        "scroll-right-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向上滚动条图标
+        "scroll-up": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向上滚动条图标
+        "scroll-up-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向上滚动条图标
+        "scroll-up-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向下滚动条图标
+        "scroll-down": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向下滚动条图标
+        "scroll-down-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向下滚动条图标
+        "scroll-down-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //选择选中图标
+        "check-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择选中图标
+        "check-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择选中图标
+        "check-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //选择未选中图标
+        "check-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择未选中图标
+        "check-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择未选中图标
+        "check-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //选择未知选择图标
+        "check-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择未知选择图标
+        "check-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择未知选择图标
+        "check-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //单选选中图标
+        "radio-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选选中图标
+        "radio-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选选中图标
+        "radio-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //单选未选中图标
+        "radio-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选未选中图标
+        "radio-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选未选中图标
+        "radio-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //单选未知选择图标
+        "radio-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选未知选择图标
+        "radio-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选未知选择图标
+        "radio-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //树收拢图标
+        "tree-collapse": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //树展开图标
+        "tree-expand": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw=="
+
+    });
+
+
+})(flyingon);
+
+
+
+
+
+
+/*
+
+定义样式
+
+注1: 使用类css选择器样式字符串
+注2: 子类直接继承父类控件样式
+注3: 注意控件的继承顺序 父类在前子类后面 否则子类样式可能无法应用
+
+
+支持的伪类如下:
+    
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+    
+E:before        E之前元素
+E:after         E之后元素
+    
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:first-child           匹配父元素的第一个子元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+
+*/
+(function (flyingon) {
+
+
+    //缓存定义样式方法
+    var $ = flyingon.defineStyle;
+
+
+    /*
+    
+    注意伪类的书写顺序(后写优先) disabled > active> hover > focus > checked  
+    
+    */
+
+
+    //默认样式
+    $("*", {
+
+        width: "default", //宽度 default|fill|auto|number|number%
+        height: "default", //高度 default|fill|auto|number|number%
+        backColor: "control-back",
+        foreColor: "control-text",
+        borderColor: "control-border"
+    });
+
+    //选中时控件默认样式
+    $("*:checked", {
+
+        backColor: "checked-back",
+        foreColor: "checked-text",
+        borderColor: "checked-border"
+    });
+
+    //获取焦点时控件默认样式
+    $("*:focus", {
+
+        backColor: "focus-back",
+        foreColor: "focus-text",
+        borderColor: "focus-border"
+    });
+
+
+    //捕获鼠标时控件默认样式
+    $("*:hover", {
+
+        backColor: "hover-back",
+        //foreColor: "hover-text",
+        borderColor: "hover-border"
+    });
+
+    //活动状态时控件默认样式
+    $("*:active", {
+
+        backColor: "active-back",
+        foreColor: "active-text",
+        borderColor: "active-border"
+    });
+
+    //禁用时控件默认样式
+    $("*:disabled", {
+
+        backColor: "disabled-back",
+        foreColor: "disabled-text",
+        borderColor: "disabled-border"
+    });
+
+
+
+
+    //滚动条
+    $("ScrollBar", {
+
+        backColor: "silver"
+    });
+
+
+    //滚动条按钮
+    $("ScrollButton", {
+
+        margin: 2
+    });
+
+
+    //滚动条滑块
+    $("ScrollSlider", {
+
+        margin: "2,0",
+        backColor: "dark-back",
+    });
+
+    $("ScrollSlider:active", {
+
+        backColor: "red"
+    });
+
+    $("ScrollSlider:hover", {
+
+        backColor: "yellow"
+    });
+
+
+    //滚动条拐角
+    $("ScrollCorner", {
+
+    });
+
+
+
+
+    //内容控件样式
+    $("ContentControl", {
+
+    });
+
+
+
+    //面板控件样式
+    $("Panel", {
+
+    });
+
+
+
+    //文本框样式
+    $("TextBoxBase", {
+
+        backColor: "input-back",
+        foreColor: "input-text",
+        borderColor: "input-border",
+        border: 1,
+        borderRadius: 0,
+        cursor: "text"
+    });
+
+    $("TextBoxBase:hover", {
+
+        decorates: [{
+
+            type: "Rectangle",
+            strokeStyle: "control-border",
+            fillStyle: "input-back",
+            children: [{
+
+                type: "RoundRectangle",
+                offset: [2, 2, 2, 2],
+                anticlockwise: true
+            }]
+        }]
+    });
+
+
+
+    //文本框样式
+    $("ListBox", {
+
+    });
+
+
+
+    //文本框样式
+    $("Button", {
+
+        backColor: "button-background",
+        cursor: "pointer"
+    });
+
+
+    $("WindowBase", {
+
+        backColor: "input-back",
+        foreColor: "input-text",
+        borderColor: "input-border",
+        border: 1,
+        borderRadius: 0
+    });
+
+    $("Window", {
+
+    });
+
+
+    $("ChildWindow", {
+
+    });
+
+
+})(flyingon);
+
+
+
