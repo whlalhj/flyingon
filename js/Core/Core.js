@@ -13,12 +13,12 @@
 
 
 //根命名空间
-var flyingon = this.flyingon = {};
+var flyingon = flyingon || {};
 
 
 
 //全局设定
-var flyingon_setting = flyingon_setting = {
+var flyingon_setting = flyingon_setting || {
 
 
     //版本

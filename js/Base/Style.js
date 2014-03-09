@@ -223,25 +223,25 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         this["nth-child"] = function (target) {
 
-            var parent = target.__parent__, cache, index = 0 + this.value;
+            var parent = target.__parent__, cache, index = +this.value;
             return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target ? parent : false;
         };
 
         this["nth-of-type"] = function (target) {
 
-            var parent = target.__parent__, cache, index = 0 + this.value;
+            var parent = target.__parent__, cache, index = +this.value;
             return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
         };
 
         this["nth-last-child"] = function (target) {
 
-            var parent = target.__parent__, cache, index = 0 + this.value;
+            var parent = target.__parent__, cache, index = +this.value;
             return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target ? parent : false;
         };
 
         this["nth-last-of-type"] = function (target) {
 
-            var parent = target.__parent__, cache, index = 0 + this.value;
+            var parent = target.__parent__, cache, index = +this.value;
             return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
         };
 
@@ -441,7 +441,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     result += 10;
                     break;
 
-                case ".":
+                case "":
                     result += 1;
                     break;
             }
@@ -541,10 +541,25 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         convert_fn = (function () {
 
-            this.margin = this.border = this.padding = function (value) {
+            ["margin", "border", "padding"].forEach(function (name) {
 
-                return value instanceof Thickness ? value : new Thickness(value);
-            };
+                this[name] = function (value) {
+
+                    return value instanceof Thickness ? value : (this[name] = new Thickness(value));
+                };
+
+                ["left", "top", "right", "bottom"].forEach(function (key) {
+
+                    this[name + "-" + key] = function (value) {
+
+                        var result = this[name] || (this[name] = new Thickness());
+                        result[key] = +value || 0;
+                        return result;
+                    };
+
+                }, this);
+
+            }, this);
 
             this.align = this.textAlign = function (value) {
 
@@ -570,7 +585,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         loop:
             for (var name in style)
             {
-                value = (value = convert_fn[name]) && value(style[name]) || style[name];
+                value = ((value = convert_fn[name]) && value.call(style, style[name])) || style[name];
 
                 if (value !== undefined) //样式属性值设置为undefined则不处理
                 {

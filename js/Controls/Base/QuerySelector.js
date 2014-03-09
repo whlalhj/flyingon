@@ -5,8 +5,8 @@
 
 
     //组合查询方法
-    var type_fn = (function() {
-    
+    var type_fn = (function () {
+
         function query_cascade(items, exports) {
 
             var cache;
@@ -153,25 +153,25 @@
 
         this["nth-child"] = function (target) {
 
-            var cache = target.__children__, index = 0 + this.value;
+            var cache = target.__children__, index = +this.value;
             return (cache && cache.length > index && cache[index]) || false;
         };
 
         this["nth-of-type"] = function (target) {
 
-            var result, cache = target.__children__, index = 0 + this.value;
+            var result, cache = target.__children__, index = +this.value;
             return cache && cache.length > index && (result = cache[index]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
         };
 
         this["nth-last-child"] = function (target) {
 
-            var cache = target.__children__, index = 0 + this.value;
+            var cache = target.__children__, index = +this.value;
             return (cache && cache.length > index && cache[cache.length - index - 1]) || false;
         };
 
         this["nth-last-of-type"] = function (target) {
 
-            var result, cache = target.__children__, index = 0 + this.value;
+            var result, cache = target.__children__, index = +this.value;
             return cache && cache.length > index && (result = cache[cache.length - index - 1]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
         };
 
