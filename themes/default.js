@@ -1,130 +1,6 @@
 ﻿/// <reference path="../js/flyingon.js" />
 
 
-/*
-定义系统字体
-可使用flyingon.Font创建字体 可使用字体派生功能从一已存在的字体派生出新的字体
-*/
-(function (flyingon) {
-
-
-    var normal = new flyingon.Font("normal", "normal", "normal", 12, "微软雅黑,宋体,Times New Roman");
-
-    flyingon.defineFonts({
-
-        //普通字体
-        normal: normal,
-
-        //粗体
-        bold: normal.derive_bold(),
-
-        //斜体
-        italic: normal.derive_italic(),
-
-        //粗斜体
-        bold_italic: normal.derive_bold_italic()
-    });
-
-
-})(flyingon);
-
-
-
-
-
-/*
-定义系统颜色
-1. 可使用flyingon.LinearGradient创建线性渐变色
-2. 可使用flyingon.RadialGradient创建径向渐变色
-3. 可使用flyingon.ImagePattern创建图像背景
-*/
-(function (flyingon) {
-
-
-    flyingon.defineColors({
-
-
-        "control-back": "#AAAAAA",
-
-        "control-text": "#000000",
-
-        "control-border": "blue",
-
-
-        "input-back": "#FFFFFF",
-
-        "input-text": "#000000",
-
-        "input-border": "#CCCCCC",
-
-
-        "checked-back": "#FFFFFF",
-
-        "checked-text": "#000000",
-
-        "checked-border": "#CCCCCC",
-
-
-        "focus-back": "#FFFFFF",
-
-        "focus-text": "#000000",
-
-        "focus-border": "#CCCCCC",
-
-
-        "hover-back": "#888888",
-
-        "hover-text": "#000000",
-
-        "hover-border": "#CCCCCC",
-
-
-        "active-back": "#666666",
-
-        "active-text": "#222222",
-
-        "active-border": "#222222",
-
-
-        "disabled-back": "#444444",
-
-        "disabled-text": "#222222",
-
-        "disabled-border": "#222222",
-
-
-        "dark-back": "#666666",
-
-        "dark-text": "#000000",
-
-        "dark-border": "#444444",
-
-
-        "hightlight-back": "#FFFFFF",
-
-        "hightlight-text": "#000000",
-
-        "hightlight-border": "#CCCCCC",
-
-
-
-        "scrollbar-arrow-back": "control-back",
-
-        "scrollbar-slider-back": "control-back",
-
-
-        "button-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
-
-
-        "window-title-background": new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]])
-
-    });
-
-
-})(flyingon);
-
-
-
 
 
 /*
@@ -289,7 +165,8 @@
 
 注1: 使用类css选择器样式字符串
 注2: 子类直接继承父类控件样式
-注3: 注意控件的继承顺序 父类在前子类后面 否则子类样式可能无法应用
+注3: 不支持css模式样式继承, 即不能从父元素继承属性值, 相关需求可通过组合选择器" "或">"直接设置子元素属性值
+注4: 注意选择器权重(与css相仿)
 
 
 支持的伪类如下:
@@ -321,105 +198,110 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 (function (flyingon) {
 
 
-    //缓存定义样式方法
-    var $ = flyingon.defineStyle;
-
-
     /*
-    
-    注意伪类的书写顺序(后写优先) disabled > active> hover > focus > checked  
-    
+
+    注1. 可使用flyingon.LinearGradient创建线性渐变颜色
+    注2. 可使用flyingon.RadialGradient创建径向渐变颜色
+    注3. 可使用flyingon.ImagePattern创建图像背景
+
     */
 
 
+    //缓存定义样式方法
+    var defineStyle = flyingon.defineStyle;
+
+
+
     //默认样式
-    $("*", {
+    defineStyle("*", {
 
         width: "default", //宽度 default|fill|auto|number|number%
         height: "default", //高度 default|fill|auto|number|number%
-        backColor: "control-back",
-        foreColor: "control-text",
-        borderColor: "control-border"
+        backgroundColor: "#AAAAAA",
+        color: "#000000",
+        borderColor: "blue"
     });
 
     //选中时控件默认样式
-    $("*:checked", {
+    defineStyle("*:checked", {
 
-        backColor: "checked-back",
-        foreColor: "checked-text",
-        borderColor: "checked-border"
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC"
     });
 
     //获取焦点时控件默认样式
-    $("*:focus", {
+    defineStyle("*:focus", {
 
-        backColor: "focus-back",
-        foreColor: "focus-text",
-        borderColor: "focus-border"
+        borderColor: "#CCCCCC"
     });
 
 
     //捕获鼠标时控件默认样式
-    $("*:hover", {
+    defineStyle("*:hover", {
 
-        backColor: "hover-back",
-        //foreColor: "hover-text",
-        borderColor: "hover-border"
+        borderColor: "#CCCCCC"
     });
 
     //活动状态时控件默认样式
-    $("*:active", {
+    defineStyle("*:active", {
 
-        backColor: "active-back",
-        foreColor: "active-text",
-        borderColor: "active-border"
+        borderColor: "#222222"
     });
 
     //禁用时控件默认样式
-    $("*:disabled", {
+    defineStyle("*:disabled", {
 
-        backColor: "disabled-back",
-        foreColor: "disabled-text",
-        borderColor: "disabled-border"
+        backgroundColor: "#444444",
+        color: "#222222"
+    });
+
+
+
+
+    //选中文字颜色
+    defineStyle(".selection-text", {
+
+        backgroundColor: "skyblue",
+        color: "white"
     });
 
 
 
 
     //滚动条
-    $("ScrollBar", {
+    defineStyle("ScrollBar", {
 
-        backColor: "silver"
+        backgroundColor: "silver"
     });
 
 
     //滚动条按钮
-    $("ScrollButton", {
+    defineStyle("ScrollButton", {
 
         margin: 2
     });
 
 
     //滚动条滑块
-    $("ScrollSlider", {
+    defineStyle("ScrollSlider", {
 
         margin: "2,0",
-        backColor: "dark-back",
+        backgroundColor: "#666666",
     });
 
-    $("ScrollSlider:active", {
+    defineStyle("ScrollSlider:active", {
 
-        backColor: "red"
+        backgroundColor: "red"
     });
 
-    $("ScrollSlider:hover", {
+    defineStyle("ScrollSlider:hover", {
 
-        backColor: "yellow"
+        backgroundColor: "yellow"
     });
 
 
     //滚动条拐角
-    $("ScrollCorner", {
+    defineStyle("ScrollCorner", {
 
     });
 
@@ -427,37 +309,36 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //内容控件样式
-    $("ContentControl", {
+    defineStyle("ContentControl", {
 
     });
 
 
 
     //面板控件样式
-    $("Panel", {
+    defineStyle("Panel", {
 
     });
 
 
 
     //文本框样式
-    $("TextBoxBase", {
+    defineStyle("TextBoxBase", {
 
-        backColor: "input-back",
-        foreColor: "input-text",
-        borderColor: "input-border",
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC",
         border: 1,
         borderRadius: 0,
         cursor: "text"
     });
 
-    $("TextBoxBase:hover", {
+    defineStyle("TextBoxBase:hover", {
 
         decorates: [{
 
             type: "Rectangle",
-            strokeStyle: "control-border",
-            fillStyle: "input-back",
+            strokeStyle: "blue",
+            fillStyle: "#FFFFFF",
             children: [{
 
                 type: "RoundRectangle",
@@ -470,35 +351,34 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //文本框样式
-    $("ListBox", {
+    defineStyle("ListBox", {
 
     });
 
 
 
     //文本框样式
-    $("Button", {
+    defineStyle("Button", {
 
-        backColor: "button-background",
+        backgroundColor: new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
         cursor: "pointer"
     });
 
 
-    $("WindowBase", {
+    defineStyle("WindowBase", {
 
-        backColor: "input-back",
-        foreColor: "input-text",
-        borderColor: "input-border",
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC",
         border: 1,
         borderRadius: 0
     });
 
-    $("Window", {
+    defineStyle("Window", {
 
     });
 
 
-    $("ChildWindow", {
+    defineStyle("ChildWindow", {
 
     });
 

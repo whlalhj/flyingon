@@ -43,7 +43,7 @@
             offsetY: 2,
             border: 1,
             borderColor: "red",
-            backColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]])
+            backgroundColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]])
         });
 
 
@@ -53,7 +53,7 @@
 
         var w = new flyingon.Window(host);
 
-        var color = w.backColor;
+        var color = w.backgroundColor;
 
 
 
@@ -70,7 +70,7 @@
             panel.spaceY = 10;
 
  
-            var color = panel.backColor;
+            var color = panel.backgroundColor;
 
             for (var i = 0; i < 10000; i++)
             {
@@ -81,7 +81,7 @@
                 ctrl.id = "id" + i;
                 ctrl.className = "class" + (i % 10);
 
-                var color = ctrl.backColor;
+                var color = ctrl.backgroundColor;
             }
 
             w.children.add(panel);
@@ -135,17 +135,17 @@
 
         //w.onmouseover = function (event) {
 
-        //    message.innerHTML = event.target.backColor;
+        //    message.innerHTML = event.target.backgroundColor;
         //};
 
         w.onstatechange = function (event) {
 
-            message.innerHTML = event.target.backColor;
+            message.innerHTML = event.target.backgroundColor;
         };
 
         w.onclick = function (event) {
 
-            message.innerHTML = event.target.backColor;
+            message.innerHTML = event.target.backgroundColor;
         };
 
 

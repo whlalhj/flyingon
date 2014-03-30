@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <canvas id="canvas" width="1000" height="600" style="width: 1000px; height: 600px; background-color: silver"></canvas>
+
+    <script src="../js/flyingon.js"></script>
+
+
+    <script type="text/javascript">
+
+        var text = "";
+
+        for (var i = 0; i < 1000; i++)
+        {
+            text += "abcd cdesdd 中国要有要 abcd cdesdd 中国要有要 骑 中国要有要abcd cdesdd中国要有要 骑 中国要有要abcd cdesdd 中国要有要 abcd cdesdd 中国要有要 骑 中国要有要abcd cdesdd中国要有要 骑 中国要有要\n";
+        }
+
+        var date = new Date();
+
+        text = new flyingon.Text(text);
+        text.multiline = true;
+        text.wrap = true;
+        text.width = 1000;
+        text.height = 600;
+        text.offsetX = 100;
+        //text.offsetY = 20;
+        //text.scrollTop = 100;
+        //text.scrollLeft = 20;
+
+        text.selectionStart = 4;
+        text.selectionLength = 198;
+
+        var context = canvas.getContext("2d");
+
+        context.textBaseline = "top";
+        text.paint(context, 0, 0);
+
+        alert(new Date() - date);
+
+
+        canvas.onclick = function (event) {
+
+            var result = text.hitTest(event.offsetX, event.offsetY);
+            alert(result.x + " " + result.y + " " + result.index);
+        };
+
+
+    </script>
+
+</body>
+</html>
