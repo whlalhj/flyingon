@@ -19,28 +19,36 @@
 <body style="margin: 0;">
 
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
-
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
-        flyingon.namespace("test.a", function (ns, flyingon) {
+        flyingon.namespace("test.a", function (flyingon) {
 
-            ns.c = function () {
+            this.c = function () {
 
             };
+
+            this.defineClass("ttttt", null, function (Class, base) {
+
+
+                var type = base;
+
+
+            });
+
         });
 
 
-        flyingon.namespace("test.a.a", function (ns, flyingon) {
+        flyingon.namespace("test.a.a", function (flyingon) {
 
-            ns.c = function () {
+            this.c = function () {
 
             };
         });
         
-        flyingon.namespace(test, function (ns, flyingon) {
+        flyingon.namespace(test, function (flyingon) {
 
             this.aaa = 1;
         }); 

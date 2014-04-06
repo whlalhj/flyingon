@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="no-cache" />
+    <title></title>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="width: 100%; height: 100%;">
+
+        <div id="drag" style="background-color: yellow;">
+
+            <input type="button" value="Create" onclick="create()" />
+            <input type="button" value="Paint" onclick="paint()" />
+            <input type="button" value="IndexOf_First" onclick="indexOf('first')" />
+            <input type="button" value="IndexOf_Middle" onclick="indexOf('middle')" />
+            <input type="button" value="IndexOf_Last" onclick="indexOf('last')" />
+            <span id="message"></span>
+        </div>
+
+        <div id="host" style="width: 100%; height: 100%;">
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../themes/default.js"></script>
+    <script src="../themes/sample.js"></script>
+
+    <script type="text/javascript">
+
+
+
+        flyingon.defineStyle("Control>Button:hover", {
+
+            offsetX: 2,
+            offsetY: 2,
+            border: 1,
+            borderColor: "red",
+            backgroundColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]])
+        });
+
+
+
+
+
+
+        var w = new flyingon.Window(host);
+
+        var color = w.backgroundColor;
+
+
+
+
+        function create() {
+
+
+            var date = new Date();
+
+
+
+            var panel = new flyingon.Panel();
+            panel.spaceX = 10;
+            panel.spaceY = 10;
+
+ 
+            var color = panel.backgroundColor;
+
+            for (var i = 0; i < 10000; i++)
+            {
+                var ctrl = new flyingon.Button();
+                ctrl.text = i;
+                panel.children.add(ctrl);
+
+                ctrl.id = "id" + i;
+                ctrl.className = "class" + (i % 10);
+
+                var color = ctrl.backgroundColor;
+            }
+
+            w.children.add(panel);
+
+
+            alert(new Date() - date);
+
+            w.update();
+
+        };
+
+        function paint() {
+
+            var date = new Date();
+
+            w.update();
+
+            alert(new Date() - date);
+        };
+
+
+        function indexOf(type) {
+
+            var children = w.children[0].children, item;
+
+            switch (type)
+            {
+                case "first":
+                    item = children[0];
+                    break;
+
+                case "middle":
+                    item = children[children.length >> 1];
+                    break;
+
+                default:
+                    item = children[children.length - 1];
+                    break;
+            }
+
+            var date = new Date();
+
+            for (var i = 0; i < 10000; i++)
+            {
+                children.indexOf(item);
+            }
+
+            alert(new Date() - date);
+        };
+
+
+        //w.onmouseover = function (event) {
+
+        //    message.innerHTML = event.target.backgroundColor;
+        //};
+
+        w.onstatechange = function (event) {
+
+            message.innerHTML = event.target.backgroundColor;
+        };
+
+        w.onclick = function (event) {
+
+            message.innerHTML = event.target.backgroundColor;
+        };
+
+
+    </script>
+
+</body>
+</html>

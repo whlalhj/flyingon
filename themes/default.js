@@ -1,1 +1,389 @@
-eval(function(){var c='(U(G){1G b={};1G 1H=G_setting.1H;(U(G){b.cursors={"none":"none","n":"n","1A":"1A","10":"10","c":"c","1I-c":"1I-c","1V":"1V","x":"all-x","1J":"1J","1B-J":"1B-J","1C-J":"1C-J","1D-J":"1D-J","1E-J":"1E-J","1O-J":"1O-J","1P-J":"1P-J","1Q-J":"1Q-J","1R-J":"1R-J","col-J":"col-J","row-J":"row-J","wait":"wait","help":"help","allow-1W":"1V","1S-1W":"1S-1W","not-1T":"not-1T"};})(G);(U(G){1G p=b.p={"F-1X":"K:C/V;B,2/Z/a+E/7///0+4+1+9","F-y":"K:C/V;B,2/Z/a+E/7///0+4+1+9","F-y-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","F-f":"K:C/V;B,2/Z/a+E/7///0+4+1+9","F-f-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","F-g":"K:C/V;B,2/Z/a+E/7///0+4+1+9","F-g-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","m-left":"K:C/V;B,2/Z/a+E/7///0+4+1+9","m-left-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","m-1U":"K:C/V;B,2/Z/a+E/7///0+4+1+9","m-1U-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","m-right":"K:C/V;B,2/Z/a+E/7///0+4+1+9","m-right-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","m-down":"K:C/V;B,2/Z/a+E/7///0+4+1+9","m-down-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","x-1Y":"K:C/V;B,2/Z/a+E/7///0+4+1+9","x-1Y-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","e-R":"K:C/V;B,2/Z/a+E/7///0+4+1+9","e-R-o":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","e-R-H":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","e-S":"K:C/V;B,2/Z/a+E/7///0+4+1+9","e-S-o":"K:C/V;B,A/5/P+L///3+11+I+8+6/Q==","e-S-H":"K:C/V;B,2/Z/a+E/7///0+4+1+9","e-h":"K:C/V;B,2/Z/a+E/7///0+4+1+9","e-h-o":"K:C/V;B,2/Z/a+E/7///0+4+1+9","e-h-H":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-R":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-R-o":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-R-H":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-S":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-S-o":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-S-H":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-h":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-h-o":"K:C/V;B,2/Z/a+E/7///0+4+1+9","i-h-H":"K:C/V;B,2/Z/a+E/7///0+4+1+9","tree-collapse":"K:C/V;B,2/Z/a+E/7///0+4+1+9","tree-expand":"K:C/V;B,2/Z/a+E/7///0+4+1+9"};for(1G 1Z 1a p){1G value=p[1Z];(p[1Z]=new Image()).src=value;}})(G);(U(G){b.colors={"X-d":"#16","X-c":"#j","X-M":"17","F-d":"#q","F-c":"#j","F-M":"#r","H-d":"#q","H-c":"#j","H-M":"#r","t-d":"#q","t-c":"#j","t-M":"#r","R-d":"#q","R-c":"#j","R-M":"#r","Y-d":"#16","Y-c":"#1b","Y-M":"#1b","1K-d":"#16","1K-c":"#j","1K-M":"#444444","s-d":"#q","s-c":"#j","s-M":"#r","1c-D":new G.z(l,l,l,u,[[l,"v"],[l.13,"17"],[l.13,"17"],[u,"v"]]),"F-title-D":new G.z(l,l,l,u,[[l,"v"],[l.13,"17"],[l.13,"17"],[u,"v"]])};})(G);(U(G){1G w=b.w={};1G W=w.W=new G.Font("W","W","W",1d,"微软雅黑,1e,Times New Roman");w.bold=W.deriveBold();w.1f=W.deriveItalic();w.bold_1f=W.deriveBoldItalic();})(G);(U(G){b.styles={Control:{width:"n",1g:"n",margin:l,M:l,padding:l,font:"W",18:"n",opacity:u,D:T,19:"X-c",14:"X-M",12:l,1F:T,N:{"common-N":{"k-O":T,Y:{D:T,19:"Y-c",14:"Y-M","k-O":T},pressed:{"k-O":T}},"e-N":{R:{"k-O":T},S:{"k-O":T},h:{"k-O":T}},"o-N":{t:{"k-O":T},"1L-O":T},"H-N":{H:{"k-O":T},"1L-O":T}}},ScrollBase:{D:"1K-d",arrowBackground:"X-d",arrowLeftImage:T,arrowUpImage:T,arrowRightImage:T,arrowDownImage:T,sliderBackground:T,sliderImage:T,N:{"H-N":{H:{D:"yellow","k-O":T},"1L-O":T}}},ContentControl:{},Panel:{},TextBoxBase:{D:"F-d",M:u,18:"c",N:{"H-N":{H:{1F:[{1M:"Rectangle",strokeStyle:"X-M",fillStyle:"F-d",children:[{1M:"RoundRectangle",offset:[15,15,15,15],anticlockwise:true}]}]}}}},ListBox:{D:"F-d",M:u},Button:{D:"1c-D",M:u,12:l,18:"10"},Window:{D:"F-d"},".F-1X":{C:"F-1X"},".F-y":{C:"F-y",N:{"H-N":{H:{D:"1N",C:"F-y-H"}}}},".F-g":{C:"F-g",N:{"H-N":{H:{D:"1N",C:"F-g-H"}}}},".F-f":{C:"F-f",N:{"H-N":{H:{D:"1N",C:"F-f-H"}}}},WindowTitleBar:{width:"fill",1g:"fill",D:"F-title-D",M:u},ChildWindow:{D:"F-d",M:u}};})(G);(U(G){b.templates={};})(G);return b;})(G);',k='wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABUALAAAAAASABIAAAVVYCWOZGmeaKquqOS|OiVJI1kY6JQGkmSQOAwqRakz5EEwF1MBAICICuSMM6MgQFNrkgccHgi3pZA7nh8O8Lv|R0lGODlhEgASAMQVAOjo6Pb29s3NzSwsLNLS0l5eXsXFxTExMWFhYcHBweLi4s7Ozt|wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABEALAAAAAASABIAAAVQYCSOZGmeaKqu6OO|sHRKVG3b0XzvuSk9wAci|f3wAAAMXFxVlZWcbGxsrKyi4uLtTU1Pb29tnZ2f39|jokeh6vVrRo0Eul8ORx2LNZqMfkLhcjnbY73g0a8|dTU1Hp6epubmwAAAP|bD4VwOPyVHoHCYGkIOI2kBwBwEFgJU|9ssgYKBIQA7|R0lGODlhEgASAMQRAOjo6N|base64|image|background|tnZ2f39|window|flyingon|hover|TG3bzozsPJ|resize|data|pubm4mJif|border|states|animate|dDQ0Pr6|fhwAAOw|checked|unchecked|null|function|gif|normal|control|disabled|f3|r6|result|text|back|check|minimize|maximize|unkown|radio|000000|enter|0|arrow|default|focus|images|FFFFFF|CCCCCC|hightlight|focused|1|skyblue|fonts|scroll|close|LinearGradient|pointer|8HM|borderRadius|5|borderColor|2|888888|blue|cursor|foreground|crosshair|e|s|w|n|decorates|var|language|vertical|progress|dark|leave|typeName|white|ne|se|nw|sw|no|allowed|up|move|drop|icon|slider|name|in|222222|button|12|宋体|italic|height'.split('|'),w='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',l=w.length,m={'$':'__'};for(var i=0;i<k.length;i++){m[i<l?w[i]:(w[parseInt(i/l)]+w[i%l])]=k[i];};c=c.replace(/[A-Za-z0-9]+|\$/g,function(e){return m.hasOwnProperty(e)?m[e]:e;});return c;}());
+﻿/// <reference path="../js/flyingon.js" />
+
+
+
+
+/*
+定义系统图片
+*/
+(function (flyingon) {
+
+
+    flyingon.defineImages({
+
+
+        //空白图片 找不到相关图片时显示的图片
+        "blank": null,
+
+        //窗口图标
+        "window-icon": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口关闭按钮
+        "window-close": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口关闭按钮
+        "window-close-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口关闭按钮
+        "window-close-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口最小化按钮
+        "window-minimize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最小化按钮
+        "window-minimize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口最小化按钮
+        "window-minimize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //窗口最大化按钮
+        "window-maximize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时窗口最大化按钮
+        "window-maximize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时窗口最大化按钮
+        "window-maximize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //向左滚动条图标
+        "scroll-left": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向左滚动条图标
+        "scroll-left-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向左滚动条图标
+        "scroll-left-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向右滚动条图标
+        "scroll-right": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向右滚动条图标
+        "scroll-right-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向右滚动条图标
+        "scroll-right-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向上滚动条图标
+        "scroll-up": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向上滚动条图标
+        "scroll-up-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向上滚动条图标
+        "scroll-up-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //向下滚动条图标
+        "scroll-down": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标按下时向下滚动条图标
+        "scroll-down-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时向下滚动条图标
+        "scroll-down-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //选择选中图标
+        "check-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择选中图标
+        "check-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择选中图标
+        "check-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //选择未选中图标
+        "check-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择未选中图标
+        "check-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择未选中图标
+        "check-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //选择未知选择图标
+        "check-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时选择未知选择图标
+        "check-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时选择未知选择图标
+        "check-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //单选选中图标
+        "radio-checked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选选中图标
+        "radio-checked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选选中图标
+        "radio-checked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //单选未选中图标
+        "radio-unchecked": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选未选中图标
+        "radio-unchecked-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选未选中图标
+        "radio-unchecked-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //单选未知选择图标
+        "radio-unkown": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //捕获焦点时单选未知选择图标
+        "radio-unkown-focus": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //鼠标划过时单选未知选择图标
+        "radio-unkown-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+
+
+        //树收拢图标
+        "tree-collapse": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
+
+        //树展开图标
+        "tree-expand": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw=="
+
+    });
+
+
+})(flyingon);
+
+
+
+
+
+
+/*
+
+定义样式
+
+注1: 使用类css选择器样式字符串
+注2: 子类直接继承父类控件样式
+注3: 不支持css模式样式继承, 即不能从父元素继承属性值, 相关需求可通过组合选择器" "或">"直接设置子元素属性值
+注4: 注意选择器权重(与css相仿)
+
+
+支持的伪类如下:
+    
+E:active        匹配鼠标已经其上按下、还没有释放的E元素
+E:hover         匹配鼠标悬停其上的E元素
+E:focus         匹配获得当前焦点的E元素
+E:enabled       匹配表单中激活的元素
+E:disabled      匹配表单中禁用的元素
+E:checked       匹配表单中被选中的radio（单选框）或checkbox（复选框）元素
+E:selection     匹配用户当前选中的元素
+E:empty         匹配一个不包含任何子元素的元素，注意，文本节点也被看作子元素
+    
+E:before        E之前元素
+E:after         E之后元素
+    
+E:nth-child(n)          匹配其父元素的第n个子元素，第一个编号为1
+E:nth-last-child(n)     匹配其父元素的倒数第n个子元素，第一个编号为1
+E:nth-of-type(n)        与:nth-child()作用类似，但是仅匹配使用同种标签的元素
+E:nth-last-of-type(n)   与:nth-last-child() 作用类似，但是仅匹配使用同种标签的元素
+E:first-child           匹配父元素的第一个子元素
+E:last-child            匹配父元素的最后一个子元素，等同于:nth-last-child(1)
+E:first-of-type         匹配父元素下使用同种标签的第一个子元素，等同于:nth-of-type(1)
+E:last-of-type          匹配父元素下使用同种标签的最后一个子元素，等同于:nth-last-of-type(1)
+E:only-child            匹配父元素下仅有的一个子元素，等同于:first-child:last-child或 :nth-child(1):nth-last-child(1)
+E:only-of-type          匹配父元素下使用同种标签的唯一一个子元素，等同于:first-of-type:last-of-type或 :nth-of-type(1):nth-last-of-type(1)
+
+*/
+(function (flyingon) {
+
+
+    /*
+
+    注1. 可使用flyingon.LinearGradient创建线性渐变颜色
+    注2. 可使用flyingon.RadialGradient创建径向渐变颜色
+    注3. 可使用flyingon.ImagePattern创建图像背景
+
+    */
+
+
+    //缓存定义样式方法
+    var defineStyle = flyingon.defineStyle;
+
+
+
+    //默认样式
+    defineStyle("*", {
+
+        width: "default", //宽度 default|fill|auto|number|number%
+        height: "default", //高度 default|fill|auto|number|number%
+        backgroundColor: "#AAAAAA",
+        color: "#000000",
+        borderColor: "blue"
+    });
+
+    //选中时控件默认样式
+    defineStyle("*:checked", {
+
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC"
+    });
+
+    //获取焦点时控件默认样式
+    defineStyle("*:focus", {
+
+        borderColor: "#CCCCCC"
+    });
+
+
+    //捕获鼠标时控件默认样式
+    defineStyle("*:hover", {
+
+        borderColor: "#CCCCCC"
+    });
+
+    //活动状态时控件默认样式
+    defineStyle("*:active", {
+
+        borderColor: "#222222"
+    });
+
+    //禁用时控件默认样式
+    defineStyle("*:disabled", {
+
+        backgroundColor: "#444444",
+        color: "#222222"
+    });
+
+
+
+
+    //选中文字颜色
+    defineStyle(".selection-text", {
+
+        backgroundColor: "skyblue",
+        color: "white"
+    });
+
+
+
+
+    //滚动条
+    defineStyle("ScrollBar", {
+
+        backgroundColor: "silver"
+    });
+
+
+    //滚动条按钮
+    defineStyle("ScrollButton", {
+
+        margin: 2
+    });
+
+
+    //滚动条滑块
+    defineStyle("ScrollSlider", {
+
+        margin: "2,0",
+        backgroundColor: "#666666",
+    });
+
+    defineStyle("ScrollSlider:active", {
+
+        backgroundColor: "red"
+    });
+
+    defineStyle("ScrollSlider:hover", {
+
+        backgroundColor: "yellow"
+    });
+
+
+    //滚动条拐角
+    defineStyle("ScrollCorner", {
+
+    });
+
+
+
+
+    //内容控件样式
+    defineStyle("ContentControl", {
+
+    });
+
+
+
+    //面板控件样式
+    defineStyle("Panel", {
+
+    });
+
+
+
+    //文本框样式
+    defineStyle("TextBoxBase", {
+
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC",
+        border: 1,
+        borderRadius: 0,
+        cursor: "text"
+    });
+
+    defineStyle("TextBoxBase:hover", {
+
+        decorates: [{
+
+            type: "Rectangle",
+            strokeStyle: "blue",
+            fillStyle: "#FFFFFF",
+            children: [{
+
+                type: "RoundRectangle",
+                offset: [2, 2, 2, 2],
+                anticlockwise: true
+            }]
+        }]
+    });
+
+
+
+    //文本框样式
+    defineStyle("ListBox", {
+
+    });
+
+
+
+    //文本框样式
+    defineStyle("Button", {
+
+        backgroundColor: new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
+        cursor: "pointer"
+    });
+
+
+    defineStyle("WindowBase", {
+
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC",
+        border: 1,
+        borderRadius: 0
+    });
+
+    defineStyle("Window", {
+
+    });
+
+
+    defineStyle("ChildWindow", {
+
+    });
+
+
+})(flyingon);
+
+
+

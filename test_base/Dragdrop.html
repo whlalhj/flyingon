@@ -26,9 +26,8 @@
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
-
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
@@ -43,7 +42,7 @@
 
             p1.width = 400;
             p1.height = 400;
-            p1.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+            p1.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
             p1.draggable = true;
             p1.onmousedown = function (e) {
                 alert("mousedown");
@@ -57,7 +56,7 @@
 
             p2.width = 400;
             p2.height = 400;
-            p2.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+            p2.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
             p2.ondrop = function (e) {
 
                 var c = e;

@@ -54,35 +54,31 @@
 
     </script>
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
-
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
+        var text = "ssdfere\r\ndsdf\r\nddsdfd";
+        var index = 0;
+        var result = [];
 
+        while ((index = text.indexOf("\n", index)) >= 0)
+        {
+            result.push(index++);
+        }
+
+      
         var w = new flyingon.Window(host);
 
-        var selector = flyingon(w);
-
-
-        alert(new Date() - date);
-
-
         w.layout = "flow";
-
-
 
 
         function create() {
 
 
             var date = new Date();
-
-            flyingon.beginInit();
-            w.layout = "flow";
-
 
             for (var k = 0; k < 200; k++)
             {
@@ -96,14 +92,11 @@
                     ctrl.left = i % 5 * 100;
                     ctrl.top = i / 5 * 30;
 
-                    ctrl.width = 20;
-                    ctrl.height = 21;
                     //ctrl.margin = "10, 10, 10, 10";
                     ctrl.border = "1, 1, 1, 1";
                     ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    ctrl.horizontalAlign = "center";
-                    ctrl.verticalAlign = "center";
+                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.align = "middle,center";
 
                     panel.children.add(ctrl);
 
@@ -123,8 +116,6 @@
 
                         case 3:
                             ctrl.dock = "bottom";
-                            ctrl.width = "fill";
-                            ctrl.height = "fill";
                             break;
 
                         case 4:
@@ -145,7 +136,7 @@
                 panel.border = "1, 1, 1, 1";
                 panel.padding = "0, 0, 0, 0";
                 panel.borderColor = "orange";
-                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;
@@ -161,8 +152,6 @@
             }
 
 
-
-            flyingon.endInit();
             alert(new Date() - date);
 
             w.update();

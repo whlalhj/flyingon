@@ -29,7 +29,7 @@
             <input type="text" id="propertyvalue" value="5" />
 
             <input type="button" value="query" onclick="query()" />
-            <input type="button" value="query_cache" onclick="query(true)" />
+            <input type="button" value="performance" onclick="performance()" />
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
@@ -52,16 +52,21 @@
 
     </script>
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
-
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
-        var values = flyingon.parse_selector(">Panel .class+A[a=1,b=2]:test:checked(true)");
+        var date = new Date();
 
-        
+        for (var i = 0; i < 10000; i++)
+        {
+            var values = flyingon.parse_selector(">Panel .class+A[a=1,b=2]:test:checked(true)");
+        }
+
+        alert(new Date() - date);
+
 
         //var date = new Date();
 
@@ -89,7 +94,7 @@
 
         w.layout = "flow";
 
- 
+
 
 
         function create() {
@@ -121,9 +126,8 @@
                     //ctrl.margin = "10, 10, 10, 10";
                     ctrl.border = "1, 1, 1, 1";
                     ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    ctrl.horizontalAlign = "center";
-                    ctrl.verticalAlign = "center";
+                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.align = "middle,center";
 
                     panel.children.add(ctrl);
 
@@ -152,7 +156,7 @@
                             break;
                     }
 
-                    ctrl.id = "button" + k * i;
+                    ctrl.id = "button" + (k * 200) + i;
                     ctrl.className = "class" + (i % 20);
                 }
 
@@ -167,7 +171,7 @@
                 panel.border = "1, 1, 1, 1";
                 panel.padding = "0, 0, 0, 0";
                 panel.borderColor = "orange";
-                //panel.background = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;
@@ -206,7 +210,7 @@
             alert(new Date() - date);
         };
 
-        function query(cache) {
+        function query() {
 
             var date = new Date();
 
@@ -215,6 +219,19 @@
             alert(new Date() - date);
         };
 
+
+        function performance() {
+
+            var result;
+            var date = new Date();
+
+            for (var i = 0; i < 100; i++)
+            {
+                result = w.find(selector.value);
+            }
+
+            alert("loop:1000 controls:" + result.length + " time:" + (new Date() - date));
+        };
 
 
     </script>

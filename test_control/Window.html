@@ -18,8 +18,8 @@
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon_setting.js"></script>
     <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
@@ -71,7 +71,7 @@
 
             form.onmouseout = function (event) {
 
-                if (event.target instanceof flyingon.ScrollBase)
+                if (event.target instanceof flyingon.ScrollBar)
                 {
                     event.target.invalidate();
                 }
@@ -90,7 +90,7 @@
 
         //w.onmousemove = function (event) {
 
-        //    message.innerHTML = "id:" + event.target.id + " background:" + event.target.background;
+        //    message.innerHTML = "id:" + event.target.id + " backgroundColor:" + event.target.backgroundColor;
         //    //var offset = event.target.controlToOffset(event.controlX, event.controlY);
         //    //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
         //};
