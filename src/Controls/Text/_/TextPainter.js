@@ -23,7 +23,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow.__focused_control__ == this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control__ === this)
             {
                 this.__textMetrics__.moveTo(value);
             }
@@ -43,7 +43,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow.__focused_control__ == this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control__ === this)
             {
                 var textMetrics = this.__textMetrics__;
 
@@ -110,7 +110,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
     this.__event_mousemove__ = function (event) {
 
-        if (event.mousedown && this.ownerWindow.__focused_control__ == this)
+        if (event.mousedown && this.ownerWindow.__focused_control__ === this)
         {
             var textMetrics = this.__textMetrics__,
                 x = event.targetX;
@@ -138,7 +138,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow.__focused_control__ == this)
+        if (ownerWindow.__focused_control__ === this)
         {
             ownerWindow.__fn_reset_ime__();
         }

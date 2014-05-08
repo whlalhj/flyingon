@@ -1,6 +1,6 @@
 ﻿
-//图层服务
-flyingon.__layer_service__ = function (host) {
+//图层扩展
+flyingon.layer_extender = function (host) {
 
 
     //创建绘图环境
@@ -24,21 +24,21 @@ flyingon.__layer_service__ = function (host) {
 
 
     //创建绘画环境
-    this.context = boxModel.context = canvas.getContext("2d");
+    this.context = canvas.getContext("2d");
 
-    
+
     //扩展盒模型更新相关方法
-    (function(){
+    (function (context) {
 
 
         //更新定时器
-        var timer, boxModel = this;
+        var boxModel = this, timer;
 
 
         //更新画布
         function update() {
 
-            boxModel.update(boxModel.context);
+            boxModel.update(context);
         };
 
         //注册更新
@@ -63,7 +63,7 @@ flyingon.__layer_service__ = function (host) {
         };
 
 
-    }).call(boxModel);
+    }).call(boxModel, this.context);
 
 };
 
@@ -79,8 +79,8 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
     Class.create = function () {
 
-        //订阅图层服务
-        flyingon.__layer_service__.call(this);
+        //执行图层扩展
+        flyingon.layer_extender.call(this);
     };
 
 

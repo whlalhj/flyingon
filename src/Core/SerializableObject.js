@@ -132,25 +132,31 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     };
 
 
+
+    function split_attributes(attributes, value) {
+
+        var values = value.split("|");
+
+        for (var i = 0, length = values.length; i < length; i++)
+        {
+            attributes[values[i]] = true;
+        }
+
+        return attributes;
+    };
+
     this.__define_attributes__ = function (attributes) {
 
         if (attributes)
         {
-            if (attributes.constructor == String)
+            if (attributes.constructor === String)
             {
-                attributes = { attributes: attributes };
+                attributes = split_attributes({}, attributes);
             }
-
-            if (attributes.attributes)
+            else if (attributes.attributes)
             {
-                var values = attributes.attributes.split("|");
-
-                for (var i = 0, length = values.length; i < length; i++)
-                {
-                    attributes[values[i]] = true;
-                }
-
-                attributes.attributes = null;
+                split_attributes(attributes, attributes.attributes);
+                delete attributes.attributes;
             }
 
             return attributes;
@@ -163,7 +169,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     //定义属性及set_XXX方法
     this.defineProperty = function (name, defaultValue, attributes) {
 
-        if (typeof defaultValue == "function" && (attributes == null || typeof attributes == "function"))
+        if (typeof defaultValue === "function" && (attributes == null || typeof attributes === "function"))
         {
             flyingon.defineProperty(this, name, defaultValue, attributes);
         }
@@ -353,8 +359,8 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     //id
     this.defineProperty("id", null, {
 
-        attributes: "locate",
-        changed: "this.__style_group__ = null;"
+        attributes: "layout",
+        changed: " this.__style_token__ = 0;" //更新缓存样式标记
     });
 
     //名称
@@ -378,7 +384,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //获取或设置存储属性值
-    this.property = function (name, value) {
+    this.propertyValue = function (name, value) {
 
         if (value === undefined)
         {

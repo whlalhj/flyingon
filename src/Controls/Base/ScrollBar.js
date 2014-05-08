@@ -8,9 +8,9 @@ flyingon.ScrollEvent = function (target, originalEvent) {
 
 
 
-//复合控件服务
+//复合控件扩展
 //复合控件的子控件不响应事件,但支持样式及状态
-flyingon.__complex_control_service__ = function (base) {
+flyingon.complex_extender = function (base) {
 
 
     this.hitTest = function (x, y) {
@@ -34,7 +34,7 @@ flyingon.__complex_control_service__ = function (base) {
                 }
             }
 
-            if (source && source != target)
+            if (source && source !== target)
             {
                 source.stateTo("hover", false);
             }
@@ -52,7 +52,7 @@ flyingon.__complex_control_service__ = function (base) {
 
     this.stateTo = function (name, value) {
 
-        if (this.__target__ && (name != "hover" || !value))
+        if (this.__target__ && (name !== "hover" || !value))
         {
             this.__target__.stateTo(name, value);
         }
@@ -111,7 +111,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
     //滚动条厚度
-    this.thickness = flyingon.styleValue_group("ScrollBar", "thickness") || 16;
+    this.thickness = flyingon.__fn_style_last__("ScrollBar", "thickness") || 16;
 
 
     //当前值
@@ -134,7 +134,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
     //是否竖直滚动条
-    this.defineProperty("vertical", false, "locate");
+    this.defineProperty("vertical", false, "layout");
 
 
 
@@ -143,8 +143,8 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
 
-    //订阅复合控件服务
-    flyingon.__complex_control_service__.call(this, base);
+    //执行复合控件扩展
+    flyingon.complex_extender.call(this, base);
 
 
 
@@ -159,11 +159,11 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
         if (value)
         {
-            if (value == this.__button1__)
+            if (value === this.__button1__)
             {
                 value = -this.minChange;
             }
-            else if (value == this.__button2__)
+            else if (value === this.__button2__)
             {
                 value = this.minChange;
             }
@@ -264,7 +264,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         }
 
 
-        if ((step = value - this.value) == 0)
+        if ((step = value - this.value) === 0)
         {
             return false;
         }
@@ -291,7 +291,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
         this.__boxModel__.invalidate(true);
 
-        return value != limit;
+        return value !== limit;
     };
 
 

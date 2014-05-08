@@ -76,7 +76,7 @@
             {
                 var ctrl = new flyingon.Button();
                 ctrl.text = i;
-                panel.children.add(ctrl);
+                panel.children.append(ctrl);
 
                 ctrl.id = "id" + i;
                 ctrl.className = "class" + (i % 10);
@@ -84,7 +84,7 @@
                 var color = ctrl.backgroundColor;
             }
 
-            w.children.add(panel);
+            w.children.append(panel);
 
 
             alert(new Date() - date);

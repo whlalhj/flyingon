@@ -3,27 +3,173 @@
 
 
 
-    //选中文字背景色
-    flyingon.selectionText_backgroundColor = "skyblue";
+    //文字控件扩展(给指定控件扩展文字功能)
+    flyingon.text_extender = function (base, multiline) {
 
-    //选中文字颜色
-    flyingon.selectionText_color = "white";
 
+        var attributes = {
+
+            attributes: "invalidate",
+            changed: "this.__text__ = null;"
+        };
+
+
+        //文字内容
+        this.defineProperty("text", "", attributes);
+
+        //行高
+        this.defineProperty("lineHeight", 0, attributes);
+
+
+
+        //文字顺序
+        //lr-tb: 从左到右 从上到下 (默认常见顺序)
+        //lr-bt: 从左到右 从下到上 
+        //rl-tb: 从右到左 从上到下 (如阿拉伯文等)
+        //rl-bt: 从右到左 从下到上
+        //tb-lr: 从上到下 从左到右
+        //tb-rl: 从上到下 从右到左 (如中国古文)
+        //bt-lr: 从下到上 从左到右
+        //bt-rl: 从下到上 从右到左
+        this.defineProperty("writingMode", "lr-tb", attributes);
+
+
+        //字距
+        this.defineProperty("letterSpacing", 0, attributes);
+
+        //词距(空格调整)
+        this.defineProperty("wordSpacing", 0, attributes);
+
+
+        //文本行缩进
+        this.defineProperty("multiline", false, attributes);
+
+
+        //文字对齐方式(仅对单行有效)
+        this.defineProperty("textAlign", null, attributes);
+
+
+        //文本行缩进
+        this.defineProperty("textIndent", 0, attributes);
+
+        //开始位置偏移
+        this.defineProperty("startOffset", 0, attributes);
+
+        //是否自动换行
+        this.defineProperty("textWrap", false, false, "this.__rows__.clear();\n");
+
+
+        attributes.changed = "this.__font__ = new flyingon.Font(value);" + attributes.changed;
+
+        //字体
+        this.defineProperty("font", Font.__default__.__value__, attributes);
+
+
+        attributes.attributes = "invalidate|style";
+        attributes.changed = "(this.__font__ || (this.__font__ = new flyingon.Font()))[name.substring(4).toLocaleLowerCase()] = value;\nthis.__text__ = null;";
+
+        //字体样式
+        this.defineProperty("fontStyle", "normal", attributes);
+
+        //字体变体 normal small-caps
+        this.defineProperty("fontVariant", "normal", attributes);
+
+        //字体粗细 normal bold bolder lighter 100 200 300 400 500 600 700 800 900
+        this.defineProperty("fontWeight", "normal", attributes);
+
+        //字体大小
+        this.defineProperty("fontSize", "9pt", attributes);
+
+        //字体系列
+        this.defineProperty("fontFamily", "微软雅黑,宋体,Times New Roman", attributes);
+
+
+        this.defineProperty("color", "", attributes);
+
+        this.defineProperty("selectionColor", "", attributes);
+
+        this.defineProperty("selectionBackgroundColor", "", attributes);
+
+
+        //文本被选中事件
+        this.defineEvent("select");
+
+        //取消文本选中事件
+        this.defineEvent("unselect");
+
+
+
+        attributes = {
+
+            attributes: "invalidate",
+            changing: "if ((value = +value) < 0) value = 0;\nelse if (value >= fields.text.length) value = fields.text.length - 1;",
+            changed: ""
+        };
+
+        //开始选中位置
+        this.defineProperty("selectionStart", 0, attributes);
+
+        //结束选中位置
+        this.defineProperty("selectionEnd", 0, attributes);
+
+        //选中文字长度(只读)
+        this.defineProperty("selectionLength", function () {
+
+            var fields = this.__fields__;
+            return Math.abs(fields.selectionEnd - fields.selectionStart);
+        });
+
+
+        //获取或设置选中文本
+        this.defineProperty("selectionText", function () {
+
+            var fields = this.__fields__, start, end;
+
+            if (fields.text && (start = fields.selectionStart) !== (end = fields.selectionEnd))
+            {
+                if (start > end)
+                {
+                    start = end;
+                    end = fields.selectionStart;
+                }
+
+                return fields.text.substring(start, end);
+            }
+
+            return null;
+        });
+
+
+    };
+
+
+
+
+
+    //文字绘制器(必须传入target目标控件)
+    flyingon.TextPainter = function (target) {
+
+        target.__text__ = this;
+
+        this.__rows__ = new text_rows();
+        this.target = target;
+    };
 
 
     var Font = flyingon.Font,
 
         pseudo_array = flyingon.__pseudo_array__,
 
-        prototype = (flyingon.Text = function (text, font) {
+        prototype = flyingon.TextPainter.prototype,
 
-            this.__rows__ = new text_rows();
-            this.__text__ = text || "";
-            this.__font__ = font || Font.__default__;
+        selection = flyingon.selection_text = { //选中文字设置
 
-        }).prototype,
+            backgroundColor: "skyblue", //选中文字背景色
 
-        defineProperty = function (name, defaultValue, measure) {
+            color: "white" //选中文字颜色
+        },
+
+        defineProperty = function (name, defaultValue, measure, changed) {
 
             prototype["__" + name + "__"] = defaultValue;
 
@@ -32,12 +178,12 @@
                 new Function("return this.__" + name + "__;"),
 
                 new Function("value", "var oldValue = this.__" + name + "__;\n"
-                    + "if (oldValue == null) oldValue = flyingon.Text.prototype.__" + name + "__;"
+                    + "if (oldValue == null) oldValue = flyingon.TextPainter.prototype.__" + name + "__;"
                     + "if (oldValue !== value)\n"
                     + "{\n"
                     + "this.__" + name + "__ = value;\n"
-                    + (measure ? "this.__lines__ = null;\n" : "")
-                    + (name == "text" ? "if (!value) this.__rows__.clear();\n" : "")
+                    + (measure ? "this.__lines__ = null;\nthis.__rows__.clear();\n" : "")
+                    + (changed || "")
                     + "this.__dirty__ = true;\n"
                     + "}"));
         };
@@ -54,18 +200,41 @@
     //字体
     defineProperty("font", Font.__default__, true);
 
+    //文字顺序
+    //lr-tb: 从左到右 从上到下 (默认常见顺序)
+    //lr-bt: 从左到右 从下到上 
+    //rl-tb: 从右到左 从上到下 (如阿拉伯文等)
+    //rl-bt: 从右到左 从下到上
+    //tb-lr: 从上到下 从左到右
+    //tb-rl: 从上到下 从右到左 (如中国古文)
+    //bt-lr: 从下到上 从左到右
+    //bt-rl: 从下到上 从右到左
+    defineProperty("writingMode", "lr-tb", true);
+
     //是否多行文本
-    defineProperty("multiline", false, true);
+    defineProperty("multiline", false, true, "this.__rows__.offset = 0;\n");
+
+    //是否自动换行
+    defineProperty("wrap", false, false, "this.__rows__.clear();\n");
 
     //行高(仅在多行时有效)
     defineProperty("lineHeight", 19);
 
-    //是否自动换行
-    defineProperty("wrap", false);
+    //字距
+    defineProperty("letterSpacing", 2);
+
+    //词距(空格调整)
+    defineProperty("wordSpacing", 0);
+
+    //文字对齐方式(仅对单行有效)
+    defineProperty("textAlign", null);
+
 
     //行缩进
     defineProperty("indent", 0);
 
+    //偏移距离
+    defineProperty("offset", 0);
 
     //宽度
     defineProperty("width", 100);
@@ -78,11 +247,6 @@
     defineProperty = flyingon.defineProperty;
 
 
-    //x偏移
-    prototype.offsetX = 0;
-
-    //y偏移
-    prototype.offsetY = 0;
 
     //x滚动偏移
     prototype.scrollLeft = 0;
@@ -111,7 +275,7 @@
 
         var body = "if ((value = +value) < 0) value = 0;\n"
             + "else if (value >= this.__text__.length) value = this.__text__.length - 1;\n"
-            + "if (value != this." + name + ")\n"
+            + "if (value !== this." + name + ")\n"
             + "{\n"
             + "this." + name + " = value;\n"
             + "}";
@@ -136,7 +300,7 @@
 
         function (value) {
 
-            if (value && typeof value == "number")
+            if (value && value.constructor === Number)
             {
                 var value = this.__selectionEnd__ = this.__selectionStart__ + value;
 
@@ -146,7 +310,7 @@
                 }
                 else if (value > this.__text__.length)
                 {
-                    value = this.__text__.length;
+                    this.__selectionEnd__ = this.__text__.length;
                 }
             }
         });
@@ -159,6 +323,66 @@
     }, define_setter("__selectionEnd__"));
 
 
+    //获取或设置选中文本
+    defineProperty(prototype, "selectionText", function () {
+
+        var start = this.__selectionStart__,
+            end = this.__selectionEnd__;
+
+        if (end === start)
+        {
+            return "";
+        }
+
+        if (start > end)
+        {
+            start = end;
+            end = this.__selectionStart__;
+        }
+
+        return this.__text__.substring(start, end);
+
+    });
+
+
+    prototype.replace = function (value) {
+
+        var start = this.__selectionStart__,
+            end = this.__selectionEnd__;
+
+        if (start !== end)
+        {
+            if (start > end)
+            {
+                start = end;
+                end = this.__selectionStart__;
+            }
+        }
+        else if (!value) //没有选中没有替换则退出
+        {
+            return;
+        }
+
+        var lines = this.__lines__,
+            text = this.__text__,
+            index = lines.binary_between(function (index) {
+
+                return lines[index].start - start;
+            });
+
+        //清除逻辑行
+        this.__rows__.clear();
+
+        //清除以后物理行测量
+        lines.index = index;
+        lines.count = index > 0 ? lines[index - 1].end : 0;
+        lines.splice(index, lines.length - index);
+
+        //修改文字
+        this.__text__ = text.substring(0, start) + value + text.substring(end);
+        this.layout();
+    };
+
 
 
     //物理行集合
@@ -167,12 +391,16 @@
     //初始化物理行集合默认值
     (function () {
 
-        this.measure_length = 0;    //已测量文字数
-        this.measure_index = 0;     //测量过的索引
-        this.measure_width = 0;     //已测量总宽
+        this.index = 0;     //测量过的索引
 
-        this.maxWidth = 0;          //已测量的最大行宽
-        this.dirty = true;          //需要测量
+        this.maxWidth = 0;  //已测量的最大行宽
+        this.dirty = true;  //需要测量
+
+        //获取已测量的文字数
+        this.measure_length = function () {
+
+            return this.index > 0 ? this[this.index - 1].end : 0;
+        };
 
     }).call(measure_lines.prototype = pseudo_array());
 
@@ -200,16 +428,15 @@
     //\u0400-\u04ff 西里尔字母
 
     //拆分
-    function split_text() {
+    function split_text(start) {
 
         var lines = this.__lines__ = new measure_lines(),
             text = this.__text__,
-            length = text.length;
+            length = text.length,
+            end;
 
         if (this.multiline) //多行时按行截断
         {
-            var start = 0, end;
-
             while ((end = text.indexOf("\n", start)) > 0)
             {
                 new measure_line(lines, start, end);
@@ -231,37 +458,45 @@
     function measure_text() {
 
         var lines = this.__lines__,
-            line = lines[lines.measure_index++],
+            line = lines[lines.index++],
+            text = this.__text__,
+            letterSpacing = this.__letterSpacing__,
+            wordSpacing = this.__wordSpacing__,
             storage = this.__font__.__storage__,
             chinese = storage.chinese,
-            index = line.start, //文本索引号
-            width = 0,          //行宽
-            text = this.__text__.substring(index, line.end),
-            length = text.length;
+            width = 0;          //行宽
 
         //每次处理一个字符效率差一些,但处理简单且不会有测量误差
         //使用局部测量及绘制以提升效率
-        for (var i = 0; i < length; i++)
+        for (var i = line.start, end = line.end; i < end; i++)
         {
             line.push(width);
 
-            var item = text[i];
-            width += item >= "\u2e80" ? chinese : storage[item] || (storage[item] = storage.context.measureText(item).width);
+            var letter = text[i];
+
+            width += letter >= "\u2e80" ? chinese : storage[letter] || (storage[letter] = storage.context.measureText(letter).width);
+
+            if (letterSpacing && i + 1 < end) //不是最后一个
+            {
+                width += letterSpacing;
+            }
+
+            if (wordSpacing && letter === " ")
+            {
+                width += word;
+            }
         }
 
         line.push(line.width = width);  //行宽
-
-        lines.measure_length += length;   //已测量文字数
-        lines.measure_width += width;     //已测量总宽
 
         if (width > lines.maxWidth)
         {
             lines.maxWidth = width;     //记录最大行宽
         }
 
-        if (lines.measure_index >= lines.length)
+        if (lines.index >= lines.length)
         {
-            lines.dirty = false; //标记已测量完
+            lines.dirty = false;        //标记已测量完
         }
 
         return line;
@@ -272,7 +507,7 @@
     //逻辑行集合
     function text_rows() { };
 
-    text_rows.prototype = pseudo_array();
+    (text_rows.prototype = pseudo_array()).offset = 0; //行偏移
 
 
     //逻辑行
@@ -289,13 +524,14 @@
         this.item_start = 0;    //开始子项索引
         this.item_end = 0;      //结束子项索引
 
+        this.indent = 0;    //缩进
         this.width = 0;     //行宽
 
     }).call(text_row.prototype);
 
 
     //排列
-    function layout() {
+    prototype.layout = function () {
 
         var rows = this.__rows__;
 
@@ -308,10 +544,14 @@
 
             if (!this.__lines__) //需要重新测量
             {
-                split_text.call(this);
+                split_text.call(this, 0);
             }
 
             this.__dirty__ = false;
+        }
+        else if (!this.__lines__.dirty) //没有未测量的物理行则退出
+        {
+            return;
         }
 
         (this.multiline ? (this.wrap ? layout_wrap : layout_rows) : layout_row).call(this, rows); //排列
@@ -321,30 +561,65 @@
     //排列单行文字 排列逻辑行
     function layout_row(rows) {
 
-        var lines = this.__lines__,                 //物理行集合
-            line,                                   //物理行
-            row;                                    //逻辑行
+        var row = rows[0],              //逻辑行
+            align,
+            cache;
 
-        if (lines.dirty)
+        if (!row || this.__lines__.dirty)
         {
-            line = measure_text.call(this);
-            row = new text_row(rows, line);
-
-            this.__scrollWidth__ = row.width = row.line.width;
-            this.__scrollHeight__ = this.__lineHeight__;
+            row = new text_row(rows, measure_text.call(this));
+            row.width = row.line.width;
         }
+
+        rows.offset = 0;
+        row.indent = this.indent + this.offset;
+
+        if (align = this.textAlign)
+        {
+            if (cache = this.__width__ - row.width)
+            {
+                switch (align.horizontal)
+                {
+                    case "center":
+                        row.indent += cache >> 1;
+                        break;
+
+                    case "right":
+                        row.indent += cache;
+                        break;
+                }
+            }
+
+            if (cache = this.__height__ - this.__font__.__font_height__)
+            {
+                switch (align.vertical)
+                {
+                    case "middle":
+                        rows.offset += cache >> 1;
+                        break;
+
+                    case "bottom":
+                        rows.offset += cache;
+                        break;
+                }
+            }
+        }
+
+        this.__scrollWidth__ = row.offset + row.width;
+        this.__scrollHeight__ = rows.space + this.__lineHeight__;
     };
 
     //排列多行文字
     function layout_rows(rows) {
 
         var lines = this.__lines__,     //物理行集合
-            lineHeight = this.__lineHeight__, //行高
+            wslineHeight = this.__lineHeight__, //行高
             count = Math.ceil((this.scrollTop + this.__height__) / lineHeight);
 
         while (lines.dirty && rows.length < count)
         {
-            new text_row(rows, measure_text.call(this));
+            var row = new text_row(rows, measure_text.call(this));
+            row.indent = rows.length === 1 ? this.indent + this.offset : this.indent;
         }
 
         this.__scrollWidth__ = lines.maxWidth;
@@ -359,6 +634,8 @@
         var text = this.__text__,
             lines = this.__lines__,     //物理行集合
             lineHeight = this.__lineHeight__, //行高
+            indent = this.indent,
+            offset = this.offset,
             maxWidth = this.__width__,
             count = Math.ceil((this.scrollTop + this.__height__) / lineHeight);
 
@@ -370,15 +647,15 @@
         while (lines.dirty && rows.length < count)
         {
             var line = measure_text.call(this),                 //物理行
-                row,                                            //逻辑行
-                width = rows.length == 0 ? maxWidth - this.offsetX : maxWidth,
                 start = 0,
-                end = 0,
                 length = line.length;
+
 
             while (start < length)
             {
-                end = line.binary_between(line[start] + width);
+                var row = new text_row(rows, line),    //逻辑行
+                    width = start === 0 ? maxWidth - indent - (rows.length === 0 ? offset : 0) : maxWidth,
+                    end = line.binary_between(line[start] + width);
 
                 if (line[end] > width + line[start])
                 {
@@ -391,7 +668,7 @@
                     end--;
                 }
 
-                if (end == start)
+                if (end === start)
                 {
                     while (regex.test(text[line.start + end]))
                     {
@@ -399,17 +676,19 @@
                     }
                 }
 
-                row = new text_row(rows, line);    //逻辑行
                 row.item_start = start;
                 row.item_end = end;
+                row.indent = start === 0 ? indent + offset : indent;
 
                 start = end + 1;
             }
         }
 
         this.__scrollWidth__ = maxWidth;
-        this.__scrollHeight__ = Math.ceil(rows.length * lineHeight * lines.length / lines.measure_index);
+        this.__scrollHeight__ = Math.ceil(rows.length * lineHeight * text.length / lines.count);
     };
+
+
 
 
     //获取指定坐标的文字信息
@@ -423,7 +702,7 @@
             item;
 
         x += this.scrollLeft;
-        y += this.scrollTop + this.offsetY;
+        y += this.scrollTop + rows.offset;
 
         switch (rows.length)
         {
@@ -442,20 +721,15 @@
                 break;
         }
 
-        if (index == 0 && (x -= this.offsetX) < 0)
-        {
-            x = 0;
-        }
-
         row = rows[index];
         line = row.line;
-        item = line.binary_between(x + line[row.item_start], row.item_start, row.item_end - 1);
+        item = line.binary_between(Math.max(x - row.indent, 0) + 2 + line[row.item_start], row.item_start, row.item_end);
 
         return {
 
-            x: (index == 0 ? this.offsetX : 0) + line[item] - line[row.item_start],
-            y: this.offsetY + index * lineHeight,
-            index: line.start + item
+            x: row.indent + line[item] - line[row.item_start],
+            y: rows.offset + index * lineHeight,
+            index: line.start + (line.length === item + 1 ? item - 1 : item)
         };
     };
 
@@ -482,11 +756,6 @@
         //无文字时不处理
         if (text)
         {
-            if (this.__dirty__ || this.__lines__.dirty) //先测量未测量的文字
-            {
-                layout.call(this);
-            }
-
             var lineHeight = this.__lineHeight__,
                 rows = this.__rows__,       //逻辑行集合
                 row_start = 0,              //起始可视行
@@ -494,7 +763,7 @@
                 width = this.__width__,
                 selectionStart = this.__selectionStart__,   //开始选中文字索引
                 selectionEnd = this.__selectionEnd__,       //终止选中文字索引
-                selection = selectionStart != selectionEnd, //是否有选中文字
+                selection = selectionStart !== selectionEnd, //是否有选中文字
                 selection_start,
                 selection_end,
                 cache;
@@ -544,13 +813,8 @@
                 }
 
                 //每次渲染一个字符以避免某些浏览器(如IE)测量多个字符不等于单个字符之和的误差
-                var x = windowX - line[item_start],
-                    y = windowY + i * lineHeight + this.offsetY;
-
-                if (i == 0)
-                {
-                    x += this.offsetX;
-                }
+                var x = windowX + row.indent - line[item_start],
+                    y = windowY + i * lineHeight + rows.offset;
 
                 if (selection && !(selectionStart > char_start + item_end || selectionEnd < char_start + item_start)) //绘制选中
                 {
@@ -567,13 +831,13 @@
                     }
 
                     //绘制选中背景
-                    if (context.fillStyle = flyingon.selectionText_backgroundColor)
+                    if (context.fillStyle = selection.backgroundColor)
                     {
                         context.fillRect(line[selection_start] + x, y, line[selection_end] - line[selection_start], lineHeight);
                     }
 
                     //绘制选中文字
-                    context.fillStyle = flyingon.selectionText_color;
+                    context.fillStyle = selection.color;
 
                     for (var j = selection_start; j <= selection_end; j++)
                     {
@@ -598,78 +862,6 @@
                 }
             }
         }
-    };
-
-
-    //计算文本对齐(仅对单行文本有效)
-    prototype.textAlign = function (align) {
-
-        var x = 0, y = 0, cache;
-
-        if (align)
-        {
-            if (cache = this.__width__ - row.width)
-            {
-                switch (align.horizontal)
-                {
-                    case "center":
-                        x += cache >> 1;
-                        break;
-
-                    case "right":
-                        x += cache;
-                        break;
-                }
-            }
-
-            if (cache = this.__height__ - this.__font__.__height__)
-            {
-                switch (align.vertical)
-                {
-                    case "middle":
-                        y += cache >> 1;
-                        break;
-
-                    case "bottom":
-                        y += cache;
-                        break;
-                }
-            }
-        }
-
-        return { x: x, y: y };
-    };
-
-    prototype.replace = function (text) {
-
-        if (text)
-        {
-            var start = this.__selectionStart__,
-                end = this.__selectionEnd__;
-
-            if (start != end)
-            {
-                if (start > end)
-                {
-                    start = end;
-                    end = this.__selectionStart__;
-                }
-
-                var value = this.__text__;
-
-            }
-        }
-    };
-
-
-    prototype.remove = function (length) {
-
-        if (!this.selectedText)
-        {
-            this.selectionTo(this.selectionEnd + length); //未选择
-        }
-
-        this.replace("");
     };
 
 

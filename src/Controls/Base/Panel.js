@@ -39,7 +39,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
     var attributes = {
 
-        attributes: "locate|style",
+        attributes: "layout|style",
         changed: "boxModel.scrollLeft = 0;\nboxModel.scrollTop = 0;"
     };
 
@@ -54,11 +54,9 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     //absolute: 绝对定位
     this.defineProperty("layout", "flow", attributes);
 
+    //是否纵向排列
+    this.defineProperty("vertical", false, attributes);
 
-    //排列方向
-    //horizontal: 横向
-    //vertical:   纵向
-    this.defineProperty("orientation", "horizontal", attributes);
 
     //镜向变换 以容器中心点作为变换坐标原点
     //none: 不变换
@@ -118,7 +116,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (item.visibility != "collapsed"))
+            if (box.visible = (item.visibility !== "collapsed"))
             {
                 box.measure(x, 0, 0, 0, width - x, height, null, height);
 
@@ -160,7 +158,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (item.visibility != "collapsed"))
+            if (box.visible = (item.visibility !== "collapsed"))
             {
                 box.measure(0, y, 0, 0, width, height - y, width);
 
@@ -184,10 +182,9 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     };
 
     //线性布局 spaceX
-    layouts.line = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.line = function (items, clientRect, vertical, spaceX, spaceY) {
 
-        var fn = orientation == "horizontal" ? line_horizontal : line_vertical;
-        fn.call(this, items, clientRect, spaceX, spaceY);
+        (vertical ? line_horizontal : line_vertical).call(this, items, clientRect, spaceX, spaceY);
     };
 
 
@@ -215,7 +212,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (item.visibility != "collapsed"))
+            if (box.visible = (item.visibility !== "collapsed"))
             {
                 box.measure(x, y, 0, 0, maxWidth - x, lineHeight, null, lineHeight);
 
@@ -297,7 +294,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (this.visibility != "collapsed"))
+            if (box.visible = (this.visibility !== "collapsed"))
             {
                 box.measure(x, y, 0, 0, lineWidth, maxHeight - y, lineWidth);
 
@@ -356,15 +353,14 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     };
 
     //流式布局 spaceX
-    layouts.flow = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.flow = function (items, clientRect, vertical, spaceX, spaceY) {
 
-        var fn = orientation == "horizontal" ? flow_horizontal : flow_vertical;
-        fn.call(this, items, clientRect, spaceX, spaceY);
+        (vertical ? flow_horizontal : flow_vertical).call(this, items, clientRect, spaceX, spaceY);
     };
 
 
     //单个显示 index
-    layouts.single = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.single = function (items, clientRect, vertical, spaceX, spaceY) {
 
         var index = this.index,
             length = items.length;
@@ -383,7 +379,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (i == index))
+            if (box.visible = (i === index))
             {
                 box.measure(0, 0, clientRect.width, clientRect.height);
             }
@@ -392,7 +388,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
 
     //停靠布局 spaceX spaceY dock
-    layouts.dock = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.dock = function (items, clientRect, vertical, spaceX, spaceY) {
 
         var x = 0,
             y = 0,
@@ -411,7 +407,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (item.visibility != "collapsed"))
+            if (box.visible = (item.visibility !== "collapsed"))
             {
                 if (width <= 0 || height <= 0)
                 {
@@ -480,12 +476,10 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
 
     //队列布局 columns rows spaceX spaceY
-    layouts.queue = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.queue = function (items, clientRect, vertical, spaceX, spaceY) {
 
 
-        var horizontal = orientation == "horizontal",
-
-            rows = this.rows,
+        var rows = this.rows,
             columns = this.columns,
             count = (rows = rows > 0 ? rows : 3) * (columns = (columns > 0 ? columns : 3)),
             row = 0,
@@ -526,22 +520,9 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = row < rows && column < columns && item.visibility != "collapsed")
+            if (box.visible = row < rows && column < columns && item.visibility !== "collapsed")
             {
-                if (horizontal)
-                {
-                    var width = width_cache[column++],
-                        height = height_cache[row];
-
-                    box.measure(width[0], height[0], width[1], height[1]);
-
-                    if (column >= columns)
-                    {
-                        column = 0;
-                        row++;
-                    }
-                }
-                else
+                if (vertical)
                 {
                     var width = width_cache[column],
                         height = height_cache[row++];
@@ -554,6 +535,19 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
                         column++;
                     }
                 }
+                else
+                {
+                    var width = width_cache[column++],
+                        height = height_cache[row];
+
+                    box.measure(width[0], height[0], width[1], height[1]);
+
+                    if (column >= columns)
+                    {
+                        column = 0;
+                        row++;
+                    }
+                }
             }
         }
     };
@@ -561,7 +555,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
     //网格布局 grid spaceX spaceY
     //示例: "T R* C* C* C* R* C* C* C* R* C* C* C* END"
-    layouts.grid = function (items, clientRect, orientation, spaceX, spaceY) {
+    layouts.grid = function (items, clientRect, vertical, spaceX, spaceY) {
 
         var grid = this.grid;
 
@@ -574,7 +568,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         grid.spaceY = spaceY;
 
         grid.compute(clientRect.width, clientRect.height);
-        grid.match(items, orientation == "vertical");
+        grid.match(items, vertical);
     };
 
 
@@ -588,7 +582,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             var item = items[i],
                 box = item.__boxModel__;
 
-            if (box.visible = (this.visibility != "collapsed"))
+            if (box.visible = (this.visibility !== "collapsed"))
             {
                 box.measure(item.left, item.top, item.width, item.height);
 
@@ -609,7 +603,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
     //注册自定义布局 
     //注意:
-    //1. 遵守回调函数规范(items, clientRect, orientation, spaceX, spaceY)
+    //1. 遵守回调函数规范(items, clientRect, vertical, spaceX, spaceY)
     //2. 按需设置盒模型的scrollWidth及scrollHeight值
     Class.registryLayout = function (name, fn) {
 
@@ -628,7 +622,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             items,
             length;
 
-        if (mirror != "none" && (items = boxModel.children) && (length = items.length) > 0)
+        if (mirror !== "none" && (items = boxModel.children) && (length = items.length) > 0)
         {
             switch (this.mirror) //处理镜像变换
             {
@@ -682,21 +676,19 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
                 var spaceX = this.spaceX,
                     spaceY = this.spaceY;
 
-                if (typeof spaceX != "number")
+                if (typeof spaceX !== "number")
                 {
                     spaceX = flyingon.parseInt(spaceX, clientRect.width);
                 }
 
-                if (typeof spaceY != "number")
+                if (typeof spaceY !== "number")
                 {
                     spaceY = flyingon.parseInt(spaceY, clientRect.height);
                 }
 
-                fn.call(this, items, clientRect, this.orientation, spaceX, spaceY);
+                fn.call(this, items, clientRect, this.vertical, spaceX, spaceY);
             }
         }
-
-        return this;
     };
 
 
@@ -726,7 +718,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
                 if (item.visible &&
                     item.right >= x &&
                     item.bottom >= y &&
-                    item.ownerControl.visibility == "visible" &&
+                    item.ownerControl.visibility === "visible" &&
                     (!clipToBounds || (item.x < right && item.y < bottom)))
                 {
                     result.push(item);
@@ -747,7 +739,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         //判断滚动条
         var result = base.findAt.call(this, x, y);
 
-        if (result != this)
+        if (result !== this)
         {
             return result;
         }

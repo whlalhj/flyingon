@@ -129,7 +129,7 @@
                     ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                     ctrl.align = "middle,center";
 
-                    panel.children.add(ctrl);
+                    panel.children.append(ctrl);
 
                     switch (i % 5)
                     {
@@ -187,7 +187,7 @@
                     alert(event);
                 });
 
-                w.children.add(panel);
+                w.children.append(panel);
 
             }
 

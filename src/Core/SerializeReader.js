@@ -12,12 +12,12 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (data)
         {
-            if (data.constructor == String)
+            if (data.constructor === String)
             {
-                data = data[0] == "<" ? flyingon.parseXml : this.parse(data);
+                data = data[0] === "<" ? flyingon.parseXml : this.parse(data);
             }
 
-            var result = this[data.constructor == Array ? "array" : "object"](null, null, data);
+            var result = this[data.constructor === Array ? "array" : "object"](null, null, data);
 
             this.__fn_complete__(this, context || result);
             return result;
@@ -47,7 +47,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                 {
                     if (binding = bindings[name])
                     {
-                        if (binding.constructor == String)
+                        if (binding.constructor === String)
                         {
                             binding = new flyingon.DataBinding(context, binding);
                         }
@@ -55,7 +55,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                         {
                             if (source = binding.source)
                             {
-                                if (source.constructor == String)
+                                if (source.constructor === String)
                                 {
                                     binding.source = (references && references[source]) || context;
                                 }
@@ -91,7 +91,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         switch (typeof value)
         {
             case "object":
-                return this[value.constructor == Array ? "array" : "object"](null, null, value);
+                return this[value.constructor === Array ? "array" : "object"](null, null, value);
 
             case "function":
                 return value ? new Function("" + value) : null;
@@ -239,9 +239,9 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         {
             var fn = value.constructor;
 
-            if (fn != String)
+            if (fn !== String)
             {
-                value = this[fn == Array ? "array" : "object"](target, name, value);
+                value = this[fn === Array ? "array" : "object"](target, name, value);
             }
             else
             {

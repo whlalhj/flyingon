@@ -13,6 +13,12 @@
 
     <script type="text/javascript">
 
+        
+
+        var time = flyingon.performance("", 1000000);
+        alert(time);
+
+
         var text = "";
 
         for (var i = 0; i < 1000; i++)
@@ -22,7 +28,7 @@
 
         var date = new Date();
 
-        text = new flyingon.Text(text);
+        text = new flyingon.TextPainter(text);
         text.multiline = true;
         text.wrap = true;
         text.width = 1000;
@@ -38,6 +44,8 @@
         var context = canvas.getContext("2d");
 
         context.textBaseline = "top";
+
+        text.layout();
         text.paint(context, 0, 0);
 
         alert(new Date() - date);
@@ -47,6 +55,10 @@
 
             var result = text.hitTest(event.offsetX, event.offsetY);
             alert(result.x + " " + result.y + " " + result.index);
+
+            text.replace("YYYYYYY");
+            text.selectionLength = 4;
+            text.paint(context, 0, 0);
         };
 
 

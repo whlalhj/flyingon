@@ -172,7 +172,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
         {
             var segment = segments[i];
 
-            if (segment[0] == "<") //如果是标签
+            if (segment[0] === "<") //如果是标签
             {
                 if (!(name = segment.match(/[\w\.\:_\-\u0370-\uffff]+/)))
                 {
@@ -181,7 +181,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
 
                 name = name[0];
 
-                if (segment[1] != "/") //开始标签
+                if (segment[1] !== "/") //开始标签
                 {
                     if (type = segment.match(/type\s*=\s*[\"\']/))
                     {
@@ -191,7 +191,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                     else if (length > i + 1) //未指定类型时有子项则为对象否则为字符串
                     {
                         var text = segments[i + 1];
-                        type = text[0] == "<" && text[1] != "/" ? "object" : "string";
+                        type = text[0] === "<" && text[1] !== "/" ? "object" : "string";
                     }
                     else
                     {
@@ -250,7 +250,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             value = nodes.pop();
 
                             //根节点时返回(不处理根节点名称)
-                            if (nodes.length == 0)
+                            if (nodes.length === 0)
                             {
                                 return value;
                             }
@@ -259,7 +259,7 @@ xmlDoc.documentElement.childNodes(0).hasChild,可以判断是否有子节点
                             break;
                     }
 
-                    if (node.constructor == Array)
+                    if (node.constructor === Array)
                     {
                         node.push(value);
                     }

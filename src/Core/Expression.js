@@ -42,7 +42,7 @@
                 case "\"":
                     if (!escape)
                     {
-                        quote ? (quote == value && (quote = null)) : (quote = value);
+                        quote ? (quote === value && (quote = null)) : (quote = value);
                     }
                     else
                     {
@@ -55,7 +55,7 @@
                     break;
 
                 default:
-                    if (value[0] == "@" && !quote)
+                    if (value[0] === "@" && !quote)
                     {
                         value = values[i] = value.substring(1);
 

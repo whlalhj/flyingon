@@ -133,7 +133,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //元素节点
-    var Selector_Element = flyingon.Selector_Element = function (type, token, name, previous) {
+    var Selector_Element = flyingon.Selector_Element = (function (type, token, name, previous) {
 
         this.type = type;
         this.token = token;
@@ -155,15 +155,13 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             previous.next = this;
             this.previous = previous;
 
-            if (type == ",")
+            if (type === ",")
             {
                 this.previous_type = previous.type;
             }
         }
-    };
 
-
-    (function () {
+    }).extend(function () {
 
         //所属组合类型
         this.type = null;
@@ -190,7 +188,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             result.push(this.type);
             result.push(this.token);
 
-            if (this.name != "*")
+            if (this.name !== "*")
             {
                 result.push(this.name);
             }
@@ -212,14 +210,14 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         };
 
 
-    }).call(Selector_Element.prototype = flyingon.__pseudo_array__());
+    }, true);
 
 
 
 
 
     //属性节点 
-    var Selector_Property = flyingon.Selector_Property = function (name) {
+    var Selector_Property = flyingon.Selector_Property = (function (name) {
 
         switch (name[0])
         {
@@ -232,9 +230,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 this.name = name;
                 break;
         }
-    };
 
-    (function () {
+    }).extend(function () {
 
         //符号
         this.token = "[]";
@@ -262,10 +259,10 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
 
                 case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return value && ("" + value).indexOf(this.value) == 0 ? target : false;
+                    return value && ("" + value).indexOf(this.value) === 0 ? target : false;
 
                 case "$=": // $= 属性值以XX结尾 (由属性解析)
-                    return value && (value = "" + value).lastIndexOf(this.value) == value.length - this.value.length ? target : false;
+                    return value && (value = "" + value).lastIndexOf(this.value) === value.length - this.value.length ? target : false;
 
                 case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
                     return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
@@ -285,17 +282,16 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             return "[" + this.name + "]";
         };
 
-    }).call(Selector_Property.prototype);
+    });
 
 
 
     //属性集
-    var Selector_Properties = flyingon.Selector_Properties = function (item) {
+    var Selector_Properties = flyingon.Selector_Properties = (function (item) {
 
         this.push(item);
-    };
 
-    (function () {
+    }).extend(function () {
 
         this.token = "[][]";
 
@@ -325,13 +321,13 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             return "[" + result.join(",") + "]";
         };
 
-    }).call(Selector_Properties.prototype = flyingon.__pseudo_array__());
+    }, true);
 
 
 
 
     //伪类(不包含伪元素)
-    var Selector_Pseudo_Class = flyingon.Selector_Pseudo_Class = function (name) {
+    var Selector_Pseudo_Class = flyingon.Selector_Pseudo_Class = (function (name) {
 
         switch (name[0])
         {
@@ -344,9 +340,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 this.name = name;
                 break;
         }
-    };
 
-    (function () {
+    }).extend(function () {
 
         this.token = ":";
 
@@ -368,7 +363,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     return !target.states || !target.states.disabled ? target : false;
 
                 case "empty":
-                    return !target.__children__ || target.__children__.length == 0 ? target : false;
+                    return !target.__children__ || target.__children__.length === 0 ? target : false;
 
                 default: //伪元素 element_fn:伪元素查询方法
                     return element_fn ? element_fn[this.name].call(this, target) : false;
@@ -382,7 +377,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             return ":" + this.name;
         };
 
-    }).call(Selector_Pseudo_Class.prototype = flyingon.__pseudo_array__());
+    }, true);
 
 
 
@@ -539,7 +534,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     break;
 
                 case " ":  //后代选择器标记
-                    if (i == 1 || values[i - 2] != type) //前一个节点是类型则忽略
+                    if (i === 1 || values[i - 2] !== type) //前一个节点是类型则忽略
                     {
                         type = token;
                     }
@@ -568,7 +563,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                         var item = new Selector_Pseudo_Class(token);
 
                         //处理参数
-                        if (i < length && values[i] == "(")
+                        if (i < length && values[i] === "(")
                         {
                             i += parse_parameters.call(item, values, length, ++i);
                         }

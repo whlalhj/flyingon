@@ -23,7 +23,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     //获取指定项的索引
     this.indexOf = function indexOf(item) {
 
-        if (item && typeof item == "object") //缓存索引以加快检索速度
+        if (item && typeof item === "object") //缓存索引以加快检索速度
         {
             var cache = this.__index_cache__ || (this.__index_cache__ = {}),
                 id = item.__uniqueId__ || (item.__uniqueId__ = ++flyingon.__uniqueId__);
@@ -39,7 +39,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
 
     //添加子项
-    this.add = function (item) {
+    this.append = function (item) {
 
         var fn = this.__fn_validate__;
 
@@ -51,7 +51,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     };
 
     //添加多个子项
-    this.addRange = function (items) {
+    this.appendRange = function (items) {
 
         if (items && items.length > 0)
         {

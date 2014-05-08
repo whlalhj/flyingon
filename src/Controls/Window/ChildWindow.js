@@ -88,7 +88,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
             };
         }
 
-        this.__children__.add(result);
+        this.__children__.append(result);
         return result;
     };
 
@@ -169,7 +169,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
 
     this.__fn_measure__ = function (boxModel, width) {
 
-        var y = (this.visibility == "visible" && this.height) || 0;
+        var y = (this.visibility === "visible" && this.height) || 0;
 
         this.__boxModel__.measure(0, 0, width, y).compute();
         return y;
@@ -271,7 +271,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
         host.appendChild(this.dom_window);
 
         this.activate(true);
-        this.update(this.startPosition == "center");
+        this.update(this.startPosition === "center");
     };
 
     this.show = function (parentWindow) {

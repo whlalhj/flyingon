@@ -124,7 +124,7 @@
         this["first-of-type"] = function (target) {
 
             var result, cache = target.__children__;
-            return cache && cache.length > 0 && (result = cache[0]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
+            return cache && cache.length > 0 && (result = cache[0]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
         };
 
         this["last-child"] = function (target) {
@@ -136,19 +136,19 @@
         this["last-of-type"] = function (target) {
 
             var result, cache = target.__children__;
-            return cache && cache.length > 0 && (result = cache[cache.length - 1]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
+            return cache && cache.length > 0 && (result = cache[cache.length - 1]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
         };
 
         this["only-child"] = function (target) {
 
             var cache = target.__children__;
-            return (cache && cache.length == 1 && cache[0]) || false;
+            return (cache && cache.length === 1 && cache[0]) || false;
         };
 
         this["only-of-type"] = function (target) {
 
             var result, cache = target.__children__;
-            return cache && cache.length == 1 && (result = cache[0]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
+            return cache && cache.length === 1 && (result = cache[0]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
         };
 
         this["nth-child"] = function (target) {
@@ -160,7 +160,7 @@
         this["nth-of-type"] = function (target) {
 
             var result, cache = target.__children__, index = +this.value;
-            return cache && cache.length > index && (result = cache[index]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
+            return cache && cache.length > index && (result = cache[index]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
         };
 
         this["nth-last-child"] = function (target) {
@@ -172,7 +172,7 @@
         this["nth-last-of-type"] = function (target) {
 
             var result, cache = target.__children__, index = +this.value;
-            return cache && cache.length > index && (result = cache[cache.length - index - 1]) && target.__fullTypeName__ == result.__fullTypeName__ ? result : false;
+            return cache && cache.length > index && (result = cache[cache.length - index - 1]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
         };
 
         return this;
@@ -187,7 +187,7 @@
         switch (this.token)
         {
             case "":  //类型
-                if (target.__fullTypeName__ != this.name)
+                if (target.__fullTypeName__ !== this.name)
                 {
                     return false;
                 }
@@ -201,7 +201,7 @@
                 break;
 
             case "#": //id
-                if (target.id != this.name)
+                if (target.id !== this.name)
                 {
                     return false;
                 }
@@ -233,7 +233,7 @@
 
             if (element = element.next)
             {
-                if (element.type != ",") //非组合则把当前集合作为查询依据
+                if (element.type !== ",") //非组合则把当前集合作为查询依据
                 {
                     items = exports;
                     exports = [];

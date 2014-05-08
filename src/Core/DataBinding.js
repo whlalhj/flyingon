@@ -18,7 +18,7 @@
             var keys = Object.keys(binding),
                 length = keys.length;
 
-            if (length == 0)
+            if (length === 0)
             {
                 delete bindings[name];
             }
@@ -73,8 +73,7 @@
 
 
 
-
-    var prototype = (flyingon.DataBinding = function (source, expression, setter) {
+    flyingon.DataBinding = (function (source, expression, setter) {
 
         if (source)
         {
@@ -89,221 +88,226 @@
             this.__setter__ = setter;
         }
 
-    }).prototype;
+    }).extend(function () {
 
 
-    var defineProperty = function (name) {
+        var self = this,
 
-        flyingon.defineProperty(prototype, name, function () {
+            defineProperty = function (name) {
 
-            return this["__" + name + "__"];
-        });
-    };
+                flyingon.defineProperty(self, name, function () {
 
-
-
-    //绑定目标
-    defineProperty("target");
-
-    //绑定目标属性名
-    defineProperty("name");
-
-    //绑定源
-    defineProperty("source");
-
-    //绑定表达式
-    defineProperty("expression");
-
-    //更新表达式
-    defineProperty("setter");
+                    return this["__" + name + "__"];
+                });
+            };
 
 
 
+        //绑定目标
+        defineProperty("target");
 
-    //是否正在处理绑定
-    prototype.__binding__ = false;
+        //绑定目标属性名
+        defineProperty("name");
 
-    //获取值函数
-    prototype.__fn_getter__ = null;
+        //绑定源
+        defineProperty("source");
 
-    //设置值函数
-    prototype.__fn_setter__ = null;
+        //绑定表达式
+        defineProperty("expression");
 
-
-
-    //初始化绑定关系
-    prototype.__fn_initialize__ = function (target, name) {
-
-        var source = this.__source__,
-            expression = this.__expression__,
-            bindings = target.__bindings__ || (target.__bindings__ = {}),
-            id = target.id || (target.id = flyingon.newId()),
-            cache;
+        //更新表达式
+        defineProperty("setter");
 
 
-        this.__target__ = target;
-        this.__name__ = name;
 
 
-        //缓存目标
-        if (cache = bindings.pull)
-        {
-            //一个目标属性只能绑定一个
-            if (cache[name])
+        //是否正在处理绑定
+        this.__binding__ = false;
+
+        //获取值函数
+        this.__fn_getter__ = null;
+
+        //设置值函数
+        this.__fn_setter__ = null;
+
+
+
+        //初始化绑定关系
+        this.__fn_initialize__ = function (target, name) {
+
+            var source = this.__source__,
+                expression = this.__expression__,
+                bindings = target.__bindings__ || (target.__bindings__ = {}),
+                id = target.id || (target.id = flyingon.newId()),
+                cache;
+
+
+            this.__target__ = target;
+            this.__name__ = name;
+
+
+            //缓存目标
+            if (cache = bindings.pull)
             {
-                cache[name].clear();
+                //一个目标属性只能绑定一个
+                if (cache[name])
+                {
+                    cache[name].clear();
+                }
+
+                cache[name] = this;
+            }
+            else
+            {
+                (bindings.pull = {})[name] = this;
             }
 
-            cache[name] = this;
-        }
-        else
-        {
-            (bindings.pull = {})[name] = this;
-        }
 
 
+            bindings = source.__bindings__ || (source.__bindings__ = { push: {} });
+            bindings = bindings.push || (bindings.push = {});
 
-        bindings = source.__bindings__ || (source.__bindings__ = { push: {} });
-        bindings = bindings.push || (bindings.push = {});
-
-        //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
-        if (expression.match(/^\d|[^\w]/))
-        {
-            cache = (this.__fn_getter__ = new flyingon.Expression(expression)).parameters;
-
-            for (var i = 0, length = cache.length; i < length; i++)
+            //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
+            if (expression.match(/^\d|[^\w]/))
             {
-                expression = cache[i];
+                cache = (this.__fn_getter__ = new flyingon.Expression(expression)).parameters;
+
+                for (var i = 0, length = cache.length; i < length; i++)
+                {
+                    expression = cache[i];
+                    (bindings[expression] || (bindings[expression] = {}))[id] = this;
+                }
+            }
+            else
+            {
+                this.__fn_getter__ = null;
                 (bindings[expression] || (bindings[expression] = {}))[id] = this;
             }
-        }
-        else
-        {
-            this.__fn_getter__ = null;
-            (bindings[expression] || (bindings[expression] = {}))[id] = this;
-        }
 
 
-        //处理更新
-        if (cache = this.__setter__)
-        {
-            this.__fn_setter__ = new flyingon.Expression(cache);
-        }
-    };
-
-
-
-    //从数据源同步数据至目标属性
-    prototype.pull = function () {
-
-        var source = this.__source__,
-            result;
-
-        if (result = this.__fn_getter__)
-        {
-            result = result.eval(source);
-        }
-        else
-        {
-            var name = this.__expression__;
-            if ((result = source[name]) === undefined && source instanceof flyingon.DataObject)
+            //处理更新
+            if (cache = this.__setter__)
             {
-                 result = source.value(name);
+                this.__fn_setter__ = new flyingon.Expression(cache);
             }
-        }
-
-        this.__binding__ = true;
-        this.__target__[this.__name__] = result;
-        this.__binding__ = false;
-    };
+        };
 
 
-    //从目标属性同步数据至源
-    prototype.push = function () {
 
-        var cache = this.__expression__;
+        //从数据源同步数据至目标属性
+        this.pull = function () {
 
-        if (cache)
-        {
-            this.__binding__ = true;
+            var source = this.__source__,
+                result;
 
-            if (!this.__fn_getter__) //直接绑定字段
+            if (result = this.__fn_getter__)
             {
-                var target = this.__target__,
-                    name = this.__name__;
-
-                if ((result = target[name]) === undefined && target instanceof flyingon.DataObject)
+                result = result.eval(source);
+            }
+            else
+            {
+                var name = this.__expression__;
+                if ((result = source[name]) === undefined && source instanceof flyingon.DataObject)
                 {
-                    result = target.value(name);
+                    result = source.value(name);
+                }
+            }
+
+            this.__binding__ = true;
+            this.__target__[this.__name__] = result;
+            this.__binding__ = false;
+        };
+
+
+        //从目标属性同步数据至源
+        this.push = function () {
+
+            var cache = this.__expression__;
+
+            if (cache)
+            {
+                this.__binding__ = true;
+
+                if (!this.__fn_getter__) //直接绑定字段
+                {
+                    var target = this.__target__,
+                        name = this.__name__;
+
+                    if ((result = target[name]) === undefined && target instanceof flyingon.DataObject)
+                    {
+                        result = target.value(name);
+                    }
+
+                    this.__source__[cache] = result;
+                }
+                else if (cache = this.__fn_setter__) //表达式需要自定义setter方法
+                {
+                    cache.call(this.__target__);
                 }
 
-                this.__source__[cache] = result;
+                this.__binding__ = false;
             }
-            else if (cache = this.__fn_setter__) //表达式需要自定义setter方法
+        };
+
+
+        //清除绑定关系
+        this.clear = function (dispose) {
+
+            var source = this.__source__,
+                target = this.__target__,
+                bindings,
+                cache;
+
+            if (source && target && (bindings = source.__bindings_source__))
             {
-                cache.call(this.__target__);
-            }
-
-            this.__binding__ = false;
-        }
-    };
-
-
-    //清除绑定关系
-    prototype.clear = function (dispose) {
-
-        var source = this.__source__,
-            target = this.__target__,
-            bindings,
-            cache;
-
-        if (source && target && (bindings = source.__bindings_source__))
-        {
-            if (cache = this.__getter__)
-            {
-                var parameters = cache.parameters;
-
-                for (var i = 0, length = parameters.length; i < length; i++)
+                if (cache = this.__getter__)
                 {
-                    if (cache = bindings[parameters[i]])
+                    var parameters = cache.parameters;
+
+                    for (var i = 0, length = parameters.length; i < length; i++)
                     {
-                        delete cache[target.id];
+                        if (cache = bindings[parameters[i]])
+                        {
+                            delete cache[target.id];
+                        }
                     }
                 }
+                else if ((cache = this.__expression__) && (cache = bindings[cache]))
+                {
+                    delete cache[target.id];
+                }
+
+
+                delete target.__bindings__[this.__name__];
             }
-            else if ((cache = this.__expression__) && (cache = bindings[cache]))
+
+
+            if (dispose)
             {
-                delete cache[target.id];
+                delete this.__source__;
+                delete this.__target__;
+                delete this.__fn_getter__;
+                delete this.__fn_setter__;
             }
+        };
 
 
-            delete target.__bindings__[this.__name__];
-        }
+        this.serialize = function (writer) {
+
+            writer.reference("source", this.__source__);
+            writer.string("expression", this.__expression__);
+            writer.string("setter", this.__setter__);
+        };
+
+        this.deserialize = function (reader, data, excludes) {
+
+            reader.reference(this, "__source__", data.source);
+            reader.string(this, "__expression__", data.expression);
+            reader.string(this, "__setter__", data.setter);
+        };
 
 
-        if (dispose)
-        {
-            delete this.__source__;
-            delete this.__target__;
-            delete this.__fn_getter__;
-            delete this.__fn_setter__;
-        }
-    };
-
-
-    prototype.serialize = function (writer) {
-
-        writer.reference("source", this.__source__);
-        writer.string("expression", this.__expression__);
-        writer.string("setter", this.__setter__);
-    };
-
-    prototype.deserialize = function (reader, data, excludes) {
-
-        reader.reference(this, "__source__", data.source);
-        reader.string(this, "__expression__", data.expression);
-        reader.string(this, "__setter__", data.setter);
-    };
+    });
 
 
 

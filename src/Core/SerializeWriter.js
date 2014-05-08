@@ -13,7 +13,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
     this.serialize = function (target) {
 
-        this[target.constructor == Array ? "array" : "object"](this.__root__, target);
+        this[target.constructor === Array ? "array" : "object"](this.__root__, target);
         return this.toString();
     };
 
@@ -79,7 +79,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
     var key = function (name) {
 
-        if (this[this.length - 1] != "{")
+        if (this[this.length - 1] !== "{")
         {
             this.__push__(",");
         }
@@ -185,7 +185,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
     this.properties = function (value, keys) {
 
-        var key = this[this.length - 1] != "{";
+        var key = this[this.length - 1] !== "{";
 
         keys = keys || Object.keys(value);
 
@@ -248,7 +248,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
         {
             if (!value.serialize_reference) //直接序列化
             {
-                this[value.constructor == Array ? "array" : "object"](name, value);
+                this[value.constructor === Array ? "array" : "object"](name, value);
             }
             else //序列化引用
             {

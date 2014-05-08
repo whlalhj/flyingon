@@ -48,7 +48,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
 
     function toggle() {
 
-        caret.style.visibility = caret.style.visibility == "visible" ? "hidden" : "visible";
+        caret.style.visibility = caret.style.visibility === "visible" ? "hidden" : "visible";
     };
 
 
@@ -261,7 +261,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
         }
 
 
-        if (keyCode != 17 && !input.readOnly && input.value)
+        if (keyCode !== 17 && !input.readOnly && input.value)
         {
             oninput.call(this, input.value); //不处理ctrl键
         }

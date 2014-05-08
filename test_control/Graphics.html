@@ -60,7 +60,7 @@
                     ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "blue"]]);
                     ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
 
-                    panel.children.add(ctrl);
+                    panel.children.append(ctrl);
                 }
 
                 panel.width = 500;
@@ -69,7 +69,7 @@
                 panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "flow";
    
-                w.children.add(panel);
+                w.children.append(panel);
             };
 
             w.onmouseover = function (e) {
@@ -113,7 +113,7 @@
                 t.left(p.x - e.controlX);
                 t.top(p.y - e.controlY);
 
-                e.dropTarget.children.add(e.target);
+                e.dropTarget.children.append(e.target);
                 w.update();
             };
 

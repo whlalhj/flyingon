@@ -52,6 +52,7 @@
 
         var date = new Date();
 
+
     </script>
 
     <script type="text/javascript" src="../js/flyingon.js"></script>
@@ -98,7 +99,7 @@
                     ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                     ctrl.align = "middle,center";
 
-                    panel.children.add(ctrl);
+                    panel.children.append(ctrl);
 
                     switch (i % 5)
                     {
@@ -147,7 +148,7 @@
                 panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
 
 
-                w.children.add(panel);
+                w.children.append(panel);
 
             }
 
@@ -232,7 +233,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.orientation = value;
+                panel.vertical = value == "vertical";
             }
 
             w.update();

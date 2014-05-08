@@ -18,8 +18,8 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
         div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
         div.setAttribute("tabindex", "0");
 
-        //订阅图层服务
-        flyingon.__layer_service__.call(this, div);
+        //执行图层扩展
+        flyingon.layer_extender.call(this, div);
 
         //缓存当前对象
         div.__ownerWindow__ = this.dom_layer.__ownerWindow__ = this.dom_canvas.__ownerWindow__ = this;
@@ -169,7 +169,7 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
             result = activateWindow;
         }
 
-        return result == this ? null : result;
+        return result === this ? null : result;
     };
 
 
@@ -262,7 +262,7 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
         {
             var layer = this.layers[i];
 
-            if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] != 0)
+            if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] !== 0)
             {
                 return base.findAt.call(layer, x, y);
             }
@@ -316,7 +316,7 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
         var source = flyingon.__hover_control__,
             target = this.findAt(dom_MouseEvent.__offsetX__, dom_MouseEvent.__offsetY__) || this;
 
-        if (target != source)
+        if (target !== source)
         {
             document.title = target.id;
 
@@ -352,7 +352,7 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
 
 
         //处理弹出窗口
-        if (ownerWindow != ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
+        if (ownerWindow !== ownerWindow.mainWindow.get_activateWindow()) //活动窗口不是当前点击窗口
         {
             ownerWindow.activate(true);
         }
@@ -378,7 +378,7 @@ flyingon.defineClass("WindowBase", flyingon.Panel, function (Class, base, flying
                 if (target.focusable)
                 {
                     var focused = ownerWindow.__focused_control__;
-                    if (focused && focused != target && focused.validate())
+                    if (focused && focused !== target && focused.validate())
                     {
                         focused.__fn_blur__();
                     }

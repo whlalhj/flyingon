@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <div style="width: 200px; height: 200px; overflow: scroll; writing-mode:rl-bt;" id="id">
+        <span id="span">口口吕</span>
+        <span>中国dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd</span>
+    </div>
+
+    <script type="text/javascript">
+
+        id.onclick = function (event) {
+            
+            var rect = event.srcElement.getBoundingClientRect();
+            alert(event.clientX);
+        };
+
+
+
+        var date = new Date();
+
+        for (var i = 0; i < 1000000; i++)
+        {
+            //if (date.constructor !== Date)
+            //{
+           // }
+        }
+
+        alert(new Date() - date);
+
+    </script>
+
+</body>
+</html>

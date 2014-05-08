@@ -26,7 +26,7 @@
 
         while (parent)
         {
-            if ((result = parent.__data__[name]) != undefined)
+            if ((result = parent.__data__[name]) !== undefined)
             {
                 return result;
             }

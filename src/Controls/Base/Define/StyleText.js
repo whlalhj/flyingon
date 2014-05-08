@@ -39,7 +39,7 @@
 
         prototype[name = "$" + name] = defaultValue;
 
-        var body = "var name = '" + name + "';var oldValue = this[name];\nif (value != oldValue){\nthis[name] = value;";
+        var body = "var name = '" + name + "';var oldValue = this[name];\nif (value !== oldValue){\nthis[name] = value;";
 
         if (reparse)
         {
@@ -170,7 +170,7 @@
             var item = nodes[i], name = item.nodeName, value = item.nodeValue;
 
             //文字节点
-            if (item.nodeType == 3)
+            if (item.nodeType === 3)
             {
                 continue;
             }

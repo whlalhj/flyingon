@@ -1,105 +1,126 @@
-﻿/*
-
-*/
-(function (flyingon) {
-
+﻿
+//盒模型
+flyingon.BoxModel = (function (ownerControl) {
 
 
-    //变量管理器
-    var prototype = (flyingon.BoxModel = function (ownerControl) {
+    //所属控件
+    this.ownerControl = ownerControl;
 
-        //所属控件
-        this.ownerControl = ownerControl;
 
-    }).prototype;
-
+}).extend(function (flyingon) {
 
 
     //上级盒模型
-    prototype.parent = null;
+    this.parent = null;
 
     //相对偏移所属父模型
-    prototype.offsetParent = null;
+    this.offsetParent = null;
 
     //子项集合
-    prototype.children = null;
+    this.children = null;
 
     //附加子项集合
-    prototype.additions = null;
+    this.additions = null;
 
     //是否需要渲染
-    prototype.visible = true;
-
-
-
-    //是否需要重绘
-    prototype.__dirty__ = false;
-
-    //子模型是否需要重绘
-    prototype.__children_dirty__ = false;
-
-    //父模型是否需要重绘
-    prototype.__parent_dirty__ = false;
+    this.visible = true;
 
 
 
     //是否需要测量
-    prototype.__measure__ = true;
+    this.__measure__ = true;
 
-    //绘图环境
-    prototype.context = null;
+    //是否需要重绘
+    this.__dirty__ = false;
+
+    //子模型是否需要重绘
+    this.__children_dirty__ = false;
+
+    //父模型是否需要重绘
+    this.__update_parent__ = false;
+
+
+
+
+    //横向边距总和 左边距和右边距可通过margin取得
+    this.spaceX = 0;
+
+    //纵向边距总和 上边距和下边距可通过margin取得
+    this.spaceY = 0;
 
 
 
     //相对x坐标
-    prototype.x = 0;
+    this.x = 0;
 
     //相对y坐标
-    prototype.y = 0;
+    this.y = 0;
 
     //绝对x坐标
-    prototype.windowX = 0;
+    this.windowX = 0;
 
     //绝对y坐标
-    prototype.windowY = 0;
+    this.windowY = 0;
 
 
     //渲染宽度
-    prototype.width = 0;
+    this.width = 0;
 
     //渲染高度
-    prototype.height = 0;
+    this.height = 0;
 
-    //右边x坐标
-    flyingon.defineProperty(prototype, "right", function () {
 
-        return this.x + this.width;
-    });
 
-    //底部y坐标
-    flyingon.defineProperty(prototype, "bottom", function () {
+    //内部区x坐标
+    this.insideX = 0;
 
-        return this.y + this.height;
-    });
+    //内部区y坐标
+    this.insideY = 0;
+
+    //内部区宽度(不含边框)
+    this.insideWidth = 0;
+
+    //内部区高度(不含边框)
+    this.insideHeight = 0;
+
+    //客户区x坐标
+    this.clientX = 0;
+
+    //客户区y坐标
+    this.clientY = 0;
+
+    //客户端宽度
+    this.clientWidth = 0;
+
+    //客户区高度
+    this.clientHeight = 0;
+
 
 
     //x滚动偏移
-    prototype.scrollLeft = 0;
+    this.scrollLeft = 0;
 
     //y滚动偏移
-    prototype.scrollTop = 0;
+    this.scrollTop = 0;
 
     //滚动宽度
-    prototype.scrollWidth = 0;
+    this.scrollWidth = 0;
 
     //滚动高度
-    prototype.scrollHeight = 0;
+    this.scrollHeight = 0;
+
+
+    //是否自动宽度
+    this.auto_width = false;
+
+    //是否自动高度
+    this.auto_height = false;
 
 
 
 
     //初始化方法
-    prototype.initialize = function (parent) {
+    this.initialize = function (parent) {
 
         //处理父模型
         this.parent = parent;
@@ -118,7 +139,7 @@
     };
 
     //初始化附加项方法
-    prototype.initialize_addtions = function (parent) {
+    this.initialize_addtions = function (parent) {
 
         //处理父模型
         this.parent = parent;
@@ -146,7 +167,7 @@
     //maxHeight:    最大可用高度 含margin
     //align_width:  对齐宽度 不设置默认使用指定宽度
     //align_height: 对齐高度 不设置默认使用指定高度
-    prototype.measure = function (x, y, width, height, maxWidth, maxHeight, align_width, align_height) {
+    this.measure = function (x, y, width, height, maxWidth, maxHeight, align_width, align_height) {
 
 
         var ownerControl = this.ownerControl,
@@ -160,8 +181,8 @@
             width_value = ownerControl.width,
             height_value = ownerControl.height,
 
-            auto_width = this.__auto_width__ = width_value == "auto",
-            auto_height = this.__auto_height__ = height_value == "auto",
+            auto_width = this.__auto_width__ = width_value === "auto",
+            auto_height = this.__auto_height__ = height_value === "auto",
 
             cache;
 
@@ -201,7 +222,7 @@
                 break;
 
             default:  //固定或百分比
-                if (typeof width_value != "number")
+                if (typeof width_value !== "number")
                 {
                     width_value = flyingon.parseInt(width_value, this.parent.clientRect.width - spaceX);
                 }
@@ -244,7 +265,7 @@
                 break;
 
             default:  //固定或百分比
-                if (typeof height_value != "number")
+                if (typeof height_value !== "number")
                 {
                     height_value = flyingon.parseInt(height_value, this.parent.clientRect.height - spaceY);
                 }
@@ -354,7 +375,7 @@
 
 
     //移动至指定位置(大小不变)
-    prototype.moveTo = function (x, y, origin_position) {
+    this.moveTo = function (x, y, origin_position) {
 
         if (origin_position) //相对原始位置移动
         {
@@ -380,23 +401,15 @@
             if (x)
             {
                 this.windowX += x;
-
-                this.usableRect.x += x;
-                this.clientRect.x += x;
-
-                this.usableRect.windowX += x;
-                this.clientRect.windowX += x;
+                this.insideX += x;
+                this.clientX += x;
             }
 
             if (y)
             {
                 this.windowY += y;
-
-                this.usableRect.y += y;
-                this.clientRect.y += y;
-
-                this.usableRect.windowY += y;
-                this.clientRect.windowY += y;
+                this.insideY += y;
+                this.clientY += y;
             }
         }
 
@@ -404,10 +417,52 @@
     };
 
 
-    //定位单个内容控件
-    prototype.content = function (content) {
+    //沿x中心线进行镜像坐标变换
+    this.mirror_x = function () {
 
-        if (content && (this.visible = content.visibility != "collapsed"))
+        var height = boxModel.scrollHeight;
+
+        for (var i = 0; i < length; i++)
+        {
+            var box = items[i];
+            box.moveTo(box.x, height - box.bottom);
+        }
+    };
+
+    //沿y中心线进行镜像坐标变换
+    this.mirror_y = function () {
+
+        var width = this.width,
+            items;
+
+        for (var i = 0; i < length; i++)
+        {
+            var box = items[i];
+            box.moveTo(width - box.x, box.y);
+        }
+    };
+
+    //沿中心点进行镜像坐标变换
+    this.mirror_center = function () {
+
+        var width = boxModel.scrollWidth,
+            height = boxModel.scrollHeight;
+
+        for (var i = 0; i < length; i++)
+        {
+            var box = items[i];
+            box.moveTo(width - box.right, height - box.bottom);
+        }
+    };
+
+
+
+
+
+    //定位单个内容控件
+    this.content = function (content) {
+
+        if (content && (this.visible = content.visibility !== "collapsed"))
         {
             var r = this.clientRect,
                 box = content.__boxModel__;
@@ -420,7 +475,7 @@
 
 
 
-    prototype.__fn_measure__ = function (ownerControl) {
+    this.__fn_measure__ = function (ownerControl) {
 
         //测量
         this.__measure__ = false;
@@ -438,8 +493,11 @@
 
 
 
+
+
+
     //计算盒模型
-    prototype.compute = function () {
+    this.compute = function () {
 
 
         var ownerControl = this.ownerControl,
@@ -511,7 +569,7 @@
 
 
     //使当前盒模型无效
-    prototype.invalidate = function (measure, update) {
+    this.invalidate = function (measure, update) {
 
         var target = this, parent;
 
@@ -525,41 +583,40 @@
             target.__dirty__ = true;
         }
 
-        while (!target.context && (parent = target.parent))
+        while ((parent = target.parent) && !parent.__dirty__ && !parent.__children_dirty__)
         {
-            if (!parent.__dirty__)
+            if (target.__update_parent__)
             {
-                if (target.__dirty__ && target.__parent_dirty__)
-                {
-                    parent.__dirty__ = true;
-                }
-                else
-                {
-                    parent.__children_dirty__ = true;
-                }
+                parent.__dirty__ = true;
+            }
+            else
+            {
+                parent.__children_dirty__ = true;
             }
 
             target = parent;
         }
 
-        if (target.context)
+        while (parent = target.parent)
         {
-            if (update)
-            {
-                target.__unregistry_update__();
-                target.update(target.context);
-            }
-            else
-            {
-                target.__registry_update__();
-            }
+            target = parent;
+        }
+
+        if (update)
+        {
+            target.__unregistry_update__();
+            target.update(target.context);
+        }
+        else
+        {
+            target.__registry_update__();
         }
     };
 
 
 
     //更新
-    prototype.update = function (context) {
+    this.update = function (context) {
 
         if (this.__dirty__) //如果需要更新
         {
@@ -585,7 +642,7 @@
 
 
     //渲染
-    prototype.render = function (context) {
+    this.render = function (context) {
 
 
         var ownerControl = this.ownerControl;
@@ -595,20 +652,16 @@
         if (this.__measure__)
         {
             this.__fn_measure__(ownerControl);
-
-            //自定义文字测量
-            ownerControl.measureText(this);
         }
 
 
         //设置渲染环境
-        context.boxModel = this;
         context.save();
         context.globalAlpha = ownerControl.opacity;
 
 
         //绘制背景
-        this.__parent_dirty__ = !ownerControl.paint_background(context, this) || context.globalAlpha < 1;
+        this.__update_parent__ = !ownerControl.paint_background(context, this) || context.globalAlpha < 1;
 
 
         //绘制子项
@@ -650,13 +703,12 @@
 
 
     //渲染或更新子项
-    prototype.__fn_render_children__ = function (context, fn) {
+    this.__fn_render_children__ = function (context, fn) {
 
         var ownerControl = this.ownerControl,
             items = ownerControl.__fn_render_children__,
             item,
             length;
-
 
         items = items ? items.call(ownerControl, this) : this.children;
 
@@ -692,7 +744,7 @@
 
 
     //渲染或更新附加内容
-    prototype.__fn_render_additions__ = function (context, fn) {
+    this.__fn_render_additions__ = function (context, fn) {
 
         var additions = this.additions,
             item;
@@ -711,7 +763,7 @@
 
 
     //绘制装饰
-    prototype.__fn_paint_decorates__ = function (context, decorates) {
+    this.__fn_paint_decorates__ = function (context, decorates) {
 
         var reader;
 
@@ -755,7 +807,7 @@
     };
 
     //偏移坐标转目标坐标
-    prototype.offsetToTarget = function (x, y) {
+    this.offsetToTarget = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -766,7 +818,7 @@
     };
 
     //偏移坐标转窗口坐标
-    prototype.offsetToWindow = function (x, y) {
+    this.offsetToWindow = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -788,7 +840,7 @@
     };
 
     //偏移坐标转控件坐标
-    prototype.offsetToControl = function (x, y) {
+    this.offsetToControl = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -811,7 +863,7 @@
 
 
     //目标坐标转偏移坐标
-    prototype.targetToOffset = function (x, y) {
+    this.targetToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -822,7 +874,7 @@
     };
 
     //窗口坐标转偏移坐标
-    prototype.windowToOffset = function (x, y) {
+    this.windowToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -844,7 +896,7 @@
     };
 
     //控件坐标转偏移坐标
-    prototype.controlToOffset = function (x, y) {
+    this.controlToOffset = function (x, y) {
 
         var result = scroll.call(this);
 
@@ -865,6 +917,4 @@
         return result;
     };
 
-
-
-})(flyingon);
+});

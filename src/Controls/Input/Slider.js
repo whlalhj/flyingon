@@ -39,7 +39,7 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
     //是否竖直滑块
     this.defineProperty("vertical", false, {
 
-        attributes: "locate",
+        attributes: "layout",
         complete: "var width = this.width;\nthis.width = this.height;\nthis.height = width;"
     });
 
@@ -47,8 +47,8 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
 
 
 
-    //订阅复合控件服务
-    flyingon.__complex_control_service__.call(this, base);
+    //执行复合控件扩展
+    flyingon.complex_extender.call(this, base);
 
 
 

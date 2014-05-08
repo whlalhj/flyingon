@@ -44,11 +44,11 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         class_list = flyingon.__registry_class_list__, //已注册类型集合
 
-        style_list = {},  //样式集  注:为加快样式值查找对所有样式按元素类型进行分类存储 此处的优先级可能与css样式有些差异???
+        style_value_list = {},  //样式值集`  注:为加快样式值查找对所有样式按元素类型进行分类存储 此处的优先级可能与css样式有些差异???
 
-        style_cache = {}, //样式缓存
+        style_kind_list = {},   //缓存类型
 
-        style_group_list = {},   //缓存组名
+        style_define_list = {}, //定义样式集
 
         pseudo_level = {},  //伪元素级别
 
@@ -61,48 +61,54 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             hover: 13,
             focus: 12,
             checked: 11
-        },
-
-        style_counter = 0; //样式计数器(控制样式组缓存更新)
-
+        };
 
 
 
 
     //扩展样式检测 检测指定对象是否符合当前选择器
-    Selector_Element.prototype.style_check = function (target) {
+    Selector_Element.prototype.style_check = function (target, check_token) {
 
         //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象
-        for (var i = 0, length = this.length; i < length; i++)
+        var length = this.length;
+
+        if (length > 0)
         {
-            if ((target = this[i].check(target, element_fn)) === false)
+            for (var i = 0; i < length; i++)
             {
-                return false;
+                if ((target = this[i].check(target, element_fn)) === false)
+                {
+                    return false;
+                }
             }
         }
 
-        switch (this.token)
+        //检查标签
+        if (check_token)
         {
-            case "":  //类型
-                if (!(target instanceof (this.__type__ || (this.__type__ = class_list[this.name]) || flyingon.Visual)))
-                {
-                    return false;
-                }
-                break;
+            switch (this.token)
+            {
+                case "":  //类型
+                    if (!(target instanceof (this.__type__ || (this.__type__ = class_list[this.name]) || flyingon.Visual)))
+                    {
+                        return false;
+                    }
+                    break;
 
-            case ".": //class
-                if (!target.__class__ || !target.__class__[this.name])
-                {
-                    return false;
-                }
-                break;
+                case ".": //class
+                    if (!target.__class__ || !target.__class__[this.name])
+                    {
+                        return false;
+                    }
+                    break;
 
-            case "#": //id
-                if (target.id != this.name)
-                {
-                    return false;
-                }
-                break;
+                case "#": //id
+                    if (target.id !== this.name)
+                    {
+                        return false;
+                    }
+                    break;
+            }
         }
 
         //继续检测上一节点
@@ -125,9 +131,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
             while (cache)
             {
-                if (target = this.style_check(cache))
+                if (this.style_check(cache, true))
                 {
-                    return target;
+                    return true;
                 }
 
                 cache = cache.__parent__;
@@ -138,7 +144,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         this[">"] = function (target) {
 
-            return (target = target.__parent__) ? this.style_check(target) : false;
+            return (target = target.__parent__) ? this.style_check(target, true) : false;
         };
 
         this["+"] = function (target) {
@@ -146,7 +152,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             var cache = target.__parent__, index;
 
             target = cache && (cache = cache.__children__) && (index = cache.indexOf(this)) > 0 && cache[--index];
-            return target ? this.style_check(target) : false;
+            return target ? this.style_check(target, true) : false;
         };
 
         this["~"] = function (target) {
@@ -157,9 +163,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             {
                 for (var i = index - 1; i >= 0; i--)
                 {
-                    if (target = this.style_check(cache[i]))
+                    if (this.style_check(cache[i], true))
                     {
-                        return target;
+                        return true;
                     }
                 }
             }
@@ -194,61 +200,61 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         this["first-child"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] == target ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] === target ? parent : false;
         };
 
         this["first-of-type"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[0] === target && parent.__fullTypeName__ === target.__fullTypeName__ ? parent : false;
         };
 
         this["last-child"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] == target ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] === target ? parent : false;
         };
 
         this["last-of-type"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > 0 && cache[cache.length - 1] === target && parent.__fullTypeName__ === target.__fullTypeName__ ? parent : false;
         };
 
         this["only-child"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length == 1 ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length === 1 ? parent : false;
         };
 
         this["only-of-type"] = function (target) {
 
             var parent = target.__parent__, cache;
-            return parent && (cache = parent.__children__) && cache.length == 1 && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length === 1 && parent.__fullTypeName__ === target.__fullTypeName__ ? parent : false;
         };
 
         this["nth-child"] = function (target) {
 
             var parent = target.__parent__, cache, index = +this.value;
-            return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[index] === target ? parent : false;
         };
 
         this["nth-of-type"] = function (target) {
 
             var parent = target.__parent__, cache, index = +this.value;
-            return parent && (cache = parent.__children__) && cache.length > index && cache[index] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[index] === target && parent.__fullTypeName__ === target.__fullTypeName__ ? parent : false;
         };
 
         this["nth-last-child"] = function (target) {
 
             var parent = target.__parent__, cache, index = +this.value;
-            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] === target ? parent : false;
         };
 
         this["nth-last-of-type"] = function (target) {
 
             var parent = target.__parent__, cache, index = +this.value;
-            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] == target && parent.__fullTypeName__ == target.__fullTypeName__ ? parent : false;
+            return parent && (cache = parent.__children__) && cache.length > index && cache[cache.length - index - 1] === target && parent.__fullTypeName__ === target.__fullTypeName__ ? parent : false;
         };
 
         return this;
@@ -258,16 +264,16 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
 
-    //获取样式组 按元素类型进行分组 如果有伪元素则类型设为*
-    function style_group(element) {
+    //获取样式类别 按元素类型进行分组 如果有伪元素则类型设为*
+    function get_style_kind(element) {
 
-        var result = element.token == "*" ? "Control" : element.token + element.name,
+        var result = element.token === "*" ? "Control" : element.token + element.name,
             pseudo, //伪元素
             item;
 
         for (var i = 0, length = element.length; i < length; i++)
         {
-            if ((item = element[i]).token == ":" && !pseudo_keys[item.name]) //伪元素作特殊处理以加快检索
+            if ((item = element[i]).token === ":" && !pseudo_keys[item.name]) //伪元素作特殊处理以加快检索
             {
                 pseudo = pseudo ? pseudo + ":" : ":";
             }
@@ -285,11 +291,11 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             result = pseudo + result; //前面叠加":"作为组名 有几层子级则加几个":"
         }
 
-        return element.__group__ = result;
+        return element.__kind__ = result;
     };
 
     //样式key
-    function style_key(element) {
+    function get_style_key(element) {
 
         while (element.previous)
         {
@@ -314,7 +320,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     */
 
     //计算选择器的权重
-    function style_weight(element) {
+    function get_style_weight(element) {
 
         var result = 0;
 
@@ -337,7 +343,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
             for (var i = 0; i < element.length; i++)
             {
-                result += (element[i].token == ":" && pseudo_keys[element[i].name]) || 10;
+                result += (element[i].token === ":" && pseudo_keys[element[i].name]) || 10;
             }
 
         } while (element.next && (element = element.next));
@@ -348,13 +354,18 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
 
-    //初始化控件样式组key缓存 先排除无关的样式
-    function initialize_group_keys(target) {
+
+    //当前样式标记(控制样式组缓存更新)
+    flyingon.__style_token__ = 1;
+
+
+    //初始化控件样式 生成样式组排除无关的样式
+    function initialize_style(target) {
 
 
         var result = [],
 
-            group_list = style_group_list,
+            kind_list = style_kind_list,
             pseudo_list = pseudo_level,
 
             items,
@@ -386,7 +397,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
             for (var i = length - 1; i >= 0; i--)
             {
-                if ((item = items[i]) && (cache = item.id) && (group_list[cache = pseudo_list[i + 1] + "#" + cache]))
+                if ((item = items[i]) && (cache = item.id) && (kind_list[cache = pseudo_list[i + 1] + "#" + cache]))
                 {
                     result.push(cache);
                 }
@@ -395,7 +406,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
         //2. id
-        if ((cache = target.id) && (group_list[cache = "#" + cache]))
+        if ((cache = target.id) && (kind_list[cache = "#" + cache]))
         {
             result.push(cache);
         }
@@ -410,7 +421,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 {
                     for (var j = 0, count = item.length; j < count; j++)
                     {
-                        if (group_list[cache = pseudo_list[i + 1] + "." + item[j]])
+                        if (kind_list[cache = pseudo_list[i + 1] + "." + item[j]])
                         {
                             result.push(cache);
                         }
@@ -425,7 +436,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         {
             for (var i = 0, count = item.length; i < count; i++)
             {
-                if (group_list[cache = "." + item[i]])
+                if (kind_list[cache = "." + item[i]])
                 {
                     result.push(cache);
                 }
@@ -438,7 +449,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         {
             for (var i = length - 1; i >= 0; i--)
             {
-                if ((item = items[i]) && (cache = item.__fullTypeName__) && (group_list[cache = pseudo_list[i + 1] + cache]))
+                if ((item = items[i]) && (cache = item.__fullTypeName__) && (kind_list[cache = pseudo_list[i + 1] + cache]))
                 {
                     result.push(cache);
                 }
@@ -448,9 +459,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         //6. type
         cache = target.__type__;
-        while (cache && cache != flyingon.SerializableObject)
+        while (cache && cache !== flyingon.SerializableObject)
         {
-            if (group_list[cache.fullTypeName])
+            if (kind_list[cache.fullTypeName])
             {
                 result.push(cache.fullTypeName);
             }
@@ -459,21 +470,117 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         }
 
 
-        //样式组计数器
-        target.__style_counter__ = style_counter;
+        //清空缓存样式
+        target.__style_cache__ = {};
 
-        //缓存至目标控件
-        return target.__style_group__ = result;
+        //重置样式标记
+        target.__style_token__ = flyingon.__style_token__;
+
+        //返回样式类别并缓存至目标控件
+        return target.__style_kind__ = result;
+    };
+
+
+    //获取样式值
+    function get_style_value(target, name) {
+
+        var style = style_value_list[name], data;
+
+        if (style)
+        {
+            for (var items = target.__style_kind__, i = 0, length = items.length; i < length; i++)
+            {
+                if (data = style[items[i]])
+                {
+                    var names = data.__names__ || (data.__names__ = Object.keys(data));
+
+                    for (var j = names.length - 1; j >= 0; j--)
+                    {
+                        var values = data[names[j]];
+
+                        if (values[0].style_check(target, false))
+                        {
+                            return target.__style_cache__[name] = values[1]; //缓存并返回结果
+                        }
+                    }
+                }
+            }
+        }
+
+        target.__style_cache__[name] = undefined;
+    };
+
+
+    //获取样式值
+    flyingon.__fn_style_value__ = function (target, name, inherit) {
+
+        var fields = target.__fields__,
+            value = fields[name];
+
+        if (value !== undefined && value !== target.__defaults__[name])
+        {
+            return value;
+        }
+
+        if (target.__style_token__ >= flyingon.__style_token__) //未更新样式
+        {
+            value = name in (value = target.__style_cache__) ? value[name] : get_style_value(target, name);
+        }
+        else //样式发生变化
+        {
+            initialize_style(target);
+            value = get_style_value(target, name);
+        }
+
+        if (value !== undefined)
+        {
+            return value;
+        }
+
+        //支持继承则继续查找父类
+        if (inherit && (value = target.__parent__))
+        {
+            return value[name];
+        }
     };
 
 
 
-    //获取指定组名的最后一个样式值
-    flyingon.styleValue_group = function (group, name) {
 
-        var style = style_list[name];
 
-        if (style && (style = style[group]))
+    //获取当前字体(注意字体继承及组合)
+    this.__fn_font__ = function (name) {
+
+        var value = this.__fn_style_value__(name, false);
+
+        //自身设置了值则直接返回
+        if (value !== undefined)
+        {
+            return value;
+        }
+
+        if (this.__parent__)
+        {
+            value = this.__parent__[name]; //获取继承值
+
+            //找出设置或样式中的子项值
+
+
+            return value;
+        }
+
+        return this.__defaults__[name];
+    };
+
+
+
+
+    //获取指定类型的最后一个样式值
+    flyingon.__fn_style_last__ = function (kind, name) {
+
+        var style = style_value_list[name];
+
+        if (style && (style = style[kind]))
         {
             var names = data.__names__ || (data.__names__ = Object.keys(data));
 
@@ -484,167 +591,96 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         }
     };
 
-    //获取样式值
-    flyingon.styleValue = function (target, name) {
 
-        var style, data;
 
-        if (target && (style = style_list[name]))
+    var convert_regex = /[-|_](\w)/g,   //样式名转换表达式
+        convert_fn = {},                //样式值转换函数
+        convert_fn_names = {};          //转换名(转换后变更的名称)
+
+
+    //样式转换注册函数
+    flyingon.__fn_style_convert__ = function (name, fn, convert_name) {
+
+        convert_fn[name] = fn;
+        convert_fn_names[name] = "__" + (convert_name || name) + "__";
+    };
+
+
+    //处理样式 按样式属性名存储 再根据
+    function handle_style(element, style) {
+
+        var kind = element.__kind__ || get_style_kind(element), //处理样式类别
+            value;
+
+        style_kind_list[kind] = true; //缓存类别
+        element.key = get_style_key(element); //保存选择器key
+
+        for (var name in style)
         {
-            var keys = (target.__style_counter__ == style_counter && target.__style_group__) || initialize_group_keys(target);
+            //处理值
+            value = style[name];
 
-            for (var i = 0, length = keys.length; i < length; i++)
+            if (value !== undefined && value !== "inherit") //样式属性值设置为undefined或inherit则不处理
             {
-                if (data = style[keys[i]])
+                //处理名称
+                name = name.replace(convert_regex, function (key, letter) {
+
+                    return letter.toUpperCase();
+                });
+
+                //储存原始值
+                store_style(element, name, value);
+
+                //储存转换值
+                if (name in convert_fn)
                 {
-                    var names = data.__names__ || (data.__names__ = Object.keys(data));
-
-                    loop:
-                        for (var j = names.length - 1; j >= 0; j--)
-                        {
-                            var items = data[names[j]],
-                                element = items[0],
-                                control = target;
-
-                            //必须先检测属性及伪类 因为有伪元素的情况下会改变目标对象 此处直接处理减少函数调用以提升性能
-                            for (var i = 0, length = element.length; i < length; i++)
-                            {
-                                if ((control = element[i].check(control, element_fn)) === false)
-                                {
-                                    continue loop;
-                                }
-                            }
-
-                            //继续检测上一节点
-                            if (element.previous && type_fn[element.type].call(element.previous, control) === false)
-                            {
-                                continue;
-                            }
-
-                            return items[1];
-                        }
+                    store_style(element, convert_fn_names[name], convert_fn[name](style, value));
                 }
             }
         }
     };
 
 
-    var Thickness = flyingon.Thickness,
+    //缓存样式
+    function store_style(element, name, value) {
 
-        Align = flyingon.Align,
+        var target = style_value_list[name],
+            kind = element.__kind__,
+            weight = element.__weight__ || get_style_weight(element), //当前权重
+            cache;
 
-        convert_regex = /\-(\w)/,
-
-        convert_name = (function () {
-
-            ["margin", "border", "padding"].forEach(function (name) {
-
-                ["left", "top", "right", "bottom"].forEach(function (key) {
-
-                    this[name + "-" + key] = name;
-                    this[name + key[0].toUpperCase() + key.substring(1)] = name;
-
-                }, this);
-
-            }, this);
-
-            return this;
-
-        }).call({}),
-
-        convert_fn = (function () {
-
-            ["margin", "border", "padding"].forEach(function (name) {
-
-                this[name] = function (value) {
-
-                    return value instanceof Thickness ? value : (this[name] = new Thickness(value));
-                };
-
-                ["left", "top", "right", "bottom"].forEach(function (key) {
-
-                    this[name + "-" + key] = this[name + key[0].toUpperCase() + key.substring(1)] = function (value) {
-
-                        var result = this[name] || (this[name] = new Thickness());
-                        result[key] = +value || 0;
-                        return result;
-                    };
-
-                }, this);
-
-            }, this);
-
-            this.align = this.textAlign = function (value) {
-
-                return value instanceof Align ? value : new Align(value);
-            };
-
-            return this;
-
-        }).call({});
-
-    //处理样式 按样式属性名存储 再根据
-    function handle_style(element, style) {
-
-        var target,
-            group = element.__group__ || style_group(element), //处理样式组
-            weight = element.__weight__ || style_weight(element), //当前权重
-            value,
-            index;
-
-        style_group_list[group] = true; //缓存组名
-        element.key = style_key(element); //保存选择器名
-
-        loop:
-            for (var name in style)
+        if (target) //已有属性
+        {
+            if (cache = target[kind])
             {
-                //处理值
-                value = ((value = convert_fn[name]) && value.call(style, style[name])) || style[name];
-
-                if (value !== undefined) //样式属性值设置为undefined则不处理
+                while ((target = cache[weight]) && target[0].key !== element.key) //如果选择器相等则后面冲掉前面的值
                 {
-                    //处理名称
-                    name = convert_name[name] || name.replace(convert_regex, function (key, letter) {
-
-                        return letter.toUpperCase();
-                    });
-
-                    if (target = style_list[name]) //已有属性
-                    {
-                        target = target[group] || (target[group] = {});
-                        index = weight;
-
-                        while (target[index])
-                        {
-                            if (target[index][0].key == element.key) //如果选择器相等则后面冲掉前面的值
-                            {
-                                target[index] = [element, value];
-                                continue loop;
-                            }
-
-                            index++;
-                        }
-
-                        target[index] = [element, value];
-                        delete target.__names__;
-                    }
-                    else
-                    {
-                        ((style_list[name] = {})[group] = {})[weight] = [element, value];
-                    }
+                    weight++;
                 }
+
+                cache[weight] = [element, value];
+                delete cache.__names__;
             }
+            else
+            {
+                target[kind] = {
+
+                    weight: [element, value]
+                };
+            }
+        }
+        else
+        {
+            style_value_list[name] = {
+
+                kind: {
+
+                    weight: [element, value]
+                }
+            };
+        }
     };
 
-
-
-    flyingon.reset_style = function () {
-
-        style_list = {};
-        style_cache = {};
-        style_group_list = {};
-        pseudo_level = {};
-    };
 
 
     //复制元素
@@ -675,7 +711,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         while (next = element.next)
         {
-            if (next && next.type == ",")
+            if (next && next.type === ",")
             {
                 cache = [];
 
@@ -691,7 +727,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
                     cache.push(element);
 
-                } while ((element = element.next) && element.type == ",")
+                } while ((element = element.next) && element.type === ",")
 
                 if (items) //交叉
                 {
@@ -739,7 +775,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             var cache;
 
             //处理继承
-            if (super_selector && (cache = style_cache[super_selector]))
+            if (super_selector && (cache = style_define_list[super_selector]))
             {
                 cache = Object.create(cache);
 
@@ -752,12 +788,12 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             }
 
             //缓存样式
-            style_cache[selector] = style;
+            style_define_list[selector] = style;
 
             //解析选择器
             var element = flyingon.parse_selector(selector);
 
-            if ((cache = split_element(element)).constructor == Array)
+            if ((cache = split_element(element)).constructor === Array)
             {
                 for (var i = 0, length = cache.length; i < length; i++)
                 {
@@ -770,10 +806,12 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             }
 
 
-            style_counter++;
+            flyingon.__style_token__++;
         }
 
     };
+
+
 
 
 })(flyingon);

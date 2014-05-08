@@ -120,250 +120,146 @@ var flyingon_setting = flyingon_setting || {
 (function (flyingon) {
 
 
-    var prototype = String.prototype;
+    //扩展字符串
+    (function () {
 
 
-    //增加字符串顺序格式化支持
-    prototype.format = function () {
+        //增加字符串顺序格式化支持
+        this.format = function () {
 
-        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (key) {
+            return arguments.length === 0 ? this : this.replace(/\{\d+\}/g, function (key) {
 
-            return arguments[key.substring(1, key.length - 1)] || "";
-        });
-    };
-
-
-    //增加字符串名字格式化支持
-    prototype.format_name = function (value) {
-
-        return !value ? this : this.replace(/\{\w+\}/g, function (key) {
-
-            return value[key.substring(1, key.length - 1)] || "";
-        });
-    };
-
-    //增加字符串顺序格式化支持
-    prototype.trim = function () {
-
-        return arguments.length == 0 ? this : this.replace(/^\s+|\s+$/g, "");
-    };
+                return arguments[key.substring(1, key.length - 1)] || "";
+            });
+        };
 
 
+        //增加字符串名字格式化支持
+        this.format_name = function (value) {
+
+            return !value ? this : this.replace(/\{\w+\}/g, function (key) {
+
+                return value[key.substring(1, key.length - 1)] || "";
+            });
+        };
+
+        //增加字符串顺序格式化支持
+        this.trim = function () {
+
+            return arguments.length === 0 ? this : this.replace(/^\s+|\s+$/g, "");
+        };
 
 
-    prototype = Array.prototype;
+    }).call(String.prototype);
 
-    //移除指定项
-    prototype.remove = function (item) {
 
-        var index = this.indexOf(item);
-        if (index >= 0)
-        {
+
+    //扩展数组
+    (function () {
+
+
+        //移除指定项
+        this.remove = function (item) {
+
+            var index = this.indexOf(item);
+            if (index >= 0)
+            {
+                this.splice(index, 1);
+            }
+        };
+
+        //移除指定索引
+        this.removeAt = function (index) {
+
             this.splice(index, 1);
-        }
-    };
+        };
 
-    //移除指定索引
-    prototype.removeAt = function (index) {
+        //清空
+        this.clear = function () {
 
-        this.splice(index, 1);
-    };
-
-    //清空
-    prototype.clear = function () {
-
-        if (this.length > 0)
-        {
-            this.splice(0, this.length);
-        }
-    };
-
-    //二分法搜索
-    prototype.binary_search = function (value, start, end) {
-
-        var flag = typeof value != "function";
-
-        start = start || 0;
-        end = end || this.length - 1;
-
-        while (start <= end)
-        {
-            var index = (start + end) >> 1,
-                result = flag ? this[index] - value : value.call(this, index);
-
-            if (result < 0)
+            if (this.length > 0)
             {
-                start = index + 1;
+                this.splice(0, this.length);
             }
-            else if (result > 0)
+        };
+
+        //二分法搜索
+        this.binary_search = function (value, start, end) {
+
+            var flag = typeof value !== "function";
+
+            start = start || 0;
+            end = end || this.length - 1;
+
+            while (start <= end)
             {
-                end = index - 1;
-            }
-            else
-            {
-                return index;
-            }
-        }
+                var index = (start + end) >> 1,
+                    result = flag ? this[index] - value : value.call(this, index);
 
-        return -1;
-    };
-
-    //二分法搜索区间
-    prototype.binary_between = function (value, start, end) {
-
-        var flag = typeof value != "function";
-
-        start = start || 0;
-        end = end || this.length - 1;
-
-        while (start <= end)
-        {
-            var index = (start + end) >> 1,
-                result = flag ? this[index] - value : value.call(this, index);
-
-            if (result > 0)
-            {
-                end = index - 1;
-            }
-            else if (result < 0)
-            {
-                if (index >= end)
+                if (result < 0)
                 {
-                    return end;
+                    start = index + 1;
                 }
-
-                if ((flag ? this[index + 1] - value : value.call(this, index + 1)) > 0)
+                else if (result > 0)
+                {
+                    end = index - 1;
+                }
+                else
                 {
                     return index;
                 }
-
-                start = index + 1;
             }
-            else
+
+            return -1;
+        };
+
+        //二分法搜索区间
+        this.binary_between = function (value, start, end) {
+
+            var flag = typeof value !== "function";
+
+            start = start || 0;
+            end = end || this.length - 1;
+
+            while (start <= end)
             {
-                return index;
+                var index = (start + end) >> 1,
+                    result = flag ? this[index] - value : value.call(this, index);
+
+                if (result > 0)
+                {
+                    end = index - 1;
+                }
+                else if (result < 0)
+                {
+                    if (index >= end)
+                    {
+                        return end;
+                    }
+
+                    if ((flag ? this[index + 1] - value : value.call(this, index + 1)) > 0)
+                    {
+                        return index;
+                    }
+
+                    start = index + 1;
+                }
+                else
+                {
+                    return index;
+                }
             }
-        }
 
-        return -1;
-    };
+            return -1;
+        };
 
 
-    //生成伪数组对象
-    //此方法主要作为某些仿数组对象的原型
-    //注: 直接使用[]作为原型在ie6时会出错(无法更改length值), 用此方法原型链也会短一些, 但创建时性能会差一些
-    flyingon.__pseudo_array__ = function () {
+    }).call(Array.prototype);
 
-        var result = { length: 0 },
-            prototype = Array.prototype;
-
-        ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
-
-            this[name] = prototype[name];
-
-        }, result);
-
-        return result;
-    };
 
 
 
     var for_data = {};
-
-    //循环执行指定函数
-    for_data.for_execute = function (fn) {
-
-        var result;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((result = fn(this[i], i)) !== undefined)
-            {
-                return result;
-            }
-        }
-    };
-
-    //以apply的方式循环调用指定名称的方法
-    for_data.for_apply = function (name, parameters) {
-
-        var result,
-            item,
-            fn;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (fn = item[name]))
-            {
-                if ((result = fn.apply(item, parameters)) !== undefined)
-                {
-                    return result;
-                }
-            }
-        }
-    };
-
-    //循环检查指定方法是否具有指定的返回值
-    for_data.for_has = function (name, value, parameters) {
-
-        var item,
-            fn;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    //循环检查指定属性是否具有指定值
-    for_data.for_exist = function (name, value) {
-
-        var item;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (item[name] === value))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    //循环获取指定属性值或给指定属性赋值
-    for_data.for_value = function (name, value) {
-
-        var item;
-
-        if (value === undefined)
-        {
-            for (var i = 0, length = this.length; i < length; i++)
-            {
-                if ((item = this[i]) && (item = item[name]) !== undefined)
-                {
-                    return item;
-                }
-            }
-
-            return undefined;
-        }
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if (item = this[i])
-            {
-                item[name] = value;
-            }
-        }
-    };
-
-
 
     //给指定对象扩展for相关方法
     flyingon.for_extend = function (target) {
@@ -377,6 +273,103 @@ var flyingon_setting = flyingon_setting || {
         }
 
     };
+
+    (function () {
+
+        //循环执行指定函数
+        this.for_execute = function (fn) {
+
+            var result;
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if ((result = fn(this[i], i)) !== undefined)
+                {
+                    return result;
+                }
+            }
+        };
+
+        //以apply的方式循环调用指定名称的方法
+        this.for_apply = function (name, parameters) {
+
+            var result,
+                item,
+                fn;
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if ((item = this[i]) && (fn = item[name]))
+                {
+                    if ((result = fn.apply(item, parameters)) !== undefined)
+                    {
+                        return result;
+                    }
+                }
+            }
+        };
+
+        //循环检查指定方法是否具有指定的返回值
+        this.for_has = function (name, value, parameters) {
+
+            var item,
+                fn;
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        //循环检查指定属性是否具有指定值
+        this.for_exist = function (name, value) {
+
+            var item;
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if ((item = this[i]) && (item[name] === value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        //循环获取指定属性值或给指定属性赋值
+        this.for_value = function (name, value) {
+
+            var item;
+
+            if (value === undefined)
+            {
+                for (var i = 0, length = this.length; i < length; i++)
+                {
+                    if ((item = this[i]) && (item = item[name]) !== undefined)
+                    {
+                        return item;
+                    }
+                }
+
+                return undefined;
+            }
+
+            for (var i = 0, length = this.length; i < length; i++)
+            {
+                if (item = this[i])
+                {
+                    item[name] = value;
+                }
+            }
+        };
+
+    }).call(for_data);
 
 
 
@@ -394,58 +387,110 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+    //扩展函数
+    (function () {
 
-    prototype = Function.prototype;
 
-    //获取函数内容
-    prototype.get_body = function () {
+        //获取函数内容
+        this.get_body = function () {
 
-        var result = this.toString();
-        return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
-    };
-
-    //获取函数参数
-    prototype.get_parameters = function () {
-
-        if (this.length > 0)
-        {
             var result = this.toString();
+            return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
+        };
 
-            result = result.match(/\([^)]*\)/)[0];
-            result = result.substring(1, result.length - 1).replace(/\s+/, "");;
+        //获取函数参数
+        this.get_parameters = function () {
 
-            return result.split(",");
-        }
+            if (this.length > 0)
+            {
+                var result = this.toString();
 
-        return [];
-    };
+                result = result.match(/\([^)]*\)/)[0];
+                result = result.substring(1, result.length - 1).replace(/\s+/, "");;
 
-    //合并函数内容生成新函数
-    prototype.merge = function (body, insertBefore, parameters) {
+                return result.split(",");
+            }
 
-        if (body)
-        {
-            body = typeof body == "function" ? body.get_body() : "" + body;
-            body = insertBefore ? body + this.get_body() : this.get_body() + body;
+            return [];
+        };
 
-            return new Function(parameters || this.get_parameters(), body);
-        }
+        //复制函数生成新函数
+        this.copy = function () {
 
-        return this;
-    };
+            return new Function(this.get_parameters(), this.get_body());
+        };
 
-    //替换函数内容生成新函数
-    prototype.replace = function (key, value, parameters) {
+        //合并函数内容生成新函数
+        this.merge = function (body, insertBefore, parameters) {
 
-        if (key)
-        {
-            var body = this.get_body().replace(key, value);
-            return new Function(parameters || this.get_parameters(), body);
-        }
+            if (body)
+            {
+                body = typeof body === "function" ? body.get_body() : "" + body;
+                body = insertBefore ? body + this.get_body() : this.get_body() + body;
 
-        return this;
-    };
+                return new Function(parameters || this.get_parameters(), body);
+            }
+        };
 
+        //替换函数内容生成新函数
+        this.replace = function (key, value, parameters) {
+
+            if (key)
+            {
+                var body = this.get_body().replace(key, value);
+                return new Function(parameters || this.get_parameters(), body);
+            }
+        };
+
+
+        //扩展原型
+        this.extend = function (fn, prototype) {
+
+            if (prototype)
+            {
+                //生成伪数组对象作为某些仿数组对象的原型
+                //注: 直接使用[]作为原型在ie6时会出错(无法更改length值), 用此方法原型链也会短一些, 但创建时性能会差一些
+                if (prototype === true)
+                {
+                    this.prototype = prototype = { length: 0 };
+
+                    ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
+
+                        this[name] = Array.prototype[name];
+
+                    }, prototype);
+                }
+                else
+                {
+                    this.prototype = prototype;
+                }
+            }
+            else
+            {
+                prototype = this.prototype;
+            }
+
+            if (fn)
+            {
+                if (fn instanceof Function)
+                {
+                    fn.call(prototype, flyingon);
+                }
+                else
+                {
+                    for (var name in fn)
+                    {
+                        prototype[name] = fn[name];
+                    }
+                }
+            }
+
+            return this;
+        };
+
+
+
+    }).call(Function.prototype);
 
 
 })(flyingon);
@@ -458,10 +503,32 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+    //代码性能测试
+    flyingon.performance = function (code, times) {
+
+        if (typeof code === "function")
+        {
+            code = code.get_body();
+        }
+
+        code = "var time, times = " + times + ", date = new Date();\n"
+            + "for (i = 0; i < times; i++){}\n"
+            + "time = new Date() - date;\n"
+            + "date = new Date();\n"
+            + "for (i = 0; i < times; i++)\n"
+            + "{\n"
+            + code
+            + "}\n"
+            + "return (new Date() - date) - time;"
+
+        return new Function(code)();
+    };
+
+
     //转换字符串为整数 支持"%"
     flyingon.parseInt = function (value, total) {
 
-        if ((value = "" + value) && value[value.length - 1] == "%")
+        if ((value = "" + value) && value[value.length - 1] === "%")
         {
             return Math.floor(parseFloat(value) * total / 100);
         }
@@ -472,7 +539,7 @@ var flyingon_setting = flyingon_setting || {
     //转换字符串为浮点数 支持"%"
     flyingon.parseFloat = function (value, total) {
 
-        if ((value = "" + value) && value[value.length - 1] == "%")
+        if ((value = "" + value) && value[value.length - 1] === "%")
         {
             return parseFloat(value) * total / 100;
         }
@@ -583,8 +650,10 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+
 //名字空间及类实现
 (function (flyingon) {
+
 
 
     var namespace_list = { "flyingon": flyingon }, //缓存命名空间
@@ -638,7 +707,7 @@ var flyingon_setting = flyingon_setting || {
 
         if (result)
         {
-            if (result.constructor == String && !(result = namespace_list[result]))
+            if (result.constructor === String && !(result = namespace_list[result]))
             {
                 result = self;
 
@@ -673,38 +742,37 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+
     //初始化类型系统
-    function initialize(namespace, Class, typeName) {
+    function initialize(namespace, type, typeName) {
 
 
-        var prototype = Class.prototype,
+        var prototype = type.prototype,
             fullTypeName = namespace.name ? namespace.name + "." + typeName : typeName;
 
 
         //绑定类型
-        prototype.__type__ = Class;
+        prototype.__type__ = type;
 
         //获取当前类型
         prototype.getType = function () {
 
-            return Class;
+            return type;
         };
 
-        Class.namesapce = prototype.__namespace__ = namespace;
-        Class.typeName = prototype.__typeName__ = typeName;
-        Class.fullTypeName = prototype.__fullTypeName__ = fullTypeName;
-
+        type.namesapce = prototype.__namespace__ = namespace;
+        type.typeName = prototype.__typeName__ = typeName;
+        type.fullTypeName = prototype.__fullTypeName__ = fullTypeName;
 
 
         //输出及注册类
-        namespace[typeName] = class_list[fullTypeName] = Class;
+        namespace[typeName] = class_list[fullTypeName] = type;
 
 
         prototype.toString = prototype.toLocaleString = function () {
 
             return "[object " + this.__fullTypeName__ + "]";
         };
-
     };
 
 
@@ -722,7 +790,7 @@ var flyingon_setting = flyingon_setting || {
 
 
         //处理参数
-        if (!class_fn || typeof class_fn == "boolean")
+        if (!class_fn || typeof class_fn === "boolean")
         {
             class_fn = superclass;
             superclass = RootObject;
@@ -732,73 +800,70 @@ var flyingon_setting = flyingon_setting || {
             superclass = RootObject;
         }
 
-        if (!typeName || typeof class_fn != "function")
+        if (!typeName || typeof class_fn !== "function")
         {
             throw new Error(flyingon_setting.define_class_error.format(typeName));
         }
 
 
+        //声明构造函数及父类构造函数
+        var create, base_create = superclass.create;
 
-        //定义类模板 Class.create为构造函数
-        var Class = function () {
+        //定义类模板
+        function fn() {
 
-            var fn = Class.create;
-            if (fn)
+            if (create)
             {
-                fn.apply(this, arguments);
+                create.apply(this, arguments);
             }
         };
 
 
 
         //创建类原型
-        var prototype = Class.prototype = Object.create(superclass.prototype);
+        var prototype = fn.prototype = Object.create(superclass.prototype);
 
         //父类
-        Class.superclass = superclass;
+        fn.superclass = superclass;
 
         //父类原型
-        Class.base = superclass.prototype;
+        fn.base = superclass.prototype;
 
         //子类集合
-        (superclass.subtypes || (superclass.subtypes = [])).push(Class);
+        (superclass.subtypes || (superclass.subtypes = [])).push(fn);
 
         //构造函数/所属类型
-        prototype.constructor = Class;
+        prototype.constructor = fn;
         //默认值
-        prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || null);
+        prototype.__defaults__ = fn.__defaults__ = Object.create(superclass.__defaults__ || null);
 
         //初始化类型系统
-        initialize(this, Class, typeName);
-
+        initialize(this, fn, typeName);
 
         //扩展
-        class_fn.call(prototype, Class, Class.base, flyingon);
-
+        class_fn.call(prototype, fn, fn.base, flyingon);
 
 
         //处理构造函数(自动调用父类的构造函数)
-        var superclass_create = superclass.create;
-        if (superclass_create)
+        if (base_create)
         {
-            var Class_create = Class.create,
-                create_list = superclass.__create_list__;
+            var create_list = superclass.__create_list__;
 
-            if (Class_create)
+            if (create = fn.create)
             {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
                 if (!create_list && constructor_merge)
                 {
-                    Class.create = Class_create.merge(superclass_create, true);
+                    fn.create = create.merge(base_create, true);
                 }
                 else //生成构造链
                 {
-                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
-                    create_list.push(Class_create);
+                    create_list = fn.__create_list__ = create_list ? create_list.slice(0) : [base_create];
+                    create_list.push(create);
 
-                    Class.create = function () {
+                    fn.create = function () {
 
-                        var list = Class.__create_list__;
+                        var list = fn.__create_list__;
                         for (var i = 0, length = list.length; i < length; i++)
                         {
                             list[i].apply(this, arguments);
@@ -810,15 +875,16 @@ var flyingon_setting = flyingon_setting || {
             {
                 if (create_list)
                 {
-                    Class.__create_list__ = create_list;
+                    fn.__create_list__ = create_list;
                 }
 
-                Class.create = superclass_create;
+                fn.create = base_create;
             }
         }
 
+        create = fn.create;
 
-        return Class;
+        return fn;
     };
 
 

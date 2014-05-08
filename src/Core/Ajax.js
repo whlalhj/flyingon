@@ -73,7 +73,7 @@
 
         var fn;
 
-        if (request.readyState == 4)
+        if (request.readyState === 4)
         {
             if (options.timer)
             {
@@ -255,7 +255,7 @@
         {
             request.setRequestHeader("Content-Type", options["contentType"] || defaults["contentType"]);
 
-            if (data && typeof data == "object")
+            if (data && typeof data === "object")
             {
                 data = flyingon.encode(data);
                 request.setRequestHeader("Content-Length", data.length);

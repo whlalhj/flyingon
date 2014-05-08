@@ -1,23 +1,4 @@
 ﻿
-//var prototype = (flyingon.Item = function () {
-
-
-//}).prototype;
-
-
-////
-//prototype.y = 0;
-
-//prototype.height = 0;
-
-//prototype.text = null;
-
-//prototype.image = null;
-
-//prototype.selected = false;
-
-
-
 
 //
 flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, base, flyingon) {

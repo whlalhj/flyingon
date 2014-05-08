@@ -28,7 +28,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
         function (value) {
 
             var oldValue = this.__items__;
-            if (oldValue != value)
+            if (oldValue !== value)
             {
                 this.__items__ = value;
 
@@ -83,7 +83,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
             top = 0;
 
 
-        if (visibleIndex == null)
+        if (visibleIndex === null)
         {
             visibleIndex = this.visibleIndex || 0;
         }

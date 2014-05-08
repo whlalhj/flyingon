@@ -96,12 +96,12 @@
                 event;
 
 
-            if (target == ownerControl)
+            if (target === ownerControl)
             {
                 target = ownerControl.__parent__;
             }
 
-            if (dropTarget != target)
+            if (dropTarget !== target)
             {
                 if (dropTarget)
                 {

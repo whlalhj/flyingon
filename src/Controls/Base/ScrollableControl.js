@@ -234,15 +234,15 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
         //判读是否有水平滚动条
-        if ((scroll = this.horizontalScroll) != "never" && !boxModel.__auto_width__)
+        if ((scroll = this.horizontalScroll) !== "never" && !boxModel.__auto_width__)
         {
-            horizontalScroll = scroll != "auto" || (boxModel.scrollWidth > clientRect.width && (result = true));
+            horizontalScroll = scroll !== "auto" || (boxModel.scrollWidth > clientRect.width && (result = true));
         }
 
         //判断是否有垂直滚动条
-        if ((scroll = this.verticalScroll) != "never" && !boxModel.__auto_height__)
+        if ((scroll = this.verticalScroll) !== "never" && !boxModel.__auto_height__)
         {
-            verticalScroll = scroll != "auto" || (boxModel.scrollHeight > clientRect.height && (result = true));
+            verticalScroll = scroll !== "auto" || (boxModel.scrollHeight > clientRect.height && (result = true));
         }
 
 
