@@ -28,16 +28,16 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
     //是否需要测量
-    this.__measure__ = true;
+    this.__measure = true;
 
     //是否需要重绘
-    this.__dirty__ = false;
+    this.__dirty = false;
 
     //子模型是否需要重绘
-    this.__children_dirty__ = false;
+    this.__children_dirty = false;
 
     //父模型是否需要重绘
-    this.__update_parent__ = false;
+    this.__update_parent = false;
 
 
 
@@ -135,7 +135,7 @@ flyingon.BoxModel = (function (ownerControl) {
             this.offsetParent = null;
         }
 
-        this.__measure__ = true;
+        this.__measure = true;
     };
 
     //初始化附加项方法
@@ -154,7 +154,7 @@ flyingon.BoxModel = (function (ownerControl) {
             this.offsetParent = null;
         }
 
-        this.__measure__ = true;
+        this.__measure = true;
     };
 
 
@@ -181,8 +181,8 @@ flyingon.BoxModel = (function (ownerControl) {
             width_value = ownerControl.width,
             height_value = ownerControl.height,
 
-            auto_width = this.__auto_width__ = width_value === "auto",
-            auto_height = this.__auto_height__ = height_value === "auto",
+            auto_width = this.__auto_width = width_value === "auto",
+            auto_height = this.__auto_height = height_value === "auto",
 
             cache;
 
@@ -202,7 +202,7 @@ flyingon.BoxModel = (function (ownerControl) {
         switch (width_value)
         {
             case "default": //默认
-                width_value = cache > 0 ? width : ownerControl.__defaults__.width;
+                width_value = cache > 0 ? width : ownerControl.__defaults.width;
                 break;
 
             case "fill": //充满可用区域
@@ -217,7 +217,7 @@ flyingon.BoxModel = (function (ownerControl) {
                 }
                 else
                 {
-                    width_value = ownerControl.__defaults__.width;
+                    width_value = ownerControl.__defaults.width;
                 }
                 break;
 
@@ -245,7 +245,7 @@ flyingon.BoxModel = (function (ownerControl) {
         switch (height_value)
         {
             case "default": //默认
-                height_value = cache > 0 ? height : ownerControl.__defaults__.height;
+                height_value = cache > 0 ? height : ownerControl.__defaults.height;
                 break;
 
             case "fill": //充满可用区域
@@ -260,7 +260,7 @@ flyingon.BoxModel = (function (ownerControl) {
                 }
                 else
                 {
-                    height_value = ownerControl.__defaults__.height;
+                    height_value = ownerControl.__defaults.height;
                 }
                 break;
 
@@ -322,7 +322,7 @@ flyingon.BoxModel = (function (ownerControl) {
         if (auto_width || auto_height) //自动大小需立即计算
         {
             //测量
-            this.__fn_measure__(ownerControl);
+            this.__fn_measure(ownerControl);
 
             //自定义文字测量
             ownerControl.measureText(this);
@@ -362,13 +362,13 @@ flyingon.BoxModel = (function (ownerControl) {
         }
         else
         {
-            this.__measure__ = true;
+            this.__measure = true;
         }
 
 
 
         //标记更新状态
-        this.__dirty__ = true;
+        this.__dirty = true;
         return this;
     };
 
@@ -465,7 +465,7 @@ flyingon.BoxModel = (function (ownerControl) {
         if (content && (this.visible = content.visibility !== "collapsed"))
         {
             var r = this.clientRect,
-                box = content.__boxModel__;
+                box = content.__boxModel;
 
             box.measure(0, 0, r.width, r.height);
         }
@@ -475,10 +475,10 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
 
-    this.__fn_measure__ = function (ownerControl) {
+    this.__fn_measure = function (ownerControl) {
 
         //测量
-        this.__measure__ = false;
+        this.__measure = false;
 
         var fn = ownerControl.measure;
         if (fn)
@@ -575,23 +575,23 @@ flyingon.BoxModel = (function (ownerControl) {
 
         if (measure)
         {
-            target.__measure__ = true;
+            target.__measure = true;
         }
 
-        if (!target.__dirty__)
+        if (!target.__dirty)
         {
-            target.__dirty__ = true;
+            target.__dirty = true;
         }
 
-        while ((parent = target.parent) && !parent.__dirty__ && !parent.__children_dirty__)
+        while ((parent = target.parent) && !parent.__dirty && !parent.__children_dirty)
         {
-            if (target.__update_parent__)
+            if (target.__update_parent)
             {
-                parent.__dirty__ = true;
+                parent.__dirty = true;
             }
             else
             {
-                parent.__children_dirty__ = true;
+                parent.__children_dirty = true;
             }
 
             target = parent;
@@ -604,12 +604,12 @@ flyingon.BoxModel = (function (ownerControl) {
 
         if (update)
         {
-            target.__unregistry_update__();
+            target.__unregistry_update();
             target.update(target.context);
         }
         else
         {
-            target.__registry_update__();
+            target.__registry_update();
         }
     };
 
@@ -618,22 +618,22 @@ flyingon.BoxModel = (function (ownerControl) {
     //更新
     this.update = function (context) {
 
-        if (this.__dirty__) //如果需要更新
+        if (this.__dirty) //如果需要更新
         {
             this.render(context);
         }
-        else if (this.__children_dirty__) //如果子控件需要更新
+        else if (this.__children_dirty) //如果子控件需要更新
         {
-            this.__children_dirty__ = false;
+            this.__children_dirty = false;
 
             if (this.children)
             {
-                this.__fn_render_children__(context, "update");
+                this.__fn_render_children(context, "update");
             }
 
             if (this.additions)
             {
-                this.__fn_render_additions__(context, "update");
+                this.__fn_render_additions(context, "update");
             }
         }
     };
@@ -649,9 +649,9 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
         //测量
-        if (this.__measure__)
+        if (this.__measure)
         {
-            this.__fn_measure__(ownerControl);
+            this.__fn_measure(ownerControl);
         }
 
 
@@ -661,19 +661,19 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
         //绘制背景
-        this.__update_parent__ = !ownerControl.paint_background(context, this) || context.globalAlpha < 1;
+        this.__update_parent = !ownerControl.paint_background(context, this) || context.globalAlpha < 1;
 
 
         //绘制子项
         if (this.children)
         {
-            this.__fn_render_children__(context, "render");
+            this.__fn_render_children(context, "render");
         }
 
         //绘制附加内容
         if (this.additions)
         {
-            this.__fn_render_additions__(context, "render");
+            this.__fn_render_additions(context, "render");
         }
 
 
@@ -691,22 +691,22 @@ flyingon.BoxModel = (function (ownerControl) {
         var decorates = ownerControl.decorates;
         if (decorates && decorates.length > 0)
         {
-            this.__fn_paint_decorates__(context, decorates);
+            this.__fn_paint_decorates(context, decorates);
         }
 
 
         context.restore();
 
         //修改状态
-        this.__dirty__ = false;
+        this.__dirty = false;
     };
 
 
     //渲染或更新子项
-    this.__fn_render_children__ = function (context, fn) {
+    this.__fn_render_children = function (context, fn) {
 
         var ownerControl = this.ownerControl,
-            items = ownerControl.__fn_render_children__,
+            items = ownerControl.__fn_render_children,
             item,
             length;
 
@@ -744,7 +744,7 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
     //渲染或更新附加内容
-    this.__fn_render_additions__ = function (context, fn) {
+    this.__fn_render_additions = function (context, fn) {
 
         var additions = this.additions,
             item;
@@ -763,7 +763,7 @@ flyingon.BoxModel = (function (ownerControl) {
 
 
     //绘制装饰
-    this.__fn_paint_decorates__ = function (context, decorates) {
+    this.__fn_paint_decorates = function (context, decorates) {
 
         var reader;
 

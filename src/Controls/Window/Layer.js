@@ -6,7 +6,7 @@ flyingon.layer_extender = function (host) {
     //创建绘图环境
     var div = this.dom_layer = document.createElement("div"),
         canvas = this.dom_canvas = document.createElement("canvas"),
-        boxModel = this.__boxModel__;
+        boxModel = this.__boxModel;
 
 
     div.setAttribute("flyingon", "layer");
@@ -42,7 +42,7 @@ flyingon.layer_extender = function (host) {
         };
 
         //注册更新
-        this.__registry_update__ = function () {
+        this.__registry_update = function () {
 
             if (timer)
             {
@@ -53,7 +53,7 @@ flyingon.layer_extender = function (host) {
         };
 
         //注销更新
-        this.__unregistry_update__ = function () {
+        this.__unregistry_update = function () {
 
             if (timer)
             {
@@ -106,8 +106,8 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
     this.update = function () {
 
-        this.__boxModel__.invalidate(false);
-        this.__boxModel__.update(this.context);
+        this.__boxModel.invalidate(false);
+        this.__boxModel.update(this.context);
     };
 
 

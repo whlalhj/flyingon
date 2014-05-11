@@ -3,9 +3,9 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
 
 
-    this.__root__ = null;
+    this.__root = null;
 
-    this.__push__ = Array.prototype.push;
+    this.__push = Array.prototype.push;
 
     this.length = 0;
 
@@ -13,7 +13,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
     this.serialize = function (target) {
 
-        this[target.constructor === Array ? "array" : "object"](this.__root__, target);
+        this[target.constructor === Array ? "array" : "object"](this.__root, target);
         return this.toString();
     };
 
@@ -81,10 +81,10 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
         if (this[this.length - 1] !== "{")
         {
-            this.__push__(",");
+            this.__push(",");
         }
 
-        this.__push__("\"" + name + "\":");
+        this.__push("\"" + name + "\":");
     };
 
 
@@ -98,7 +98,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
             key(name);
         }
 
-        this.__push__("null");
+        this.__push("null");
     };
 
     this.boolean = function (name, value) {
@@ -110,7 +110,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
                 key(name);
             }
 
-            this.__push__(!!value);
+            this.__push(!!value);
         }
     };
 
@@ -123,7 +123,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
                 key(name);
             }
 
-            this.__push__(value || 0);
+            this.__push(value || 0);
         }
     };
 
@@ -136,7 +136,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
                 key(name);
             }
 
-            this.__push__(value != null ? "\"" + value.replace(/\"/g, "\\\"") + "\"" : "null");
+            this.__push(value != null ? "\"" + value.replace(/\"/g, "\\\"") + "\"" : "null");
         }
     };
 
@@ -153,15 +153,15 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
             {
                 if (value.serializeTo) //支持直接序列化为字符串
                 {
-                    this.__push__("\"" + value.serializeTo() + "\"");
+                    this.__push("\"" + value.serializeTo() + "\"");
                 }
                 else
                 {
-                    this.__push__("{");
+                    this.__push("{");
 
-                    if (name = value.__fullTypeName__)
+                    if (name = value.__fullTypeName)
                     {
-                        this.__push__("\"type\":\"" + name + "\"");
+                        this.__push("\"type\":\"" + name + "\"");
                     }
 
                     if ("serialize" in value)
@@ -173,12 +173,12 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
                         this.properties(value);
                     }
 
-                    this.__push__("}");
+                    this.__push("}");
                 }
             }
             else
             {
-                this.__push__("null");
+                this.__push("null");
             }
         }
     };
@@ -193,10 +193,10 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
         {
             if (i > 0 || key)
             {
-                this.__push__(",");
+                this.__push(",");
             }
 
-            this.__push__("\"" + (key = keys[i]) + "\":");
+            this.__push("\"" + (key = keys[i]) + "\":");
             this.value(null, value[key]);
         }
     };
@@ -212,23 +212,23 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
             if (value != null)
             {
-                this.__push__("[");
+                this.__push("[");
 
                 for (var i = 0, length = value.length; i < length; i++)
                 {
                     if (i > 0)
                     {
-                        this.__push__(",");
+                        this.__push(",");
                     }
 
                     this.value(null, value[i]);
                 }
 
-                this.__push__("]");
+                this.__push("]");
             }
             else
             {
-                this.__push__("null");
+                this.__push("null");
             }
         }
     };
@@ -254,7 +254,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
             {
                 if (!(value = value.name))
                 {
-                    value = value.name = "__name_" + (++flyingon.__auto_name__);
+                    value = value.name = "__name_" + (++flyingon.__auto_name);
                 }
 
                 this.string(name, value);
@@ -265,7 +265,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
     this.bindings = function (target) {
 
-        if (target && (target = target.__bindings__) && (target = target.pull))
+        if (target && (target = target.__bindings) && (target = target.pull))
         {
             this.object("bindings", target);
         }
@@ -285,19 +285,19 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (Class, base, flyingon) {
 
 
-    this.__root__ = "xml";
+    this.__root = "xml";
 
 
     this.null = function (name) {
 
-        this.__push__("<" + name + " type=\"null\"/>");
+        this.__push("<" + name + " type=\"null\"/>");
     };
 
     this.boolean = function (name, value) {
 
         if (value !== undefined)
         {
-            this.__push__("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
+            this.__push("<" + name + " type=\"boolean\">" + (value ? "1" : "0") + "</" + name + ">");
         }
     };
 
@@ -305,7 +305,7 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
 
         if (value !== undefined)
         {
-            this.__push__("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
+            this.__push("<" + name + " type=\"number\">" + (value || 0) + "</" + name + ">");
         }
     };
 
@@ -316,11 +316,11 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
             if (value != null)
             {
                 value.indexOf("&") >= 0 && (value = flyingon.decodeXml(value));
-                this.__push__("<" + name + " type=\"string\">" + value + "</" + name + ">");
+                this.__push("<" + name + " type=\"string\">" + value + "</" + name + ">");
             }
             else
             {
-                this.__push__("<" + name + " type=\"null\"/>");
+                this.__push("<" + name + " type=\"null\"/>");
             }
         }
     };
@@ -334,7 +334,7 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
 
         if (value != null)
         {
-            this.__push__("<" + name + " type=\"" + (value.__fullTypeName__ || "object") + "\">");
+            this.__push("<" + name + " type=\"" + (value.__fullTypeName || "object") + "\">");
 
             if ("serialize" in value)
             {
@@ -345,11 +345,11 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
                 this.properties(value);
             }
 
-            this.__push__("</" + name + ">");
+            this.__push("</" + name + ">");
         }
         else
         {
-            this.__push__("<" + name + " type=\"null\"/>");
+            this.__push("<" + name + " type=\"null\"/>");
         }
     };
 
@@ -375,18 +375,18 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
 
         if (value != null)
         {
-            this.__push__("<" + name + " type=\"array\"");
+            this.__push("<" + name + " type=\"array\"");
 
             for (var i = 0, length = value.length; i < length; i++)
             {
                 this.value("item", value[i]);
             }
 
-            this.__push__("</" + name + ">");
+            this.__push("</" + name + ">");
         }
         else
         {
-            this.__push__("<" + name + " type=\"null\"/>");
+            this.__push("<" + name + " type=\"null\"/>");
         }
     };
 

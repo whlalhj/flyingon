@@ -37,18 +37,18 @@
         //解析关键字
         parse_keys = {
 
-            italic: "__style__",
-            oblique: "__style__",
-            "small-caps": "__variant__",
-            bold: "__weight__",
-            bolder: "__weight__",
-            lighter: "__weight__"
+            italic: "__style",
+            oblique: "__style",
+            "small-caps": "__variant",
+            bold: "__weight",
+            bolder: "__weight",
+            lighter: "__weight"
         };
 
 
     for (var i = 100; i <= 900; i += 100)
     {
-        parse_keys["" + i] = "__weight__";
+        parse_keys["" + i] = "__weight";
     }
 
 
@@ -60,11 +60,11 @@
 
         if (data.lineHeight)
         {
-            data.target.__lineHeight__ = all;
+            data.target.__lineHeight = all;
         }
         else
         {
-            data.target.__size__ = all;
+            data.target.__size = all;
 
             data.style = index - 1;
             data.lineHeight = true;
@@ -108,12 +108,12 @@
             //family
             if (data.family + 1 < text.length)
             {
-                this.__family__ = text.substring(data.family);
+                this.__family = text.substring(data.family);
             }
         }
 
         //初始化
-        this.__initialize__();
+        this.__initialize();
 
 
     }).extend(function (flyingon) {
@@ -125,20 +125,20 @@
 
             defineProperty = function (name, defaultValue) {
 
-                var key = "__" + name + "__";
+                var key = "__" + name;
 
                 self[key] = defaultValue;
 
                 flyingon.defineProperty(self, name,
 
-                    new Function("return this.__" + name + "__;"),
+                    new Function("return this.__" + name + ";"),
 
                     function (value) {
 
                         if (value && value !== this[key])
                         {
                             this[key] = value;
-                            this.__initialize__();
+                            this.__initialize();
                         }
                     });
             };
@@ -172,10 +172,10 @@
 
 
         //字体高度
-        this.__font_height__ = 12;
+        this.__font_height = 12;
 
         //行高
-        this.__line_height__ = 14;
+        this.__line_height = 14;
 
 
 
@@ -195,19 +195,19 @@
 
 
         //初始化
-        this.__initialize__ = function () {
+        this.__initialize = function () {
 
             //计算值
-            var value = this.__value__ = [this.__style__, this.__variant__, this.__weight__, this.__size__, this.__family__].join(" ");
+            var value = this.__value = [this.__style, this.__variant, this.__weight, this.__size, this.__family].join(" ");
 
             //缓存文字测量结果
-            if (!(this.__storage__ = storage_list[value]))
+            if (!(this.__storage = storage_list[value]))
             {
                 var context = document.createElement("canvas").getContext("2d");
 
                 context.font = value;
 
-                this.__storage__ = storage_list[value] = {
+                this.__storage = storage_list[value] = {
 
                     //缓存上下文
                     context: context,
@@ -221,8 +221,8 @@
             }
 
 
-            this.__font_height__ = compute.call(this, this.__size__);
-            this.__line_height__ = compute.call(this, this.__lineHeight__);
+            this.__font_height = compute.call(this, this.__size);
+            this.__line_height = compute.call(this, this.__lineHeight);
         };
 
 
@@ -253,13 +253,13 @@
                         return round(value * 16); //96 / 6
 
                     case "em":
-                        return round(value * this.__font_height__);
+                        return round(value * this.__font_height);
 
                     case "ex":
-                        return round(value * this.__storage__.x);
+                        return round(value * this.__storage.x);
 
                     case "%":
-                        return round(value * this.__font_height__ / 100);
+                        return round(value * this.__font_height / 100);
                 }
             }
 
@@ -273,7 +273,7 @@
             if (text)
             {
                 var result = 0,
-                    storage = this.__storage__,
+                    storage = this.__storage,
                     length = text.length;
 
                 storage[" "] = storage.space + this.wordSpacing;
@@ -297,7 +297,7 @@
 
         this.toString = this.toLocaleString = function () {
 
-            return this.__value__;
+            return this.__value;
         };
 
     });
@@ -306,14 +306,14 @@
 
 
     //默认字体
-    Font.__default__ = new Font();
+    Font.__default = new Font();
 
     //子样式属性名称集合
     Font.names = ["style", "variant", "weight", "size", "family"];
 
 
     //注册样式转换 因字体子样式属性支持继承所以不支持合并
-    flyingon.__fn_style_convert__("font", function (style, value) {
+    flyingon.__fn_style_convert("font", function (style, value) {
 
         return value instanceof Font ? value : new Font(value);
     });

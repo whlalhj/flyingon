@@ -6,25 +6,25 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
     Class.create = function (ownerControl) {
 
-        this.__ownerControl__ = ownerControl;
+        this.__ownerControl = ownerControl;
     };
 
 
 
     //添加进集合时进行验证
-    this.__fn_validate__ = function (index, item) {
+    this.__fn_validate = function (index, item) {
 
         if (item instanceof flyingon.Control)
         {
-            item.__boxModel__.initialize(this.__ownerControl__.__boxModel__);
+            item.__boxModel.initialize(this.__ownerControl.__boxModel);
 
-            if (flyingon.__initializing__)
+            if (flyingon.__initializing)
             {
-                item.__parent__ = this.__ownerControl__;
+                item.__parent = this.__ownerControl;
             }
             else
             {
-                item.__fn_parent__(this.__ownerControl__);
+                item.__fn_parent(this.__ownerControl);
             }
 
             return item;
@@ -34,33 +34,33 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
     };
 
     //移\\\\\
-    this.__fn_remove__ = function (index, item) {
+    this.__fn_remove = function (index, item) {
 
-        var box = item.__boxModel__;
+        var box = item.__boxModel;
 
         box.parent = box.offsetParent = null;
 
-        box = this.__ownerControl__.__boxModel__;
+        box = this.__ownerControl.__boxModel;
         box.children.splice(index, 1);
 
-        if (!flyingon.__initializing__)
+        if (!flyingon.__initializing)
         {
-            item.__fn_parent__(null);
-            this.__ownerControl__.invalidate(false);
+            item.__fn_parent(null);
+            this.__ownerControl.invalidate(false);
         }
     };
 
     //注: 清除不触发相关事件
-    this.__fn_clear__ = function () {
+    this.__fn_clear = function () {
 
-        this.__ownerControl__.__boxModel__.children.length = 0;
+        this.__ownerControl.__boxModel.children.length = 0;
 
         for (var i = 0, length = this.length; i < length; i++)
         {
             var item = this[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
-            item.__parent__ = null;
+            item.__parent = null;
             box.parent = box.offsetParent = null;
         }
     };
@@ -80,7 +80,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
                 return result;
             }
 
-            if ((item = item.__children__) && (result = item.cascade_call(fn, true)) !== undefined)
+            if ((item = item.__children) && (result = item.cascade_call(fn, true)) !== undefined)
             {
                 return result;
             }
@@ -97,15 +97,15 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
         {
             reader.properties(this, data, excludes);
 
-            var box = this.__ownerControl__.__boxModel__,
+            var box = this.__ownerControl.__boxModel,
                 item;
 
             for (var i = 0, length = this.length; i < length; i++)
             {
                 if (item = this[i])
                 {
-                    item.__boxModel__.initialize(box);
-                    item.__parent__ = this.__ownerControl__;
+                    item.__boxModel.initialize(box);
+                    item.__parent = this.__ownerControl;
                 }
             }
         }

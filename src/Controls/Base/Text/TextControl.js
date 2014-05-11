@@ -5,18 +5,18 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
 
 
     //当前文本布局
-    this.__text_layout__ = null;
+    this.__text_layout = null;
 
 
     //文本布局类型
-    this.__text_layout_type__ = flyingon.single_text_layout;
+    this.__text_layout_type = flyingon.single_text_layout;
 
 
     //文字内容
     this.defineProperty("text", null, {
 
         attributes: "measure",
-        changed: "this.__text__ = value ? new this.__text_layout_type__(value) : null;"
+        changed: "this.__text = value ? new this.__text_layout_type(value) : null;"
     });
 
 
@@ -59,14 +59,14 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
     this.defineProperty("font", null, {
 
         attributes: "measure|style",
-        changed: "this.__font__ = new flyingon.Font(value);"
+        changed: "this.__font = new flyingon.Font(value);"
     });
 
 
     var attributes = {
 
         attributes: "measure|style",
-        changed: "(this.__font__ || (this.__font__ = new flyingon.Font()))[name.substring(4).toLocaleLowerCase()] = value;"
+        changed: "(this.__font || (this.__font = new flyingon.Font()))[name.substring(4).toLocaleLowerCase()] = value;"
     };
 
 
@@ -121,7 +121,7 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
     //选中文字长度(只读)
     this.defineProperty("selectionLength", function () {
 
-        var fields = this.__fields__;
+        var fields = this.__fields;
         return Math.abs(fields.selectionEnd - fields.selectionStart);
     });
 
@@ -129,7 +129,7 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
     //获取或设置选中文本
     this.defineProperty("selectionText", function () {
 
-        var fields = this.__fields__, start, end;
+        var fields = this.__fields, start, end;
 
         if (fields.text && (start = fields.selectionStart) !== (end = fields.selectionEnd))
         {

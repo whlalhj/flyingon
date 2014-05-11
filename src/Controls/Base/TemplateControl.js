@@ -6,11 +6,11 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
     //获取指定位置的控件
     this.findAt = function (x, y) {
 
-        var items = this.__children__;
+        var items = this.__children;
 
         if (items && items.length > 0)
         {
-            if (!this.__designMode__) //未实现
+            if (!this.__designMode) //未实现
             {
                 var content = items[0];
 
@@ -26,7 +26,7 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
 
     this.arrange = function (clientRect) {
 
-        var items = this.__children__,
+        var items = this.__children,
             template;
 
         if ((!items || items.length <= 0) && (template = this.template))
@@ -36,7 +36,7 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
 
         if (items && items.length > 0)
         {
-            this.__boxModel__.content(items[0]);
+            this.__boxModel.content(items[0]);
         }
     };
 

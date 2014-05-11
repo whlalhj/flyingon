@@ -7,7 +7,7 @@
 
     var prototype = (flyingon.TextMetrics = function () {
 
-    }).prototype = flyingon.__pseudo_array__();
+    }).prototype = flyingon.__pseudo_array();
 
 
 
@@ -49,8 +49,8 @@
 
     function initialize() {
 
-        var cache1 = this.__cache1__ = [0],
-            cache2 = this.__cache2__ = [0];
+        var cache1 = this.__cache1 = [0],
+            cache2 = this.__cache2 = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
@@ -113,13 +113,13 @@
             textIndex = 0;
         }
 
-        return this[(this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex)];
+        return this[(this.__cache1 || initialize.call(this).__cache1).binary_between(textIndex)];
     };
 
     //查找指定位置的行信息
     prototype.lineAt = function (y) {
 
-        return this[(this.__cache2__ || initialize.call(this).__cache2__).binary_between(y)];
+        return this[(this.__cache2 || initialize.call(this).__cache2).binary_between(y)];
     };
 
     //获取指定索引的字符信息
@@ -130,8 +130,8 @@
             textIndex = 0;
         }
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(textIndex),
-            start = this.__cache1__[index],
+        var index = (this.__cache1 || initialize.call(this).__cache1).binary_between(textIndex),
+            start = this.__cache1[index],
             result = this[index].charBy(textIndex - start);
 
         result.lineIndex = index;
@@ -143,11 +143,11 @@
     //查找指定位置的字符信息
     prototype.charAt = function (x, y) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(y),
+        var index = (this.__cache2 || initialize.call(this).__cache2).binary_between(y),
             result = this[index].charAt(x);
 
         result.lineIndex = index;
-        result.textIndex = this.__cache1__[index] + result.columnIndex;
+        result.textIndex = this.__cache1[index] + result.columnIndex;
 
         return result;
     };
@@ -156,10 +156,10 @@
 
     function selectionEnd() {
 
-        if ((this.selectionEnd = this.end.textIndex) < (this.selectionStart = (this.start = this.__start__).textIndex))
+        if ((this.selectionEnd = this.end.textIndex) < (this.selectionStart = (this.start = this.__start).textIndex))
         {
             this.selectionStart = (this.start = this.end).textIndex;
-            this.selectionEnd = (this.end = this.__start__).textIndex;
+            this.selectionEnd = (this.end = this.__start).textIndex;
         }
 
         this.selectedText = this.text.substring(this.selectionStart, this.selectionEnd);
@@ -170,7 +170,7 @@
     //移动至指定坐标
     prototype.moveAt = function (x, y) {
 
-        this.start = this.end = this.caret = this.__start__ = this.charAt(x, y);
+        this.start = this.end = this.caret = this.__start = this.charAt(x, y);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };
@@ -186,7 +186,7 @@
 
     prototype.moveTo = function (textIndex) {
 
-        this.start = this.end = this.caret = this.__start__ = this.charBy(textIndex);
+        this.start = this.end = this.caret = this.__start = this.charBy(textIndex);
         this.selectionStart = this.selectionEnd = this.start.textIndex;
         this.selectedText = "";
     };

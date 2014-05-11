@@ -87,7 +87,7 @@
     //注册样式转换
     ["align", "textAlign"].forEach(function (name) {
 
-        flyingon.__fn_style_convert__(name, function (style, value) {
+        flyingon.__fn_style_convert(name, function (style, value) {
 
             return value instanceof Align ? value : new Align(value);
         });

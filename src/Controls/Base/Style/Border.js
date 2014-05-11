@@ -74,7 +74,7 @@
 
             flyingon.defineProperty(target, name,
 
-                new Function("return this.__" + name + "__;"),
+                new Function("return this.__" + name + ";"),
 
                 function (value) {
 
@@ -216,7 +216,7 @@
     ["margin", "padding"].forEach(function (name) {
 
 
-        flyingon.__fn_style_convert__(name, function (style, value) {
+        flyingon.__fn_style_convert(name, function (style, value) {
 
             return value instanceof Thickness ? value : (this[name] = new Thickness(value));
         });
@@ -226,7 +226,7 @@
         {
             var key = Thickness.names[i];
 
-            flyingon.__fn_style_convert__(name + key[0].toUpperCase() + key.substring(1), function (style, value) {
+            flyingon.__fn_style_convert(name + key[0].toUpperCase() + key.substring(1), function (style, value) {
 
                 var result = style[name] || (style[name] = new Thickness());
                 result[key] = value;

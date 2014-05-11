@@ -3,8 +3,10 @@
 (function (flyingon) {
 
 
-    //缓存数据
-    var selector_cache = {};
+    
+    var selector_cache = {}, //缓存数据
+        element_node = flyingon.__element_node;  //缓存类型
+
 
 
     //选择器
@@ -27,7 +29,7 @@
             {
                 switch (selector.constructor)
                 {
-                    case flyingon.Selector_Element:
+                    case element_node:
                         selector = selector.find([start]);
                         break;
 
@@ -46,7 +48,7 @@
             }
         }
 
-    }).extend(function(flyingon) {
+    }).extend(function (flyingon) {
 
 
         //开放接口
@@ -73,7 +75,7 @@
             var query = new flyingon.Query();
 
             query.push.apply(query, this);
-            query.__previous__ = this;
+            query.__previous = this;
 
             return query;
         };
@@ -81,11 +83,11 @@
         //恢复到上次保存的状态(没有保存的状态则返回自身)
         this.restore = function () {
 
-            var result = this.__previous__;
+            var result = this.__previous;
 
             if (result)
             {
-                this.__previous__ = null;
+                this.__previous = null;
                 return result;
             }
 
@@ -212,7 +214,7 @@
 
     }, true);
 
-    
+
 
 })(flyingon);
 

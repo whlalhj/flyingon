@@ -80,7 +80,7 @@
 
             for (var i = 0; i < dragTargets.length; i++)
             {
-                var box = dragTargets[i].__boxModel__;
+                var box = dragTargets[i].__boxModel;
                 if (box)
                 {
                     box.render(context);
@@ -98,7 +98,7 @@
 
             if (target === ownerControl)
             {
-                target = ownerControl.__parent__;
+                target = ownerControl.__parent;
             }
 
             if (dropTarget !== target)
@@ -300,7 +300,7 @@
             ownerLayer = null;
 
             //处理捕获控件
-            ownerWindow.__capture_delay__.registry([last_event]);
+            ownerWindow.__capture_delay.registry([last_event]);
         }
         else
         {

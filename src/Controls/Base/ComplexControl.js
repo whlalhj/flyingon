@@ -9,10 +9,10 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
 
         //子控件集合
-        this.__children__ = new flyingon.ControlCollection(this);
+        this.__children = new flyingon.ControlCollection(this);
 
         //初始化子盒模型
-        this.__boxModel__.children = [];
+        this.__boxModel.children = [];
     };
 
     
@@ -31,7 +31,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
 
 
-        var box = this.__boxModel__,
+        var box = this.__boxModel,
             r = box.clientRect;
 
 
@@ -44,7 +44,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
         //}
 
 
-        var items = this.__render_children__;
+        var items = this.__render_children;
 
         if (items && items.length > 0)
         {
@@ -75,7 +75,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
         }
 
 
-        var items = this.__children__;
+        var items = this.__children;
 
         for (var i = 0, length = items.length; i < length; i++)
         {
@@ -100,7 +100,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
         base.serialize.call(this, writer);
 
-        var items = this.__children__;
+        var items = this.__children;
         if (items.length > 0)
         {
             writer.array("children", items);
@@ -112,7 +112,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
         excludes.children = true;
 
         base.deserialize.call(this, reader, data, excludes);
-        this.__children__.deserialize(reader, data["children"]);
+        this.__children.deserialize(reader, data["children"]);
     };
 
 

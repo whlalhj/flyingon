@@ -5,7 +5,7 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
     Class.create = function () {
 
-        var fields = this.__fields__;
+        var fields = this.__fields;
         fields.cursor = "col-resize";
         fields.dock = "left";
         fields.draggable = true;
@@ -21,17 +21,17 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
 
 
-    this.__event_mousedown__ = function (event) {
+    this.__event_mousedown = function (event) {
 
 
     };
 
-    this.__event_mousemove__ = function (event) {
+    this.__event_mousemove = function (event) {
 
 
     };
 
-    this.__event_mouseup__ = function (event) {
+    this.__event_mouseup = function (event) {
 
 
     };
@@ -46,7 +46,7 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
         paint: function (context, dragTargets) {
 
-            var box = this.__boxModel__,
+            var box = this.__boxModel,
                 r = box.clientRect;
 
             context.fillStyle = "rgba(255,0,0,0.5)";

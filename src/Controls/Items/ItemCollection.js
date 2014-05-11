@@ -6,15 +6,15 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
     Class.create = function (OwnerControl) {
 
-        this.__visible_list__ = [];
+        this.__visible_list = [];
         this.OwnerControl = OwnerControl;
     };
 
 
 
-    this.__fn_validate__ = function (index, item) {
+    this.__fn_validate = function (index, item) {
 
-        if (!flyingon.__initializing__)
+        if (!flyingon.__initializing)
         {
             this.ownerControl.invalidate(false);
         }
@@ -22,25 +22,25 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
         return item;
     };
 
-    this.__fn_remove__ = function (index, item) {
+    this.__fn_remove = function (index, item) {
 
-        var items = this.__visible_list__;
+        var items = this.__visible_list;
         if (items.length > index)
         {
             items.splice(index, 1);
         }
 
-        if (!flyingon.__initializing__)
+        if (!flyingon.__initializing)
         {
             this.ownerControl.invalidate(false);
         }
     };
 
-    this.__fn_clear__ = function () {
+    this.__fn_clear = function () {
 
-        this.__visible_list__.length = 0;
+        this.__visible_list.length = 0;
 
-        if (!flyingon.__initializing__)
+        if (!flyingon.__initializing)
         {
             this.ownerControl.invalidate(false);
         }

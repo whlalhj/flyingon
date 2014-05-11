@@ -9,7 +9,7 @@
         this.font = font;
         this.text = text;
 
-    }).prototype = flyingon.__pseudo_array__();
+    }).prototype = flyingon.__pseudo_array();
 
 
 
@@ -40,8 +40,8 @@
 
 
         var result = [],
-            cache = font.__cache__,
-            context = font.__context__;
+            cache = font.__cache,
+            context = font.__context;
 
 
         for (var i = 0, length = text.length; i < length; i++)
@@ -58,7 +58,7 @@
 
         var value = 0,
             chars = this.chars = measureText(this.font, this.text),
-            cache = this.__cache__ = [0];
+            cache = this.__cache = [0];
 
 
         for (var i = 0, length = chars.length; i < length; i++)
@@ -75,14 +75,14 @@
     //获取指定位置的字符索引
     prototype.charAt = function (x) {
 
-        return this.unit ? Math.round(x / this.unit) : (this.__cache__ || initialize.call(this)).binary_between(x);
+        return this.unit ? Math.round(x / this.unit) : (this.__cache || initialize.call(this)).binary_between(x);
     };
 
 
     //获取指定字符索引的相对位置
     prototype.position = function (charIndex) {
 
-        return this.unit ? charIndex * this.unit : (this.__cache__ || initialize.call(this))[charIndex];
+        return this.unit ? charIndex * this.unit : (this.__cache || initialize.call(this))[charIndex];
     };
 
 

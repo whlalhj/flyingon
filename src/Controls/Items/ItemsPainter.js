@@ -5,7 +5,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
     Class.create = function () {
 
-        this.__items__ = new flyingon.ItemCollection(this);
+        this.__items = new flyingon.ItemCollection(this);
     };
 
 
@@ -22,22 +22,22 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         function () {
 
-            return this.__items__;
+            return this.__items;
         },
 
         function (value) {
 
-            var oldValue = this.__items__;
+            var oldValue = this.__items;
             if (oldValue !== value)
             {
-                this.__items__ = value;
+                this.__items = value;
 
                 //
             }
         });
 
 
-    //this.__selected_list__ = 
+    //this.__selected_list = 
 
 
 
@@ -59,7 +59,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
 
     //移动开始显示索引至指定坐标
-    this.__fn_visible_to__ = function (y) {
+    this.__fn_visible_to = function (y) {
 
         if (this.fixed_height) //固定高度直接算出
         {
@@ -67,16 +67,16 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
             return Math.floor(y / lineHeight);
         }
 
-        return this.__fn_visible_items__(y, 0);
+        return this.__fn_visible_items(y, 0);
     };
 
     //获取可视项集合
-    this.__fn_visible_items__ = function (height, visibleIndex) {
+    this.__fn_visible_items = function (height, visibleIndex) {
 
         var result = [],
 
-            items = this.__items__,
-            visible_list = items.__visible_list__,
+            items = this.__items,
+            visible_list = items.__visible_list,
 
             lineHeight = this.lineHeight || 16,
 
@@ -117,7 +117,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
         flyingon.SerializableObject.prototype.serialize.call(this, writer);
 
-        var items = this.__items__;
+        var items = this.__items;
         if (items && items.length > 0)
         {
             writer.array(items_name, items);
@@ -129,7 +129,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
         excludes[items_name] = true;
 
         flyingon.SerializableObject.prototype.deserialize.call(this, reader, data, excludes);
-        reader.array(this.__items__, "__items__", data[items_name]);
+        reader.array(this.__items, "__items", data[items_name]);
     };
 
 };

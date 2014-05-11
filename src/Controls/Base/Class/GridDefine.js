@@ -19,41 +19,41 @@
 
         this.width = 0;
 
-        this.__width_string__ = "*";
+        this.__width_string = "*";
 
-        this.__width_weight__ = 100;
+        this.__width_weight = 100;
 
-        this.__width_auto__ = false;
+        this.__width_auto = false;
 
 
         //设置列宽
         this.set_width = function (value) {
 
-            if (this.__width_auto__)
+            if (this.__width_auto)
             {
-                this.row.__width_weights__ -= this.__width_weight__;
-                this.__width_auto__ = false;
+                this.row.__width_weights -= this.__width_weight;
+                this.__width_auto = false;
             }
             else if (this.width)
             {
-                this.row.__width_fixed__ -= this.width;
+                this.row.__width_fixed -= this.width;
             }
 
-            this.__width_string__ = value = value || "*";
+            this.__width_string = value = value || "*";
 
             var length = value.length - 1;
 
             if (value[length] === "*")
             {
-                this.__width_weight__ = length ? value.substring(0, length) : 100;
-                this.__width_auto__ = true;
+                this.__width_weight = length ? value.substring(0, length) : 100;
+                this.__width_auto = true;
                 this.width = 0;
-                this.row.__width_weights__ += this.__width_weight__;
+                this.row.__width_weights += this.__width_weight;
             }
             else
             {
                 this.width = parseInt(value);
-                this.row.__width_fixed__ += this.width;
+                this.row.__width_fixed += this.width;
             }
         };
 
@@ -75,47 +75,47 @@
 
         this.height = 0;
 
-        this.__height_string__ = "*";
+        this.__height_string = "*";
 
-        this.__height_weight__ = 100;
+        this.__height_weight = 100;
 
-        this.__height_auto__ = false;
+        this.__height_auto = false;
 
         //所属单元格所有固定宽度的总和
-        this.__width_fixed__ = 0;
+        this.__width_fixed = 0;
 
         //自动宽度的表格数
-        this.__width_weights__ = 0;
+        this.__width_weights = 0;
 
 
 
         //设置行高
         this.set_height = function (value) {
 
-            if (this.__height_auto__)
+            if (this.__height_auto)
             {
-                this.grid.__height_weights__ -= this.__height_weight__;
-                this.__height_auto__ = false;
+                this.grid.__height_weights -= this.__height_weight;
+                this.__height_auto = false;
             }
             else if (this.height)
             {
-                this.grid.__height_fixed__ -= this.height;
+                this.grid.__height_fixed -= this.height;
             }
 
-            this.__height_string__ = value = value || "*";
+            this.__height_string = value = value || "*";
             var length = value.length - 1;
 
             if (value[length] === "*")
             {
-                this.__height_weight__ = length === 0 ? 100 : value.substring(0, length);
-                this.__height_auto__ = true;
+                this.__height_weight = length === 0 ? 100 : value.substring(0, length);
+                this.__height_auto = true;
                 this.height = 0;
-                this.grid.__height_weights__ += this.__height_weight__;
+                this.grid.__height_weights += this.__height_weight;
             }
             else
             {
                 this.height = parseInt(value);
-                this.grid.__height_fixed__ += this.height;
+                this.grid.__height_fixed += this.height;
             }
         };
 
@@ -138,10 +138,10 @@
         this.spaceY = 0;
 
         //所属行中所有固定高度的总和
-        this.__height_fixed__ = 0;
+        this.__height_fixed = 0;
 
         //自动高度的权重总数
-        this.__height_weights__ = 0;
+        this.__height_weights = 0;
 
 
         this.compute = function (width, height) {
@@ -156,8 +156,8 @@
                 length = rows.length,
 
                 y = this.y || 0,
-                height = Math.max(this.height - this.__height_fixed__ - (length - 1) * spaceY, 0),
-                height_weights = this.__height_weights__;
+                height = Math.max(this.height - this.__height_fixed - (length - 1) * spaceY, 0),
+                height_weights = this.__height_weights;
 
 
             for (var i = 0; i < length; i++)
@@ -166,10 +166,10 @@
 
                 row.y = y;
 
-                if (row.__height_auto__)
+                if (row.__height_auto)
                 {
-                    row.height = Math.round(height * row.__height_weight__ / height_weights);
-                    height_weights -= row.__height_weight__;
+                    row.height = Math.round(height * row.__height_weight / height_weights);
+                    height_weights -= row.__height_weight;
                     height -= row.height;
                 }
 
@@ -178,8 +178,8 @@
                     count = cells.length,
 
                     x = this.x || 0,
-                    width = Math.max(this.width - row.__width_fixed__ - (count - 1) * spaceX, 0),
-                    width_weights = row.__width_weights__;
+                    width = Math.max(this.width - row.__width_fixed - (count - 1) * spaceX, 0),
+                    width_weights = row.__width_weights;
 
                 for (var j = 0; j < count; j++)
                 {
@@ -187,10 +187,10 @@
 
                     cell.x = x;
 
-                    if (cell.__width_auto__)
+                    if (cell.__width_auto)
                     {
-                        cell.width = Math.round(width * cell.__width_weight__ / width_weights);
-                        width_weights -= cell.__width_weight__;
+                        cell.width = Math.round(width * cell.__width_weight / width_weights);
+                        width_weights -= cell.__width_weight;
                         width -= cell.width;
                     }
 
@@ -226,15 +226,15 @@
             {
                 var row = new flyingon.RowDefine(this);
 
-                row.__height_auto__ = true;
-                this.__height_weights__ += row.__height_weight__;
+                row.__height_auto = true;
+                this.__height_weights += row.__height_weight;
 
                 for (var j = 0; j < columns; j++)
                 {
                     var cell = new flyingon.CellDefine(this, row);
 
-                    cell.__width_auto__ = true;
-                    row.__width_weights__ += cell.__width_weight__;
+                    cell.__width_auto = true;
+                    row.__width_weights += cell.__width_weight;
 
                     row.cells.push(cell);
                 }
@@ -315,7 +315,7 @@
 
         };
 
-        this.__fn_horizontal_cells__ = function (include_children, result) {
+        this.__fn_horizontal_cells = function (include_children, result) {
 
             var rows = this.rows;
 
@@ -332,7 +332,7 @@
 
                     if (include_children && cell.children)
                     {
-                        cell.children.__fn_horizontal_cells__(true, result);
+                        cell.children.__fn_horizontal_cells(true, result);
                     }
                     else
                     {
@@ -344,7 +344,7 @@
             return result;
         };
 
-        this.__fn_vertical_cells__ = function (include_children, result) {
+        this.__fn_vertical_cells = function (include_children, result) {
 
             var rows = this.rows,
                 values = [];
@@ -362,7 +362,7 @@
 
                     if (include_children && cell.children)
                     {
-                        cell.children.__fn_vertical_cells__(true, result);
+                        cell.children.__fn_vertical_cells(true, result);
                     }
                     else
                     {
@@ -384,14 +384,14 @@
         //按顺序自动排列子控件
         this.match = function (items, vertical) {
 
-            var cells = this[vertical ? "__fn_vertical_cells__" : "__fn_horizontal_cells__"](true),
+            var cells = this[vertical ? "__fn_vertical_cells" : "__fn_horizontal_cells"](true),
                 count = cells.length,
                 index = 0;
 
             for (var i = 0, length = items.length; i < length; i++)
             {
                 var item = items[i],
-                    box = item.__boxModel__;
+                    box = item.__boxModel;
 
                 if (box.visible = index < count && item.visibility !== "collapsed")
                 {

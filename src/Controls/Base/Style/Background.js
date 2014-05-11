@@ -89,7 +89,7 @@
 
 
     //注册样式转换
-    flyingon.__fn_style_convert__("background", function (style, value) {
+    flyingon.__fn_style_convert("background", function (style, value) {
 
         return value instanceof Background ? value : new Background(value);
     });
@@ -100,7 +100,7 @@
         var name = "background",
             key = Background.names[i];
 
-        flyingon.__fn_style_convert__(name + key[0].toUpperCase() + key.substring(1), function (style, value) {
+        flyingon.__fn_style_convert(name + key[0].toUpperCase() + key.substring(1), function (style, value) {
 
             var result = style[name] || (style[name] = new Background());
             result[key] = value;

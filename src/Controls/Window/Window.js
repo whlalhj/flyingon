@@ -63,8 +63,8 @@ flyingon.defineClass("Window", flyingon.WindowBase, function (Class, base, flyin
     //刷新窗口
     this.update = function () {
 
-        var r = this.__fn_getBoundingClientRect__(true);
-        this.__fn_resize__(0, 0, r.width, r.height);
+        var r = this.__fn_getBoundingClientRect(true);
+        this.__fn_resize(0, 0, r.width, r.height);
     };
 
 

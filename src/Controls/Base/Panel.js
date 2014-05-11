@@ -8,10 +8,10 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
 
         //子控件集合
-        this.__children__ = new flyingon.ControlCollection(this);
+        this.__children = new flyingon.ControlCollection(this);
 
         //初始化子盒模型
-        this.__boxModel__.children = [];
+        this.__boxModel.children = [];
     };
 
 
@@ -32,7 +32,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     //子控件集合
     this.defineProperty("children", function () {
 
-        return this.__children__;
+        return this.__children;
     });
 
 
@@ -106,7 +106,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             width = clientRect.width,
             height = clientRect.height,
 
-            boxModel = this.__boxModel__,
+            boxModel = this.__boxModel,
             scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight;
 
@@ -114,7 +114,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (item.visibility !== "collapsed"))
             {
@@ -148,7 +148,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             width = clientRect.width,
             height = clientRect.height,
 
-            boxModel = this.__boxModel__,
+            boxModel = this.__boxModel,
             scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight;
 
@@ -156,7 +156,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (item.visibility !== "collapsed"))
             {
@@ -199,7 +199,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             maxWidth = clientRect.width,
             maxHeight = lineHeight,
 
-            boxModel = this.__boxModel__,
+            boxModel = this.__boxModel,
             scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight,
 
@@ -210,7 +210,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (item.visibility !== "collapsed"))
             {
@@ -282,7 +282,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             maxWidth = lineWidth,
             maxHeight = clientRect.height,
 
-            boxModel = this.__boxModel__,
+            boxModel = this.__boxModel,
             scrollWidth = boxModel.scrollWidth,
             scrollHeight = boxModel.scrollHeight,
 
@@ -292,7 +292,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (this.visibility !== "collapsed"))
             {
@@ -377,7 +377,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (i === index))
             {
@@ -405,7 +405,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (item.visibility !== "collapsed"))
             {
@@ -518,7 +518,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = row < rows && column < columns && item.visibility !== "collapsed")
             {
@@ -575,12 +575,12 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     //绝对定位 left top
     layouts.absolute = function (items, clientRect) {
 
-        var boxModel = this.__boxModel__;
+        var boxModel = this.__boxModel;
 
         for (var i = 0, length = items.length; i < length; i++)
         {
             var item = items[i],
-                box = item.__boxModel__;
+                box = item.__boxModel;
 
             if (box.visible = (this.visibility !== "collapsed"))
             {
@@ -663,9 +663,9 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     //排列子控件
     this.arrange = function (clientRect) {
 
-        this.__render_children__ = null;
+        this.__render_children = null;
 
-        var items = this.__children__;
+        var items = this.__children;
 
         if (items.length > 0)
         {
@@ -694,9 +694,9 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
 
     //获取当前可渲染的子项
-    this.__fn_render_children__ = function (boxModel) {
+    this.__fn_render_children = function (boxModel) {
 
-        var result = this.__render_children__;
+        var result = this.__render_children;
 
         if (!result)
         {
@@ -709,7 +709,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
                 right = x + r.width,
                 bottom = y + r.height;
 
-            result = this.__render_children__ = [];
+            result = this.__render_children = [];
 
             for (var i = 0, length = children.length; i < length; i++)
             {
@@ -746,7 +746,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
 
 
-        var box = this.__boxModel__,
+        var box = this.__boxModel,
             r = box.clientRect;
 
 
@@ -759,7 +759,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         //}
 
 
-        var items = this.__render_children__;
+        var items = this.__render_children;
 
         if (items && items.length > 0)
         {
@@ -790,7 +790,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         }
 
 
-        var items = this.__children__;
+        var items = this.__children;
 
         for (var i = 0, length = items.length; i < length; i++)
         {
@@ -815,7 +815,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
 
         base.serialize.call(this, writer);
 
-        var items = this.__children__;
+        var items = this.__children;
         if (items.length > 0)
         {
             writer.array("children", items);
@@ -827,7 +827,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         excludes.children = true;
 
         base.deserialize.call(this, reader, data, excludes);
-        this.__children__.deserialize(reader, data["children"]);
+        this.__children.deserialize(reader, data["children"]);
     };
 
 

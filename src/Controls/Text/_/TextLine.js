@@ -8,7 +8,7 @@
         this.text = text;
         this.height = font.height;
 
-    }).prototype = flyingon.__pseudo_array__();
+    }).prototype = flyingon.__pseudo_array();
 
 
 
@@ -34,8 +34,8 @@
 
     function initialize() {
 
-        var cache1 = this.__cache1__ = [0],
-            cache2 = this.__cache2__ = [0];
+        var cache1 = this.__cache1 = [0],
+            cache2 = this.__cache2 = [0];
 
         for (var i = 0, length = this.length - 1; i < length; i++)
         {
@@ -66,8 +66,8 @@
     prototype.measureText = function () {
 
         var font = this.font,
-            cache = font.__cache__,
-            context = font.__context__,
+            cache = font.__cache,
+            context = font.__context,
             chinese = cache["汉"],
             values = this.text.match(regex_measure) || [""],
             x = 0;
@@ -124,9 +124,9 @@
         }
 
 
-        var index = (this.__cache1__ || initialize.call(this).__cache1__).binary_between(columnIndex),
+        var index = (this.__cache1 || initialize.call(this).__cache1).binary_between(columnIndex),
             word = this[index],
-            charIndex = columnIndex - this.__cache1__[index];
+            charIndex = columnIndex - this.__cache1[index];
 
 
         return {
@@ -134,7 +134,7 @@
             wordIndex: index,
             charIndex: charIndex,
             columnIndex: columnIndex,
-            x: this.__cache2__[index] + word.position(charIndex),
+            x: this.__cache2[index] + word.position(charIndex),
             y: this.y
         };
     };
@@ -143,7 +143,7 @@
     //查找指定位置的文字信息
     prototype.charAt = function (x) {
 
-        var index = (this.__cache2__ || initialize.call(this).__cache2__).binary_between(x),
+        var index = (this.__cache2 || initialize.call(this).__cache2).binary_between(x),
             word = this[index],
             charIndex,
             x;
@@ -156,8 +156,8 @@
         }
         else
         {
-            charIndex = word.charAt(x - this.__cache2__[index]);
-            x = this.__cache2__[index] + word.position(charIndex);
+            charIndex = word.charAt(x - this.__cache2[index]);
+            x = this.__cache2[index] + word.position(charIndex);
         }
 
 
@@ -165,7 +165,7 @@
 
             wordIndex: index,
             charIndex: charIndex,
-            columnIndex: this.__cache1__[index] + charIndex,
+            columnIndex: this.__cache1[index] + charIndex,
             x: x,
             y: this.y
         };

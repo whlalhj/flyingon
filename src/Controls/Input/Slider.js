@@ -11,11 +11,11 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
 
     Class.create = function () {
 
-        this.__boxModel__.children = [];
+        this.__boxModel.children = [];
 
-        (this.__children__ = new flyingon.ControlCollection(this)).addRange([
-            this.__line__ = new flyingon.ScrollSlider(),
-            this.__button__ = new flyingon.ScrollButton(true)]);
+        (this.__children = new flyingon.ControlCollection(this)).addRange([
+            this.__line = new flyingon.ScrollSlider(),
+            this.__button = new flyingon.ScrollButton(true)]);
     };
 
 
@@ -52,18 +52,18 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
 
 
 
-    this.__event_mousedown__ = function (event) {
+    this.__event_mousedown = function (event) {
 
         if (timer)
         {
             clearTimeout(timer);
         }
 
-        var value = this.__target__, limit, box;
+        var value = this.__target, limit, box;
 
         if (value)
         {
-            this.ownerWindow.__capture_control__ = this;
+            this.ownerWindow.__capture_control = this;
 
             dragger = {
 
@@ -78,7 +78,7 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
         }
         else
         {
-            box = this.__boxModel__;
+            box = this.__boxModel;
             value = this.vertical ? event.windowY - box.clientRect.windowY : event.windowX - box.clientRect.windowX;
 
             if (value < box.slider_start) //slider before
@@ -100,12 +100,12 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
     };
 
 
-    this.__event_mousemove__ = function (event) {
+    this.__event_mousemove = function (event) {
 
         if (dragger)
         {
             var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                value = Math.round(offset * (this.maxValue - this.minValue) / this.__boxModel__.length);
+                value = Math.round(offset * (this.maxValue - this.minValue) / this.__boxModel.length);
 
             if (value)
             {
@@ -115,7 +115,7 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
     };
 
 
-    this.__event_mouseup__ = function (event) {
+    this.__event_mouseup = function (event) {
 
         if (timer)
         {
@@ -123,7 +123,7 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
             timer = null;
         }
 
-        this.ownerWindow.__capture_control__ = null;
+        this.ownerWindow.__capture_control = null;
         dragger = null;
     };
 
@@ -158,7 +158,7 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
             width = r.width,
             height = r.height;
 
-        if (this.__button1__.vertical = this.__button2__.vertical = this.vertical)
+        if (this.__button1.vertical = this.__button2.vertical = this.vertical)
         {
             var thickness = boxModel.thickness = width,
                 length = boxModel.length = height - (thickness << 1),
@@ -181,9 +181,9 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
             width = slider_length;
         }
 
-        this.__button1__.__boxModel__.measure(0, 0, thickness, thickness);
-        this.__button2__.__boxModel__.measure(x1, y1, thickness, thickness);
-        this.__slider0__.__boxModel__.measure(x2, y2, width, height);
+        this.__button1.__boxModel.measure(0, 0, thickness, thickness);
+        this.__button2.__boxModel.measure(x1, y1, thickness, thickness);
+        this.__slider0.__boxModel.measure(x2, y2, width, height);
     };
 
 });

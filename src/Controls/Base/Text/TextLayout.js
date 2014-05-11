@@ -8,7 +8,7 @@
 
         var key = (this.writingMode = this.target.writingMode.split("-"))[0];
 
-        this.font = target.__font__ || flyingon.__fn_style_value__(target, "font");
+        this.font = target.__font || flyingon.__fn_style_value(target, "font");
         this.letterSpacing = target.letterSpacing || 0;
         this.wordSpacing = target.wordSpacing || 0;
 
@@ -21,7 +21,7 @@
 
         var text = this.text,
             line = new text_line(start = start || 0, end = end || text.length),
-            storage = this.font.__storage__,
+            storage = this.font.__storage,
             letterSpacing = this.letterSpacing,
             wordSpacing = this.wordSpacing,
             width = 0;
@@ -127,7 +127,7 @@
         this.target = target;
         this.text = text;
 
-    }).prototype = flyingon.__pseudo_array__());
+    }).prototype = flyingon.__pseudo_array());
 
 
 
@@ -147,7 +147,7 @@
         this.x = 0; //起始x坐标
         this.y = 0; //起始y坐标
 
-    }).call(text_line.prototype = flyingon.__pseudo_array__());
+    }).call(text_line.prototype = flyingon.__pseudo_array());
 
 
 

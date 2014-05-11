@@ -10,7 +10,7 @@
         defineClass = function (fn, base) {
 
             var Class,
-                prototype = base ? Object.create(base) : new flyingon.__pseudo_array__();
+                prototype = base ? Object.create(base) : new flyingon.__pseudo_array();
 
             fn.call(prototype, Class);
 
@@ -209,7 +209,7 @@
         this.measureText = function (font, text, letterSpacing, wordSpacing) {
 
             var line = this[this.index++],
-                storage = font.__storage__,
+                storage = font.__storage,
                 chinese = storage.chinese,
                 letter,
                 width = 0;          //行宽

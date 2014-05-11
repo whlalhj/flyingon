@@ -3,7 +3,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
 
 
-    var class_list = flyingon.__registry_class_list__;
+    var class_list = flyingon.__registry_class_list;
 
 
 
@@ -19,7 +19,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
             var result = this[data.constructor === Array ? "array" : "object"](null, null, data);
 
-            this.__fn_complete__(this, context || result);
+            this.__fn_complete(this, context || result);
             return result;
         }
 
@@ -28,11 +28,11 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
 
     //序列化完毕后执行方法(内部方法)
-    this.__fn_complete__ = function (reader, context) {
+    this.__fn_complete = function (reader, context) {
 
         //缓存的资源
         var references = reader.references,
-            items = reader.__bindings__,
+            items = reader.__bindings,
             binding,
             source;
 
@@ -71,7 +71,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                             }
                         }
 
-                        binding.__fn_initialize__(item[0], name);
+                        binding.__fn_initialize(item[0], name);
                         binding.pull();
                     }
                 }
@@ -256,7 +256,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (target && (data = data.bindings))
         {
-            this.__bindings__ || (this.__bindings__ = []).push([target, data]);
+            this.__bindings || (this.__bindings = []).push([target, data]);
         }
     };
 

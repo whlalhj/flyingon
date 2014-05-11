@@ -33,7 +33,7 @@
                 width = clientRect.width,
                 height = clientRect.height,
 
-                boxModel = this.__boxModel__,
+                boxModel = this.__boxModel,
                 scrollWidth = boxModel.scrollWidth,
                 scrollHeight = boxModel.scrollHeight;
 
@@ -41,11 +41,11 @@
             for (var i = 0, length = items.length; i < length; i++)
             {
                 var item = items[i],
-                    box = item.__boxModel__;
+                    box = item.__boxModel;
 
                 if (box.visible = (item.visibility !== "collapsed"))
                 {
-                    item.__fn_measure_size__(box, width - x, height, false);
+                    item.__fn_measure_size(box, width - x, height, false);
 
                     if ((x = box.right + box.margin.left) > scrollWidth)
                     {
@@ -73,7 +73,7 @@
                 width = clientRect.width,
                 height = clientRect.height,
 
-                boxModel = this.__boxModel__,
+                boxModel = this.__boxModel,
                 scrollWidth = boxModel.scrollWidth,
                 scrollHeight = boxModel.scrollHeight;
 
@@ -81,7 +81,7 @@
             for (var i = 0, length = items.length; i < length; i++)
             {
                 var item = items[i],
-                    box = item.__boxModel__;
+                    box = item.__boxModel;
 
                 if (box.visible = (item.visibility !== "collapsed"))
                 {

@@ -12,7 +12,7 @@
 
 
         //是否自动换行
-        this.defineProperty("textWrap", false, false, "this.__rows__.clear();\n");
+        this.defineProperty("textWrap", false, false, "this.__rows.clear();\n");
 
 
     };

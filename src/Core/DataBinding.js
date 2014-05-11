@@ -10,7 +10,7 @@
     //正向绑定(绑定数据源至目标控件)
     flyingon.bindingTo = function (source, name) {
 
-        var bindings = source.__bindings__,
+        var bindings = source.__bindings,
             binding;
 
         if (bindings && (bindings = bindings.push) && (binding = bindings[name]))
@@ -55,7 +55,7 @@
 
     flyingon.clearBindings = function (source, dispose) {
 
-        if (source && (source = source.__bindings__))
+        if (source && (source = source.__bindings))
         {
             var fields = source.pull;
 
@@ -83,9 +83,9 @@
                 source = source.source;
             }
 
-            this.__source__ = source;
-            this.__expression__ = expression;
-            this.__setter__ = setter;
+            this.__source = source;
+            this.__expression = expression;
+            this.__setter = setter;
         }
 
     }).extend(function () {
@@ -97,7 +97,7 @@
 
                 flyingon.defineProperty(self, name, function () {
 
-                    return this["__" + name + "__"];
+                    return this["__" + name];
                 });
             };
 
@@ -122,28 +122,28 @@
 
 
         //是否正在处理绑定
-        this.__binding__ = false;
+        this.__binding = false;
 
         //获取值函数
-        this.__fn_getter__ = null;
+        this.__fn_getter = null;
 
         //设置值函数
-        this.__fn_setter__ = null;
+        this.__fn_setter = null;
 
 
 
         //初始化绑定关系
-        this.__fn_initialize__ = function (target, name) {
+        this.__fn_initialize = function (target, name) {
 
-            var source = this.__source__,
-                expression = this.__expression__,
-                bindings = target.__bindings__ || (target.__bindings__ = {}),
+            var source = this.__source,
+                expression = this.__expression,
+                bindings = target.__bindings || (target.__bindings = {}),
                 id = target.id || (target.id = flyingon.newId()),
                 cache;
 
 
-            this.__target__ = target;
-            this.__name__ = name;
+            this.__target = target;
+            this.__name = name;
 
 
             //缓存目标
@@ -164,13 +164,13 @@
 
 
 
-            bindings = source.__bindings__ || (source.__bindings__ = { push: {} });
+            bindings = source.__bindings || (source.__bindings = { push: {} });
             bindings = bindings.push || (bindings.push = {});
 
             //如果表达式以数据开头或包含字母数字下划线外的字符则作表达式处理
             if (expression.match(/^\d|[^\w]/))
             {
-                cache = (this.__fn_getter__ = new flyingon.Expression(expression)).parameters;
+                cache = (this.__fn_getter = new flyingon.Expression(expression)).parameters;
 
                 for (var i = 0, length = cache.length; i < length; i++)
                 {
@@ -180,15 +180,15 @@
             }
             else
             {
-                this.__fn_getter__ = null;
+                this.__fn_getter = null;
                 (bindings[expression] || (bindings[expression] = {}))[id] = this;
             }
 
 
             //处理更新
-            if (cache = this.__setter__)
+            if (cache = this.__setter)
             {
-                this.__fn_setter__ = new flyingon.Expression(cache);
+                this.__fn_setter = new flyingon.Expression(cache);
             }
         };
 
@@ -197,55 +197,55 @@
         //从数据源同步数据至目标属性
         this.pull = function () {
 
-            var source = this.__source__,
+            var source = this.__source,
                 result;
 
-            if (result = this.__fn_getter__)
+            if (result = this.__fn_getter)
             {
                 result = result.eval(source);
             }
             else
             {
-                var name = this.__expression__;
+                var name = this.__expression;
                 if ((result = source[name]) === undefined && source instanceof flyingon.DataObject)
                 {
                     result = source.value(name);
                 }
             }
 
-            this.__binding__ = true;
-            this.__target__[this.__name__] = result;
-            this.__binding__ = false;
+            this.__binding = true;
+            this.__target[this.__name] = result;
+            this.__binding = false;
         };
 
 
         //从目标属性同步数据至源
         this.push = function () {
 
-            var cache = this.__expression__;
+            var cache = this.__expression;
 
             if (cache)
             {
-                this.__binding__ = true;
+                this.__binding = true;
 
-                if (!this.__fn_getter__) //直接绑定字段
+                if (!this.__fn_getter) //直接绑定字段
                 {
-                    var target = this.__target__,
-                        name = this.__name__;
+                    var target = this.__target,
+                        name = this.__name;
 
                     if ((result = target[name]) === undefined && target instanceof flyingon.DataObject)
                     {
                         result = target.value(name);
                     }
 
-                    this.__source__[cache] = result;
+                    this.__source[cache] = result;
                 }
-                else if (cache = this.__fn_setter__) //表达式需要自定义setter方法
+                else if (cache = this.__fn_setter) //表达式需要自定义setter方法
                 {
-                    cache.call(this.__target__);
+                    cache.call(this.__target);
                 }
 
-                this.__binding__ = false;
+                this.__binding = false;
             }
         };
 
@@ -253,14 +253,14 @@
         //清除绑定关系
         this.clear = function (dispose) {
 
-            var source = this.__source__,
-                target = this.__target__,
+            var source = this.__source,
+                target = this.__target,
                 bindings,
                 cache;
 
-            if (source && target && (bindings = source.__bindings_source__))
+            if (source && target && (bindings = source.__bindings_source))
             {
-                if (cache = this.__getter__)
+                if (cache = this.__getter)
                 {
                     var parameters = cache.parameters;
 
@@ -272,38 +272,38 @@
                         }
                     }
                 }
-                else if ((cache = this.__expression__) && (cache = bindings[cache]))
+                else if ((cache = this.__expression) && (cache = bindings[cache]))
                 {
                     delete cache[target.id];
                 }
 
 
-                delete target.__bindings__[this.__name__];
+                delete target.__bindings[this.__name];
             }
 
 
             if (dispose)
             {
-                delete this.__source__;
-                delete this.__target__;
-                delete this.__fn_getter__;
-                delete this.__fn_setter__;
+                delete this.__source;
+                delete this.__target;
+                delete this.__fn_getter;
+                delete this.__fn_setter;
             }
         };
 
 
         this.serialize = function (writer) {
 
-            writer.reference("source", this.__source__);
-            writer.string("expression", this.__expression__);
-            writer.string("setter", this.__setter__);
+            writer.reference("source", this.__source);
+            writer.string("expression", this.__expression);
+            writer.string("setter", this.__setter);
         };
 
         this.deserialize = function (reader, data, excludes) {
 
-            reader.reference(this, "__source__", data.source);
-            reader.string(this, "__expression__", data.expression);
-            reader.string(this, "__setter__", data.setter);
+            reader.reference(this, "__source", data.source);
+            reader.string(this, "__expression", data.expression);
+            reader.string(this, "__setter", data.setter);
         };
 
 

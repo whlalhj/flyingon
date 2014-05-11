@@ -15,7 +15,7 @@
             {
                 check.call(this, cache = items[i], exports);
 
-                if ((cache = cache.__children__) && cache.length > 0)
+                if ((cache = cache.__children) && cache.length > 0)
                 {
                     query_cascade.call(this, cache, exports);
                 }
@@ -29,7 +29,7 @@
 
             for (var i = 0, length = items.length; i < length; i++)
             {
-                if ((cache = (item = items[i]).__children__) && cache.length > 0)
+                if ((cache = (item = items[i]).__children) && cache.length > 0)
                 {
                     query_cascade.call(this, cache, exports);
                 }
@@ -43,7 +43,7 @@
 
             for (var i = 0, length = items.length; i < length; i++)
             {
-                if ((children = items[i].__children__) && children.length > 0)
+                if ((children = items[i].__children) && children.length > 0)
                 {
                     for (var j = 0, length1 = children.length; j < length1; j++)
                     {
@@ -61,7 +61,7 @@
             for (var i = 0, length = items.length; i < length; i++)
             {
                 if ((item = items[i]) &&
-                    (children = item.__parent__.__children__) &&
+                    (children = item.__parent.__children) &&
                     (children.length > (index = children.indexOf(item) + 1)))
                 {
                     check.call(this, children[index], exports);
@@ -76,7 +76,7 @@
 
             for (var i = 0, length = items.length; i < length; i++)
             {
-                if ((item = items[i]) && (children = item.__parent__.__children__))
+                if ((item = items[i]) && (children = item.__parent.__children))
                 {
                     for (var j = children.indexOf(item) + 1, length1 = children.length; j < length1; j++)
                     {
@@ -103,76 +103,76 @@
         //获取后一节点
         this.before = function (target) {
 
-            var cache = target.__parent__, index;
-            return (cache && (cache = cache.__children__) && (index = cache.indexOf(this)) > 0 && cache[--index]) || false;
+            var cache = target.__parent, index;
+            return (cache && (cache = cache.__children) && (index = cache.indexOf(this)) > 0 && cache[--index]) || false;
         };
 
         //获取前一节点
         this.after = function (target) {
 
-            var cache = target.__parent__, index;
-            return (cache && (cache = cache.__children__) && (index = cache.indexOf(this)) >= 0 && cache[++index]) || false;
+            var cache = target.__parent, index;
+            return (cache && (cache = cache.__children) && (index = cache.indexOf(this)) >= 0 && cache[++index]) || false;
         };
 
         //检测当前节点是否唯一子节点,是则返回父节点
         this["first-child"] = function (target) {
 
-            var cache = target.__children__;
+            var cache = target.__children;
             return (cache && cache.length > 0 && cache[0]) || false;
         };
 
         this["first-of-type"] = function (target) {
 
-            var result, cache = target.__children__;
-            return cache && cache.length > 0 && (result = cache[0]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
+            var result, cache = target.__children;
+            return cache && cache.length > 0 && (result = cache[0]) && target.__fullTypeName === result.__fullTypeName ? result : false;
         };
 
         this["last-child"] = function (target) {
 
-            var cache = target.__children__;
+            var cache = target.__children;
             return (cache && cache.length > 0 && cache[cache.length - 1]) || false;
         };
 
         this["last-of-type"] = function (target) {
 
-            var result, cache = target.__children__;
-            return cache && cache.length > 0 && (result = cache[cache.length - 1]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
+            var result, cache = target.__children;
+            return cache && cache.length > 0 && (result = cache[cache.length - 1]) && target.__fullTypeName === result.__fullTypeName ? result : false;
         };
 
         this["only-child"] = function (target) {
 
-            var cache = target.__children__;
+            var cache = target.__children;
             return (cache && cache.length === 1 && cache[0]) || false;
         };
 
         this["only-of-type"] = function (target) {
 
-            var result, cache = target.__children__;
-            return cache && cache.length === 1 && (result = cache[0]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
+            var result, cache = target.__children;
+            return cache && cache.length === 1 && (result = cache[0]) && target.__fullTypeName === result.__fullTypeName ? result : false;
         };
 
         this["nth-child"] = function (target) {
 
-            var cache = target.__children__, index = +this.value;
+            var cache = target.__children, index = +this.value;
             return (cache && cache.length > index && cache[index]) || false;
         };
 
         this["nth-of-type"] = function (target) {
 
-            var result, cache = target.__children__, index = +this.value;
-            return cache && cache.length > index && (result = cache[index]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
+            var result, cache = target.__children, index = +this.value;
+            return cache && cache.length > index && (result = cache[index]) && target.__fullTypeName === result.__fullTypeName ? result : false;
         };
 
         this["nth-last-child"] = function (target) {
 
-            var cache = target.__children__, index = +this.value;
+            var cache = target.__children, index = +this.value;
             return (cache && cache.length > index && cache[cache.length - index - 1]) || false;
         };
 
         this["nth-last-of-type"] = function (target) {
 
-            var result, cache = target.__children__, index = +this.value;
-            return cache && cache.length > index && (result = cache[cache.length - index - 1]) && target.__fullTypeName__ === result.__fullTypeName__ ? result : false;
+            var result, cache = target.__children, index = +this.value;
+            return cache && cache.length > index && (result = cache[cache.length - index - 1]) && target.__fullTypeName === result.__fullTypeName ? result : false;
         };
 
         return this;
@@ -187,14 +187,14 @@
         switch (this.token)
         {
             case "":  //类型
-                if (target.__fullTypeName__ !== this.name)
+                if (target.__fullTypeName !== this.name)
                 {
                     return false;
                 }
                 break;
 
             case ".": //class
-                if (!target.__class__ || !target.__class__[this.name])
+                if (!target.__class || !target.__class[this.name])
                 {
                     return false;
                 }
@@ -210,7 +210,7 @@
 
         for (var i = 0, length = this.length; i < length; i++)
         {
-            if ((target = this[i].check(target, element_fn)) === false) //
+            if ((target = this[i].check(target)) === false) //
             {
                 return false;
             }
@@ -247,5 +247,5 @@
     };
 
 
-}).call(flyingon.Selector_Element.prototype, flyingon);
+}).call(flyingon.__element_node.prototype, flyingon);
 

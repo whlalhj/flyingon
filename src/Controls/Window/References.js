@@ -4,8 +4,8 @@
 
     var prototype = (flyingon.References = function (parent) {
 
-        this.__parent__ = parent;
-        this.__data__ = {};
+        this.__parent = parent;
+        this.__data = {};
 
     }).prototype;
 
@@ -14,7 +14,7 @@
 
     prototype.get = function (name) {
 
-        var result = this.__data__[name];
+        var result = this.__data[name];
 
         if (result !== undefined)
         {
@@ -22,16 +22,16 @@
         }
 
 
-        var parent = this.__parent__;
+        var parent = this.__parent;
 
         while (parent)
         {
-            if ((result = parent.__data__[name]) !== undefined)
+            if ((result = parent.__data[name]) !== undefined)
             {
                 return result;
             }
 
-            parent = parent.__parent__;
+            parent = parent.__parent;
         }
     };
 

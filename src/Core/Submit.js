@@ -15,21 +15,21 @@
         this.form = document.createElement("form");
         this.iframe = document.createElement("iframe");
 
-        this.host.id = "__submit_host_" + (++id) + "__";
+        this.host.id = "__submit_host_" + (++id);
         //this.host.style.display = "none";
 
-        this.iframe.name = "__submit_iframe__";
+        this.iframe.name = "__submit_iframe";
         this.iframe.src = "about:blank";
 
-        this.form.name = "__submit_form__";
-        this.form.target = "__submit_iframe__";
+        this.form.name = "__submit_form";
+        this.form.target = "__submit_iframe";
 
         this.host.appendChild(this.iframe);
         this.host.appendChild(this.form);
 
         document.documentElement.children[0].appendChild(this.host);
 
-        this.iframe.contentWindow.name = "__submit_iframe__"; //解决IE6在新窗口打开的BUG
+        this.iframe.contentWindow.name = "__submit_iframe"; //解决IE6在新窗口打开的BUG
     };
 
     function get_form(options) {

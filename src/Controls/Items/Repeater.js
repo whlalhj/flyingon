@@ -5,23 +5,23 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
 
   
 
-    this.__fn_create_item__ = function () {
+    this.__fn_create_item = function () {
 
     };
 
     this.clearTemplate = function () {
 
-        var items = this.__items__,
+        var items = this.__items,
             length = items && items.length;
 
         for (var i = 0; i < length; i++)
         {
             var item = items[i],
-                control = item.__control__;
+                control = item.__control;
 
             if (control)
             {
-                item.__control__ = null;
+                item.__control = null;
                 control.dispose();
             }
         }
@@ -30,8 +30,8 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
     //排列子项
     this.arrange = function (clientRect) {
 
-        var items = this.__items__,
-            children = this.__render_children__ = [],
+        var items = this.__items,
+            children = this.__render_children = [],
 
             maxIndex = this.maxIndex,
             lineHeight = this.lineHeight,
@@ -50,24 +50,24 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
 
             if (item.visible)
             {
-                var control = item.__control__;
+                var control = item.__control;
 
                 if (!control)
                 {
                     if (template || (template = this.template))
                     {
-                        control = item.__control__ = this.createTemplateControl(template, item);
+                        control = item.__control = this.createTemplateControl(template, item);
                     }
                     else
                     {
-                        control = item.__control__ = this.__fn_create_item__();
+                        control = item.__control = this.__fn_create_item();
                     }
                 }
 
 
                 if (control)
                 {
-                    control.__boxModel__.measure(0, y, width, lineHeight);
+                    control.__boxModel.measure(0, y, width, lineHeight);
 
                     children.push(control);
 

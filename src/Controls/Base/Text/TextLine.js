@@ -2,7 +2,7 @@
 
 
 
-flyingon.__text_line_type__ = {
+flyingon.__text_line_type = {
 
     lr: {
 
@@ -31,7 +31,7 @@ flyingon.__text_line_type__ = {
 
 
 
-    flyingon.__fn_text_line__ = function (type) {
+    flyingon.__fn_text_line = function (type) {
 
 
     };

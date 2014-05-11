@@ -18,14 +18,14 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         getter: function () {
 
-            return (this.__textMetrics__ && this.__textMetrics__.selectionStart) || 0;
+            return (this.__textMetrics && this.__textMetrics.selectionStart) || 0;
         },
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow.__focused_control__ === this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control === this)
             {
-                this.__textMetrics__.moveTo(value);
+                this.__textMetrics.moveTo(value);
             }
 
             return this;
@@ -37,15 +37,15 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
         getter: function () {
 
-            var textMetrics = this.__textMetrics__;
+            var textMetrics = this.__textMetrics;
             return textMetrics ? textMetrics.selectionEnd - textMetrics.selectionStart : 0;
         },
 
         setter: function (value) {
 
-            if (this.ownerWindow && this.ownerWindow.__focused_control__ === this)
+            if (this.ownerWindow && this.ownerWindow.__focused_control === this)
             {
-                var textMetrics = this.__textMetrics__;
+                var textMetrics = this.__textMetrics;
 
                 if (value < 0)
                 {
@@ -62,7 +62,7 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
     this.defineProperty("selectedText", function () {
 
-        return this.__textMetrics__.selectedText;
+        return this.__textMetrics.selectedText;
     });
 
 
@@ -71,12 +71,12 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
 
-    this.__fn_focus__ = function (event) {
+    this.__fn_focus = function (event) {
 
         if (this.focus())
         {
             var ownerWindow = this.ownerWindow,
-                textMetrics = this.__textMetrics__;
+                textMetrics = this.__textMetrics;
 
             if (event || !this.containsFocused || !textMetrics.end)
             {
@@ -88,35 +88,35 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
             //开启输入助手
-            ownerWindow.__fn_open_ime__(this, this.readOnly);
+            ownerWindow.__fn_open_ime(this, this.readOnly);
         }
     };
 
-    this.__fn_blur__ = function () {
+    this.__fn_blur = function () {
 
         if (this.blur())
         {
-            this.ownerWindow.__fn_close_ime__();
+            this.ownerWindow.__fn_close_ime();
         }
     };
 
 
 
 
-    this.__event_mousedown__ = function (event) {
+    this.__event_mousedown = function (event) {
 
-        this.ownerWindow.__capture_control__ = this; //捕获鼠标
+        this.ownerWindow.__capture_control = this; //捕获鼠标
     };
 
-    this.__event_mousemove__ = function (event) {
+    this.__event_mousemove = function (event) {
 
-        if (event.mousedown && this.ownerWindow.__focused_control__ === this)
+        if (event.mousedown && this.ownerWindow.__focused_control === this)
         {
-            var textMetrics = this.__textMetrics__,
+            var textMetrics = this.__textMetrics,
                 x = event.targetX;
 
 
-            if (x >= this.__boxModel__.clientRect.right)
+            if (x >= this.__boxModel.clientRect.right)
             {
                 textMetrics.selectionTo(textMetrics.selectionEnd + 1, true);
             }
@@ -130,20 +130,20 @@ flyingon["text-painter"] = function (multiline, readOnly) {
             }
 
 
-            this.ownerWindow.__fn_reset_ime__();
+            this.ownerWindow.__fn_reset_ime();
         }
     };
 
-    this.__event_mouseup__ = function (event) {
+    this.__event_mouseup = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
-        if (ownerWindow.__focused_control__ === this)
+        if (ownerWindow.__focused_control === this)
         {
-            ownerWindow.__fn_reset_ime__();
+            ownerWindow.__fn_reset_ime();
         }
 
-        ownerWindow.__capture_control__ = null; //释放鼠标
+        ownerWindow.__capture_control = null; //释放鼠标
     };
 
 

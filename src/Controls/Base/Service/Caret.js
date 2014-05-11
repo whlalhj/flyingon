@@ -1,6 +1,6 @@
 ﻿
 ///初始化插入符
-flyingon.__fn_initialize_caret__ = function (parentNode) {
+flyingon.__fn_initialize_caret = function (parentNode) {
 
 
     var timer,
@@ -271,7 +271,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
 
 
     //变更插入符位置
-    this.__fn_change_caret__ = function (changeX, changeY) {
+    this.__fn_change_caret = function (changeX, changeY) {
 
         if (_boxModel)
         {
@@ -284,18 +284,18 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
 
 
     //打开输入法
-    this.__fn_open_ime__ = function (ownerControl, readOnly, textMetrics) {
+    this.__fn_open_ime = function (ownerControl, readOnly, textMetrics) {
 
         _ownerControl = ownerControl;
-        _boxModel = ownerControl.__boxModel__;
-        _textMetrics = textMetrics || ownerControl.__textMetrics__;
+        _boxModel = ownerControl.__boxModel;
+        _textMetrics = textMetrics || ownerControl.__textMetrics;
 
         input.readOnly = readOnly;
         reset();
     };
 
     //重置输入法
-    var reset = this.__fn_reset_ime__ = function () {
+    var reset = this.__fn_reset_ime = function () {
 
         input.focus();
         input.value = _textMetrics.selectedText;
@@ -305,7 +305,7 @@ flyingon.__fn_initialize_caret__ = function (parentNode) {
     };
 
     //关闭输入法
-    this.__fn_close_ime__ = function () {
+    this.__fn_close_ime = function () {
 
         if (timer)
         {

@@ -16,7 +16,7 @@ flyingon.defineClass("WindowToolButton", flyingon.Control, function (Class, base
     //绘制图像
     this.paint = function (context, boxModel) {
 
-        var image = this.__fn_state_image__(this.image);
+        var image = this.__fn_state_image(this.image);
 
         if (image)
         {
@@ -36,7 +36,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
 
     Class.create = function (parent) {
 
-        var fields = this.__fields__;
+        var fields = this.__fields;
 
         fields.horizontalScroll = "never";
         fields.verticalScroll = "never";
@@ -44,13 +44,13 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
         fields.height = "fill";
         fields.dock = "top";
 
-        this.__fn_initialize_button__();
-        this.__parent__ = parent;
-        this.__boxModel__.initialize_addtions(parent.__boxModel__);
+        this.__fn_initialize_button();
+        this.__parent = parent;
+        this.__boxModel.initialize_addtions(parent.__boxModel);
     };
 
 
-    this.__fn_initialize_button__ = function () {
+    this.__fn_initialize_button = function () {
 
         button.call(this, "window-icon", "left");
         button.call(this, "window-close", "right", close);
@@ -88,7 +88,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
             };
         }
 
-        this.__children__.append(result);
+        this.__children.append(result);
         return result;
     };
 
@@ -133,7 +133,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
 
 
 
-    this.__event_mousedown__ = function (event) {
+    this.__event_mousedown = function (event) {
 
         var ownerWindow = this.ownerWindow,
             offset = translate(ownerWindow);
@@ -141,10 +141,10 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
         offsetX = offset.left - event.clientX;
         offsetY = offset.top - event.clientY;
 
-        ownerWindow.__capture_control__ = this; //捕获鼠标
+        ownerWindow.__capture_control = this; //捕获鼠标
     };
 
-    this.__event_mousemove__ = function (event) {
+    this.__event_mousemove = function (event) {
 
         if (event.mousedown)
         {
@@ -160,18 +160,18 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
         }
     };
 
-    this.__event_mouseup__ = function (event) {
+    this.__event_mouseup = function (event) {
 
-        this.ownerWindow.__capture_control__ = null;
+        this.ownerWindow.__capture_control = null;
     };
 
 
 
-    this.__fn_measure__ = function (boxModel, width) {
+    this.__fn_measure = function (boxModel, width) {
 
         var y = (this.visibility === "visible" && this.height) || 0;
 
-        this.__boxModel__.measure(0, 0, width, y).compute();
+        this.__boxModel.measure(0, 0, width, y).compute();
         return y;
     };
 
@@ -206,7 +206,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
 
 
 
-    this.__event_change__ = function (event) {
+    this.__event_change = function (event) {
 
         switch (event.name)
         {
@@ -246,7 +246,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
             throw new Error("parentWindow not allow null!");
         }
 
-        var children = parentWindow.__windows__;
+        var children = parentWindow.__windows;
         if (!children)
         {
             throw new Error("parentWindow is not a flyingon.WindowBase object!");
@@ -294,7 +294,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
 
         if (parentWindow)
         {
-            var index = parentWindow.__windows__.indexOf(this);
+            var index = parentWindow.__windows.indexOf(this);
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
@@ -306,7 +306,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
                     host.removeChild(this.dom_mask);
                 }
 
-                parentWindow.__windows__.splice(index, 1);
+                parentWindow.__windows.splice(index, 1);
 
                 delete this.parentWindow;
 
@@ -325,7 +325,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
     this.update = function (center) {
 
 
-        var r = this.__fn_getBoundingClientRect__(this.fill),
+        var r = this.__fn_getBoundingClientRect(this.fill),
             width = this.width,
             height = this.height,
 
@@ -345,8 +345,8 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
         style.height = height + "px";
 
 
-        var y = this.toolbar.__fn_measure__(this.__boxModel__, width);
-        this.__fn_resize__(0, y, width, height);
+        var y = this.toolbar.__fn_measure(this.__boxModel, width);
+        this.__fn_resize(0, y, width, height);
     };
 
 

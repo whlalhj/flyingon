@@ -9,21 +9,21 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
         function () {
 
-            return this.__children__[0] || null;
+            return this.__children[0] || null;
         },
 
         function (value) {
 
-            if (this.__children__[0] !== value)
+            if (this.__children[0] !== value)
             {
-                this.__children__.replace(0, value);
+                this.__children.replace(0, value);
             }
         });
 
 
     this.arrange = function (clientRect) {
 
-        this.__boxModel__.content(this.__children__[0]);
+        this.__boxModel.content(this.__children[0]);
     };
 
 

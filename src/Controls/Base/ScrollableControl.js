@@ -9,13 +9,13 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
     this.defineProperty("horizontalScrollBar", function () {
 
-        return this.__horizontalScrollBar__;
+        return this.__horizontalScrollBar;
     });
 
 
     this.defineProperty("verticalScrollBar", function () {
 
-        return this.__verticalScrollBar__;
+        return this.__verticalScrollBar;
     });
 
 
@@ -35,7 +35,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         this.defineProperty("name", 0, {
 
             attributes: attributes || "invalidate",
-            complete: "this.__boxModel__." + name + " = value;"
+            complete: "this.__boxModel." + name + " = value;"
         });
     };
 
@@ -57,9 +57,9 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
 
-    this.__event_scroll__ = function (event) {
+    this.__event_scroll = function (event) {
 
-        var box = this.__boxModel__;
+        var box = this.__boxModel;
 
         if (event.changeX)
         {
@@ -71,23 +71,23 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
             box.scrollTop += event.changeY;
         }
 
-        this.__render_children__ = null;
-        this.__boxModel__.invalidate(false);
+        this.__render_children = null;
+        this.__boxModel.invalidate(false);
 
         //修正因滚动造成的输入符位置变更问题
         var ownerWindow = this.ownerWindow;
-        if (ownerWindow && this.isParent(ownerWindow.__focused_control__))
+        if (ownerWindow && this.isParent(ownerWindow.__focused_control))
         {
-            ownerWindow.__fn_change_caret__(event.changeX, event.changeY);
+            ownerWindow.__fn_change_caret(event.changeX, event.changeY);
         }
 
         event.stopPropagation();
         event.preventDefault();
     };
 
-    this.__event_mousewheel__ = function (event) {
+    this.__event_mousewheel = function (event) {
 
-        var verticalScrollBar = this.__verticalScrollBar__;
+        var verticalScrollBar = this.__verticalScrollBar;
 
         if (verticalScrollBar)
         {
@@ -112,12 +112,12 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
         var cache;
 
-        if ((cache = this.__horizontalScrollBar__) && cache.hitTest(x, y))
+        if ((cache = this.__horizontalScrollBar) && cache.hitTest(x, y))
         {
             return cache;
         }
 
-        if ((cache = this.__verticalScrollBar__) && cache.hitTest(x, y))
+        if ((cache = this.__verticalScrollBar) && cache.hitTest(x, y))
         {
             return cache;
         }
@@ -152,14 +152,14 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         }
 
 
-        var horizontalScrollBar = this.__horizontalScrollBar__,
-            verticalScrollBar = this.__verticalScrollBar__;
+        var horizontalScrollBar = this.__horizontalScrollBar,
+            verticalScrollBar = this.__verticalScrollBar;
 
         //处理滚动条及拐角
         if (horizontalScrollBar || verticalScrollBar)
         {
-            this.__fn_measure_scroll_bar__(boxModel, horizontalScrollBar, verticalScrollBar);
-            this.__fn_measure_scroll_corner__(boxModel, horizontalScrollBar, verticalScrollBar);
+            this.__fn_measure_scroll_bar(boxModel, horizontalScrollBar, verticalScrollBar);
+            this.__fn_measure_scroll_corner(boxModel, horizontalScrollBar, verticalScrollBar);
         }
     };
 
@@ -189,20 +189,20 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
     function cache(target, name) {
 
-        target.__boxModel__.visible = false;
+        target.__boxModel.visible = false;
 
-        this["__" + name + "_cache__"] = target;
-        this["__" + name + "__"] = null;
+        this["__" + name + "_cache"] = target;
+        this["__" + name] = null;
     };
 
     function restore(name) {
 
-        var key = "__" + name + "_cache__",
-            result = this["__" + name + "__"] = this[key];
+        var key = "__" + name + "_cache",
+            result = this["__" + name] = this[key];
 
         if (result)
         {
-            result.__boxModel__.visible = true;
+            result.__boxModel.visible = true;
             this[key] = undefined;
         }
 
@@ -211,10 +211,10 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
     function initilaize_ScrollBar(boxModel, target, parent) {
 
-        target.__parent__ = parent;
+        target.__parent = parent;
         target.width = "fill";
         target.height = "fill";
-        target.__boxModel__.initialize_addtions(boxModel);
+        target.__boxModel.initialize_addtions(boxModel);
     };
 
     function initialize(boxModel, width, height) {
@@ -222,8 +222,8 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
         var result = false,
 
-            horizontalScrollBar = this.__horizontalScrollBar__,
-            verticalScrollBar = this.__verticalScrollBar__,
+            horizontalScrollBar = this.__horizontalScrollBar,
+            verticalScrollBar = this.__verticalScrollBar,
 
             clientRect = boxModel.clientRect,
 
@@ -234,13 +234,13 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
         //判读是否有水平滚动条
-        if ((scroll = this.horizontalScroll) !== "never" && !boxModel.__auto_width__)
+        if ((scroll = this.horizontalScroll) !== "never" && !boxModel.__auto_width)
         {
             horizontalScroll = scroll !== "auto" || (boxModel.scrollWidth > clientRect.width && (result = true));
         }
 
         //判断是否有垂直滚动条
-        if ((scroll = this.verticalScroll) !== "never" && !boxModel.__auto_height__)
+        if ((scroll = this.verticalScroll) !== "never" && !boxModel.__auto_height)
         {
             verticalScroll = scroll !== "auto" || (boxModel.scrollHeight > clientRect.height && (result = true));
         }
@@ -255,7 +255,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         {
             if (!horizontalScrollBar && !(horizontalScrollBar = restore.call(this, "horizontalScrollBar")))
             {
-                horizontalScrollBar = this.__horizontalScrollBar__ = this.create_ScrollBar();
+                horizontalScrollBar = this.__horizontalScrollBar = this.create_ScrollBar();
                 initilaize_ScrollBar(boxModel, horizontalScrollBar, this);
             }
 
@@ -273,7 +273,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         {
             if (!verticalScrollBar && !(verticalScrollBar = restore.call(this, "verticalScrollBar")))
             {
-                verticalScrollBar = this.__verticalScrollBar__ = this.create_ScrollBar(true);
+                verticalScrollBar = this.__verticalScrollBar = this.create_ScrollBar(true);
                 initilaize_ScrollBar(boxModel, verticalScrollBar, this);
             }
 
@@ -312,7 +312,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
     //测量滚动条
-    this.__fn_measure_scroll_bar__ = function (boxModel, horizontalScrollBar, verticalScrollBar) {
+    this.__fn_measure_scroll_bar = function (boxModel, horizontalScrollBar, verticalScrollBar) {
 
 
         var usableRect = boxModel.usableRect,
@@ -350,7 +350,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
             horizontalScrollBar.maxValue = boxModel.scrollWidth + usableRect.width - clientRect.width;
             horizontalScrollBar.viewportSize = usableRect.width;
 
-            horizontalScrollBar.__boxModel__.measure(usableRect.x, usableRect.bottom, usableRect.width, horizontalScrollBar.thickness);
+            horizontalScrollBar.__boxModel.measure(usableRect.x, usableRect.bottom, usableRect.width, horizontalScrollBar.thickness);
         }
 
 
@@ -363,26 +363,26 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
             verticalScrollBar.maxValue = boxModel.scrollHeight + usableRect.height - clientRect.height;
             verticalScrollBar.viewportSize = usableRect.height;
 
-            verticalScrollBar.__boxModel__.measure(usableRect.right, usableRect.y, verticalScrollBar.thickness, usableRect.height);
+            verticalScrollBar.__boxModel.measure(usableRect.right, usableRect.y, verticalScrollBar.thickness, usableRect.height);
         }
     };
 
     //处理拐角
-    this.__fn_measure_scroll_corner__ = function (boxModel, horizontalScrollBar, verticalScrollBar) {
+    this.__fn_measure_scroll_corner = function (boxModel, horizontalScrollBar, verticalScrollBar) {
 
-        var corner = this.__scroll_corner__;
+        var corner = this.__scroll_corner;
 
         if (horizontalScrollBar && verticalScrollBar)
         {
             if (!corner && !(corner = restore.call(this, "scroll_corner")))
             {
-                corner = this.__scroll_corner__ = this.create_ScrollCorner();
-                corner.__parent__ = this;
-                corner.__boxModel__.initialize_addtions(boxModel);
+                corner = this.__scroll_corner = this.create_ScrollCorner();
+                corner.__parent = this;
+                corner.__boxModel.initialize_addtions(boxModel);
             }
 
             var r = boxModel.usableRect;
-            corner.__boxModel__.measure(r.right, r.bottom, verticalScrollBar.thickness, horizontalScrollBar.__thickness__);
+            corner.__boxModel.measure(r.right, r.bottom, verticalScrollBar.thickness, horizontalScrollBar.__thickness);
         }
         else if (corner)
         {

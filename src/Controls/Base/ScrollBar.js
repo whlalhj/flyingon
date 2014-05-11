@@ -17,9 +17,9 @@ flyingon.complex_extender = function (base) {
 
         if (base.hitTest.call(this, x, y))
         {
-            var r = this.__boxModel__.clientRect,
-                items = this.__children__,
-                source = this.__target__,
+            var r = this.__boxModel.clientRect,
+                items = this.__children,
+                source = this.__target,
                 target = null;
 
             x -= r.x;
@@ -39,7 +39,7 @@ flyingon.complex_extender = function (base) {
                 source.stateTo("hover", false);
             }
 
-            if (this.__target__ = target)
+            if (this.__target = target)
             {
                 target.stateTo("hover", true);
             }
@@ -52,9 +52,9 @@ flyingon.complex_extender = function (base) {
 
     this.stateTo = function (name, value) {
 
-        if (this.__target__ && (name !== "hover" || !value))
+        if (this.__target && (name !== "hover" || !value))
         {
-            this.__target__.stateTo(name, value);
+            this.__target.stateTo(name, value);
         }
 
         base.stateTo.call(this, name, value);
@@ -97,12 +97,12 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
     Class.create = function () {
 
-        this.__boxModel__.children = [];
+        this.__boxModel.children = [];
 
-        (this.__children__ = new flyingon.ControlCollection(this)).addRange([
-            this.__button1__ = new flyingon.ScrollButton(true),
-            this.__slider0__ = new flyingon.ScrollSlider(),
-            this.__button2__ = new flyingon.ScrollButton(false)]);
+        (this.__children = new flyingon.ControlCollection(this)).addRange([
+            this.__button1 = new flyingon.ScrollButton(true),
+            this.__slider0 = new flyingon.ScrollSlider(),
+            this.__button2 = new flyingon.ScrollButton(false)]);
     };
 
 
@@ -111,7 +111,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
     //滚动条厚度
-    this.thickness = flyingon.__fn_style_last__("ScrollBar", "thickness") || 16;
+    this.thickness = flyingon.__fn_style_last("ScrollBar", "thickness") || 16;
 
 
     //当前值
@@ -148,28 +148,28 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
 
-    this.__event_mousedown__ = function (event) {
+    this.__event_mousedown = function (event) {
 
         if (timer)
         {
             clearTimeout(timer);
         }
 
-        var value = this.__target__, limit;
+        var value = this.__target, limit;
 
         if (value)
         {
-            if (value === this.__button1__)
+            if (value === this.__button1)
             {
                 value = -this.minChange;
             }
-            else if (value === this.__button2__)
+            else if (value === this.__button2)
             {
                 value = this.minChange;
             }
             else //slider
             {
-                this.ownerWindow.__capture_control__ = this;
+                this.ownerWindow.__capture_control = this;
 
                 dragger = {
 
@@ -185,17 +185,17 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         }
         else
         {
-            var r = this.__boxModel__.clientRect;
+            var r = this.__boxModel.clientRect;
             value = this.vertical ? event.windowY - r.windowY : event.windowX - r.windowX;
 
-            if (value < this.__offset_value__) //slider before
+            if (value < this.__offset_value) //slider before
             {
-                limit = this.minValue + Math.round((value - this.thickness) * this.maxValue / this.__length_value__);
+                limit = this.minValue + Math.round((value - this.thickness) * this.maxValue / this.__length_value);
                 value = -this.maxChange;
             }
             else  //slider after
             {
-                limit = this.minValue + Math.round((value - this.thickness - this.__slider_value__) * this.maxValue / this.__length_value__);
+                limit = this.minValue + Math.round((value - this.thickness - this.__slider_value) * this.maxValue / this.__length_value);
                 value = this.maxChange;
             }
         }
@@ -207,12 +207,12 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     };
 
 
-    this.__event_mousemove__ = function (event) {
+    this.__event_mousemove = function (event) {
 
         if (dragger)
         {
             var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                value = Math.round(offset * (this.maxValue - this.minValue) / this.__length_value__);
+                value = Math.round(offset * (this.maxValue - this.minValue) / this.__length_value);
 
             if (value)
             {
@@ -222,7 +222,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     };
 
 
-    this.__event_mouseup__ = function (event) {
+    this.__event_mouseup = function (event) {
 
         if (timer)
         {
@@ -230,7 +230,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             timer = null;
         }
 
-        this.ownerWindow.__capture_control__ = null;
+        this.ownerWindow.__capture_control = null;
         dragger = null;
     };
 
@@ -289,7 +289,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         this.dispatchEvent(event);
 
 
-        this.__boxModel__.invalidate(true);
+        this.__boxModel.invalidate(true);
 
         return value !== limit;
     };
@@ -350,18 +350,18 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             x = 0,
             y = 0,
             value,
-            button1 = this.__button1__,
-            button2 = this.__button2__,
-            slider0 = this.__slider0__.__boxModel__,
+            button1 = this.__button1,
+            button2 = this.__button2,
+            slider0 = this.__slider0.__boxModel,
             thickness = this.thickness;
 
-        button1.__boxModel__.measure(0, 0, thickness, thickness);
+        button1.__boxModel.measure(0, 0, thickness, thickness);
 
         if (button1.vertical = button2.vertical = this.vertical)
         {
-            var length = this.__length_value__ = (value = boxModel.clientRect.height) - (thickness << 1),
-                slider = this.__slider_value__ = slider_length.call(this, length),
-                offset = this.__offset_value__ = thickness + slider_start.call(this, length, slider);
+            var length = this.__length_value = (value = boxModel.clientRect.height) - (thickness << 1),
+                slider = this.__slider_value = slider_length.call(this, length),
+                offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
             y = Math.max(value - thickness, 0);
 
@@ -369,16 +369,16 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         }
         else
         {
-            length = this.__length_value__ = (value = boxModel.clientRect.width) - (thickness << 1);
-            slider = this.__slider_value__ = slider_length.call(this, length);
-            offset = this.__offset_value__ = thickness + slider_start.call(this, length, slider);
+            length = this.__length_value = (value = boxModel.clientRect.width) - (thickness << 1);
+            slider = this.__slider_value = slider_length.call(this, length);
+            offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
             x = Math.max(value - thickness, 0);
 
             slider0.measure(offset, 0, slider, thickness);
         }
 
-        button2.__boxModel__.measure(x, y, thickness, thickness);
+        button2.__boxModel.measure(x, y, thickness, thickness);
     };
 
 
@@ -394,11 +394,11 @@ flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, fl
 
     Class.create = function (first) {
 
-        this.__first__ = first;
+        this.__first = first;
     };
 
 
-    this.__vertical__ = false;
+    this.__vertical = false;
 
 
     //修改默认值为充满
@@ -412,9 +412,9 @@ flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, fl
     //绘制图像
     this.paint = function (context, boxModel) {
 
-        var image = "scroll-" + (this.__vertical__ ? (this.__first__ ? "up" : "down") : (this.__first__ ? "left" : "right"));
+        var image = "scroll-" + (this.__vertical ? (this.__first ? "up" : "down") : (this.__first ? "left" : "right"));
 
-        if (image = this.__fn_state_image__(image))
+        if (image = this.__fn_state_image(image))
         {
             var r = boxModel.clientRect;
             context.paint_image(image, r.windowX, r.windowY, r.width, r.height, this.textAlign);

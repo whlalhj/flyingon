@@ -8,7 +8,7 @@
 
         this.text = text;
 
-    }).prototype = flyingon.__pseudo_array__();
+    }).prototype = flyingon.__pseudo_array();
 
 
     //文本内容
@@ -25,9 +25,9 @@
 
     function initialize(target, font) {
 
-        var result = target.__cache__ = [0],
+        var result = target.__cache = [0],
             text = target.text,
-            cache = font.__cache__,
+            cache = font.__cache,
             width = 0,
             value;
 
@@ -47,14 +47,14 @@
     //获取指定位置的字符索引
     prototype.charAt = function (font, offsetX) {
 
-        return this.unit ? Math.round(offsetX / this.unit) : (this.__cache__ || initialize(this, font)).binary_between(offsetX);
+        return this.unit ? Math.round(offsetX / this.unit) : (this.__cache || initialize(this, font)).binary_between(offsetX);
     };
 
 
     //获取指定字符索引的相对位置
     prototype.position = function (font, text_index) {
 
-        return this.unit ? text_index * this.unit : (this.__cache__ || initialize(this, font))[text_index];
+        return this.unit ? text_index * this.unit : (this.__cache || initialize(this, font))[text_index];
     };
 
 

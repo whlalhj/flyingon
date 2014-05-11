@@ -43,11 +43,11 @@
 
         if (reparse)
         {
-            body += "this.__reparse__ = true;\nthis.__recompute__ = true;";
+            body += "this.__reparse = true;\nthis.__recompute = true;";
         }
         else if (recompute)
         {
-            body += "this.__recompute__ = true;";
+            body += "this.__recompute = true;";
         }
 
         body += "\n}";
@@ -78,23 +78,23 @@
 
     flyingon.defineProperty(prototype, "inlines", function () {
 
-        return this.__inlines__ || (this.__inlines__ = []);
+        return this.__inlines || (this.__inlines = []);
     });
 
 
 
     prototype.render = function (context) {
 
-        if (this.__reparse__)
+        if (this.__reparse)
         {
-            this.__inlines__ = parse(this.text);
-            this.__reparse__ = false;
+            this.__inlines = parse(this.text);
+            this.__reparse = false;
         }
 
-        if (this.__recompute__)
+        if (this.__recompute)
         {
             this.compute();
-            this.__recompute__ = false;
+            this.__recompute = false;
         }
 
         render.call(this, context);

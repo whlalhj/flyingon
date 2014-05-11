@@ -446,24 +446,21 @@ var flyingon_setting = flyingon_setting || {
         //扩展原型
         this.extend = function (fn, prototype) {
 
-            if (prototype)
+            //生成伪数组对象作为某些仿数组对象的原型
+            //注: 直接使用[]作为原型在ie6时会出错(无法更改length值),用此方法原型链也会短一些,但创建时性能会差一些
+            if (prototype === true)
             {
-                //生成伪数组对象作为某些仿数组对象的原型
-                //注: 直接使用[]作为原型在ie6时会出错(无法更改length值), 用此方法原型链也会短一些, 但创建时性能会差一些
-                if (prototype === true)
-                {
-                    this.prototype = prototype = { length: 0 };
+                this.prototype = prototype = { length: 0 };
 
-                    ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
+                ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
 
-                        this[name] = Array.prototype[name];
+                    prototype[name] = this[name];
 
-                    }, prototype);
-                }
-                else
-                {
-                    this.prototype = prototype;
-                }
+                }, Array.prototype);
+            }
+            else if (prototype)
+            {
+                this.prototype = prototype;
             }
             else
             {
@@ -609,7 +606,7 @@ var flyingon_setting = flyingon_setting || {
     };
 
     //定义属性
-    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
+    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name)时性能很差
     flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
 
         var attributes = {
@@ -658,7 +655,7 @@ var flyingon_setting = flyingon_setting || {
 
     var namespace_list = { "flyingon": flyingon }, //缓存命名空间
 
-        class_list = flyingon.__registry_class_list__ = {}, //已注册类型集合
+        class_list = flyingon.__registry_class_list = {}, //已注册类型集合
 
         RootObject = flyingon.RootObject = function () { }, //根类
 
@@ -669,7 +666,7 @@ var flyingon_setting = flyingon_setting || {
     //注册类型
     flyingon.registry_class = function (Class, fullTypeName) {
 
-        class_list[fullTypeName || Class.__fullTypeName__] = Class;
+        class_list[fullTypeName || Class.__fullTypeName] = Class;
     };
 
     //注销类型
@@ -752,7 +749,7 @@ var flyingon_setting = flyingon_setting || {
 
 
         //绑定类型
-        prototype.__type__ = type;
+        prototype.__type = type;
 
         //获取当前类型
         prototype.getType = function () {
@@ -760,9 +757,9 @@ var flyingon_setting = flyingon_setting || {
             return type;
         };
 
-        type.namesapce = prototype.__namespace__ = namespace;
-        type.typeName = prototype.__typeName__ = typeName;
-        type.fullTypeName = prototype.__fullTypeName__ = fullTypeName;
+        type.namesapce = prototype.__namespace = namespace;
+        type.typeName = prototype.__typeName = typeName;
+        type.fullTypeName = prototype.__fullTypeName = fullTypeName;
 
 
         //输出及注册类
@@ -771,7 +768,7 @@ var flyingon_setting = flyingon_setting || {
 
         prototype.toString = prototype.toLocaleString = function () {
 
-            return "[object " + this.__fullTypeName__ + "]";
+            return "[object " + this.__fullTypeName + "]";
         };
     };
 
@@ -835,7 +832,7 @@ var flyingon_setting = flyingon_setting || {
         //构造函数/所属类型
         prototype.constructor = fn;
         //默认值
-        prototype.__defaults__ = fn.__defaults__ = Object.create(superclass.__defaults__ || null);
+        prototype.__defaults = fn.__defaults = Object.create(superclass.__defaults || null);
 
         //初始化类型系统
         initialize(this, fn, typeName);
@@ -847,7 +844,7 @@ var flyingon_setting = flyingon_setting || {
         //处理构造函数(自动调用父类的构造函数)
         if (base_create)
         {
-            var create_list = superclass.__create_list__;
+            var create_list = superclass.__create_list;
 
             if (create = fn.create)
             {
@@ -858,12 +855,12 @@ var flyingon_setting = flyingon_setting || {
                 }
                 else //生成构造链
                 {
-                    create_list = fn.__create_list__ = create_list ? create_list.slice(0) : [base_create];
+                    create_list = fn.__create_list = create_list ? create_list.slice(0) : [base_create];
                     create_list.push(create);
 
                     fn.create = function () {
 
-                        var list = fn.__create_list__;
+                        var list = fn.__create_list;
                         for (var i = 0, length = list.length; i < length; i++)
                         {
                             list[i].apply(this, arguments);
@@ -875,7 +872,7 @@ var flyingon_setting = flyingon_setting || {
             {
                 if (create_list)
                 {
-                    fn.__create_list__ = create_list;
+                    fn.__create_list = create_list;
                 }
 
                 fn.create = base_create;

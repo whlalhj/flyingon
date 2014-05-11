@@ -102,12 +102,12 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
         var event = this.originalEvent;
 
-        if (!event.__targetX__)
+        if (!event.__targetX)
         {
-            var offset = this.target.__boxModel__.offsetToTarget(event.__offsetX__, event.__offsetY__);
+            var offset = this.target.__boxModel.offsetToTarget(event.__offsetX, event.__offsetY);
 
-            event.__targetX__ = offset.x;
-            event.__targetY__ = offset.y;
+            event.__targetX = offset.x;
+            event.__targetY = offset.y;
         }
 
         return event;
@@ -118,12 +118,12 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
         var event = this.originalEvent;
 
-        if (!event.__windowX__)
+        if (!event.__windowX)
         {
-            var offset = this.target.__boxModel__.offsetToWindow(event.__offsetX__, event.__offsetY__);
+            var offset = this.target.__boxModel.offsetToWindow(event.__offsetX, event.__offsetY);
 
-            event.__windowX__ = offset.x;
-            event.__windowY__ = offset.y;
+            event.__windowX = offset.x;
+            event.__windowY = offset.y;
         }
 
         return event;
@@ -134,12 +134,12 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
         var event = this.originalEvent;
 
-        if (!event.__controlX__)
+        if (!event.__controlX)
         {
-            var offset = this.target.__boxModel__.offsetToControl(event.__offsetX__, event.__offsetY__);
+            var offset = this.target.__boxModel.offsetToControl(event.__offsetX, event.__offsetY);
 
-            event.__controlX__ = offset.x;
-            event.__controlY__ = offset.y;
+            event.__controlX = offset.x;
+            event.__controlY = offset.y;
         }
 
         return event;
@@ -150,51 +150,51 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
     //x偏移坐标
     flyingon.defineProperty(this, "offsetX", function () {
 
-        return this.originalEvent.__offsetX__;
+        return this.originalEvent.__offsetX;
     });
 
     //y偏移坐标
     flyingon.defineProperty(this, "offsetY", function () {
 
-        return this.originalEvent.__offsetY__;
+        return this.originalEvent.__offsetY;
     });
 
 
     //x目标坐标
     flyingon.defineProperty(this, "targetX", function () {
 
-        return this.originalEvent.__targetX__ || offsetToTarget.call(this).__targetX__;
+        return this.originalEvent.__targetX || offsetToTarget.call(this).__targetX;
     });
 
     //y目标坐标
     flyingon.defineProperty(this, "targetY", function () {
 
-        return this.originalEvent.__targetY__ || offsetToTarget.call(this).__targetY__;
+        return this.originalEvent.__targetY || offsetToTarget.call(this).__targetY;
     });
 
 
     //x窗口坐标
     flyingon.defineProperty(this, "windowX", function () {
 
-        return this.originalEvent.__windowX__ || offsetToWindow.call(this).__windowX__;
+        return this.originalEvent.__windowX || offsetToWindow.call(this).__windowX;
     });
 
     //y窗口坐标
     flyingon.defineProperty(this, "windowY", function () {
 
-        return this.originalEvent.__windowY__ || offsetToWindow.call(this).__windowY__;
+        return this.originalEvent.__windowY || offsetToWindow.call(this).__windowY;
     });
 
     //x相对坐标
     flyingon.defineProperty(this, "controlX", function () {
 
-        return this.originalEvent.__controlX__ || offsetToControl.call(this).__controlX__;
+        return this.originalEvent.__controlX || offsetToControl.call(this).__controlX;
     });
 
     //y相对坐标
     flyingon.defineProperty(this, "controlY", function () {
 
-        return this.originalEvent.__controlY__ || offsetToControl.call(this).__controlY__;
+        return this.originalEvent.__controlY || offsetToControl.call(this).__controlY;
     });
 
 
