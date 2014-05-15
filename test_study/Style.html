@@ -5,36 +5,13 @@
     <title></title>
 
     <style type="text/css">
-
-        div {
-            border: 2px solid red;
+        .c2 {
+            font-style: italic;
         }
 
         .c1 {
-            padding-top: 10px;
+            font: bold 200px arial;
         }
-
-        .c2 {
-            padding-left: 100px;
-        }
-
-        div[class] {
-        
-            padding-top:100px;
-        }
-
-
-        div div {
-        
-
-        }
-
-        div:first-child {
-        
-        }
-
-
-
     </style>
 
 </head>
@@ -51,6 +28,26 @@
         </div>
 
     </div>
+
+    <script src="../src/Core/Core.js"></script>
+    <script src="../src/Core/SelectorParser.js"></script>
+    <script src="../src/Controls/Base/Style/Style.js"></script>
+
+    <script type="text/javascript">
+
+
+     
+
+        flyingon.defineStyle("A B1,B2 C D1,D2 *", {
+
+            font: "normal bold 10px/15px dsde,asdd eew"
+
+        });
+      
+
+    </script>
+
+
 
 </body>
 </html>

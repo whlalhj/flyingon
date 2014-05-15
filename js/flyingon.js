@@ -751,7 +751,7 @@ var flyingon_setting = flyingon_setting || {
 
 
         //绑定类型
-        prototype.__type = type;
+        prototype.__class_type = type;
 
         //获取当前类型
         prototype.getType = function () {
@@ -5145,7 +5145,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         switch (this.token)
         {
             case "":  //类型
-                if (!(target instanceof (this.__type || (this.__type = class_list[this.name]) || flyingon.Visual)))
+                if (!(target instanceof (this.__class_type || (this.__class_type = class_list[this.name]) || flyingon.Visual)))
                 {
                     return false;
                 }
@@ -5508,7 +5508,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
         //6. type
-        cache = target.__type;
+        cache = target.__class_type;
         while (cache && cache != flyingon.SerializableObject)
         {
             if (group_list[cache.fullTypeName])

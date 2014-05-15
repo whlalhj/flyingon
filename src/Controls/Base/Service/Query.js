@@ -3,11 +3,6 @@
 (function (flyingon) {
 
 
-    
-    var selector_cache = {}, //缓存数据
-        element_node = flyingon.__element_node;  //缓存类型
-
-
 
     //选择器
     //selector: css样式选择表达式 
@@ -16,35 +11,21 @@
 
         if (selector)
         {
-            if (selector.constructor === String)
+            switch (selector.constructor)
             {
-                if (!start)
-                {
-                    throw new Error(flyingon_lang.query_must_start);
-                }
+                case String:
+                    selector = flyingon.querySelectorAll(selector, start);
 
-                selector = (selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector))).query(start);
-            }
-            else
-            {
-                switch (selector.constructor)
-                {
-                    case element_node:
-                        selector = selector.find([start]);
-                        break;
+                case Array:
+                    if (selector.length > 0)
+                    {
+                        this.push.apply(this, selector);
+                    }
+                    break;
 
-                    case Array:
-                        break;
-
-                    default:
-                        this.push(selector);
-                        return;
-                }
-            }
-
-            if (selector.length > 0)
-            {
-                this.push.apply(this, selector);
+                default:
+                    this.push(selector);
+                    return;
             }
         }
 
@@ -53,6 +34,17 @@
 
         //开放接口
         flyingon.query = this;
+
+
+
+        //子项数
+        this.length = 0;
+
+        //添加元素
+        this.push = Array.prototype.push;
+
+        //移除或替换元素
+        this.splice = Array.prototype.splice;
 
 
 
@@ -212,7 +204,7 @@
         };
 
 
-    }, true);
+    });
 
 
 

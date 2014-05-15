@@ -6,11 +6,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+    //样式类
+    var style_class = flyingon.__style_class;
+
+    //删除原类型避免其它地方创建
+    delete flyingon.__style_class;
+
+
+
 
     Class.create = function () {
 
         //唯一id
         this.__uniqueId = ++flyingon.__uniqueId;
+
+        //样式
+        this.__style = new style_class(this);
 
         //盒模型
         this.__boxModel = new flyingon.BoxModel(this);
@@ -151,16 +162,18 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (attributes.style) // 样式属性
             {
+                body = "var name = \"" + name + "\";\n"
+                    + "var style = flyingon.__fn_style_value(this, name);\n"
+                    + "if (style.x !== undefined) return style.x;\n"
+                    + "if (style.y !== undefined) return style.y;\n"
+                    + "return ";
+
                 if (attributes.inherit)
                 {
-                    body = "var name = \"" + name + "\", parent = this.__parent, value;\n"
-                        + "value = flyingon.__fn_style_value(this, name, parent != null);\n"
-                        + "return value !== undefined ? value : parent[name];\n";
+                    body += "this.__parent ? this.__parent[name] : ";
                 }
-                else
-                {
-                    body = "return flyingon.__fn_style_value(this, \"" + name + "\", false);";
-                }
+
+                body += "this.__defaults[name];";
             }
             else
             {
@@ -275,25 +288,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //处理className
         this.__fn_className = function (value) {
 
-            var values, cache;
+            var values;
 
-            if (value && (values = value.match(/\S+/g)))
+            if (value && (values = value.match(/\S+/g)).length > 0)
             {
-                var cache = this.__class = {};
+                var cache = this.__class_names = {};
 
-                for (var i = values.length - 1; i >= 0; i--)
+                for (var i = 0, length = values.length; i < length; i++)
                 {
-                    if (!cache[value = values[i]])
-                    {
-                        cache[value] = true;
-                    }
+                    cache[values[i]] = true;
                 }
 
-                this.__fields.className = (cache.__names = Object.keys(cache)).join(" ");
+                this.__fields.className = (cache.__keys = Object.keys(cache)).join(" ");
             }
             else
             {
-                this.__class = null;
+                this.__class_names = null;
                 this.__fields.className = null;
             }
 
@@ -306,7 +316,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //是否包含指定class
         this.hasClass = function (className) {
 
-            return this.__class && this.__class(className);
+            return this.__class_names && this.__class_names[className];
         };
 
         //添加class
@@ -321,12 +331,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //移除class
         this.removeClass = function (className) {
 
-            var data = this.__class;
+            var keys = this.__class_names;
 
-            if (data && className && data[className])
+            if (keys && className && keys[className])
             {
-                delete data[className];
-                this.className = Object.keys(data).join(" ");
+                delete keys[className];
+                this.className = Object.keys(keys).join(" ");
 
                 return true;
             }
@@ -335,14 +345,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //切换class 有则移除无则添加
         this.toggleClass = function (className) {
 
-            var data = this.__class;
+            var keys = this.__class_names;
 
-            if (data && className)
+            if (keys && className)
             {
-                if (data[className])
+                if (keys[className])
                 {
-                    delete data[className];
-                    this.className = Object.keys(data).join(" ");
+                    delete keys[className];
+                    this.className = Object.keys(keys).join(" ");
                 }
                 else
                 {
@@ -447,6 +457,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         });
 
 
+        //排列方向
+        //ltr: 从左到右排列
+        //rtl: 从右到左排列
+        this.defineProperty("direction", "ltr", "layout|style|inherit");
+
+
         //控件左上角x及y坐标 仅绝对定位时有效
         this.defineProperties(["left", "top"], 0, "layout|style");
 
@@ -465,7 +481,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //visible:  显示
         //hidden:   不显示但保留占位
         //collapsed:不显示也不占位
-        this.defineProperty("visibility", "visible", "layout|style");
+        this.defineProperty("visibility", "visible", "layout|style|inherit");
 
         //最小最大宽度 最小最大高度
         this.defineProperties(["minWidth", "maxWidth", "minHeight", "maxHeight"], 0, "layout|style");
@@ -540,7 +556,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //鼠标样式
-        this.defineProperty("cursor", "default", "invalidate|style");
+        this.defineProperty("cursor", "default", "invalidate|style|inherit");
 
 
         this.__fn_cursor = function (event) {

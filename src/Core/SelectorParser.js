@@ -137,23 +137,20 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         var last;
 
-        if ((this.type = (nodes.type || " ")) !== "," || !(last = nodes[nodes.length - 1])) //非组合直接添加到当前节点集合
+        if (nodes.type !== "," || !(last = nodes[nodes.length - 1])) //非组合直接添加到当前节点集合
         {
+            this.type = nodes.type || " ";
             nodes.push(this);
+        }
+        else if (last instanceof element_nodes)
+        {
+            last.push(this);
         }
         else
         {
-            this.type = last.type;
-
-            if (last instanceof element_nodes)
-            {
-                last.push(this);
-            }
-            else
-            {
-                nodes.pop();
-                nodes.push(new element_nodes([last, this]));
-            }
+            nodes.pop();
+            (nodes.forks || (nodes.forks = [])).push(nodes.length); //记录分支位置
+            nodes.push(new element_nodes(last, this));
         }
 
         this.token = token;
@@ -184,21 +181,32 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         this.name = null;
 
         //节点参数(仅伪元素有效)
-        this.parameters = [];
+        this.parameters = null;
+
+        //子项数
+        this.length = 0;
 
 
+        this.push = function (item) {
+
+            this[this.length++] = item;
+        };
 
         this.toString = this.toLocaleString = function () {
 
             var result = [];
 
-            result.push(this.type);
-            result.push(this.token);
-
-            if (this.name !== "*")
+            if (this.type)
             {
-                result.push(this.name);
+                result.push(this.type);
             }
+
+            if (this.token !== "*")
+            {
+                result.push(this.token);
+            }
+
+            result.push(this.name);
 
             //参数
             if (this.parameters)
@@ -207,33 +215,47 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             }
 
             //属性
-            result.push(this.join(""));
+            result.push(Array.prototype.join(""));
 
             return result.join("");
         };
 
 
-    }, true);
+    });
 
 
 
     //元素节点集合 不同类型的节点组合成一个集合
-    var element_nodes = flyingon.__element_nodes = (function (nodes) {
+    var element_nodes = flyingon.__element_nodes = (function (first, second) {
 
-        this.push.apply(this, nodes);
+        this[0] = first;
+        this[1] = second;
+
+        this.default_type = first.type;
 
     }).extend(function () {
 
-        //标识
-        this.token = ",";
+        //元素类型
+        this.type = ",";
 
+        //默认类型
+        this.default_type = null;
+
+        //子项数
+        this.length = 2;
+
+
+        this.push = function (item) {
+
+            this[this.length++] = item;
+        };
 
         this.toString = this.toLocaleString = function () {
 
-            return this.join(",");
+            return Array.prototype.join(",");
         };
 
-    }, true);
+    });
 
 
 
@@ -306,7 +328,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         this.toString = this.toLocaleString = function () {
 
-            return "[" + this.name + this.operator + (this.value || "") + "]";
+            return "[" + this.name + "]";
         };
 
     });
@@ -314,15 +336,23 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //元素属性集合
-    var element_properties = flyingon.__element_properties = (function (item) {
+    var element_properties = flyingon.__element_properties = (function (first) {
 
-        this.push(item);
+        this[0] = first;
 
     }).extend(function () {
 
         //标识
         this.token = "[][]";
 
+        //子项数
+        this.length = 1;
+
+
+        this.push = function (item) {
+
+            this[this.length++] = item;
+        };
 
         //条件检测 通过返回目标对象 否则返回false
         this.check = function (target) {
@@ -340,10 +370,10 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         this.toString = this.toLocaleString = function () {
 
-            return "[" + this.join(",") + "]";
+            return "[" + Array.prototype.join(",") + "]";
         };
 
-    }, true);
+    });
 
 
 
@@ -408,7 +438,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //[name?=value]属性选择器
     function parse_property(values, length, index) {
 
-
         var properties,
             property,
             token,
@@ -416,7 +445,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             count = 0,  //占用数组数量
             loop = true,
             end = false;
-
 
         while (loop && index < length)
         {
@@ -479,7 +507,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             }
         }
 
-
         return {
 
             result: properties || property,
@@ -492,7 +519,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //预解析 按从左至右的顺序解析
     flyingon.parse_selector = function (selector) {
 
-
         var nodes = [], //节点数组
             node,       //当前节点
 
@@ -503,7 +529,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             length = tokens.length,
 
             cache;
-
 
         //设置默认类型
         nodes.type = " ";
@@ -545,13 +570,14 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
                     if (token = tokens[i++])
                     {
-                        if (token in pseudo_check)
+                        if (token in pseudo_check) //伪类解析为节点项
                         {
                             (node || new element_node(nodes, "*", "*")).push(new element_pseudo(token));  //未指定节点则默认添加*节点
                         }
-                        else
+                        else //伪属性解析为*节点 类型为伪类类型 参数放至parameters数组中
                         {
-                            node = new element_node(nodes, ":" + token, "*");
+                            node = new element_node(nodes, "*", "");
+                            node.type = ":" + token;
 
                             //处理参数
                             if (i < length && tokens[i] === "(")
@@ -594,102 +620,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             }
         }
 
-
         return nodes;
     };
-
-
-
-
-    ////解析选择器 按从左至右的顺序解析
-    //flyingon.parse_selector = function (selector) {
-
-
-    //    var result,
-    //        node,   //当前节点
-
-    //        type = " ", //组合类型
-    //        token,      //当前标记
-
-    //        values = selector.match(split_regex),
-    //        i = 0,
-    //        length = values.length;
-
-
-    //    while (i < length)
-    //    {
-    //        //switch代码在chrome下的效率没有IE9好,不知道什么原因,有可能是其操作非合法变量名的时候性能太差
-    //        switch (token = values[i++])
-    //        {
-    //            case "#":  //id选择器标记
-    //            case ".":  //class选择器标记
-    //                node = new element_node(type, token, values[i++], node);
-    //                break;
-
-    //            case "*":  //全部元素选择器标记
-    //                node = new element_node(type, "*", "*", node);
-    //                break;
-
-    //            case " ":  //后代选择器标记
-    //            case ">":  //子元素选择器标记
-    //            case "+":  //毗邻元素选择器标记
-    //            case "~":  //之后同级元素选择器标记
-    //            case ",":  //组合选择器标记
-    //                type = token;
-    //                continue;
-
-    //            case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
-    //                var item = parse_property(values, length, i);
-    //                i += item.count;
-
-    //                if (item = item.result)
-    //                {
-    //                    (node || (node = new element_node(type, "*", "*"))).push(item);  //未指定节点则默认添加*节点
-    //                }
-    //                break;
-
-    //            case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
-    //                if (token = values[i++])
-    //                {
-    //                    var item = new element_pseudo(token);
-
-    //                    //处理参数
-    //                    if (i < length && values[i] === "(")
-    //                    {
-    //                        i += parse_parameters.call(item, values, length, ++i);
-    //                    }
-
-    //                    (node || (node = new element_node(type, "*", "*"))).push(item); //未指定节点则默认添加*节点
-    //                }
-    //                break;
-
-    //            case "]":  //属性选择器结束标记
-    //            case "=":  //属性名与值的分隔 可与其它字符组合
-    //            case "|":  //|= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-    //            case "^":  //^= 属性值以XX开头 (由属性解析)
-    //            case "$":  //$= 属性值以XX结尾 (由属性解析)
-    //            case "(":  //开始参数
-    //            case ")":  //结束参数
-    //                //由子类处理
-    //                continue;
-
-    //            default: //类名 token = ""
-    //                node = new element_node(type, "", token, node);
-    //                break;
-    //        }
-
-
-    //        type = " "; //容错处理(css不支持容错) 未指定组合类型则默认使用" "
-
-    //        if (!result && node)
-    //        {
-    //            result = node;
-    //        }
-    //    }
-
-
-    //    return result || new element_node(type, "*", "*");
-    //};
 
 
 

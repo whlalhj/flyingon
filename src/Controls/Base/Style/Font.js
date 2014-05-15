@@ -111,6 +111,17 @@
                 this.__family = text.substring(data.family);
             }
         }
+        else
+        {
+            var font = flyingon.__default_font;
+
+            this.__style = font.__style;
+            this.__variant = font.__variant;
+            this.__weight = font.__weight;
+            this.__size = font.__size;
+            this.__lineHeight = font.__lineHeight;
+            this.__family = font.__family;
+        }
 
         //初始化
         this.__initialize();
@@ -144,31 +155,23 @@
             };
 
 
-
-
         //字体样式 normal italic oblique
         defineProperty("style", "normal");
-
 
         //字体变体 normal small-caps
         defineProperty("variant", "normal");
 
-
         //字体粗细 normal bold bolder lighter 100 200 300 400 500 600 700 800 900
         defineProperty("weight", "normal");
-
 
         //字体大小 xx-small x - small small medium large x-large xx-large
         defineProperty("size", "9pt");
 
-
         //行高
         defineProperty("lineHeight", 1.2);
 
-
         //字体系列
         defineProperty("family", "微软雅黑,宋体,Times New Roman");
-
 
 
         //字体高度
@@ -306,10 +309,26 @@
 
 
     //默认字体
-    Font.__default = new Font();
+    flyingon.__default_font = new Font();
+
+
+    flyingon.defineProperty(flyingon, "default_font",
+
+        function () {
+
+            return flyingon.__default_font;
+        },
+
+        function (value) {
+
+            flyingon.__default_font = new Function();
+        });
+
+
 
     //子样式属性名称集合
     Font.names = ["style", "variant", "weight", "size", "family"];
+
 
 
     //注册样式转换 因字体子样式属性支持继承所以不支持合并

@@ -257,6 +257,22 @@ var flyingon_setting = flyingon_setting || {
     }).call(Array.prototype);
 
 
+    //给指定对象扩展指定名称的数组方法
+    flyingon.array_extend = function (target, names) {
+
+        var length, name;
+
+        if (target && names && (length = names.length) > 0)
+        {
+            var prototype = Array.prototype;
+
+            for (var i = 0; i < length; i++)
+            {
+                target[name = names[i]] = prototype[name];
+            }
+        }
+    };
+
 
 
     var for_data = {};
@@ -271,7 +287,6 @@ var flyingon_setting = flyingon_setting || {
                 target[name] = for_data[name];
             }
         }
-
     };
 
     (function () {
@@ -446,19 +461,7 @@ var flyingon_setting = flyingon_setting || {
         //扩展原型
         this.extend = function (fn, prototype) {
 
-            //生成伪数组对象作为某些仿数组对象的原型
-            //注: 直接使用[]作为原型在ie6时会出错(无法更改length值),用此方法原型链也会短一些,但创建时性能会差一些
-            if (prototype === true)
-            {
-                this.prototype = prototype = { length: 0 };
-
-                ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
-
-                    prototype[name] = this[name];
-
-                }, Array.prototype);
-            }
-            else if (prototype)
+            if (prototype)
             {
                 this.prototype = prototype;
             }
@@ -641,6 +644,15 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
+    //定义多个属性
+    flyingon.defineProperties = function (target, names, getter, setter) {
+
+        for (var i = 0, length = names.length; i < length; i++)
+        {
+            flyingon.defineProperty(target, names[i], getter, setter);
+        }
+    };
+
 
 })(flyingon);
 
@@ -749,7 +761,7 @@ var flyingon_setting = flyingon_setting || {
 
 
         //绑定类型
-        prototype.__type = type;
+        prototype.__class_type = type;
 
         //获取当前类型
         prototype.getType = function () {

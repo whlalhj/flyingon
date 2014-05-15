@@ -24,17 +24,6 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
     this.defineProperty("lineHeight", "1.2em", "measure|style");
 
 
-    //文字顺序
-    //lr-tb: 从左到右 从上到下 (默认常见顺序)
-    //lr-bt: 从左到右 从下到上 
-    //rl-tb: 从右到左 从上到下 (如阿拉伯文等)
-    //rl-bt: 从右到左 从下到上
-    //tb-lr: 从上到下 从左到右
-    //tb-rl: 从上到下 从右到左 (如中国古文)
-    //bt-lr: 从下到上 从左到右
-    //bt-rl: 从下到上 从右到左
-    this.defineProperty("writingMode", "lr-tb", "measure|style");
-
 
     //文字对齐方式(仅对单行有效)
     //top:      顶部对齐
@@ -93,6 +82,9 @@ flyingon.defineClass("TextControl", flyingon.Control, function (Class, base, fly
 
     //多行显示时是否自动折行
     this.defineProperty("textWrap", false, "measure|style");
+
+    //是否纵向排列
+    this.defineProperty("vertical", false, "measure|style");
 
 
 

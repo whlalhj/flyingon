@@ -168,7 +168,7 @@
 注3: 注意选择器权重(与css相仿)
 注4: class样式书写顺序无所谓,同一个对象应用多个class时后置优先
 注5: 伪类优先级 selection > enabled, disabled > active > hover > focus > checked 
-注6: 仅 writingMode, align, textAlign ... 支持继承
+注6: 仅 visibility, cursor, direction 支持继承
 注7: font, background, margin, border, padding可分子属性设置样式, 但不支持与其它样式的子属性合并 如: .class1 { marginLeft: 10 } .class2 { marginTop: 10 } 在优先应用.class2样式时不使用.class1的marginLeft属性值 
 
 
@@ -201,13 +201,19 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 (function (flyingon) {
 
 
-    /*
 
+    //设置默认字体
+    flyingon.default_font = "9pt 微软雅黑,宋体,Times New Roman";
+
+
+
+    /*
     注1. 可使用flyingon.LinearGradient创建线性渐变颜色
     注2. 可使用flyingon.RadialGradient创建径向渐变颜色
     注3. 可使用flyingon.ImagePattern创建图像背景
-
     */
+
+
 
 
     //缓存定义样式方法
@@ -281,14 +287,14 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //滚动条按钮
     defineStyle("ScrollButton", {
 
-        margin: 2
+        margin: "2px"
     });
 
 
     //滚动条滑块
     defineStyle("ScrollSlider", {
 
-        margin: "2,0",
+        margin: "2px 0",
         backgroundColor: "#666666",
     });
 
@@ -345,7 +351,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
             children: [{
 
                 type: "RoundRectangle",
-                offset: [2, 2, 2, 2],
+                offset: "2px",
                 anticlockwise: true
             }]
         }]
