@@ -61,7 +61,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
             {
                 var item;
 
-                for (var i = 0, length = items.length; i < length; i++)
+                for (var i = 0, _ = items.length; i < _; i++)
                 {
                     if ((item = fn.call(this, this.length, items[i])) !== undefined)
                     {
@@ -99,7 +99,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
             var fn = this.__fn_validate,
                 item;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 if (!fn || (item = fn.call(this, index, item)) !== undefined)
                 {

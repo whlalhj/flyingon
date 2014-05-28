@@ -98,48 +98,32 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
 
 
-    function offsetToTarget() {
+    function canvas_to_window() {
 
         var event = this.originalEvent;
 
-        if (!event.__targetX)
+        if (!event.windowX)
         {
-            var offset = this.target.__boxModel.offsetToTarget(event.__offsetX, event.__offsetY);
+            var offset = this.target.canvas_to_window(event.canvasX, event.canvasY);
 
-            event.__targetX = offset.x;
-            event.__targetY = offset.y;
+            event.windowX = offset.x;
+            event.windowY = offset.y;
         }
 
         return event;
     };
 
 
-    function offsetToWindow() {
+    function canvas_to_control() {
 
         var event = this.originalEvent;
 
-        if (!event.__windowX)
+        if (!event.controlX)
         {
-            var offset = this.target.__boxModel.offsetToWindow(event.__offsetX, event.__offsetY);
+            var offset = this.target.canvas_to_control(event.canvasX, event.canvasY);
 
-            event.__windowX = offset.x;
-            event.__windowY = offset.y;
-        }
-
-        return event;
-    };
-
-
-    function offsetToControl() {
-
-        var event = this.originalEvent;
-
-        if (!event.__controlX)
-        {
-            var offset = this.target.__boxModel.offsetToControl(event.__offsetX, event.__offsetY);
-
-            event.__controlX = offset.x;
-            event.__controlY = offset.y;
+            event.controlX = offset.x;
+            event.controlY = offset.y;
         }
 
         return event;
@@ -147,54 +131,41 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
 
 
-    //x偏移坐标
-    flyingon.defineProperty(this, "offsetX", function () {
+    //x画布坐标
+    flyingon.defineProperty(this, "canvasX", function () {
 
-        return this.originalEvent.__offsetX;
+        return this.originalEvent.canvasX;
     });
 
-    //y偏移坐标
-    flyingon.defineProperty(this, "offsetY", function () {
+    //y画布坐标
+    flyingon.defineProperty(this, "canvasY", function () {
 
-        return this.originalEvent.__offsetY;
+        return this.originalEvent.canvasY;
     });
 
-
-    //x目标坐标
-    flyingon.defineProperty(this, "targetX", function () {
-
-        return this.originalEvent.__targetX || offsetToTarget.call(this).__targetX;
-    });
-
-    //y目标坐标
-    flyingon.defineProperty(this, "targetY", function () {
-
-        return this.originalEvent.__targetY || offsetToTarget.call(this).__targetY;
-    });
-
-
+    
     //x窗口坐标
     flyingon.defineProperty(this, "windowX", function () {
 
-        return this.originalEvent.__windowX || offsetToWindow.call(this).__windowX;
+        return this.originalEvent.windowX || canvas_to_window.call(this).windowX;
     });
 
     //y窗口坐标
     flyingon.defineProperty(this, "windowY", function () {
 
-        return this.originalEvent.__windowY || offsetToWindow.call(this).__windowY;
+        return this.originalEvent.windowY || canvas_to_window.call(this).windowY;
     });
 
-    //x相对坐标
+    //x控件坐标
     flyingon.defineProperty(this, "controlX", function () {
 
-        return this.originalEvent.__controlX || offsetToControl.call(this).__controlX;
+        return this.originalEvent.controlX || canvas_to_control.call(this).controlX;
     });
 
-    //y相对坐标
+    //y控件坐标
     flyingon.defineProperty(this, "controlY", function () {
 
-        return this.originalEvent.__controlY || offsetToControl.call(this).__controlY;
+        return this.originalEvent.controlY || canvas_to_control.call(this).controlY;
     });
 
 

@@ -52,7 +52,7 @@
         var cache1 = this.__cache1 = [0],
             cache2 = this.__cache2 = [0];
 
-        for (var i = 0, length = this.length - 1; i < length; i++)
+        for (var i = 0, _ = this.length - 1; i < _; i++)
         {
             var line0 = this[i],
                 line1 = this[i + 1];
@@ -86,7 +86,7 @@
         {
             var values = multiline ? text.split(/\r?\n/g) : [text.replace(/[\r\n]?/g, "")];
 
-            for (var i = 0, length = values.length; i < length; i++)
+            for (var i = 0, _ = values.length; i < _; i++)
             {
                 var line = new flyingon.TextLine(font, values[i]);
 

@@ -36,7 +36,7 @@
 
         var result;
 
-        for (var i = 0, length = names.length; i < length; i++)
+        for (var i = 0, _ = names.length; i < _; i++)
         {
             if (result = image_list[names[i]])
             {

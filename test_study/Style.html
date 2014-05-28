@@ -12,6 +12,14 @@
         .c1 {
             font: bold 200px arial;
         }
+
+        input[value=x] {
+            color: red;
+        }
+
+        input[value='xy'] {
+            color: blue;
+        }
     </style>
 
 </head>
@@ -27,23 +35,23 @@
             dddddddddddddddddddddddddddddddddddddddd
         </div>
 
+        <input type="text" value="x" />
+
     </div>
 
     <script src="../src/Core/Core.js"></script>
     <script src="../src/Core/SelectorParser.js"></script>
-    <script src="../src/Controls/Base/Style/Style.js"></script>
+    <script src="../src/Controls/Base/Class/Style.js"></script>
 
     <script type="text/javascript">
 
-
-     
-
+    
         flyingon.defineStyle("A B1,B2 C D1,D2 *", {
 
             font: "normal bold 10px/15px dsde,asdd eew"
 
         });
-      
+
 
     </script>
 

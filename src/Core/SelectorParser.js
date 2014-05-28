@@ -137,12 +137,12 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         var last;
 
-        if (nodes.type !== "," || !(last = nodes[nodes.length - 1])) //非组合直接添加到当前节点集合
+        if (nodes.type !== "," || nodes.length === 0) //非组合直接添加到当前节点集合
         {
             this.type = nodes.type || " ";
             nodes.push(this);
         }
-        else if (last instanceof element_nodes)
+        else if ((last = nodes[nodes.length - 1]) instanceof element_nodes)
         {
             last.push(this);
         }
@@ -180,6 +180,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         //节点名称
         this.name = null;
 
+        //伪元素名称(仅伪元素有效)
+        this.pseudo = null;
+
         //节点参数(仅伪元素有效)
         this.parameters = null;
 
@@ -201,11 +204,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 result.push(this.type);
             }
 
-            if (this.token !== "*")
-            {
-                result.push(this.token);
-            }
-
+            result.push(this.token);
             result.push(this.name);
 
             //参数
@@ -228,18 +227,15 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //元素节点集合 不同类型的节点组合成一个集合
     var element_nodes = flyingon.__element_nodes = (function (first, second) {
 
+        second.type = first.type;
+
         this[0] = first;
         this[1] = second;
-
-        this.default_type = first.type;
 
     }).extend(function () {
 
         //元素类型
         this.type = ",";
-
-        //默认类型
-        this.default_type = null;
 
         //子项数
         this.length = 2;
@@ -247,6 +243,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         this.push = function (item) {
 
+            item.type = this[0].type;
             this[this.length++] = item;
         };
 
@@ -357,7 +354,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         //条件检测 通过返回目标对象 否则返回false
         this.check = function (target) {
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if (this[i].check(target) === false)
                 {
@@ -544,7 +541,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     break;
 
                 case "*":  //全部元素选择器标记
-                    node = new element_node(nodes, "*", "*");
+                    node = new element_node(nodes, "*", "");
                     break;
 
                 case " ":  //后代选择器标记 不处理 注: "> "应解析为">"
@@ -563,7 +560,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
                     if (cache = cache.result)
                     {
-                        (node || (new element_node(type, "*", "*"))).push(cache);  //未指定节点则默认添加*节点
+                        (node || (new element_node(type, "*", ""))).push(cache);  //未指定节点则默认添加*节点
                     }
                     break;
 
@@ -572,12 +569,11 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     {
                         if (token in pseudo_check) //伪类解析为节点项
                         {
-                            (node || new element_node(nodes, "*", "*")).push(new element_pseudo(token));  //未指定节点则默认添加*节点
+                            (node || new element_node(nodes, "*", "")).push(new element_pseudo(token));  //未指定节点则默认添加*节点
                         }
                         else //伪属性解析为*节点 类型为伪类类型 参数放至parameters数组中
                         {
-                            node = new element_node(nodes, "*", "");
-                            node.type = ":" + token;
+                            node = new element_node(nodes, ":", token);
 
                             //处理参数
                             if (i < length && tokens[i] === "(")

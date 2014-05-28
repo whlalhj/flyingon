@@ -21,7 +21,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
         });
 
 
-    this.arrange = function (clientRect) {
+    this.arrange = function () {
 
         this.__boxModel.content(this.__children[0]);
     };

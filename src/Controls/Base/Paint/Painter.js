@@ -171,6 +171,9 @@ Canvas2D绘图
 
 
 
+        //目标控件
+        this.target = null;
+
 
         /*    
         设置填充色

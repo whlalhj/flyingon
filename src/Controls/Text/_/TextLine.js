@@ -37,7 +37,7 @@
         var cache1 = this.__cache1 = [0],
             cache2 = this.__cache2 = [0];
 
-        for (var i = 0, length = this.length - 1; i < length; i++)
+        for (var i = 0, _ = this.length - 1; i < _; i++)
         {
             var word0 = this[i],
                 word1 = this[i + 1];
@@ -73,7 +73,7 @@
             x = 0;
 
 
-        for (var i = 0, length = values.length; i < length; i++)
+        for (var i = 0, _ = values.length; i < _; i++)
         {
             var text = values[i],
                 word = new flyingon.TextWord(font, text);

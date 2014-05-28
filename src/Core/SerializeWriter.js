@@ -189,7 +189,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
 
         keys = keys || Object.keys(value);
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        for (var i = 0, _ = keys.length; i < _; i++)
         {
             if (i > 0 || key)
             {
@@ -214,7 +214,7 @@ flyingon.defineClass("SerializeWriter", function (Class, base, flyingon) {
             {
                 this.__push("[");
 
-                for (var i = 0, length = value.length; i < length; i++)
+                for (var i = 0, _ = value.length; i < _; i++)
                 {
                     if (i > 0)
                     {
@@ -359,7 +359,7 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
 
         keys = keys || Object.keys(value);
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        for (var i = 0, _ = keys.length; i < _; i++)
         {
             this.value(key = keys[i], value[key]);
         }
@@ -377,7 +377,7 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
         {
             this.__push("<" + name + " type=\"array\"");
 
-            for (var i = 0, length = value.length; i < length; i++)
+            for (var i = 0, _ = value.length; i < _; i++)
             {
                 this.value("item", value[i]);
             }

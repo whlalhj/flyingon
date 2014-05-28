@@ -55,7 +55,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
         this.__ownerControl.__boxModel.children.length = 0;
 
-        for (var i = 0, length = this.length; i < length; i++)
+        for (var i = 0, _ = this.length; i < _; i++)
         {
             var item = this[i],
                 box = item.__boxModel;
@@ -73,7 +73,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
         var result, item;
 
-        for (var i = 0, length = this.length; i < length; i++)
+        for (var i = 0, _ = this.length; i < _; i++)
         {
             if ((result = fn(item = this[i], i)) !== undefined)
             {
@@ -100,7 +100,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
             var box = this.__ownerControl.__boxModel,
                 item;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if (item = this[i])
                 {

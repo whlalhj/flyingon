@@ -44,7 +44,7 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
             template;
 
 
-        for (var i = 0, length = items.length; i < length; i++)
+        for (var i = 0, _ = items.length; i < _; i++)
         {
             var item = items[i];
 

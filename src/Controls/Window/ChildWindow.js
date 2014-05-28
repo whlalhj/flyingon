@@ -98,7 +98,7 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
     function translate(ownerWindow, left, top) {
 
 
-        var mainWindow = ownerWindow.mainWindow,
+        var mainWindow = flyingon.mainWindow,
 
             left = ownerWindow.left,
             top = ownerWindow.top,
@@ -182,12 +182,16 @@ flyingon.defineClass("WindowToolBar", flyingon.Panel, function (Class, base, fly
 
 
 //子窗口
-flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, flyingon) {
+flyingon.defineClass("ChildWindow", flyingon.Control, function (Class, base, flyingon) {
 
 
 
+    flyingon.__window_extender(Class, base, flyingon);
+    delete flyingon.__window_extender;
 
-    Class.create = function () {
+
+
+    this.__fn_create = function () {
 
         this.toolbar = new flyingon.WindowToolBar(this);
     };
@@ -225,40 +229,29 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
 
 
 
-    this.findAt = function (x, y) {
+    this.hitTest = function (x, y) {
 
-        //判断滚动条
-        if (this.toolbar.hitTest(x, y))
-        {
-            return this.toolbar.findAt(x, y);
-        }
-
-        return base.findAt.call(this, x, y);
+        return this.toolbar.hitTest(x, y) || base.hitTest.call(this, x, y);
     };
 
 
 
     function show(parentWindow, showDialog) {
 
+        var windows;
 
-        if (!parentWindow)
+        if (!parentWindow || !(windows = parentWindow.__windows))
         {
-            throw new Error("parentWindow not allow null!");
-        }
-
-        var children = parentWindow.__windows;
-        if (!children)
-        {
-            throw new Error("parentWindow is not a flyingon.WindowBase object!");
+            throw new Error("parentWindow error!");
         }
 
 
-        children.push(this);
+        windows.push(this);
 
         flyingon.defineVariable(this, "parentWindow", parentWindow);
 
 
-        var host = parentWindow.mainWindow.dom_host;
+        var host = flyingon.mainWindow.dom_host;
 
         if (showDialog) //如果是模式窗口则添加遮罩层
         {
@@ -298,7 +291,7 @@ flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, 
 
             if (index >= 0 && this.dispatchEvent("closing"))
             {
-                var host = ownerWindow.mainWindow.dom_host;
+                var host = flyingon.mainWindow.dom_host;
 
                 host.removeChild(this.dom_window);
                 if (this.dom_mask)

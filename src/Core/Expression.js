@@ -34,7 +34,7 @@
             escape, //转义
             body = "";
 
-        for (var i = 0, length = values.length; i < length; i++)
+        for (var i = 0, _ = values.length; i < _; i++)
         {
             switch (value = values[i])
             {
@@ -72,7 +72,7 @@
         }
 
 
-        for (var i = 0, length = parameters.length; i < length; i++)
+        for (var i = 0, _ = parameters.length; i < _; i++)
         {
             body += "var " + (value = parameters[i]) + " = this[\"" + value + "\"];\n";
         }

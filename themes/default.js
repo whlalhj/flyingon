@@ -202,11 +202,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
 
-    //设置默认字体
-    flyingon.default_font = "9pt 微软雅黑,宋体,Times New Roman";
-
-
-
     /*
     注1. 可使用flyingon.LinearGradient创建线性渐变颜色
     注2. 可使用flyingon.RadialGradient创建径向渐变颜色
@@ -224,8 +219,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //默认样式
     defineStyle("*", {
 
-        width: "default", //宽度 default|fill|auto|number|number%
-        height: "default", //高度 default|fill|auto|number|number%
         backgroundColor: "#AAAAAA",
         color: "#000000",
         borderColor: "blue"
@@ -287,14 +280,14 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //滚动条按钮
     defineStyle("ScrollButton", {
 
-        margin: "2px"
+        margin: 2
     });
 
 
     //滚动条滑块
     defineStyle("ScrollSlider", {
 
-        margin: "2px 0",
+        margin: "2 0",
         backgroundColor: "#666666",
     });
 
@@ -335,26 +328,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     defineStyle("TextBoxBase", {
 
         backgroundColor: "#FFFFFF",
-        borderColor: "#CCCCCC",
-        border: 1,
-        borderRadius: 0,
+        border: "1 solid #CCCCCC",
         cursor: "text"
-    });
-
-    defineStyle("TextBoxBase:hover", {
-
-        decorates: [{
-
-            type: "Rectangle",
-            strokeStyle: "blue",
-            fillStyle: "#FFFFFF",
-            children: [{
-
-                type: "RoundRectangle",
-                offset: "2px",
-                anticlockwise: true
-            }]
-        }]
     });
 
 
@@ -377,9 +352,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     defineStyle("WindowBase", {
 
         backgroundColor: "#FFFFFF",
-        borderColor: "#CCCCCC",
-        border: 1,
-        borderRadius: 0
+        border: "1 solid #CCCCCC"
     });
 
     defineStyle("Window", {

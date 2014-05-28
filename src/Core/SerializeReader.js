@@ -38,7 +38,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (items)
         {
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 var item = items[i],
                     bindings = item[1];
@@ -178,7 +178,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         var keys = Object.keys(value),
             key;
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        for (var i = 0, _ = keys.length; i < _; i++)
         {
             key = keys[i];
 
@@ -210,7 +210,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                 result = [];
             }
 
-            for (var i = 0, length = value.length; i < length; i++)
+            for (var i = 0, _ = value.length; i < _; i++)
             {
                 result.push(parse_value.call(this, value[i]));
             }

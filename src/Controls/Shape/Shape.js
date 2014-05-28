@@ -122,7 +122,7 @@ flyingon.defineClass("Shape", flyingon.SerializableObject, function (Class, base
             clientRect.height -= padding.spaceY;
         }
 
-        for (var i = 0, length = items.length; i < length; i++)
+        for (var i = 0, _ = items.length; i < _; i++)
         {
             var item = items[i],
                 r = measure.call(item, clientRect);

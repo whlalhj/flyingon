@@ -84,12 +84,12 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
             if (value < box.slider_start) //slider before
             {
                 limit = this.minValue + Math.round((value - box.thickness) * this.maxValue / box.length);
-                value = -this.maxChange;
+                value = -this.maxValue;
             }
             else  //slider after
             {
                 limit = this.minValue + Math.round((value - box.thickness - box.slider) * this.maxValue / box.length);
-                value = this.maxChange;
+                value = this.maxValue;
             }
         }
 

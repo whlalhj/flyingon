@@ -44,7 +44,7 @@
             context = font.__context;
 
 
-        for (var i = 0, length = text.length; i < length; i++)
+        for (var i = 0, _ = text.length; i < _; i++)
         {
             var char = text[i];
             result.push(cache[char] || (cache[char] = context.measureText(char).width));
@@ -61,7 +61,7 @@
             cache = this.__cache = [0];
 
 
-        for (var i = 0, length = chars.length; i < length; i++)
+        for (var i = 0, _ = chars.length; i < _; i++)
         {
             cache.push(value += chars[i]);
         }

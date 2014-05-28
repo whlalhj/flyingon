@@ -296,7 +296,7 @@ var flyingon_setting = flyingon_setting || {
 
             var result;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if ((result = fn(this[i], i)) !== undefined)
                 {
@@ -312,7 +312,7 @@ var flyingon_setting = flyingon_setting || {
                 item,
                 fn;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if ((item = this[i]) && (fn = item[name]))
                 {
@@ -330,7 +330,7 @@ var flyingon_setting = flyingon_setting || {
             var item,
                 fn;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
                 {
@@ -346,7 +346,7 @@ var flyingon_setting = flyingon_setting || {
 
             var item;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if ((item = this[i]) && (item[name] === value))
                 {
@@ -364,7 +364,7 @@ var flyingon_setting = flyingon_setting || {
 
             if (value === undefined)
             {
-                for (var i = 0, length = this.length; i < length; i++)
+                for (var i = 0, _ = this.length; i < _; i++)
                 {
                     if ((item = this[i]) && (item = item[name]) !== undefined)
                     {
@@ -375,7 +375,7 @@ var flyingon_setting = flyingon_setting || {
                 return undefined;
             }
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if (item = this[i])
                 {
@@ -595,6 +595,34 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+    //导入javascript脚本
+    flyingon.import = function (url, callback) {
+
+        var dom = document.createElement('script'),
+            head = document.getElementsByTagName("head")[0];
+
+        dom.type = 'text/javascript';
+        dom.src = url;
+        dom.onload = dom.onreadystatechange = function () {
+
+            if (!dom.readyState || dom.readyState == 'loaded' || dom.readyState == 'complete')
+            {
+                dom.onload = dom.onreadystatechange = null;
+
+                if (callback)
+                {
+                    callback(dom);
+                }
+
+                head.removeChild(dom);
+            }
+        };
+
+        head.appendChild(dom);
+    };
+
+
+
     //定义变量
     flyingon.defineVariable = function (target, name, value) {
 
@@ -647,7 +675,7 @@ var flyingon_setting = flyingon_setting || {
     //定义多个属性
     flyingon.defineProperties = function (target, names, getter, setter) {
 
-        for (var i = 0, length = names.length; i < length; i++)
+        for (var i = 0, _ = names.length; i < _; i++)
         {
             flyingon.defineProperty(target, names[i], getter, setter);
         }
@@ -724,7 +752,7 @@ var flyingon_setting = flyingon_setting || {
                     name,
                     value;
 
-                for (var i = 0, length = names.length; i < length; i++)
+                for (var i = 0, _ = names.length; i < _; i++)
                 {
                     if (name = names[i])
                     {
@@ -873,7 +901,7 @@ var flyingon_setting = flyingon_setting || {
                     fn.create = function () {
 
                         var list = fn.__create_list;
-                        for (var i = 0, length = list.length; i < length; i++)
+                        for (var i = 0, _ = list.length; i < _; i++)
                         {
                             list[i].apply(this, arguments);
                         }

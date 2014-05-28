@@ -15,7 +15,8 @@ flyingon.Point = (function (x, y) {
 
 });
 
-
+//空坐标
+flyingon.Point.empty = new flyingon.Point();
 
 
 
@@ -34,6 +35,9 @@ flyingon.Size = (function (width, height) {
     };
 
 });
+
+//空大小
+flyingon.Size.empty = new flyingon.Size();
 
 
 
@@ -85,6 +89,9 @@ flyingon.Rect = (function (x, y, width, height) {
     };
 
 });
+
+//空矩形
+flyingon.Rect.empty = new flyingon.Rect();
 
 
 

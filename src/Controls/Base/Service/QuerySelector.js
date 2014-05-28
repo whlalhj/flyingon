@@ -19,23 +19,22 @@
         }
 
         var nodes = selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector)),
+            node,
             items = [start],
-            exports,
-            fn;
+            exports;
 
-        for (var i = 0, length = nodes.length; i < length; i++)
+        for (var i = 0, _ = nodes.length; i < _; i++)
         {
-            if (fn = type_fn[element.type])
+            node = nodes[i];
+
+            type_fn[node.type](node, items, exports = []); //批量传入数组减少函数调用以提升性能
+
+            if (exports.length == 0)
             {
-                fn(element, items, exports = []); //批量传入数组减少函数调用以提升性能
-
-                if (exports.length == 0)
-                {
-                    return exports;
-                }
-
-                items = exports;
+                return exports;
             }
+
+            items = exports;
         }
 
         return exports;
@@ -48,59 +47,58 @@
     (function () {
 
 
-
-        //合并元素集
-        this[","] = function (element, items, exports) {
-
-            var fn, values;
-
-            for (var i = 0, length = element.length; i < length; i++)
-            {
-                if (fn = type_fn[element.type || element.default_type])
-                {
-                    fn(element, items, values = []);
-
-                    if (values.length > 0)
-                    {
-                        exports.push.apply(exports, values);
-                    }
-                }
-            }
-        };
-
-
+        //伪元素处理集
+        var pseudo_fn = {};
 
 
         //目标检测
-        function check_element(element, target, exports) {
+        function check_node(node, target, exports) {
 
-            switch (element.token)
+            switch (node.token)
             {
                 case "":  //类型
-                    if (target.__fullTypeName !== element.name)
+                    if (target.__fullTypeName !== node.name)
                     {
                         return false;
                     }
                     break;
 
                 case ".": //class
-                    if (!target.__class_names || !target.__class_names[element.name])
+                    if (!target.__class_names || !target.__class_names[node.name])
                     {
                         return false;
                     }
                     break;
 
                 case "#": //id
-                    if (target.id !== element.name)
+                    if (target.id !== node.name)
                     {
                         return false;
                     }
                     break;
+
+                case ":": //伪元素
+                    return (pseudo_fn[node.name] || pseudo_unkown)(node, target, exports);
             }
 
-            for (var i = 0, length = element.length; i < length; i++)
+            for (var i = 0, _ = node.length; i < _; i++)
             {
-                if (element[i].check_element(target) === false)
+                if (node[i].check(target) === false)
+                {
+                    return false;
+                }
+            }
+
+            exports.push(target);
+        };
+
+
+        //检查属性 伪元素检测用
+        function check_property(node, target, exports) {
+
+            for (var i = 0, _ = node.length; i < _; i++)
+            {
+                if (node[i].check(target) === false)
                 {
                     return false;
                 }
@@ -111,59 +109,77 @@
 
 
 
-        function query_cascade(element, items, exports) {
+        //合并元素集
+        this[","] = function (node, items, exports) {
+
+            var fn, values;
+
+            for (var i = 0, _ = node.length; i < _; i++)
+            {
+                if (fn = type_fn[node.type])
+                {
+                    fn(node, items, values = []);
+
+                    if (values.length > 0)
+                    {
+                        exports.push.apply(exports, values);
+                    }
+                }
+            }
+        };
+        
+        //所有后代元素
+        this[" "] = function (node, items, exports) {
+
+            var children;
+
+            for (var i = 0, _ = items.length; i < _; i++)
+            {
+                if ((children = items[i].__children) && children.length > 0)
+                {
+                    query_cascade(node, children, exports);
+                }
+            }
+        };
+
+        function query_cascade(node, items, exports) {
 
             var cache;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
-                check_element(element, cache = items[i], exports);
+                check_node(node, cache = items[i], exports);
 
                 if ((cache = cache.__children) && cache.length > 0)
                 {
-                    query_cascade(element, cache, exports);
+                    query_cascade(node, cache, exports);
                 }
             }
         };
-
-
-        //所有后代元素
-        this[" "] = function (element, items, exports) {
-
-            var children;
-
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if ((children = items[i].__children) && children.length > 0)
-                {
-                    query_cascade(element, children, exports);
-                }
-            }
-        };
-
+        
         //子元素
-        this[">"] = function (element, items, exports) {
+        this[">"] = function (node, items, exports) {
 
             var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 if ((children = items[i].__children) && children.length > 0)
                 {
-                    for (var j = 0, length1 = children.length; j < length1; j++)
+                    for (var j = 0, __ = children.length; j < __; j++)
                     {
-                        check_element(element, children[j], exports);
+                        check_node(node, children[j], exports);
                     }
                 }
             }
         };
 
         //后一个元素 元素伪类:after也会转换成此节点类型
-        this["+"] = function (element, items, exports) {
+        this["+"] = function (node, items, exports) {
 
             var item, children, index;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 if ((item = items[i]).__parent)
                 {
@@ -171,26 +187,26 @@
 
                     if (children.length > (index = children.indexOf(item) + 1))
                     {
-                        check_element(element, children[index], exports);
+                        check_node(node, children[index], exports);
                     }
                 }
             }
         };
 
         //所有后续兄弟元素
-        this["~"] = function (element, items, exports) {
+        this["~"] = function (node, items, exports) {
 
             var item, children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 if ((item = items[i]).__parent)
                 {
                     children = item.__parent.__children;
 
-                    for (var j = children.indexOf(item) + 1, count = children.length; j < count; j++)
+                    for (var j = children.indexOf(item) + 1, __ = children.length; j < __; j++)
                     {
-                        check_element(element, children[j], exports);
+                        check_node(node, children[j], exports);
                     }
                 }
             }
@@ -198,193 +214,169 @@
 
 
 
-        this[":before"] = function (element, items, exports) {
 
-            var item, children, index;
+        //未知伪元素处理
+        function pseudo_unkown(node, target, exports) {
 
-            for (var i = 0, length = items.length; i < length; i++)
-            {
-                if ((item = items[i]).__parent)
-                {
-                    children = item.__parent.__children;
-
-                    if ((index = children.indexOf(item) - 1) >= 0)
-                    {
-                        check_element(element, children[index], exports);
-                    }
-                }
-            }
+            return false;
         };
 
-        this[":after"] = this["+"];
 
-        this[":first-child"] = function (element, items, exports) {
+        pseudo_fn["before"] = function (node, target, exports) {
 
-            var item, children;
+            var children, index;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if (target.__parent)
             {
-                item = items[i];
+                children = target.__parent.__children;
 
-                if ((children = item.__children) && children.length > 0)
+                if ((index = children.indexOf(target) - 1) >= 0)
                 {
-                    check_element(element, children[0], exports);
+                    return check_property(node, children[index], exports);
                 }
             }
+
+            return false;
         };
 
-        this[":first-of-type"] = function (element, items, exports) {
+        pseudo_fn["after"] = function (node, target, exports) {
 
-            var item, children;
+            var children, index;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if (target.__parent)
             {
-                item = items[i];
+                children = target.__parent.__children;
 
-                if ((children = item.__children) && children.length > 0)
+                if (children.length > (index = children.indexOf(target) + 1))
                 {
-                    for (var j = 0, count = children.length; j < count; j++)
-                    {
-                        if (children[j].__fullTypeName === item.__fullTypeName)
-                        {
-                            check_element(element, children[j], exports);
-                            break;
-                        }
-                    }
+                    return check_property(node, children[index], exports);
                 }
             }
+
+            return false;
         };
 
-        this[":last-child"] = function (element, items, exports) {
+        pseudo_fn["first-child"] = function (node, target, exports) {
 
-            var item, children;
+            var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > 0)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length > 0)
-                {
-                    check_element(element, children[children.length - 1], exports);
-                }
+                return check_property(node, children[0], exports);
             }
+
+            return false;
         };
 
-        this[":last-of-type"] = function (element, items, exports) {
+        pseudo_fn["first-of-type"] = function (node, target, exports) {
 
-            var item, children;
+            var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > 0 && children[0].__fullTypeName === target.__fullTypeName)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length > 0)
-                {
-                    for (var j = children.length - 1; j >= 0; j--)
-                    {
-                        if (children[j].__fullTypeName === item.__fullTypeName)
-                        {
-                            check_element(element, children[j], exports);
-                            break;
-                        }
-                    }
-                }
+                return check_property(node, children[0], exports);
             }
+
+            return false;
         };
 
-        this[":only-child"] = function (element, items, exports) {
+        pseudo_fn["last-child"] = function (node, target, exports) {
 
-            var item, children;
+            var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > 0)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length === 1)
-                {
-                    check_element(element, children[0], exports);
-                }
+                return check_property(node, children[children.length - 1], exports);
             }
+
+            return false;
         };
 
-        this[":only-of-type"] = function (element, items, exports) {
+        pseudo_fn["last-of-type"] = function (node, target, exports) {
 
-            var item, children;
+            var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > 0 && children[children.length - 1].__fullTypeName === target.__fullTypeName)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length === 1 && children[0].__fullTypeName === item.__fullTypeName)
-                {
-                    check_element(element, children[0], exports);
-                }
+                return check_property(node, children[children.length - 1], exports);
             }
+
+            return false;
         };
 
-        this[":nth-child"] = function (element, items, exports) {
+        pseudo_fn["only-child"] = function (node, target, exports) {
 
-            var item, children, index = +element.parameters[0];
-
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length === 1)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length > index)
-                {
-                    check_element(element, children[index], exports);
-                }
+                return check_property(node, children[0], exports);
             }
+
+            return false;
         };
 
-        this[":nth-of-type"] = function (element, items, exports) {
+        pseudo_fn["only-of-type"] = function (node, target, exports) {
 
-            var item, children, index = +element.parameters[0];
+            var children;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length === 1 && children[0].__fullTypeName === target.__fullTypeName)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length > index && children[index].__fullTypeName === item.__fullTypeName)
-                {
-                    check_element(element, children[index], exports);
-                }
+                return check_property(node, children[0], exports);
             }
+
+            return false;
         };
 
-        this[":nth-last-child"] = function (element, items, exports) {
+        pseudo_fn["nth-child"] = function (node, target, exports) {
 
-            var item, children, index = +element.parameters[0];
+            var children, index = +node.parameters[0];
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > index)
             {
-                item = items[i];
-
-                if ((children = item.__children) && children.length > index)
-                {
-                    check_element(element, children[children.length - index - 1], exports);
-                }
+                return check_property(node, children[index], exports);
             }
+
+            return false;
         };
 
-        this[":nth-last-of-type"] = function (element, items, exports) {
+        pseudo_fn["nth-of-type"] = function (node, target, exports) {
 
-            var item, children, index = +element.parameters[0];
+            var children, index = +node.parameters[0];
 
-            for (var i = 0, length = items.length; i < length; i++)
+            if ((children = target.__children) && children.length > index && children[index].__fullTypeName === target.__fullTypeName)
             {
-                item = items[i];
+                return check_property(node, children[index], exports);
+            }
 
-                if ((children = item.__children) && children.length > index)
+            return false;
+        };
+
+        pseudo_fn["nth-last-child"] = function (node, target, exports) {
+
+            var children, index = +node.parameters[0];
+
+            if ((children = target.__children) && children.length > index)
+            {
+                return check_property(node, children[children.length - index - 1], exports);
+            }
+
+            return false;
+        };
+
+        pseudo_fn["nth-last-of-type"] = function (node, target, exports) {
+
+            var children, index = +node.parameters[0];
+
+            if ((children = target.__children) && children.length > index)
+            {
+                var j = children.length - index - 1;
+
+                if (children[j].__fullTypeName === target.__fullTypeName)
                 {
-                    var j = children.length - index - 1;
-
-                    if (children[j].__fullTypeName === item.__fullTypeName)
-                    {
-                        check_element(element, children[j], exports);
-                    }
+                    return check_property(node, children[j], exports);
                 }
             }
+
+            return false;
         };
 
 

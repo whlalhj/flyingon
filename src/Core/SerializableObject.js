@@ -40,8 +40,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
     this.__define_getter = function (name, attributes) {
 
-        var body = "return this.__fields[\"" + name + "\"];";
-        return new Function(body);
+        return new Function("return this.__fields." + name + ";");
     };
 
     this.__define_initializing = function (name, attributes) {
@@ -124,9 +123,25 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         body.push("}\n");
 
 
+        //需要重新布局 此块与控件有关
+        if (attributes.layout)
+        {
+            body.push("this.__fn_layout(boxModel);\n");
+        }
+        else if (attributes.measure) //需要重新测量
+        {
+            body.push("this.invalidate(true);\n");
+        }
+        else if (attributes.invalidate)  //需要重新绘制
+        {
+            body.push("this.invalidate(false);\n");
+        }
+
+
         body.push("}\n");
 
         body.push("return this;\n");
+
 
         return new Function("value", body.join(""));
     };
@@ -137,32 +152,12 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
         var values = value.split("|");
 
-        for (var i = 0, length = values.length; i < length; i++)
+        for (var i = 0, _ = values.length; i < _; i++)
         {
             attributes[values[i]] = true;
         }
 
         return attributes;
-    };
-
-    this.__define_attributes = function (attributes) {
-
-        if (attributes)
-        {
-            if (attributes.constructor === String)
-            {
-                attributes = split_attributes({}, attributes);
-            }
-            else if (attributes.attributes)
-            {
-                split_attributes(attributes, attributes.attributes);
-                delete attributes.attributes;
-            }
-
-            return attributes;
-        }
-
-        return {};
     };
 
 
@@ -180,7 +175,22 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 this.__defaults[name] = defaultValue;
             }
 
-            attributes = this.__define_attributes(attributes);
+            if (attributes)
+            {
+                if (attributes.constructor === String)
+                {
+                    attributes = split_attributes({}, attributes);
+                }
+                else if (attributes.attributes)
+                {
+                    split_attributes(attributes, attributes.attributes);
+                    delete attributes.attributes;
+                }
+            }
+            else
+            {
+                attributes = {};
+            }
 
             var getter = attributes.getter || this.__define_getter(name, attributes),
                 setter = !attributes.readOnly ? (attributes.setter || this.__define_setter(name, attributes)) : null;
@@ -350,6 +360,11 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     };
 
 
+    //定义值变更事件
+    this.defineEvent("change");
+
+
+
 
 
     //引用序列化标记(为true时只序列化名称不序列化内容)
@@ -476,11 +491,6 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
         reader.properties(this.__fields, data, excludes);
         reader.bindings(this, data);
-
-        if (this.__fields.name)
-        {
-            (reader.references || (reader.references = {}))[fields.name] = this;
-        }
     };
 
 

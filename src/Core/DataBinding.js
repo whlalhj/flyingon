@@ -33,19 +33,19 @@
     };
 
 
-    var clearBindings = function (fields, dispose) {
+    function clearBindings(fields, dispose) {
 
         var keys = Object.keys(fields),
             key,
             bindings;
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        for (var i = 0, _ = keys.length; i < _; i++)
         {
             if ((key = keys[i]) && (bindings = source[key]))
             {
                 var keys2 = Object.keys(bindings);
 
-                for (var j = 0, length2 = keys2.length; j < length2; j++)
+                for (var j = 0, __ = keys2.length; j < __; j++)
                 {
                     bindings[keys2[j]].clear(dispose);
                 }
@@ -172,7 +172,7 @@
             {
                 cache = (this.__fn_getter = new flyingon.Expression(expression)).parameters;
 
-                for (var i = 0, length = cache.length; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     expression = cache[i];
                     (bindings[expression] || (bindings[expression] = {}))[id] = this;
@@ -264,7 +264,7 @@
                 {
                     var parameters = cache.parameters;
 
-                    for (var i = 0, length = parameters.length; i < length; i++)
+                    for (var i = 0, _ = parameters.length; i < _; i++)
                     {
                         if (cache = bindings[parameters[i]])
                         {

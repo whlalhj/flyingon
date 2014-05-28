@@ -306,24 +306,6 @@
         return flyingon.ajax(options);
     };
 
-    flyingon.require = function (url) {
-
-        if (url)
-        {
-            var options = {
-
-                url: url,
-                type: "GET",
-                dataType: "script",
-                async: false
-            };
-
-            flyingon.ajax(options);
-            return options.response;
-        };
-    };
-
-
 
 
 })(flyingon);

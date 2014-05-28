@@ -7,6 +7,22 @@ flyingon.ScrollEvent = function (target, originalEvent) {
 };
 
 
+(function () {
+
+    //事件类型
+    this.type = "scroll";
+
+    //水平变化距离
+    this.changeX = 0;
+
+    //竖直变化距离
+    this.changeY = 0;
+
+}).call(flyingon.ScrollEvent.prototype = new flyingon.Event());
+
+
+
+
 
 //复合控件扩展
 //复合控件的子控件不响应事件,但支持样式及状态
@@ -63,26 +79,6 @@ flyingon.complex_extender = function (base) {
 };
 
 
-(function () {
-
-    //事件类型
-    this.type = "scroll";
-
-    //水平滚动条
-    this.horizontalScrollBar = null;
-
-    //竖起滚动条
-    this.verticalScrollBar = null;
-
-    //水平变化距离
-    this.changeX = 0;
-
-    //竖直变化距离
-    this.changeY = 0;
-
-}).call(flyingon.ScrollEvent.prototype = new flyingon.Event());
-
-
 
 
 //滚动条控件
@@ -99,42 +95,36 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
         this.__boxModel.children = [];
 
-        (this.__children = new flyingon.ControlCollection(this)).addRange([
+        this.__visual_items = [
             this.__button1 = new flyingon.ScrollButton(true),
             this.__slider0 = new flyingon.ScrollSlider(),
-            this.__button2 = new flyingon.ScrollButton(false)]);
+            this.__button2 = new flyingon.ScrollButton(false)];
     };
 
 
 
+    //禁止滚动条
+    this.overflowX = this.overflowY = null;
+    
+
+
     this.defaultValue("focusable", false);
-
-
-    //滚动条厚度
-    this.thickness = flyingon.__fn_style_last("ScrollBar", "thickness") || 16;
-
 
     //当前值
     this.defineProperty("value", 0, "measure");
 
-    //最大值
-    this.defineProperty("maxValue", 100, "measure");
-
-    //最小值
-    this.defineProperty("minValue", 0, "measure");
+    //滚动条长度
+    this.defineProperty("length", 100, "measure");
 
     //显示值大小
     this.defineProperty("viewportSize", 10, "measure");
 
     //最大变更值
-    this.defineProperty("maxChange", 200);
+    this.defineProperty("max_change", 200);
 
     //最小变更值
-    this.defineProperty("minChange", 20);
+    this.defineProperty("min_change", 20);
 
-
-    //是否竖直滚动条
-    this.defineProperty("vertical", false, "layout");
 
 
 
@@ -161,11 +151,11 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         {
             if (value === this.__button1)
             {
-                value = -this.minChange;
+                value = -this.min_change;
             }
             else if (value === this.__button2)
             {
-                value = this.minChange;
+                value = this.min_change;
             }
             else //slider
             {
@@ -190,13 +180,13 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
             if (value < this.__offset_value) //slider before
             {
-                limit = this.minValue + Math.round((value - this.thickness) * this.maxValue / this.__length_value);
-                value = -this.maxChange;
+                limit = Math.round((value - this.thickness) * this.length / this.__length_value);
+                value = -this.max_change;
             }
             else  //slider after
             {
-                limit = this.minValue + Math.round((value - this.thickness - this.__slider_value) * this.maxValue / this.__length_value);
-                value = this.maxChange;
+                limit = Math.round((value - this.thickness - this.__slider_value) * this.length / this.__length_value);
+                value = this.max_change;
             }
         }
 
@@ -212,7 +202,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         if (dragger)
         {
             var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                value = Math.round(offset * (this.maxValue - this.minValue) / this.__length_value);
+                value = Math.round(offset * this.length / this.__length_value);
 
             if (value)
             {
@@ -240,21 +230,20 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     this.step_to = function (step, limit, originalEvent) {
 
         var value = this.value + step,
-            minValue = this.minValue,
-            maxValue = this.maxValue - this.viewportSize;
+            length = this.length - this.viewportSize;
 
 
         if (limit == null)
         {
-            limit = step < 0 ? minValue : maxValue;
+            limit = step < 0 ? 0 : length;
         }
-        else if (limit < minValue)
+        else if (limit < 0)
         {
-            limit = minValue;
+            limit = 0;
         }
-        else if (limit > maxValue)
+        else if (limit > length)
         {
-            limit = maxValue;
+            limit = length;
         }
 
 
@@ -321,7 +310,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        var result = Math.round(length * this.viewportSize / (this.maxValue - this.minValue));
+        var result = Math.round(length * this.viewportSize / this.length);
         return result <= 8 ? 8 : result;
     };
 
@@ -332,12 +321,12 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        if (this.value >= this.maxValue - this.viewportSize)
+        if (this.value >= this.length - this.viewportSize)
         {
             return length - slider;
         }
 
-        return Math.round((this.value - this.minValue) * length / this.maxValue);
+        return Math.round(this.value * length / this.length);
     };
 
 
@@ -396,6 +385,12 @@ flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, fl
 
         this.__first = first;
     };
+    
+
+
+    //禁止滚动条
+    this.overflowX = this.overflowY = null;
+
 
 
     this.__vertical = false;
@@ -429,12 +424,15 @@ flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, fl
 
 //滚动条滑块
 flyingon.defineClass("ScrollSlider", flyingon.Control, function (Class, base, flyingon) {
+    
+
+    //禁止滚动条
+    this.overflowX = this.overflowY = null;
+
 
     this.defaultValue("width", "fill");
 
     this.defaultValue("height", "fill");
-
-    this.defaultValue("align", new flyingon.Align("middle,center"));
 
 });
 
@@ -443,6 +441,11 @@ flyingon.defineClass("ScrollSlider", flyingon.Control, function (Class, base, fl
 
 //滚动条拐角控件
 flyingon.defineClass("ScrollCorner", flyingon.Control, function (Class, base, flyingon) {
+    
+
+    //禁止滚动条
+    this.overflowX = this.overflowY = null;
+
 
     this.defaultValue("width", "fill");
 

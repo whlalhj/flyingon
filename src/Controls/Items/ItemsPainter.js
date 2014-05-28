@@ -88,7 +88,7 @@ flyingon["items-painter"] = function (Class, flyingon, items_name) {
             visibleIndex = this.visibleIndex || 0;
         }
 
-        for (var i = visibleIndex, length = items.length; i < length; i++)
+        for (var i = visibleIndex, _ = items.length; i < _; i++)
         {
             var item = visible_list[i] || (visible_list[i] = new flyingon.Rect());
 

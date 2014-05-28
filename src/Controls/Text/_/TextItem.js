@@ -32,7 +32,7 @@
             value;
 
         //测量单词中每一个字符占用的宽度
-        for (var i = 0, length = text.length; i < length; i++)
+        for (var i = 0, _ = text.length; i < _; i++)
         {
             value = cache[value = text[i]] || font.measureText(value);
 

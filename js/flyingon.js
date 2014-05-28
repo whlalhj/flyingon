@@ -280,7 +280,7 @@ var flyingon_setting = flyingon_setting || {
 
             var result;
 
-            for (var i = 0, length = this.length; i < length; i++)
+            for (var i = 0, _ = this.length; i < _; i++)
             {
                 if ((result = fn(this[i], i)) !== undefined)
                 {
