@@ -1,6 +1,6 @@
 ﻿
 //内容控件
-flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("ContentControl", flyingon.Control, function (Class, base, flyingon) {
 
 
   
@@ -9,12 +9,12 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
         function () {
 
-            return this.__children[0] || null;
+            return this.__children && this.__children[0] || null;
         },
 
         function (value) {
 
-            if (this.__children[0] !== value)
+            if ((this.__children || this.children)[0] !== value)
             {
                 this.__children.replace(0, value);
             }
@@ -23,7 +23,7 @@ flyingon.defineClass("ComplexControl", flyingon.Control, function (Class, base, 
 
     this.arrange = function () {
 
-        this.__boxModel.content(this.__children[0]);
+        
     };
 
 

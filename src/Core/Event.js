@@ -50,51 +50,49 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
     var target = this;
 
-    //定义属性
-    (function () {
+
+    function defineProperty(name) {
+
+        flyingon.defineProperty(target, name, function () {
+
+            return this.originalEvent[name];
+        });
+    };
 
 
-        var defineProperty = function (name) {
+    //是否按下ctrl键
+    defineProperty("ctrlKey");
 
-            flyingon.defineProperty(target, name, function () {
+    //是否按下shift键
+    defineProperty("shiftKey");
 
-                return this.originalEvent[name];
-            });
-        };
+    //是否按下alt键
+    defineProperty("altKey");
+
+    //是否按下meta键
+    defineProperty("metaKey");
+
+    //事件触发时间
+    defineProperty("timeStamp");
+
+    //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
+    defineProperty("button");
+
+    //相对屏幕的x坐标
+    defineProperty("screenX");
+
+    //相对屏幕的y坐标
+    defineProperty("screenY");
+
+    //相对窗口客户区的x坐标
+    defineProperty("clientX");
+
+    //相对窗口客户区的y坐标
+    defineProperty("clientY");
 
 
-        //是否按下ctrl键
-        defineProperty("ctrlKey");
-
-        //是否按下shift键
-        defineProperty("shiftKey");
-
-        //是否按下alt键
-        defineProperty("altKey");
-
-        //是否按下meta键
-        defineProperty("metaKey");
-
-        //事件触发时间
-        defineProperty("timeStamp");
-
-        //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-        defineProperty("button");
-
-        //相对屏幕的x坐标
-        defineProperty("screenX");
-
-        //相对屏幕的y坐标
-        defineProperty("screenY");
-
-        //相对窗口客户区的x坐标
-        defineProperty("clientX");
-
-        //相对窗口客户区的y坐标
-        defineProperty("clientY");
-
-    })();
-
+    defineProperty = null;
+    
 
 
 
@@ -143,7 +141,7 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
         return this.originalEvent.canvasY;
     });
 
-    
+
     //x窗口坐标
     flyingon.defineProperty(this, "windowX", function () {
 

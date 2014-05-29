@@ -3,9 +3,9 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
 
 
 
-    
+
     //子控件功能扩展
-    this.children_extender(base);
+    flyingon.children_extender.call(this, base);
 
 
 
@@ -20,51 +20,44 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
     this.defaultValue("height", 400);
 
 
-    
 
 
 
+    this.__fn_arrange = function () {
+
+        var children = this.__children,
+            length;
+
+        if (children && (length = children.length) > 0)
+        {
+            base.__fn_arrange.call(this);
+
+            var items = this.__visible_items = [],
+                x = this.contentX,
+                y = this.contentY,
+                right = x + this.clientWidth,
+                bottom = y + this.clientHeight,
+                cache;
+
+            for (var i = 0; i < length; i++)
+            {
+                var item = children[i],
+                    x1 = item.__visualX,
+                    y1 = item.__visualY;
+
+                if (item.__visible &&
+                    x1 < right &&
+                    y1 < bottom &&
+                    x1 + item.__visualWidth >= x &&
+                    y1 + item.__visualHeight >= y)
+                {
+                    result.push(item);
+                }
+            }
+        }
+    };
 
 
-   
-
-    ////获取当前可渲染的子项
-    //this.__fn_render_children = function (boxModel) {
-
-    //    var result = this.__render_children;
-
-    //    if (!result)
-    //    {
-    //        var clipToBounds = this.clipToBounds,
-
-    //            children = boxModel.children,
-    //            r = boxModel.clientRect,
-    //            x = boxModel.scrollLeft,
-    //            y = boxModel.scrollTop,
-    //            right = x + r.width,
-    //            bottom = y + r.height;
-
-    //        result = this.__render_children = [];
-
-    //        for (var i = 0, _ = children.length; i < _; i++)
-    //        {
-    //            var item = children[i];
-
-    //            if (item.visible &&
-    //                item.right >= x &&
-    //                item.bottom >= y &&
-    //                item.ownerControl.visibility === "visible" &&
-    //                (!clipToBounds || (item.x < right && item.y < bottom)))
-    //            {
-    //                result.push(item);
-    //            }
-    //        }
-    //    }
-
-    //    return result;
-    //};
-
-    
 
 
 

@@ -3,12 +3,14 @@
 flyingon.layer_extender = function (host) {
 
 
-    //创建绘图环境
     var div = this.dom_layer = document.createElement("div"),
         canvas = this.dom_canvas = document.createElement("canvas"),
-        boxModel = this.__boxModel;
+
+        target = this,
+        timer;
 
 
+    //创建dom
     div.setAttribute("flyingon", "layer");
     div.setAttribute("style", "position:absolute;width:100%;height:100%;overflow:hidden;outline:none;");
 
@@ -23,47 +25,59 @@ flyingon.layer_extender = function (host) {
     }
 
 
+    //重载当前图层
+    this.defineProperty("ownerLayer", function () {
+
+        return this;
+    });
+
+
     //创建绘画环境
-    this.context = canvas.getContext("2d");
+    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
 
 
-    //扩展盒模型更新相关方法
-    (function (context) {
+    //更新画布
+    function update() {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
+
+        var self = target;
+
+        if (self.__self_dirty) //如果需要更新
+        {
+            self.__fn_render(self.painter);
+        }
+        else if (self.__children_dirty) //如果子控件需要更新
+        {
+            self.__fn_render_children(self.painter, true);
+            self.__children_dirty = false;
+        }
+    };
 
 
-        //更新定时器
-        var boxModel = this, timer;
+    //注册更新
+    this.__registry_update = function () {
 
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
 
-        //更新画布
-        function update() {
+        timer = setTimeout(update, 5);
+    };
 
-            boxModel.update(context);
+    //注销更新
+    this.__unregistry_update = function () {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+            timer = 0;
         };
-
-        //注册更新
-        this.__registry_update = function () {
-
-            if (timer)
-            {
-                clearTimeout(timer);
-            };
-
-            timer = setTimeout(update, 5);
-        };
-
-        //注销更新
-        this.__unregistry_update = function () {
-
-            if (timer)
-            {
-                clearTimeout(timer);
-                timer = 0;
-            };
-        };
-
-
-    }).call(boxModel, this.context);
+    };
 
 };
 
@@ -77,10 +91,10 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
-    Class.create = function () {
+    Class.create = function (host) {
 
         //执行图层扩展
-        flyingon.layer_extender.call(this);
+        flyingon.layer_extender.call(this, host);
     };
 
 
@@ -106,8 +120,8 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
     this.update = function () {
 
-        this.__boxModel.invalidate(false);
-        this.__boxModel.update(this.context);
+        this.__unregistry_update();
+        this.__fn_render(this.painter);
     };
 
 

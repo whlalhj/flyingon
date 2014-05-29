@@ -69,11 +69,11 @@
                     item.__fn_measure(clientWidth - x, clientHeight, false, true);
                     item.__fn_position(x, 0, null, clientHeight);
 
-                    x += item.layoutWidth;
+                    x += item.columnWidth;
 
-                    if (item.layoutHeight > contentHeight)
+                    if (item.rowHeight > contentHeight)
                     {
-                        contentHeight = item.layoutHeight;
+                        contentHeight = item.rowHeight;
                     }
                 }
             }
@@ -103,11 +103,11 @@
                     item.__fn_measure(clientWidth, clientHeight - y, false, true);
                     item.__fn_position(0, y, clientWidth);
 
-                    x += item.layoutHeight;
+                    x += item.rowHeight;
 
-                    if (item.layoutWidth > contentWidth)
+                    if (item.columnWidth > contentWidth)
                     {
-                        contentWidth = item.layoutWidth;
+                        contentWidth = item.columnWidth;
                     }
                 }
             }
@@ -137,7 +137,7 @@
                 y = 0,
                 clientWidth = this.clientWidth,
                 maxHeight = this.clientHeight,
-                layoutHeight = this.layoutHeight,
+                rowHeight = this.rowHeight,
                 contentWidth = 0,
                 contentHeight = 0,
                 cache;
@@ -161,22 +161,22 @@
                         }
                     }
 
-                    item.__fn_measure(clientWidth - x, layoutHeight, false, true);
+                    item.__fn_measure(clientWidth - x, rowHeight, false, true);
 
-                    if (x > 0 && (x += item.layoutWidth) > clientWidth) //超行
+                    if (x > 0 && (x += item.columnWidth) > clientWidth) //超行
                     {
                         x = 0;
                         y = y > 0 ? contentHeight + spaceY : contentHeight;
                     }
 
-                    item.__fn_position(x, y, null, layoutHeight);
+                    item.__fn_position(x, y, null, rowHeight);
 
-                    if ((cache = x + item.layoutWidth) > contentWidth)
+                    if ((cache = x + item.columnWidth) > contentWidth)
                     {
                         contentWidth = cache;
                     }
 
-                    if ((cache = y + item.layoutHeight) > contentHeight)
+                    if ((cache = y + item.rowHeight) > contentHeight)
                     {
                         contentHeight = cache;
                     }
@@ -193,7 +193,7 @@
                 y = 0,
                 clientHeight = this.clientHeight,
                 maxWidth = this.clientWidth,
-                layoutWidth = this.layoutWidth,
+                columnWidth = this.columnWidth,
                 contentWidth = 0,
                 contentHeight = 0,
                 cache;
@@ -217,22 +217,22 @@
                         }
                     }
 
-                    item.__fn_measure(layoutWidth, clientHeight - y, false, true);
+                    item.__fn_measure(columnWidth, clientHeight - y, false, true);
 
-                    if (y > 0 && (y += item.layoutHeight) > clientHeight) //超行
+                    if (y > 0 && (y += item.rowHeight) > clientHeight) //超行
                     {
                         y = 0;
                         x = x > 0 ? contentWidth + spaceX : contentWidth;
                     }
 
-                    item.__fn_position(x, y, layoutWidth);
+                    item.__fn_position(x, y, columnWidth);
 
-                    if ((cache = x + item.layoutWidth) > contentWidth)
+                    if ((cache = x + item.columnWidth) > contentWidth)
                     {
                         contentWidth = cache;
                     }
 
-                    if ((cache = y + item.layoutHeight) > contentHeight)
+                    if ((cache = y + item.rowHeight) > contentHeight)
                     {
                         contentHeight = cache;
                     }
@@ -312,26 +312,26 @@
                             item.__fn_measure(width, height, true, false);
                             item.__fn_position(x, y);
 
-                            width = right - (x += item.layoutWidth + spaceX);
+                            width = right - (x += item.columnWidth + spaceX);
                             break;
 
                         case "top":
                             item.__fn_measure(width, height, true, false);
                             item.__fn_position(x, y);
 
-                            height = bottom - (y = item.layoutHeight + spaceY);
+                            height = bottom - (y = item.rowHeight + spaceY);
                             break;
 
                         case "right":
                             item.__fn_measure(width, height, true, false);
-                            item.__fn_position(right -= item.layoutWidth, y);
+                            item.__fn_position(right -= item.columnWidth, y);
 
                             width = (right -= spaceX) - x;
                             break;
 
                         case "bottom":
                             item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, bottom -= item.layoutHeight);
+                            item.__fn_position(x, bottom -= item.rowHeight);
 
                             height = (bottom -= spaceY) - y;
                             break;
@@ -484,12 +484,12 @@
                 item.__fn_measure(+item.width || item.__defaults.width, +item.height || item.__defaults.height, false, false, true);
                 item.__fn_position(+item.left || 0, +item.top || 0);
 
-                if ((cache = item.layoutX + item.layoutWidth) > contentWidth)
+                if ((cache = item.layoutX + item.columnWidth) > contentWidth)
                 {
                     contentWidth = cache;
                 }
 
-                if ((cache = item.layoutY + item.layoutHeight) > contentHeight)
+                if ((cache = item.layoutY + item.rowHeight) > contentHeight)
                 {
                     contentHeight = cache;
                 }

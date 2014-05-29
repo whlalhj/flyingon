@@ -5,7 +5,7 @@
 /*
 
 */
-flyingon.defineClass("Memo", flyingon.ScrollableControl, function (Class, base, flyingon) {
+flyingon.defineClass("Memo", flyingon.Control, function (Class, base, flyingon) {
 
 
 
@@ -15,9 +15,6 @@ flyingon.defineClass("Memo", flyingon.ScrollableControl, function (Class, base, 
 
     this.defaultValue("multiline", true);
 
-
-
-    this.defineProperty("textWrap", false, "measure");
 
 
 

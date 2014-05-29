@@ -123,12 +123,12 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         body.push("}\n");
 
 
-        //需要重新布局 此块与控件有关
-        if (attributes.layout)
+        //此块与控件有关
+        if (attributes.relayout) //需要重新布局
         {
-            body.push("this.__fn_layout(boxModel);\n");
+            body.push("(this.__parent || this).invalidate(true);\n");
         }
-        else if (attributes.measure) //需要重新测量
+        else if (attributes.rearrange) //是否需要重新排列
         {
             body.push("this.invalidate(true);\n");
         }

@@ -12,7 +12,7 @@ flyingon.defineClass("TextButtonBase", flyingon.TextBoxBase, function (Class, ba
     this.defineProperty("items", []);
 
 
-    this.defineProperty("showButton", true, "measure");
+    this.defineProperty("showButton", true, "rearrange");
 
 
 

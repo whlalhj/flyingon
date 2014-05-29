@@ -278,32 +278,32 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //滚动条按钮
-    defineStyle("ScrollButton", {
+    defineStyle("ScrollBar_Button", {
 
         margin: 2
     });
 
 
     //滚动条滑块
-    defineStyle("ScrollSlider", {
+    defineStyle("ScrollBar_Slider", {
 
         margin: "2 0",
         backgroundColor: "#666666",
     });
 
-    defineStyle("ScrollSlider:active", {
+    defineStyle("ScrollBar_Slider:active", {
 
         backgroundColor: "red"
     });
 
-    defineStyle("ScrollSlider:hover", {
+    defineStyle("ScrollBar_Slider:hover", {
 
         backgroundColor: "yellow"
     });
 
 
     //滚动条拐角
-    defineStyle("ScrollCorner", {
+    defineStyle("ScrollBar_Corner", {
 
     });
 

@@ -1,7 +1,7 @@
 ﻿/*
 
 */
-flyingon.defineClass("TextBlock", flyingon.ScrollableControl, function (Class, base, flyingon) {
+flyingon.defineClass("TextBlock", flyingon.Control, function (Class, base, flyingon) {
 
 
 

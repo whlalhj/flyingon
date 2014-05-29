@@ -24,62 +24,6 @@ flyingon.ScrollEvent = function (target, originalEvent) {
 
 
 
-//复合控件扩展
-//复合控件的子控件不响应事件,但支持样式及状态
-flyingon.complex_extender = function (base) {
-
-
-    this.hitTest = function (x, y) {
-
-        if (base.hitTest.call(this, x, y))
-        {
-            var r = this.__boxModel.clientRect,
-                items = this.__children,
-                source = this.__target,
-                target = null;
-
-            x -= r.x;
-            y -= r.y;
-
-            for (var i = items.length - 1; i >= 0 ; i--)
-            {
-                if (items[i].hitTest(x, y))
-                {
-                    target = items[i];
-                    break;
-                }
-            }
-
-            if (source && source !== target)
-            {
-                source.stateTo("hover", false);
-            }
-
-            if (this.__target = target)
-            {
-                target.stateTo("hover", true);
-            }
-
-            return true;
-        }
-
-        return false;
-    };
-
-    this.stateTo = function (name, value) {
-
-        if (this.__target && (name !== "hover" || !value))
-        {
-            this.__target.stateTo(name, value);
-        }
-
-        base.stateTo.call(this, name, value);
-    };
-
-};
-
-
-
 
 //滚动条控件
 flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyingon) {
@@ -93,31 +37,28 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
     Class.create = function () {
 
-        this.__boxModel.children = [];
-
-        this.__visual_items = [
-            this.__button1 = new flyingon.ScrollButton(true),
-            this.__slider0 = new flyingon.ScrollSlider(),
-            this.__button2 = new flyingon.ScrollButton(false)];
+        this.__visible_items = [
+            this.__button1 = new flyingon.ScrollBar_Button(true),
+            this.__slider0 = new flyingon.ScrollBar_Slider(),
+            this.__button2 = new flyingon.ScrollBar_Button(false)];
     };
 
 
 
-    //禁止滚动条
-    this.overflowX = this.overflowY = null;
-    
+
+    //扩展可视控件功能
+    flyingon.visual_extender.call(this);
 
 
-    this.defaultValue("focusable", false);
 
     //当前值
-    this.defineProperty("value", 0, "measure");
+    this.defineProperty("value", 0, "invalidate");
 
     //滚动条长度
-    this.defineProperty("length", 100, "measure");
+    this.defineProperty("length", 100, "invalidate");
 
     //显示值大小
-    this.defineProperty("viewportSize", 10, "measure");
+    this.defineProperty("viewportSize", 10, "rearrange");
 
     //最大变更值
     this.defineProperty("max_change", 200);
@@ -127,14 +68,9 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
 
-
     //滚动事件
     this.defineEvent("scroll");
 
-
-
-    //执行复合控件扩展
-    flyingon.complex_extender.call(this, base);
 
 
 
@@ -266,12 +202,10 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
         if (this.vertical)
         {
-            event.verticalScrollBar = this;
             event.changeY = step;
         }
         else
         {
-            event.horizontalScrollBar = this;
             event.changeX = step;
         }
 
@@ -378,29 +312,22 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
 
 //滚动条按钮
-flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("ScrollBar_Button", flyingon.Control, function (Class, base, flyingon) {
 
 
     Class.create = function (first) {
 
         this.__first = first;
     };
-    
 
-
-    //禁止滚动条
-    this.overflowX = this.overflowY = null;
 
 
 
     this.__vertical = false;
 
 
-    //修改默认值为充满
-    this.defaultValue("width", "fill");
-
-    //修改默认值为充满
-    this.defaultValue("height", "fill");
+    //扩展可视控件功能
+    flyingon.visual_extender.call(this);
 
 
 
@@ -423,32 +350,10 @@ flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, fl
 
 
 //滚动条滑块
-flyingon.defineClass("ScrollSlider", flyingon.Control, function (Class, base, flyingon) {
-    
-
-    //禁止滚动条
-    this.overflowX = this.overflowY = null;
-
-
-    this.defaultValue("width", "fill");
-
-    this.defaultValue("height", "fill");
-
-});
+flyingon.defineClass("ScrollBar_Slider", flyingon.Control, flyingon.visual_extender);
 
 
 
 
 //滚动条拐角控件
-flyingon.defineClass("ScrollCorner", flyingon.Control, function (Class, base, flyingon) {
-    
-
-    //禁止滚动条
-    this.overflowX = this.overflowY = null;
-
-
-    this.defaultValue("width", "fill");
-
-    this.defaultValue("height", "fill");
-
-});
+flyingon.defineClass("ScrollBar_Corner", flyingon.Control, flyingon.visual_extender);

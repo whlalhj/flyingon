@@ -16,7 +16,7 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
 
         if (items && items.length > 0)
         {
-            this.__boxModel.content(items[0]);
+           
         }
     };
 

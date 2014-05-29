@@ -4,10 +4,11 @@
 flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, base, flyingon) {
 
 
-    Class.create = function (OwnerControl) {
+
+    Class.create = function (target) {
 
         this.__visible_list = [];
-        this.OwnerControl = OwnerControl;
+        this.target = target;
     };
 
 
@@ -16,7 +17,7 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
         if (!flyingon.__initializing)
         {
-            this.ownerControl.invalidate(false);
+            this.target.invalidate(false);
         }
 
         return item;
@@ -32,7 +33,7 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
         if (!flyingon.__initializing)
         {
-            this.ownerControl.invalidate(false);
+            this.target.invalidate(false);
         }
     };
 
@@ -42,9 +43,10 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
         if (!flyingon.__initializing)
         {
-            this.ownerControl.invalidate(false);
+            this.target.invalidate(false);
         }
     };
+
 
 }, true);
 

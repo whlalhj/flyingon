@@ -46,10 +46,7 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
         paint: function (context, dragTargets) {
 
-            var box = this.__boxModel,
-                r = box.clientRect;
-
-            context.fillStyle = "rgba(255,0,0,0.5)";
+            context.fillStyle = "rgba(255, 0, 0, 0.5)";
             context.fillRect(r.x, r.y, r.width, r.height);
 
             this.paint(context, box);
