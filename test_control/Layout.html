@@ -28,19 +28,14 @@
             <input type="button" value="flow" onclick="layout('flow')" />
             <input type="button" value="single" onclick="layout('single')" />
             <input type="button" value="dock" onclick="layout('dock')" />
-            <input type="button" value="queue" onclick="layout('queue')" />
             <input type="button" value="grid" onclick="layout('grid')" />
+            <input type="button" value="custom-grid" onclick="layout('custom-grid')" />
             <input type="button" value="absolute" onclick="layout('absolute')" />
 
             <span style="width: 10px"></span>
             <input type="button" value="horizontal" onclick="direction('horizontal')" />
             <input type="button" value="vertical" onclick="direction('vertical')" />
 
-            <span style="width: 10px"></span>
-            <input type="button" value="mirror-none" onclick="mirror('none')" />
-            <input type="button" value="mirror-x-axis" onclick="mirror('x-axis')" />
-            <input type="button" value="mirror-y-axis" onclick="mirror('y-axis')" />
-            <input type="button" value="mirror-origin" onclick="mirror('origin')" />
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
@@ -55,25 +50,15 @@
 
     </script>
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
-
-        var text = "ssdfere\r\ndsdf\r\nddsdfd";
-        var index = 0;
-        var result = [];
-
-        while ((index = text.indexOf("\n", index)) >= 0)
-        {
-            result.push(index++);
-        }
-
       
         var w = new flyingon.Window(host);
 
-        w.layout = "flow";
+        w.layoutType = "absolute";
 
 
         function create() {
@@ -94,8 +79,8 @@
                     ctrl.top = i / 5 * 30;
 
                     //ctrl.margin = "10, 10, 10, 10";
-                    ctrl.border = "1, 1, 1, 1";
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
+                    //ctrl.borderWidth = "1, 1, 1, 1";
+                    //ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
                     ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                     ctrl.align = "middle,center";
 
@@ -127,16 +112,14 @@
                 }
 
 
-
-
-                panel.width = "fill";
-                panel.height = "auto";
+                panel.left = (k % 2) * 650;
+                panel.top = (k >> 1) * 450;
                 panel.width = 600;
                 panel.height = 400;
-                panel.margin = "5, 5, 5, 5";
-                panel.border = "1, 1, 1, 1";
-                panel.padding = "0, 0, 0, 0";
-                panel.borderColor = "orange";
+                panel.margin = 5;
+                panel.borderWidth = 1;
+                //panel.padding = 0;
+                //panel.borderColor = "orange";
                 //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
                 panel.layout = "line";
                 panel.spaceX = 5;
@@ -145,7 +128,8 @@
                 panel.lineWidth = 160;
                 panel.rows = 4;
                 panel.columns = 4;
-                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+                panel.layoutType = "absolute";
+                panel.layoutGrid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
 
 
                 w.children.append(panel);
@@ -172,7 +156,7 @@
 
             var date = new Date();
 
-            w.children[0].border = [20, 20, 20, 20];
+            w.children[0].borderWidth = 20;
             w.update();
 
             alert(new Date() - date);
@@ -201,7 +185,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.layout = value;
+                panel.layoutType = value;
             }
 
             w.update();
@@ -210,22 +194,7 @@
         };
 
 
-        function mirror(value) {
-
-            var date = new Date();
-
-            for (var i = 0; i < w.children.length; i++)
-            {
-                var panel = w.children[i];
-                panel.mirror = value;
-            }
-
-            w.update();
-
-            alert(new Date() - date);
-        };
-
-
+       
         function direction(value) {
 
             var date = new Date();
@@ -233,7 +202,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.vertical = value == "vertical";
+                panel.vertical = value === "vertical";
             }
 
             w.update();

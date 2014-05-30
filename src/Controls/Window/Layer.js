@@ -46,16 +46,22 @@ flyingon.layer_extender = function (host) {
 
         var self = target;
 
-        if (self.__self_dirty) //如果需要更新
+        if (self.__current_dirty) //如果需要更新
         {
             self.__fn_render(self.painter);
         }
         else if (self.__children_dirty) //如果子控件需要更新
         {
-            self.__fn_render_children(self.painter, true);
+            self.__fn_render_children(self.painter);
             self.__children_dirty = false;
         }
     };
+
+
+
+    //立即执行更新
+    this.__execute_update = update();
+
 
 
     //注册更新

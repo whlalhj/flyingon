@@ -46,25 +46,18 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     this.__define_initializing = function (name, attributes) {
 
         return "if (flyingon.__initializing)\n"
-
             + "{\n"
-
             + (attributes.changing || "")
-            + "\n"
 
-            + "fields." + name + " = value;\n"
+            + "fields." + name + " = value;\n\n"
 
             + "if (cache = this.__bindings)\n"
             + "{\n"
             + "this.__fn_bindings(\"" + name + "\", cache);\n"
-            + "}\n"
+            + "}\n\n"
 
             + (attributes.complete || "")
-            + "\n"
-
-            + "return this;\n"
-
-            + "}\n";
+            + "}\n\n\n";
     };
 
     this.__define_change = function (name) {
@@ -74,53 +67,69 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
                 + "if (this.dispatchEvent(event) === false)\n"
                 + "{\n"
-                    + "return this;\n"
-                + "}\n"
+                + "return false;\n"
+                + "}\n\n"
                 + "value = event.value;\n"
-            + "}\n";
+            + "}\n\n";
     };
 
-    this.__define_setter = function (name, attributes) {
+    this.__define_setter = function (name, defaultValue, attributes) {
 
         var body = [];
 
-        body.push("var fields = this.__fields, cache;\n");
+        switch (typeof defaultValue)
+        {
+            case "boolean":
+                body.push("value = !!value;\n");
+                break;
+
+            case "number":
+                body.push(("" + defaultValue).indexOf(".") >= 0 ? "value = parseInt(value);\n" : "value = +value || 0;\n");
+                break;
+
+            case "string":
+                body.push("value = value ? \"\"+ value : \"\";\n");
+                break;
+        }
+
+
+        body.push("var fields = this.__fields, cache;\n\n");
 
         body.push(this.__define_initializing(name, attributes));
 
-        body.push("var oldValue = fields." + name + ";\n");
+        body.push("var oldValue = fields." + name + ";\n\n");
 
         if (attributes.changing) //自定义值变更代码
         {
             body.push(attributes.changing);
-            body.push("\n");
+            body.push("\n\n");
         }
 
         body.push("if (oldValue !== value)\n");
-        body.push("{\n");
+        body.push("{\n\n");
 
         body.push(this.__define_change(name));
 
-        body.push("fields." + name + " = value;\n");
+        body.push("fields." + name + " = value;\n\n");
 
 
         if (attributes.changed) //自定义值变更代码
         {
             body.push(attributes.changed);
-            body.push("\n");
+            body.push("\n\n");
         }
 
         if (attributes.complete) //自定义值变更结束代码
         {
             body.push(attributes.complete);
-            body.push("\n");
+            body.push("\n\n");
         }
 
 
         body.push("if (cache = this.__bindings)\n");
         body.push("{\n");
         body.push("this.__fn_bindings(\"" + name + "\", cache);\n");
-        body.push("}\n");
+        body.push("}\n\n");
 
 
         //此块与控件有关
@@ -139,8 +148,6 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
         body.push("}\n");
-
-        body.push("return this;\n");
 
 
         return new Function("value", body.join(""));
@@ -193,7 +200,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             }
 
             var getter = attributes.getter || this.__define_getter(name, attributes),
-                setter = !attributes.readOnly ? (attributes.setter || this.__define_setter(name, attributes)) : null;
+                setter = !attributes.readOnly ? (attributes.setter || this.__define_setter(name, defaultValue, attributes)) : null;
 
             flyingon.defineProperty(this, name, getter, setter);
 

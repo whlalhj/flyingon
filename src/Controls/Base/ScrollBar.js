@@ -37,10 +37,10 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
     Class.create = function () {
 
-        this.__visible_items = [
+        this.children.appendRange(
             this.__button1 = new flyingon.ScrollBar_Button(true),
             this.__slider0 = new flyingon.ScrollBar_Slider(),
-            this.__button2 = new flyingon.ScrollBar_Button(false)];
+            this.__button2 = new flyingon.ScrollBar_Button(false));
     };
 
 

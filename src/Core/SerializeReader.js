@@ -124,7 +124,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (value !== undefined)
         {
-            return target[name] = value == null ? null : "" + value;
+            return target[name] = value ? "" + value : "";
         }
     };
 

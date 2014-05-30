@@ -150,147 +150,50 @@ Canvas2D绘图扩展
 
 
 
-    /****************************以下为属性方法扩展********************************/
+    /****************************以下为标准属性说明********************************/
 
 
     /*    
-    set_fillStyle(color) = "#000000"	设置填充色
-    set_strokeStyle(color) = "#000000"	设置边框色
-    */
-    ["fillStyle", "strokeStyle"].forEach(function (name) {
 
-        this["set_" + name] = function (value) {
-
-            this[name] = value && value.createBrush ? value.createBrush(this) : value;
-            return this;
-        };
-
-    }, prototype);
-
-
-
-    /*    
-    set_shadowColor(color) = "#000000"	设置或返回用于阴影的颜色 
-    */
-    prototype.set_shadowColor = function (color) {
-
-        this.shadowColor = color;
-        return this;
-    };
-
-    /* 
-    set_shadowBlur(number) = 0	    设置或返回用于阴影的模糊级别 
-    */
-    prototype.set_shadowBlur = function (value) {
-
-        this.shadowBlur = value;
-        return this;
-    };
-
-    /* 
-    set_shadowOffsetX(number) = 0	设置或返回阴影距形状的水平距离 
-    */
-    prototype.set_shadowOffsetX = function (value) {
-
-        this.shadowOffsetX = value;
-        return this;
-    };
-
-    /* 
-    set_shadowOffsetY(number) = 0	设置或返回阴影距形状的垂直距离 
-    */
-    prototype.set_shadowOffsetY = function (value) {
-
-        this.shadowOffsetY = value;
-        return this;
-    };
-
-    /* 
-    set_lineCap("butt|round|square") = "butt"	    设置或返回线条的结束端点样式 
-    */
-    prototype.set_lineCap = function (value) {
-
-        this.lineCap = value;
-        return this;
-    };
-
-    /* 
-    set_lineJoin("bevel|round|miter") = "miter"	    设置或返回两条线相交时 所创建的拐角类型 
-    */
-    prototype.set_lineJoin = function (value) {
-
-        this.lineJoin = value;
-        return this;
-    };
-
-    /* 
-    set_lineWidth(number) = 1	    设置或返回当前的线条宽度 
-    */
-    prototype.set_lineWidth = function (value) {
-
-        this.lineWidth = value;
-        return this;
-    };
-
-    /* 
-    set_miterLimit(number) = 10	    设置或返回最大斜接长度 
-    */
-    prototype.set_miterLimit = function (value) {
-
-        this.miterLimit = value;
-        return this;
-    };
-
-    /* 
-    set_font("italic small-caps bold 12px arial") = "10px sans-serif"	设置或返回文本内容的当前字体属性 
-    */
-    prototype.set_font = function (value) {
-
-        this.font = value;
-        return this;
-    };
-
-    /* 
-    set_textAlign("center|end|left|right|start") = "start"	设置或返回文本内容的当前对齐方式 
-    */
+    fillStyle(color) = "#000000"	设置填充色
+    strokeStyle(color) = "#000000"	设置边框色
+    
+    shadowColor(color) = "#000000"	设置或返回用于阴影的颜色 
+    
+    shadowBlur(number) = 0	    设置或返回用于阴影的模糊级别 
+    
+    shadowOffsetX(number) = 0	设置或返回阴影距形状的水平距离 
+    
+    shadowOffsetY(number) = 0	设置或返回阴影距形状的垂直距离 
+    
+    lineCap("butt|round|square") = "butt"	    设置或返回线条的结束端点样式 
+    
+    lineJoin("bevel|round|miter") = "miter"	    设置或返回两条线相交时 所创建的拐角类型 
+    
+    lineWidth(number) = 1	    设置或返回当前的线条宽度 
+    
+    miterLimit(number) = 10	    设置或返回最大斜接长度 
+    
+    font("italic small-caps bold 12px arial") = "10px sans-serif"	设置或返回文本内容的当前字体属性 
+    
+    textAlign("center|end|left|right|start") = "start"	设置或返回文本内容的当前对齐方式 
     //start     文本在指定的位置开始
     //end       文本在指定的位置结束
     //center    文本的中心被放置在指定的位置
     //left      文本左对齐
     //right     文本右对齐
-    prototype.set_textAlign = function (value) {
-
-        this.textAlign = value;
-        return this;
-    };
-
-    /* 
-    set_textBaseline("alphabetic|top|hanging|middle|ideographic|bottom") = "alphabetic"	设置或返回在绘制文本时使用的当前文本基线
-    */
+    
+    textBaseline("alphabetic|top|hanging|middle|ideographic|bottom") = "alphabetic"	设置或返回在绘制文本时使用的当前文本基线
     //alphabetic    文本基线是普通的字母基线
     //top           文本基线是 em 方框的顶端
     //hanging       文本基线是悬挂基线
     //middle        文本基线是 em 方框的正中
     //ideographic   文本基线是表意基线
     //bottom        文本基线是 em 方框的底端
-    prototype.set_textBaseline = function (value) {
-
-        this.textBaseline = value;
-        return this;
-    };
-
-    /* 
-    set_globalAlpha(number)	透明值 必须介于0.0(完全透明)与1.0(不透明)之间
-    */
-    prototype.set_globalAlpha = function (value) {
-
-        this.globalAlpha = value;
-        return this;
-    };
-
-    /* 
-    set_globalCompositeOperation("source-over|source-atop|source-in|source-out|destination-over|destination-atop|destination-in|destination-out|lighter|copy|source-over") = "source-over"	设置或返回新图像如何绘制到已有的图像上
-
+    
+    globalAlpha(number)	透明值 必须介于0.0(完全透明)与1.0(不透明)之间
+    
+    globalCompositeOperation("source-over|source-atop|source-in|source-out|destination-over|destination-atop|destination-in|destination-out|lighter|copy|source-over") = "source-over"	设置或返回新图像如何绘制到已有的图像上
     source-over	默认 在目标图像上显示源图像 
     source-atop	在目标图像顶部显示源图像 源图像位于目标图像之外的部分是不可见的 
     source-in	在目标图像中显示源图像 只有目标图像内的源图像部分会显示 目标图像是透明的 
@@ -302,12 +205,8 @@ Canvas2D绘图扩展
     lighter	显示源图像 + 目标图像 
     copy	显示源图像 忽略目标图像 
     source-over	使用异或操作对源图像与目标图像进行组合 
-    */
-    prototype.set_globalCompositeOperation = function (value) {
 
-        this.globalCompositeOperation = value;
-        return this;
-    };
+    */
 
 
     /*****************************************************************************/

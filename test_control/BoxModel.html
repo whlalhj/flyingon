@@ -16,13 +16,12 @@
     <div id="host" style="width: 100%; height: 600px;">
     </div>
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
-        alert("window");
 
         var w = new flyingon.Window(host);
         w.padding = "10, 10, 10, 10";
@@ -43,19 +42,20 @@
         button2.width = 200;
         button2.height = 200;
         button2.margin = "10, 20, 30, 40";
-        button2.border = "2, 4, 6, 8";
+        button2.borderWidth = "2, 4, 6, 8";
         w.children.append(button2);
 
         var button3 = new flyingon.Button();
         button3.width = 200;
         button3.height = 200;
         //button3.margin = "2, 4, 6, 8";
-        button3.border = "10, 10, 10, 10";
+        button3.borderWidth = "10, 10, 10, 10";
         button3.borderRadius = 20;
         w.children.append(button3);
 
         w.update();
 
+        /*
         [button1, button2, button3].forEach(function (item) {
 
 
@@ -63,21 +63,36 @@
 
                 item.onclick = function (event) {
 
-                    var box = item.boxModel;
-
                     w.context.strokeStyle = "red";
-                    w.context.strokeRect(box.windowX, box.windowY + 300, box.width, box.height);
+                    w.context.strokeRect(this.windowX, this.windowY + 300, this.width, this.height);
 
                     w.context.strokeStyle = "green";
-                    w.context.strokeRect(box.usableRect.windowX, box.usableRect.windowY + 300, box.usableRect.width, box.usableRect.height);
+                    w.context.strokeRect(this.windowX + this.controlX, this.windowY + this.controlY + 300, this.controlWidth, this.controlHeight);
 
                     w.context.strokeStyle = "blue";
-                    w.context.strokeRect(box.clientRect.windowX, box.clientRect.windowY + 300, box.clientRect.width, box.clientRect.height);
+                    w.context.strokeRect(this.windowX + this.controlX, this.windowY + this.controlY + 300, this.controlWidth, this.controlHeight);
                 };
 
             })(item);
 
         });
+
+
+           var time = flyingon.performance(function () {
+
+            var value = w.borderLeftColor;
+
+            //var value = w.__fn_style_value("borderLeftColor");
+
+        }, 1000000);
+
+        alert(time);
+
+        */
+
+            
+
+
 
     </script>
 

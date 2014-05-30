@@ -23,14 +23,20 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
 
 
 
-    this.__fn_arrange = function () {
+    this.__fn_arrange = function (scroll) {
 
         var children = this.__children,
             length;
 
         if (children && (length = children.length) > 0)
         {
-            base.__fn_arrange.call(this);
+            base.__fn_arrange.call(this, scroll);
+
+            //从右到左坐标变换
+            if (!scroll && this.direction === "rtl")
+            {
+                this.__fn_mirror_x(this.__visible_items);
+            }
 
             var items = this.__visible_items = [],
                 x = this.contentX,
@@ -42,21 +48,32 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
             for (var i = 0; i < length; i++)
             {
                 var item = children[i],
-                    x1 = item.__visualX,
-                    y1 = item.__visualY;
+                    x1 = item.controlX,
+                    y1 = item.controlY;
 
                 if (item.__visible &&
-                    x1 < right &&
-                    y1 < bottom &&
-                    x1 + item.__visualWidth >= x &&
-                    y1 + item.__visualHeight >= y)
+                    x1 <= right &&
+                    y1 <= bottom &&
+                    x1 + item.controlWidth >= x &&
+                    y1 + item.controlHeight >= y)
                 {
-                    result.push(item);
+                    items.push(item);
                 }
             }
         }
     };
 
+    
+    //排列子控件
+    this.arrange = function (scroll) {
+
+        var items;
+
+        if (!scroll && (items = this.__children) && items.length > 0)
+        {
+            flyingon.execute_layout.call(this, this.layoutType, items);
+        }
+    };
 
 
 

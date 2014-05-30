@@ -158,7 +158,7 @@ flyingon.defineClass("ChildWindow_ToolBar", flyingon.Panel, function (Class, bas
 
         this.__fn_measure(0, 0, width, height, true, false);
         this.__fn_position(0, 0);
-        this.__fn_arrange();
+        this.__fn_arrange(false);
     };
 
 
@@ -168,7 +168,7 @@ flyingon.defineClass("ChildWindow_ToolBar", flyingon.Panel, function (Class, bas
 
 
 //子窗口
-flyingon.defineClass("ChildWindow", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("ChildWindow", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
@@ -303,7 +303,7 @@ flyingon.defineClass("ChildWindow", flyingon.Control, function (Class, base, fly
         style.height = height + "px";
 
         this.toolbar.__fn_render(width);
-        this.__fn_resize(0, this.toolbar.marginBottom, width, height);
+        this.__fn_update(0, this.toolbar.marginBottom, width, height);
     };
 
 

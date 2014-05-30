@@ -28,56 +28,8 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
     };
 
     //排列子项
-    this.arrange = function (clientRect) {
+    this.arrange = function (scroll) {
 
-        var items = this.__items,
-            children = this.__render_children = [],
-
-            maxIndex = this.maxIndex,
-            lineHeight = this.lineHeight,
-            visibleIndex = this.visibleIndex,
-
-            y = 0,
-            width = clientRect.width,
-            height = clientRect.height,
-
-            template;
-
-
-        for (var i = 0, _ = items.length; i < _; i++)
-        {
-            var item = items[i];
-
-            if (item.visible)
-            {
-                var control = item.__control;
-
-                if (!control)
-                {
-                    if (template || (template = this.template))
-                    {
-                        control = item.__control = this.createTemplateControl(template, item);
-                    }
-                    else
-                    {
-                        control = item.__control = this.__fn_create_item();
-                    }
-                }
-
-
-                if (control)
-                {
-                    control.__boxModel.measure(0, y, width, lineHeight);
-
-                    children.push(control);
-
-                    if ((y += box.height) >= height)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
     };
 
 

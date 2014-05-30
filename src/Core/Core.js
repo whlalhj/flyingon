@@ -120,81 +120,73 @@ var flyingon_setting = flyingon_setting || {
 (function (flyingon) {
 
 
-    //扩展字符串
-    (function () {
+
+    //增加字符串顺序格式化支持
+    flyingon.string_format = function (string_value, values) {
+
+        return string_value ? string_value.replace(/\{(\d+)\}/g, function (_, key) {
+
+            return values[key] || "";
+
+        }) : string_value;
+    };
 
 
-        //增加字符串顺序格式化支持
-        this.format = function () {
+    //增加字符串关键字格式化支持
+    flyingon.string_format_key = function (string_value, values) {
 
-            return arguments.length === 0 ? this : this.replace(/\{\d+\}/g, function (key) {
+        return string_value ? string_value.replace(/\{(\w+)\}/g, function (_, key) {
 
-                return arguments[key.substring(1, key.length - 1)] || "";
-            });
-        };
+            return values[key] || "";
 
+        }) : string_value;
+    };
 
-        //增加字符串名字格式化支持
-        this.format_name = function (value) {
+    //增加字符串顺序格式化支持
+    flyingon.string_trim = function (string_value) {
 
-            return !value ? this : this.replace(/\{\w+\}/g, function (key) {
-
-                return value[key.substring(1, key.length - 1)] || "";
-            });
-        };
-
-        //增加字符串顺序格式化支持
-        this.trim = function () {
-
-            return arguments.length === 0 ? this : this.replace(/^\s+|\s+$/g, "");
-        };
-
-
-    }).call(String.prototype);
+        return string_value ? string_value.replace(/^\s+|\s+$/g, "") : string_value;
+    };
 
 
 
-    //扩展数组
-    (function () {
 
+    //移除指定项
+    flyingon.array_remove = function (array, item) {
 
-        //移除指定项
-        this.remove = function (item) {
-
-            var index = this.indexOf(item);
+        if (array)
+        {
+            var index = array.indexOf(item);
             if (index >= 0)
             {
-                this.splice(index, 1);
+                array.splice(index, 1);
             }
-        };
+        }
+    };
 
-        //移除指定索引
-        this.removeAt = function (index) {
+    //清空
+    flyingon.array_clear = function (array) {
 
-            this.splice(index, 1);
-        };
+        if (array && array.length > 0)
+        {
+            array.splice(0, array.length);
+        }
+    };
 
-        //清空
-        this.clear = function () {
+    //二分法搜索
+    flyingon.binary_search = function (array, value, start, end) {
 
-            if (this.length > 0)
-            {
-                this.splice(0, this.length);
-            }
-        };
-
-        //二分法搜索
-        this.binary_search = function (value, start, end) {
-
+        if (array)
+        {
             var flag = typeof value !== "function";
 
             start = start || 0;
-            end = end || this.length - 1;
+            end = end || array.length - 1;
 
             while (start <= end)
             {
                 var index = (start + end) >> 1,
-                    result = flag ? this[index] - value : value.call(this, index);
+                    result = flag ? array[index] - value : value.call(array, index);
 
                 if (result < 0)
                 {
@@ -209,22 +201,25 @@ var flyingon_setting = flyingon_setting || {
                     return index;
                 }
             }
+        }
 
-            return -1;
-        };
+        return -1;
+    };
 
-        //二分法搜索区间
-        this.binary_between = function (value, start, end) {
+    //二分法搜索区间
+    flyingon.binary_between = function (array, value, start, end) {
 
+        if (array)
+        {
             var flag = typeof value !== "function";
 
             start = start || 0;
-            end = end || this.length - 1;
+            end = end || array.length - 1;
 
             while (start <= end)
             {
                 var index = (start + end) >> 1,
-                    result = flag ? this[index] - value : value.call(this, index);
+                    result = flag ? array[index] - value : value.call(array, index);
 
                 if (result > 0)
                 {
@@ -237,7 +232,7 @@ var flyingon_setting = flyingon_setting || {
                         return end;
                     }
 
-                    if ((flag ? this[index + 1] - value : value.call(this, index + 1)) > 0)
+                    if ((flag ? array[index + 1] - value : value.call(array, index + 1)) > 0)
                     {
                         return index;
                     }
@@ -249,12 +244,12 @@ var flyingon_setting = flyingon_setting || {
                     return index;
                 }
             }
+        }
 
-            return -1;
-        };
+        return -1;
+    };
 
 
-    }).call(Array.prototype);
 
 
     //给指定对象扩展指定名称的数组方法
@@ -389,108 +384,115 @@ var flyingon_setting = flyingon_setting || {
 
 
 
-    Image.prototype.toDataUrl = function () {
+    flyingon.toDataUrl = function (image) {
 
-        var canvas = document.createElement("canvas");
+        if (image)
+        {
+            var canvas = document.createElement("canvas");
 
-        canvas.width = this.width;
-        canvas.height = this.height;
-        canvas.getContext("2d").drawImage(this, 0, 0);
+            canvas.width = image.width;
+            canvas.height = image.height;
+            canvas.getContext("2d").drawImage(image, 0, 0);
 
-        return canvas.toDataURL("image/png");
+            return canvas.toDataURL("image/png");
+        }
     };
 
 
 
-    //扩展函数
-    (function () {
+
+    //获取函数内容
+    flyingon.function_body = function (fn) {
+
+        if (fn)
+        {
+            var result = fn.toString();
+            return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"));
+        }
+    };
+
+    //获取函数参数
+    flyingon.function_parameters = function (fn) {
+
+        if (fn && fn.length > 0)
+        {
+            var result = fn.toString();
+
+            result = result.match(/\([^)]*\)/)[0];
+            result = result.substring(1, result.length - 1).replace(/\s+/, "");;
+
+            return result.split(",");
+        }
+
+        return [];
+    };
+
+    //复制函数生成新函数
+    flyingon.function_copy = function (fn) {
+
+        return fn && new Function(flyingon.function_parameters(fn), flyingon.function_body(fn));
+    };
+
+    //合并函数内容生成新函数
+    flyingon.function_merge = function (fn, body, insertBefore, parameters) {
+
+        if (fn && body)
+        {
+            var get = flyingon.function_body;
+
+            body = typeof body === "function" ? get(body) : "" + body;
+            body = insertBefore ? body + get(fn) : get(fn) + body;
+
+            return new Function(parameters || flyingon.function_parameters(fn), body);
+        }
+    };
+
+    //替换函数内容生成新函数
+    flyingon.function_replace = function (fn, key, value, parameters) {
+
+        if (fn && key)
+        {
+            parameters = parameters || flyingon.function_parameters(fn);
+            value = flyingon.function_body(fn).replace(key, value);
+
+            return new Function(parameters, value);
+        }
+    };
 
 
-        //获取函数内容
-        this.get_body = function () {
+    //扩展原型
+    flyingon.function_extend = function (fn, extend, prototype) {
 
-            var result = this.toString();
-            return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
-        };
-
-        //获取函数参数
-        this.get_parameters = function () {
-
-            if (this.length > 0)
-            {
-                var result = this.toString();
-
-                result = result.match(/\([^)]*\)/)[0];
-                result = result.substring(1, result.length - 1).replace(/\s+/, "");;
-
-                return result.split(",");
-            }
-
-            return [];
-        };
-
-        //复制函数生成新函数
-        this.copy = function () {
-
-            return new Function(this.get_parameters(), this.get_body());
-        };
-
-        //合并函数内容生成新函数
-        this.merge = function (body, insertBefore, parameters) {
-
-            if (body)
-            {
-                body = typeof body === "function" ? body.get_body() : "" + body;
-                body = insertBefore ? body + this.get_body() : this.get_body() + body;
-
-                return new Function(parameters || this.get_parameters(), body);
-            }
-        };
-
-        //替换函数内容生成新函数
-        this.replace = function (key, value, parameters) {
-
-            if (key)
-            {
-                var body = this.get_body().replace(key, value);
-                return new Function(parameters || this.get_parameters(), body);
-            }
-        };
-
-
-        //扩展原型
-        this.extend = function (fn, prototype) {
-
+        if (fn)
+        {
             if (prototype)
             {
-                this.prototype = prototype;
+                fn.prototype = prototype;
             }
             else
             {
-                prototype = this.prototype;
+                prototype = fn.prototype;
             }
 
-            if (fn)
+            if (extend)
             {
-                if (fn instanceof Function)
+                if (extend instanceof Function)
                 {
-                    fn.call(prototype, flyingon);
+                    extend.call(prototype, flyingon);
                 }
                 else
                 {
-                    for (var name in fn)
+                    for (var name in extend)
                     {
-                        prototype[name] = fn[name];
+                        prototype[name] = extend[name];
                     }
                 }
             }
 
-            return this;
-        };
+            return fn;
+        }
+    };
 
-
-
-    }).call(Function.prototype);
 
 
 })(flyingon);
@@ -508,7 +510,7 @@ var flyingon_setting = flyingon_setting || {
 
         if (typeof code === "function")
         {
-            code = code.get_body();
+            code = flyingon.function_body(code);
         }
 
         code = "var time, times = " + times + ", date = new Date();\n"
@@ -839,7 +841,7 @@ var flyingon_setting = flyingon_setting || {
 
         if (!typeName || typeof class_fn !== "function")
         {
-            throw new Error(flyingon_setting.define_class_error.format(typeName));
+            throw new Error("class_fn error!");
         }
 
 
@@ -891,7 +893,7 @@ var flyingon_setting = flyingon_setting || {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
                 if (!create_list && constructor_merge)
                 {
-                    fn.create = create.merge(base_create, true);
+                    fn.create = flyingon.function_merge(create, base_create, true);
                 }
                 else //生成构造链
                 {

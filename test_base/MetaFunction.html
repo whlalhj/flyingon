@@ -20,7 +20,7 @@
     <div id="host" style="width: 100%; height: 100%;">
     </div>
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
@@ -33,7 +33,7 @@
             return a + b;
         };
 
-        var f = fn.merge("a = 0;", true);
+        var f = flyingon.function_merge(fn, "a = 0;", true);
 
     </script>
 

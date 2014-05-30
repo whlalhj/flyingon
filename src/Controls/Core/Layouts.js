@@ -52,28 +52,30 @@
 
             var x = 0,
                 clientWidth = this.clientWidth,
-                clientHeight = this.clientHeight,
-                contentHeight = 0;
+                contentHeight = this.alignHeight,
+                alignHeight = contentHeight || this.clientHeight;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
                 var item = items[i];
 
-                if (item.__visible = (item.__style.visibility !== "collapsed"))
+                if (item.__visible = (item.visibility !== "collapsed"))
                 {
                     if (x > 0)
                     {
                         x += spaceX;
                     }
 
-                    item.__fn_measure(clientWidth - x, clientHeight, false, true);
-                    item.__fn_position(x, 0, null, clientHeight);
+                    var size = item.__fn_measure(clientWidth - x, alignHeight, false, true);
 
-                    x += item.columnWidth;
+                    item.__fn_alignY(alignHeight);
+                    item.__fn_position(x, 0);
 
-                    if (item.rowHeight > contentHeight)
+                    x += size.width;
+
+                    if (size.height > contentHeight)
                     {
-                        contentHeight = item.rowHeight;
+                        contentHeight = size.height;
                     }
                 }
             }
@@ -85,29 +87,29 @@
         function fn2(items, spaceX, spaceY) {
 
             var y = 0,
-                clientWidth = this.clientWidth,
-                clientHeight = this.clientHeight,
-                contentWidth = 0;
+                contentWidth = this.alignWidth,
+                alignWidth = contentWidth || this.clientWidth,
+                clientHeight = this.clientHeight;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
                 var item = items[i];
 
-                if (item.__visible = (item.__style.visibility !== "collapsed"))
+                if (item.__visible = (item.visibility !== "collapsed"))
                 {
                     if (y > 0)
                     {
                         y += spaceY;
                     }
 
-                    item.__fn_measure(clientWidth, clientHeight - y, false, true);
-                    item.__fn_position(0, y, clientWidth);
+                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
+                    item.__fn_position(item.__fn_alignX(alignWidth), y);
 
-                    x += item.rowHeight;
+                    y += item.outlineHeight;
 
-                    if (item.columnWidth > contentWidth)
+                    if (item.outlineWidth > contentWidth)
                     {
-                        contentWidth = item.columnWidth;
+                        contentWidth = item.outlineWidth;
                     }
                 }
             }
@@ -135,18 +137,17 @@
 
             var x = 0,
                 y = 0,
-                clientWidth = this.clientWidth,
-                maxHeight = this.clientHeight,
-                rowHeight = this.rowHeight,
                 contentWidth = 0,
                 contentHeight = 0,
+                clientWidth = this.clientWidth,
+                alignHeight = this.alignHeight || this.clientHeight,
                 cache;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
                 var item = items[i];
 
-                if (item.__visible = (item.__style.visibility !== "collapsed"))
+                if (item.__visible = (item.visibility !== "collapsed"))
                 {
                     if (x > 0)
                     {
@@ -161,22 +162,25 @@
                         }
                     }
 
-                    item.__fn_measure(clientWidth - x, rowHeight, false, true);
+                    item.__fn_measure(clientWidth - x, alignHeight, false, true);
 
-                    if (x > 0 && (x += item.columnWidth) > clientWidth) //超行
+                    cache = x + item.outlineWidth;
+
+                    if (x > 0 && cache > clientWidth) //超行
                     {
                         x = 0;
                         y = y > 0 ? contentHeight + spaceY : contentHeight;
                     }
 
-                    item.__fn_position(x, y, null, rowHeight);
+                    //item.__fn_alignY(alignHeight);
+                    item.__fn_position(x, y);
 
-                    if ((cache = x + item.columnWidth) > contentWidth)
+                    if ((x = cache) > contentWidth)
                     {
-                        contentWidth = cache;
+                        contentWidth = x;
                     }
 
-                    if ((cache = y + item.rowHeight) > contentHeight)
+                    if ((cache = y + item.outlineHeight) > contentHeight)
                     {
                         contentHeight = cache;
                     }
@@ -192,8 +196,7 @@
             var x = 0,
                 y = 0,
                 clientHeight = this.clientHeight,
-                maxWidth = this.clientWidth,
-                columnWidth = this.columnWidth,
+                alignWidth = this.alignWidth || this.clientWidth,
                 contentWidth = 0,
                 contentHeight = 0,
                 cache;
@@ -202,7 +205,7 @@
             {
                 var item = items[i];
 
-                if (item.__visible = (item.__style.visibility !== "collapsed"))
+                if (item.__visible = (item.visibility !== "collapsed"))
                 {
                     if (y > 0)
                     {
@@ -217,24 +220,27 @@
                         }
                     }
 
-                    item.__fn_measure(columnWidth, clientHeight - y, false, true);
+                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
 
-                    if (y > 0 && (y += item.rowHeight) > clientHeight) //超行
+                    cache = y + item.outlineHeight;
+
+                    if (y > 0 && cache > clientHeight) //超行
                     {
                         y = 0;
                         x = x > 0 ? contentWidth + spaceX : contentWidth;
                     }
 
-                    item.__fn_position(x, y, columnWidth);
+                    //item.__fn_alignX(alignWidth);
+                    item.__fn_position(x, y);
 
-                    if ((cache = x + item.columnWidth) > contentWidth)
+                    if ((y = cache) > contentHeight)
                     {
-                        contentWidth = cache;
+                        contentHeight = y;
                     }
 
-                    if ((cache = y + item.rowHeight) > contentHeight)
+                    if ((cache = x + item.outlineWidth) > contentWidth)
                     {
-                        contentHeight = cache;
+                        contentWidth = cache;
                     }
                 }
             }
@@ -254,7 +260,7 @@
 
 
 
-    //单个显示
+    //单页显示
     registry("page", function (items, spaceX, spaceY) {
 
         var page = this.layoutPage,
@@ -276,7 +282,7 @@
             if (item.__visible = (i === page))
             {
                 item.__fn_measure(this.clientWidth, this.clientHeight, true, false);
-                item.__fn_position(0, 0, this.clientWidth, this.clientHeight);
+                item.__fn_position(item.__fn_alignX(this.clientWidth), item.__fn_alignY(this.clientHeight));
             }
         }
     });
@@ -312,26 +318,26 @@
                             item.__fn_measure(width, height, true, false);
                             item.__fn_position(x, y);
 
-                            width = right - (x += item.columnWidth + spaceX);
+                            width = right - (x += item.outlineWidth + spaceX);
                             break;
 
                         case "top":
                             item.__fn_measure(width, height, true, false);
                             item.__fn_position(x, y);
 
-                            height = bottom - (y = item.rowHeight + spaceY);
+                            height = bottom - (y = item.outlineHeight + spaceY);
                             break;
 
                         case "right":
                             item.__fn_measure(width, height, true, false);
-                            item.__fn_position(right -= item.columnWidth, y);
+                            item.__fn_position(right -= item.outlineWidth, y);
 
                             width = (right -= spaceX) - x;
                             break;
 
                         case "bottom":
                             item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, bottom -= item.rowHeight);
+                            item.__fn_position(x, bottom -= item.outlineHeight);
 
                             height = (bottom -= spaceY) - y;
                             break;
@@ -363,8 +369,8 @@
 
 
 
-    //队列布局 columns rows spaceX spaceY
-    registry("queue", function (items, spaceX, spaceY) {
+    //均匀网格布局
+    registry("grid", function (items, spaceX, spaceY) {
 
         var rows = this.layoutRows || 3,
             columns = this.layoutColumns || 3,
@@ -454,9 +460,8 @@
 
 
 
-    //网格布局 grid spaceX spaceY
-    //示例: "T R* C* C* C* R* C* C* C* R* C* C* C* END"
-    registry("grid", function (items, spaceX, spaceY) {
+    //自定义网格布局
+    registry("custom-grid", function (items, spaceX, spaceY) {
 
         var grid = new flyingon.GridDefine().load(this.layoutGrid);
 
@@ -468,11 +473,13 @@
     });
 
 
-    //绝对定位 left top
+    //绝对定位
     registry("absolute", function (items) {
 
         var contentWidth = 0,
             contentHeight = 0,
+            width,
+            height,
             cache;
 
         for (var i = 0, _ = items.length; i < _; i++)
@@ -481,17 +488,37 @@
 
             if (item.__visible = (item.visibility !== "collapsed"))
             {
-                item.__fn_measure(+item.width || item.__defaults.width, +item.height || item.__defaults.height, false, false, true);
-                item.__fn_position(+item.left || 0, +item.top || 0);
+                item.controlWidth = width = +item.width || item.__defaults.width;
+                item.controlHeight = height = +item.height || item.__defaults.height;
 
-                if ((cache = item.layoutX + item.columnWidth) > contentWidth)
+                if ((cache = (item.controlX = +item.left || 0) + width) > contentWidth)
                 {
                     contentWidth = cache;
                 }
 
-                if ((cache = item.layoutY + item.rowHeight) > contentHeight)
+                if ((cache = (item.controlY = +item.top || 0) + height) > contentHeight)
                 {
                     contentHeight = cache;
+                }
+
+                if ((item.insideWidth = (width -= (item.insideX = item.borderLeftWidth) + item.borderRightWidth)) <= 0)
+                {
+                    item.insideWidth = 0;
+                    item.clientWidth = 0;
+                }
+                else if ((item.clientWidth = width - (item.clientX = item.paddingLeft) - item.paddingTop) < 0)
+                {
+                    item.clientWidth = 0;
+                }
+
+                if ((item.insideHeight = (height -= (item.insideX = item.borderTopWidth) + item.borderBottomWidth)) <= 0)
+                {
+                    item.insideHeight = 0;
+                    item.clientHeight = 0;
+                }
+                else if ((item.clientHeight = height - (item.clientX = item.paddingTop) - item.paddingTop) < 0)
+                {
+                    item.clientHeight = 0;
                 }
             }
         }
@@ -517,407 +544,416 @@
 
 
     //布局格
-    flyingon.CellDefine = (function (grid, row) {
+    flyingon.CellDefine = flyingon.function_extend(
 
-        this.grid = grid;
-        this.row = row;
+        function (grid, row) {
 
-    }).extend(function () {
+            this.grid = grid;
+            this.row = row;
+        },
 
-        this.grid = null;
+        function () {
 
-        this.x = 0;
+            this.grid = null;
 
-        this.width = 0;
+            this.x = 0;
 
-        this.__width_string = "*";
+            this.width = 0;
 
-        this.__width_weight = 100;
+            this.__width_string = "*";
 
-        this.__width_auto = false;
+            this.__width_weight = 100;
+
+            this.__width_auto = false;
 
 
-        //设置列宽
-        this.set_width = function (value) {
+            //设置列宽
+            this.set_width = function (value) {
 
-            if (this.__width_auto)
-            {
-                this.row.__width_weights -= this.__width_weight;
-                this.__width_auto = false;
-            }
-            else if (this.width)
-            {
-                this.row.__width_fixed -= this.width;
-            }
+                if (this.__width_auto)
+                {
+                    this.row.__width_weights -= this.__width_weight;
+                    this.__width_auto = false;
+                }
+                else if (this.width)
+                {
+                    this.row.__width_fixed -= this.width;
+                }
 
-            this.__width_string = value = value || "*";
+                this.__width_string = value = value || "*";
 
-            var length = value.length - 1;
+                var length = value.length - 1;
 
-            if (value[length] === "*")
-            {
-                this.__width_weight = length ? value.substring(0, length) : 100;
-                this.__width_auto = true;
-                this.width = 0;
-                this.row.__width_weights += this.__width_weight;
-            }
-            else
-            {
-                this.width = parseInt(value);
-                this.row.__width_fixed += this.width;
-            }
-        };
+                if (value[length] === "*")
+                {
+                    this.__width_weight = length ? value.substring(0, length) : 100;
+                    this.__width_auto = true;
+                    this.width = 0;
+                    this.row.__width_weights += this.__width_weight;
+                }
+                else
+                {
+                    this.width = parseInt(value);
+                    this.row.__width_fixed += this.width;
+                }
+            };
 
-    });
+        });
 
 
 
     //布局行
-    flyingon.RowDefine = (function (grid) {
+    flyingon.RowDefine = flyingon.function_extend(
 
-        this.grid = grid;
-        this.cells = [];
+        function (grid) {
 
-    }).extend(function () {
+            this.grid = grid;
+            this.cells = [];
+        },
 
-        this.grid = null;
+        function () {
 
-        this.y = 0;
+            this.grid = null;
 
-        this.height = 0;
+            this.y = 0;
 
-        this.__height_string = "*";
+            this.height = 0;
 
-        this.__height_weight = 100;
+            this.__height_string = "*";
 
-        this.__height_auto = false;
+            this.__height_weight = 100;
 
-        //所属单元格所有固定宽度的总和
-        this.__width_fixed = 0;
+            this.__height_auto = false;
 
-        //自动宽度的表格数
-        this.__width_weights = 0;
+            //所属单元格所有固定宽度的总和
+            this.__width_fixed = 0;
+
+            //自动宽度的表格数
+            this.__width_weights = 0;
 
 
 
-        //设置行高
-        this.set_height = function (value) {
+            //设置行高
+            this.set_height = function (value) {
 
-            if (this.__height_auto)
-            {
-                this.grid.__height_weights -= this.__height_weight;
-                this.__height_auto = false;
-            }
-            else if (this.height)
-            {
-                this.grid.__height_fixed -= this.height;
-            }
+                if (this.__height_auto)
+                {
+                    this.grid.__height_weights -= this.__height_weight;
+                    this.__height_auto = false;
+                }
+                else if (this.height)
+                {
+                    this.grid.__height_fixed -= this.height;
+                }
 
-            this.__height_string = value = value || "*";
-            var length = value.length - 1;
+                this.__height_string = value = value || "*";
+                var length = value.length - 1;
 
-            if (value[length] === "*")
-            {
-                this.__height_weight = length === 0 ? 100 : value.substring(0, length);
-                this.__height_auto = true;
-                this.height = 0;
-                this.grid.__height_weights += this.__height_weight;
-            }
-            else
-            {
-                this.height = parseInt(value);
-                this.grid.__height_fixed += this.height;
-            }
-        };
+                if (value[length] === "*")
+                {
+                    this.__height_weight = length === 0 ? 100 : value.substring(0, length);
+                    this.__height_auto = true;
+                    this.height = 0;
+                    this.grid.__height_weights += this.__height_weight;
+                }
+                else
+                {
+                    this.height = parseInt(value);
+                    this.grid.__height_fixed += this.height;
+                }
+            };
 
-    });
+        });
 
 
 
     //布局表
-    flyingon.GridDefine = (function () {
+    flyingon.GridDefine = flyingon.function_extend(
 
-        this.rows = [];
+        function () {
 
-    }).extend(function () {
+            this.rows = [];
+        },
 
-
-        //列留空
-        this.spaceX = 0;
-
-        //行留空
-        this.spaceY = 0;
-
-        //所属行中所有固定高度的总和
-        this.__height_fixed = 0;
-
-        //自动高度的权重总数
-        this.__height_weights = 0;
+        function () {
 
 
-        this.compute = function (width, height) {
+            //列留空
+            this.spaceX = 0;
 
-            this.width = width || 0;
-            this.height = height || 0;
+            //行留空
+            this.spaceY = 0;
 
-            var spaceX = this.spaceX || 0,
-                spaceY = this.spaceY || 0,
+            //所属行中所有固定高度的总和
+            this.__height_fixed = 0;
 
-                rows = this.rows,
-                length = rows.length,
-
-                y = this.y || 0,
-                height = Math.max(this.height - this.__height_fixed - (length - 1) * spaceY, 0),
-                height_weights = this.__height_weights;
+            //自动高度的权重总数
+            this.__height_weights = 0;
 
 
-            for (var i = 0; i < length; i++)
-            {
-                var row = rows[i];
+            this.compute = function (width, height) {
 
-                row.y = y;
+                this.width = width || 0;
+                this.height = height || 0;
 
-                if (row.__height_auto)
+                var spaceX = this.spaceX || 0,
+                    spaceY = this.spaceY || 0,
+
+                    rows = this.rows,
+                    length = rows.length,
+
+                    y = this.y || 0,
+                    height = Math.max(this.height - this.__height_fixed - (length - 1) * spaceY, 0),
+                    height_weights = this.__height_weights;
+
+
+                for (var i = 0; i < length; i++)
                 {
-                    row.height = Math.round(height * row.__height_weight / height_weights);
-                    height_weights -= row.__height_weight;
-                    height -= row.height;
-                }
+                    var row = rows[i];
 
+                    row.y = y;
 
-                var cells = row.cells,
-                    count = cells.length,
-
-                    x = this.x || 0,
-                    width = Math.max(this.width - row.__width_fixed - (count - 1) * spaceX, 0),
-                    width_weights = row.__width_weights;
-
-                for (var j = 0; j < count; j++)
-                {
-                    var cell = cells[j];
-
-                    cell.x = x;
-
-                    if (cell.__width_auto)
+                    if (row.__height_auto)
                     {
-                        cell.width = Math.round(width * cell.__width_weight / width_weights);
-                        width_weights -= cell.__width_weight;
-                        width -= cell.width;
+                        row.height = Math.round(height * row.__height_weight / height_weights);
+                        height_weights -= row.__height_weight;
+                        height -= row.height;
                     }
 
-                    if (cell.children)
-                    {
-                        var children = cell.children;
 
-                        children.x = x;
-                        children.y = y;
-                        children.spaceX = spaceX;
-                        children.spaceY = spaceY;
-                        children.compute(cell.width, row.height);
+                    var cells = row.cells,
+                        count = cells.length,
+
+                        x = this.x || 0,
+                        width = Math.max(this.width - row.__width_fixed - (count - 1) * spaceX, 0),
+                        width_weights = row.__width_weights;
+
+                    for (var j = 0; j < count; j++)
+                    {
+                        var cell = cells[j];
+
+                        cell.x = x;
+
+                        if (cell.__width_auto)
+                        {
+                            cell.width = Math.round(width * cell.__width_weight / width_weights);
+                            width_weights -= cell.__width_weight;
+                            width -= cell.width;
+                        }
+
+                        if (cell.children)
+                        {
+                            var children = cell.children;
+
+                            children.x = x;
+                            children.y = y;
+                            children.spaceX = spaceX;
+                            children.spaceY = spaceY;
+                            children.compute(cell.width, row.height);
+                        }
+
+                        x += cell.width + spaceX;
                     }
 
-                    x += cell.width + spaceX;
+                    y += row.height + spaceY;
                 }
 
-                y += row.height + spaceY;
-            }
-
-            return this;
-        };
+                return this;
+            };
 
 
 
-        this.create = function (rows, columns) {
+            this.create = function (rows, columns) {
 
-            var rows = Math.max(rows, 0) || 3,
-                columns = Math.max(columns, 0) || 3;
+                var rows = Math.max(rows, 0) || 3,
+                    columns = Math.max(columns, 0) || 3;
 
 
-            for (var i = 0; i < rows; i++)
-            {
-                var row = new flyingon.RowDefine(this);
-
-                row.__height_auto = true;
-                this.__height_weights += row.__height_weight;
-
-                for (var j = 0; j < columns; j++)
+                for (var i = 0; i < rows; i++)
                 {
-                    var cell = new flyingon.CellDefine(this, row);
+                    var row = new flyingon.RowDefine(this);
 
-                    cell.__width_auto = true;
-                    row.__width_weights += cell.__width_weight;
+                    row.__height_auto = true;
+                    this.__height_weights += row.__height_weight;
 
-                    row.cells.push(cell);
-                }
-
-                this.rows.push(row);
-            }
-
-            return this;
-        };
-
-        this.load = function (value) {
-
-            value = value || "T R* C* C* C* R* C* C* C* R* C* C* C* END";
-
-            var children = [],
-                rows = [],
-                grid = this,
-                row,
-                cell,
-                tokens = value.split(/\s/g);
-
-
-            for (var i = 0, _ = tokens.length; i < _; i++)
-            {
-                var token = tokens[i],
-                    value = token.substring(1);
-
-                if (token === "END")
-                {
-                    grid = children.pop();
-                    row = rows.pop();
-                }
-                else
-                {
-                    switch (token[0])
+                    for (var j = 0; j < columns; j++)
                     {
-                        case "T":
-                            if (cell != null)
-                            {
-                                children.push(grid);
-                                rows.push(row);
+                        var cell = new flyingon.CellDefine(this, row);
 
-                                grid = cell.children = new flyingon.GridDefine();
-                                row = null;
-                            }
-                            break;
+                        cell.__width_auto = true;
+                        row.__width_weights += cell.__width_weight;
 
-                        case "R":
-                            row = new flyingon.RowDefine(grid);
-                            row.set_height(value);
-                            grid.rows.push(row);
-
-                            cell = null;
-                            break;
-
-                        case "C":
-                            if (row)
-                            {
-                                cell = new flyingon.CellDefine(grid, row);
-                                cell.set_width(value);
-                                row.cells.push(cell);
-                            }
-                            break;
+                        row.cells.push(cell);
                     }
+
+                    this.rows.push(row);
                 }
-            }
 
-            return this;
-        };
+                return this;
+            };
+
+            this.load = function (value) {
+
+                value = value || "T R* C* C* C* R* C* C* C* R* C* C* C* END";
+
+                var children = [],
+                    rows = [],
+                    grid = this,
+                    row,
+                    cell,
+                    tokens = value.split(/\s/g);
 
 
-        this.serialize = function (writer) {
-
-        };
-
-        this.deserialize = function (reader, value, excludes) {
-
-
-        };
-
-
-
-        function horizontal_cells(result) {
-
-            var rows = this.rows;
-
-            result = result || [];
-
-            for (var i = 0, _ = rows.length; i < _; i++)
-            {
-                var row = rows[i],
-                    cells = row.cells;
-
-                for (var j = 0, __ = cells.length; j < __; j++)
+                for (var i = 0, _ = tokens.length; i < _; i++)
                 {
-                    var cell = cells[j];
+                    var token = tokens[i],
+                        value = token.substring(1);
 
-                    if (cell.children)
+                    if (token === "END")
                     {
-                        horizontal_cells.call(cell.children, result);
+                        grid = children.pop();
+                        row = rows.pop();
                     }
                     else
                     {
-                        result.push(cell);
+                        switch (token[0])
+                        {
+                            case "T":
+                                if (cell != null)
+                                {
+                                    children.push(grid);
+                                    rows.push(row);
+
+                                    grid = cell.children = new flyingon.GridDefine();
+                                    row = null;
+                                }
+                                break;
+
+                            case "R":
+                                row = new flyingon.RowDefine(grid);
+                                row.set_height(value);
+                                grid.rows.push(row);
+
+                                cell = null;
+                                break;
+
+                            case "C":
+                                if (row)
+                                {
+                                    cell = new flyingon.CellDefine(grid, row);
+                                    cell.set_width(value);
+                                    row.cells.push(cell);
+                                }
+                                break;
+                        }
                     }
                 }
-            }
 
-            return result;
-        };
+                return this;
+            };
 
-        function vertical_cells(result) {
 
-            var rows = this.rows,
-                values = [];
+            this.serialize = function (writer) {
 
-            result = result || [];
+            };
 
-            for (var i = 0, _ = rows.length; i < _; i++)
-            {
-                var row = rows[i],
-                    cells = row.cells;
+            this.deserialize = function (reader, value, excludes) {
 
-                for (var j = 0, __ = cells.length; j < __; j++)
+
+            };
+
+
+
+            function horizontal_cells(target, exports) {
+
+                var rows = target.rows;
+
+                exports = exports || [];
+
+                for (var i = 0, _ = rows.length; i < _; i++)
                 {
-                    var cell = cells[j];
+                    var row = rows[i],
+                        cells = row.cells;
 
-                    if (cell.children)
+                    for (var j = 0, __ = cells.length; j < __; j++)
                     {
-                        vertical_cells(cell.children, result);
-                    }
-                    else
-                    {
-                        (values[i] || (values[i] = [])).push(cell);
+                        var cell = cells[j];
+
+                        if (cell.children)
+                        {
+                            horizontal_cells(cell.children, exports);
+                        }
+                        else
+                        {
+                            exports.push(cell);
+                        }
                     }
                 }
-            }
 
-            for (var i = 0, _ = values.length; i < _; i++)
-            {
-                result.push.apply(result, values[i]);
-            }
+                return exports;
+            };
 
-            return result;
-        };
+            function vertical_cells(target, exports) {
 
+                var rows = target.rows,
+                    values = [];
 
+                exports = exports || [];
 
-        //按顺序自动排列子控件
-        this.match = function (items, vertical) {
-
-            var cells = vertical ? vertical_cells() : horizontal_cells(),
-                length = cells.length,
-                index = 0;
-
-            for (var i = 0, _ = items.length; i < _; i++)
-            {
-                var item = items[i];
-
-                if (item.__visible = index < length && item.visibility !== "collapsed")
+                for (var i = 0, _ = rows.length; i < _; i++)
                 {
-                    var cell = cells[index++];
+                    var row = rows[i],
+                        cells = row.cells;
 
-                    item.__fn_measure(cell.width, cell.row.height, true, false);
-                    item.__fn_position(cell.x, cell.row.y);
+                    for (var j = 0, __ = cells.length; j < __; j++)
+                    {
+                        var cell = cells[j];
+
+                        if (cell.children)
+                        {
+                            vertical_cells(cell.children, exports);
+                        }
+                        else
+                        {
+                            (values[i] || (values[i] = [])).push(cell);
+                        }
+                    }
                 }
-            }
 
-            return this;
-        };
+                for (var i = 0, _ = values.length; i < _; i++)
+                {
+                    exports.push.apply(exports, values[i]);
+                }
 
-    });
+                return exports;
+            };
+
+
+
+            //按顺序自动排列子控件
+            this.match = function (items, vertical) {
+
+                var cells = vertical ? vertical_cells(this) : horizontal_cells(this),
+                    length = cells.length,
+                    index = 0;
+
+                for (var i = 0, _ = items.length; i < _; i++)
+                {
+                    var item = items[i];
+
+                    if (item.__visible = index < length && item.visibility !== "collapsed")
+                    {
+                        var cell = cells[index++];
+
+                        item.__fn_measure(cell.width, cell.row.height, true, false);
+                        item.__fn_position(cell.x, cell.row.y);
+                    }
+                }
+
+                return this;
+            };
+
+        });
 
 
 })(flyingon);

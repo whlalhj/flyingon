@@ -108,7 +108,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     //子控件集合
     this.defineProperty("children", function () {
 
-        return this.__children || (this.__visible_items ? null : (this.__children = this.__visible_items = new ControlCollection(this)));
+        return this.__children || (this.__children = this.__visible_items = new ControlCollection(this));
     });
 
     //子索引号
@@ -153,7 +153,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     //所属图层
     this.defineProperty("ownerLayer", function () {
 
-        return this.__ownerLayer || (this.__ownerLayer = this.__parent.ownerLayer);
+        return this.__ownerLayer || (this.__parent && (this.__ownerLayer = this.__parent.ownerLayer)) || null;
     });
 
 
@@ -436,26 +436,29 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         body += names[i] + " = values[" + i + "];\n";
                     }
 
-                    split_fn = new Function("value", (function () {
+                    split_fn = new Function("value", flyingon.function_body(function () {
 
-                        var values = value && ("" + value).match(/[\w-_%]+/g);
+                        var values = value != null && ("" + value).match(/[\w-_%]+/g);
 
                         if (values)
                         {
-                            switch (values.length)
+                            if (values.length < 4)
                             {
-                                case 1:
-                                    values[1] = values[2] = values[3] = values[0];
-                                    break;
+                                switch (values.length)
+                                {
+                                    case 1:
+                                        values[1] = values[2] = values[3] = values[0];
+                                        break;
 
-                                case 2:
-                                    values[2] = values[0];
-                                    values[3] = values[1];
-                                    break;
+                                    case 2:
+                                        values[2] = values[0];
+                                        values[3] = values[1];
+                                        break;
 
-                                default:
-                                    values[3] = values[1];
-                                    break;
+                                    default:
+                                        values[3] = values[1];
+                                        break;
+                                }
                             }
                         }
                         else
@@ -463,7 +466,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                             values = [];
                         }
 
-                    }).get_body() + body);
+                    }) + body);
                 }
             }
 
@@ -472,7 +475,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //创建样式
-        function style(name, defaultValue, inherit) {
+        function style(name, defaultValue, inherit, level) {
 
             name = name.replace(convert_name_regex, function (_, x) {
 
@@ -480,207 +483,323 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             });
 
             var getter = "var value;\n"
-                    + "if ((value = this.__style." + name
-                        + " || (this.__style_version === flyingon.__style_version && this.__styleSheets." + name + ")"
-                        + " || (this.__styleSheets." + name + " = this.__fn_style_value(\"" + name + "\"))"
-                    + ") !== undefined)\n"
+                    + "if ((value = this.__style." + name + ") !== undefined)\n"
                     + "{\n"
                     + "return value;\n"
+                    + "}\n\n"
+
+                    + "if (this.__style_version === flyingon.__style_version)\n"
+                    + "{\n"
+                        + "if ((value = this.__styleSheets." + name + ") !== undefined)\n"
+                        + "{\n"
+                        + "return value;\n"
+                        + "}\n"
                     + "}\n"
+                    + "else\n"
+                    + "{\n"
+                    + "this.__style_types = null;\n"
+                    + "}\n\n"
+
+                    + "if ((value = this.__styleSheets." + name + " = this.__fn_style_value(\"" + name + "\")) !== undefined)\n"
+                    + "{\n"
+                    + "return value;\n"
+                    + "}\n\n"
+
                     + "return "
-                    + (inherit ? "this.__parent ? this.__parent.__style." + name + " : " : "")
+                    + (inherit ? "this.__parent ? this.__parent." + name + " : " : "")
                     + (typeof defaultValue === "string" ? "\"" + defaultValue + "\"" : defaultValue)
                     + ";",
 
-                setter = "var data = this.__style, oldValue = data." + name + ";\n";
+                setter = [];
 
-            //根据默认值类型进行类型转换
-            switch (typeof defaultValue)
+
+            switch (style_data_type[name] = typeof defaultValue)
             {
                 case "boolean":
-                    style_data_type[name] = 0;
-                    setter += "value = !!value;\n";
+                    setter.push("value = !!value;\n");
                     break;
 
                 case "number":
-                    style_data_type[name] = 1;
-                    setter += "value = +value;\n";
+                    if (("" + defaultValue).indexOf(".") >= 0)
+                    {
+                        style_data_type[name] = "integer";
+                        setter.push("value = parseInt(value);\n");
+                    }
+                    else
+                    {
+                        setter.push("value = parseInt(value);\n");
+                    }
+                    break;
+
+                case "string":
+                    setter.push("value = value ? \"\"+ value : \"\";\n");
                     break;
             }
 
-            setter += "if (value !== oldValue)\n"
-                   + "{\n"
-                   + "data." + name + " = value;\n"
-                   + "}\n";
 
-            flyingon.defineProperty(self, name, new Function(getter), new Function("value", setter));
+            setter.push("var fields = this.__style, cache;\n\n");
+
+            setter.push(self.__define_initializing(name, false));
+
+            setter.push("var oldValue = this." + name + ";\n\n");
+
+
+            setter.push("if (oldValue !== value)\n");
+            setter.push("{\n\n");
+
+            setter.push(self.__define_change(name, false));
+
+            setter.push("fields." + name + " = value;\n\n");
+
+
+            setter.push("if (cache = this.__bindings)\n");
+            setter.push("{\n");
+            setter.push("this.__fn_bindings(\"" + name + "\", cache);\n");
+            setter.push("}\n\n");
+
+
+            //此块与控件有关
+            switch (level)
+            {
+                case "relayout":
+                    setter.push("(this.__parent || this).invalidate(true);\n");
+                    break;
+
+                case "rearrange":
+                    setter.push("this.invalidate(true);\n");
+                    break;
+
+                default:
+                    setter.push("this.invalidate(false);\n");
+                    break;
+            }
+
+            setter.push("}");
+
+
+
+            flyingon.defineProperty(self, name, new Function(getter), new Function("value", setter.join("")));
         };
 
 
         //创建多个相同性质的样式
-        function styles(template, names, defaultValue, inherit) {
+        function styles(template, names, defaultValue, inherit, level) {
 
             for (var i = 0, _ = names.length; i < _; i++)
             {
-                style(template.replace("?", names[i]), defaultValue, inherit);
+                style(template.replace("?", names[i]), defaultValue, inherit, level);
             }
         };
 
 
 
 
-        //auto	    自动 
+        //控件宽度及高度
+        //auto	    自动(根据不同的排列和空间自动取值) 
         //fill      充满可用空间
         //content   根据内容自动调整
-        //number	数值
-        styles("?", ["width", "height"], "auto", false);
+        //number	整数值
+        styles("?", ["width", "height"], "auto", false, "relayout");
+
+        //控件左上角x及y坐标
+        //number	整数值
+        styles("?", ["top", "left"], 0, false, "relayout");
+
+        //控件横向偏移距离
+        //number	整数值
+        style("offset-x", 0, false, "relayout");
+
+        //控件纵向偏移距离
+        //number	整数值
+        style("offset-y", 0, false, "relayout");
+
+        //控件最小宽度和最小高度
+        //number	整数值 
+        styles("min-?", ["width", "height"], 0, false, "relayout");
+
+        //控件最大宽度和最大高度
+        //number	整数值 
+        styles("max-?", ["width", "height"], 0, false, "relayout");
+
+        //控件层叠顺序
+        //number	整数值 
+        style("z-index", 0, false, "rearrange");
 
 
-        //number	数值
-        styles("?", ["top", "left"], 0, false);
-
-        //number	数值
-        styles("?", ["offsetX", "offsetY"], 0, false);
-
-
-        //number	数值 
-        styles("min-?", ["width", "height"], 0, false);
-
-
-        //number	定义元素的最大宽度值 
-        styles("max-?", ["width", "height"], 0, false);
-
-
-        //number	数值 
-        style("line-height", 12, true);
-
-
-        //number	数值 
-        style("z-index", 0, false);
 
 
 
-        //是否在同行显示 仅对流式布局有效 
+        //控件是否在同行显示(此值仅在 layoutType == "flow" 时有效 
         //true:     强制在新行显示
         //false:    尝试在当前行显示,显示不下才换行
-        style("newline", false, false);
+        style("newline", false, false, "relayout");
 
-        //停靠方式
+        //控件停靠方式(此值仅在 layoutType == "dock" 时有效 
         //left:   左见枚举
         //top:    顶部见枚举
         //right:  右见枚举
         //bottom: 底部见枚举
         //fill:   充满
-        style("dock", "left", false);
+        style("dock", "left", false, "relayout");
 
 
-        //以下layout属性仅对Panel有效
-        //当前布局类型
-        //line:     线性布局
-        //flow:     流式布局
-        //single:   单个显示
-        //dock:     停靠布局
-        //queue:    队列布局
-        //grid:     网格布局
-        //absolute: 绝对定位
-        style("layout-type", "flow", false);
+        //布局类型(仅对Panel类型控件有效)
+        //line:         线性布局
+        //flow:         流式布局
+        //page:         单页显示
+        //dock:         停靠布局
+        //grid:         均匀网格
+        //custom-grid:  自定义网格
+        //absolute:     绝对定位
+        //...:          其它自定义布局
+        style("layout-type", "flow", false, "rearrange");
 
-        //布局x轴间隔 0-1之间表示间隔值为总宽度百分比
-        style("layout-spaceX", 0, false);
+        //布局时子控件横向间隔
+        //number%   总宽度的百分比
+        //number	整数值 
+        style("layout-spaceX", 0, false, "rearrange");
 
-        //布局y轴间隔 0-1之间表示间隔值为总高度的百分比
-        style("layout-spaceY", 0, false);
+        //布局时子控件纵向间隔
+        //number%   总高度的百分比
+        //number	整数值 
+        style("layout-spaceY", 0, false, "rearrange");
 
-        //当前布局页
-        style("layout-page", 0, false);
+        //单页显示布局当前页(此值仅对单页显示布局有效)
+        //number	整数值 
+        style("layout-page", 0, false, "rearrange");
 
-        //布局列数
-        style("layout-columns", 3, false);
+        //均匀网格布局列数(此值仅对均匀网格布局有效)
+        //number	整数值 
+        style("layout-columns", 3, false, "rearrange");
 
-        //布局行数
-        style("layout-rows", 3, false);
+        //均匀网格布局行数(此值仅对均匀网格布局有效)
+        //number	整数值 
+        style("layout-rows", 3, false, "rearrange");
 
-        //布局网格
-        style("layout-grid", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false);
+        //自定义网格布局定义(此值仅对自定义网格布局有效)
+        style("layout-grid", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false, "rearrange");
+
+        //布局时对齐宽度(此值仅对线性布局及流式布局有效)
+        //number	整数值 
+        style("align-width", 0, false, "rearrange");
+
+        //布局时对齐高度(此值仅对线性布局及流式布局有效)
+        //number	整数值 
+        style("align-height", 0, false, "rearrange");
 
 
-        //行高
-        style("row-height", 0, false);
 
-        //列宽
-        style("column-width", 0, false);
+        //控件对齐方式简写方式(同时设置横向及纵向对齐方式以空格分开 如:"left top")
+        //left      左边对齐
+        //center    横向居中对齐
+        //right     右边对齐
+        //top       顶部对齐
+        //middle    纵向居中对齐
+        //bottom    底部对齐
+        complex("align", ["x", "y"], (function () {
+
+            var regex1 = /left|center|right/,
+                regex2 = /top|middle|bottom/;
+
+            return function (value) {
+
+                this.alignX = value.match(regex1) || "left";
+                this.alignY = value.match(regex2) || "top";
+            };
+        }));
+
+        //控件横向对齐方式
+        //left      左边对齐
+        //center    横向居中对齐
+        //right     右边对齐
+        style("align-x", "left", false, "relayout");
+
+        //控件纵向对齐方式
+        //top       顶部对齐
+        //middle    纵向居中对齐
+        //bottom    底部对齐
+        style("align-y", "top", false, "relayout");
 
 
 
-
-        complex("overflow", ["x", "y"], function (value) {
-
-            var values = value.match(/\w+/g);
-
-            if (values)
-            {
-                this.overflowX = values[0];
-                this.overflowY = values[1] || values[0];
-            }
-        });
-
-        //visible   默认值 内容不会被修剪 会呈现在元素框之外
+        //控件溢出处理(包含横向溢出处理及纵向溢出处理)
         //hidden    内容会被修剪 其余内容是不可见的
         //scroll	内容会被修剪 但是浏览器会显示滚动条以便查看其余的内容
         //auto      如果内容被修剪 则浏览器会显示滚动条以便查看其余的内容
-        styles("overflow-?", ["x", "y"], "visible", false);
+        //同时设置横向溢出处理及纵向溢出处理以空格分开, 如:"auto scroll"
+        complex("overflow", ["x", "y"], (function () {
+
+            var regex = /hidden|scroll|auto/g;
+
+            return function (value) {
+
+                var values = value.match(regex);
+
+                if (values)
+                {
+                    this.overflowX = values[0];
+                    this.overflowY = values[1] || values[0];
+                }
+            }
+        }));
+
+        //控件横向溢出处理及纵向溢出处理
+        //hidden    内容会被修剪 其余内容是不可见的
+        //scroll	内容会被修剪 但是浏览器会显示滚动条以便查看其余的内容
+        //auto      如果内容被修剪 则浏览器会显示滚动条以便查看其余的内容
+        styles("overflow-?", ["x", "y"], "hidden", false, "rearrange");
 
 
 
-
+        //控件可见性
         //visible	默认值 元素是可见的 
         //hidden	元素是不可见的 
         //collapse	当在表格元素中使用时, 此值可删除一行或一列, 但是它不会影响表格的布局 被行或列占据的空间会留给其他内容使用 如果此值被用在其他的元素上, 会呈现为 "hidden" 
-        style("visibility", "visible", true);
+        style("visibility", "visible", true, "relayout");
 
-        //value	规定不透明度 从 0.0 （完全透明）到 1.0（完全不透明） 	测试
+        //控件透明度
+        //number	0(完全透明)到1(完全不透明)之间数值
         style("opacity", 1, false);
 
+        //控件鼠标样式
         //url	    需使用的自定义光标的 URL     注释：请在此列表的末端始终定义一种普通的光标, 以防没有由 URL 定义的可用光标 
-        //default	默认光标（通常是一个箭头）
+        //default	默认光标(通常是一个箭头)
         //auto	    默认 浏览器设置的光标 
         //crosshair	光标呈现为十字线 
-        //pointer	光标呈现为指示链接的指针（一只手）
+        //pointer	光标呈现为指示链接的指针(一只手)
         //move	    此光标指示某对象可被移动 
-        //e-resize	此光标指示矩形框的边缘可被向右（东）移动 
-        //ne-resize	此光标指示矩形框的边缘可被向上及向右移动（北/东） 
-        //nw-resize	此光标指示矩形框的边缘可被向上及向左移动（北/西） 
-        //n-resize	此光标指示矩形框的边缘可被向上（北）移动 
-        //se-resize	此光标指示矩形框的边缘可被向下及向右移动（南/东） 
-        //sw-resize	此光标指示矩形框的边缘可被向下及向左移动（南/西） 
-        //s-resize	此光标指示矩形框的边缘可被向下移动（南） 
-        //w-resize	此光标指示矩形框的边缘可被向左移动（西） 
+        //e-resize	此光标指示矩形框的边缘可被向右(东)移动 
+        //ne-resize	此光标指示矩形框的边缘可被向上及向右移动(北/东) 
+        //nw-resize	此光标指示矩形框的边缘可被向上及向左移动(北/西) 
+        //n-resize	此光标指示矩形框的边缘可被向上(北)移动 
+        //se-resize	此光标指示矩形框的边缘可被向下及向右移动(南/东) 
+        //sw-resize	此光标指示矩形框的边缘可被向下及向左移动(南/西) 
+        //s-resize	此光标指示矩形框的边缘可被向下移动(南) 
+        //w-resize	此光标指示矩形框的边缘可被向左移动(西) 
         //text	    此光标指示文本 
-        //wait	    此光标指示程序正忙（通常是一只表或沙漏） 
-        //help	    此光标指示可用的帮助（通常是一个问号或一个气球） 
+        //wait	    此光标指示程序正忙(通常是一只表或沙漏) 
+        //help	    此光标指示可用的帮助(通常是一个问号或一个气球) 
         style("cursor", "auto", true);
 
-        //ltr	    默认 文本方向从左到右 
-        //rtl	    文本方向从右到左 
-        style("direction", "ltr", true);
+        //控件阅读方向
+        //ltr	    从左到右 
+        //rtl	    从右到左 
+        style("direction", "ltr", true, "rearrange");
 
-        //是否竖排 非css属性
+        //控件是否竖排
         //true      竖排
         //false     横排
-        style("vertical", false, false);
+        style("vertical", false, false, "rearrange");
 
 
-        //shape	    设置元素的形状 唯一合法的形状值是：rect (top, right, bottom, left)
-        //auto	    默认值 不应用任何剪裁 
-        style("clip", "auto", false);
 
 
-        //margin
+        //控件外边距简写方式(按照上右下左的顺序编写 与css规则相同)
         complex("margin", ["top", "right", "bottom", "left"]);
 
-
-        //number	数值 
-        styles("margin-?", ["top", "right", "bottom", "left"], 0, false);
+        //控件上右下左外边距
+        //number	整数值 
+        styles("margin-?", ["top", "right", "bottom", "left"], 0, false, "relayout");
 
 
 
@@ -707,9 +826,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             };
         };
 
-        //border-width	规定边框的宽度 参阅：border-width 中可能的值 
-        //border-style	规定边框的样式 参阅：border-style 中可能的值 
-        //border-color	规定边框的颜色 参阅：border-color 中可能的值 
+        //控件边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
         complex("border", (function () {
 
             var items1 = toUpperCase(["width", "style", "color"]),
@@ -741,29 +861,34 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         })(), split_border());
 
-        //border-top-width	规outset定上边框的宽度 参阅：border-top-width 中可能的值 
-        //border-top-style	规inherit定上边框的样式 参阅：border-top-style 中可能的值 
-        //border-top-color	规定上边框的颜色 参阅：border-top-color 中可能的值 
+        //控件上边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
         complex("border-top", ["width", "style", "color"], split_border("top"));
 
-        //border-right-width	规定右边框的宽度 参阅：border-right-width 中可能的值 
-        //border-right-style	规定右边框的样式 参阅：border-right-style 中可能的值 
-        //border-right-color	规定右边框的颜色 参阅：border-right-color 中可能的值 
+        //控件右边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
         complex("border-right", ["width", "style", "color"], split_border("right"));
 
-        //border-bottom-width	规定下边框的宽度 参阅：border-bottom-width 中可能的值 
-        //border-bottom-style	规定下边框的样式 参阅：border-bottom-style 中可能的值 
-        //border-bottom-color	规定下边框的颜色 参阅：border-bottom-color 中可能的值 
+        //控件下边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
         complex("border-bottom", ["width", "style", "color"], split_border("bottom"));
 
-        //border-left-width	规定左边框的宽度 参阅：border-left-width 中可能的值 
-        //border-left-style	规定左边框的样式 参阅：border-left-style 中可能的值 
-        //border-left-color	规定左边框的颜色 参阅：border-left-color 中可能的值 
+        //控件左边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
         complex("border-left", ["width", "style", "color"], split_border("left"));
 
-        //
+        //控件边框样式简写方式(按照上右下左的顺序编写 与css规则相同)
         complex("border-style", ["border-?-style", ["top", "right", "bottom", "left"]]);
 
+        //控件上右下左边框样式
         //none	    定义无边框 
         //hidden	与 "none" 相同 不过应用于表时除外, 对于表, hidden 用于解决边框冲突 
         //dotted	定义点状边框 在大多数浏览器中呈现为实线 
@@ -776,26 +901,29 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //outset	定义 3D outset 边框 其效果取决于 border-color 的值 
         styles("border-?-style", ["top", "right", "bottom", "left"], "none", false);
 
-        //
+        //控件边框宽度简写方式(按照上右下左的顺序编写 与css规则相同)
         complex("border-width", ["border-?-width", ["top", "right", "bottom", "left"]]);
 
-        //number	数值 
-        styles("border-?-width", ["top", "right", "bottom", "left"], 0, false);
+        //控件上右下左边框宽度
+        //number	整数值 
+        styles("border-?-width", ["top", "right", "bottom", "left"], 0, false, "relayout");
 
-        //
+        //控件边框颜色简写方式(按照上右下左的顺序编写 与css规则相同)
         complex("border-color", ["border-?-color", ["top", "right", "bottom", "left"]]);
 
-        //color_name	规定颜色值为颜色名称的边框颜色（比如 red） 
-        //hex_number	规定颜色值为十六进制值的边框颜色（比如 #ff0000） 
-        //rgb_number	规定颜色值为 rgb 代码的边框颜色（比如 rgb(255,0,0)） 
-        //transparent	默认值 边框颜色为透明 
+        //控件上右下左边框颜色
+        //color_name	规定颜色值为颜色名称的边框颜色(比如 red) 
+        //hex_number	规定颜色值为十六进制值的边框颜色(比如 #ff0000) 
+        //rgb_number	规定颜色值为 rgb 代码的边框颜色(比如 rgb(255,0,0)) 
+        //transparent	边框颜色为透明 
         //inherit	    规定应该从父元素继承边框颜色 
         styles("border-?-color", ["top", "right", "bottom", "left"], "transparent", false);
 
-        //
+        //控件边框圆角大小简写方式(按照上右下左的顺序编写 与css规则相同)
         complex("border-radius", ["border-?-radius", ["top-left", "top-right", "bottom-left", "bottom-right"]]);
 
-        //number	数值
+        //控件上左上右下左下右边框圆角大小
+        //number	整数值
         styles("border-?-radius", ["top-left", "top-right", "bottom-left", "bottom-right"], 0, false);
 
 
@@ -810,15 +938,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-
+        //控件内边距简写方式(上右下左内边距的简写方式 按照上右下左的顺序编写 与css规则相同)
         complex("padding", ["top", "right", "bottom", "left"]);
 
-        //number	数值
-        styles("padding-?", ["top", "right", "bottom", "left"], 0, false);
+        //控件上右下左内边距
+        //number	整数值
+        styles("padding-?", ["top", "right", "bottom", "left"], 0, false, "relayout");
 
 
-
-        //必须按照 color -> image -> repeat -> attachment -> position -> family 的顺序编写 可省略某些属性
+        //控件背景简写方式 必须按照 color -> image -> repeat -> attachment -> position 的顺序编写 可省略某些属性
         complex("background", ["color", "image", "repeat", "attachment", "position"], (function () {
 
             var regex = /(none|url\([^\)]*\))|(repeat|repeat-x|repeat-y|no-repeat)|(scroll|fixed)|(left|top|center|right|bottom|\d+[\w%]*)|\S+/g,
@@ -889,26 +1017,31 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         })());
 
-        //color_name	规定颜色值为颜色名称的背景颜色（比如 red） 
-        //hex_number	规定颜色值为十六进制值的背景颜色（比如 #ff0000） 
-        //rgb_number	规定颜色值为 rgb 代码的背景颜色（比如 rgb(255,0,0)） 
-        //transparent	默认 背景颜色为透明 
+        //控件背景颜色
+        //color_name	规定颜色值为颜色名称的背景颜色(比如 red) 
+        //hex_number	规定颜色值为十六进制值的背景颜色(比如 #ff0000) 
+        //rgb_number	规定颜色值为 rgb 代码的背景颜色(比如 rgb(255,0,0)) 
+        //transparent	背景颜色为透明 
         style("background-color", "transparent", false);
 
+        //控件背景图片
         //url('URL')	指向图像的路径 
-        //none	        默认值 不显示背景图像 
+        //none	        不显示背景图像 
         style("background-image", "none", false);
 
-        //repeat	默认 背景图像将在垂直方向和水平方向重复 
+        //控件背景重复方式
+        //repeat	背景图像将在垂直方向和水平方向重复 
         //repeat-x	背景图像将在水平方向重复 
         //repeat-y	背景图像将在垂直方向重复 
         //no-repeat	背景图像将仅显示一次 
         style("background-repeat", "repeat", false);
 
-        //scroll	默认值 背景图像会随着页面其余部分的滚动而移动 
-        //fixed	    当页面的其余部分滚动时, 背景图像不会移动 
+        //控件背景滚动方向
+        //scroll	背景图像会随着页面其余部分的滚动而移动 
+        //fixed	    当页面的其余部分滚动时 背景图像不会移动 
         style("background-attachment", "scroll", false);
 
+        //控件背景颜色对齐方式
         //top left
         //top center
         //top right
@@ -922,33 +1055,31 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //xpos ypos	    第一个值是水平位置, 第二个值是垂直位置     左上角是 0 0 单位是像素 (0px 0px) 或任何其他的 CSS 单位     如果您仅规定了一个值, 另一个值将是50%     您可以混合使用 % 和 position 值 
         style("background-position", "0% 0%", false);
 
+        //控件背景显示范围
         //padding-box	背景图像相对于内边距框来定位 	
         //border-box	背景图像相对于边框盒来定位 	
         //content-box	背景图像相对于内容框来定位 
         style("background-origin", "padding-box", false);
 
+        //控件背景颜色缩放规则
         //length	    设置背景图像的高度和宽度     第一个值设置宽度, 第二个值设置高度     如果只设置一个值, 则第二个值会被设置为 "auto" 
         //percentage	以父元素的百分比来设置背景图像的宽度和高度     第一个值设置宽度, 第二个值设置高度     如果只设置一个值, 则第二个值会被设置为 "auto" 
         //cover	        把背景图像扩展至足够大, 以使背景图像完全覆盖背景区域     背景图像的某些部分也许无法显示在背景定位区域中 
         //contain	    把图像图像扩展至最大尺寸, 以使其宽度和高度完全适应内容区域 
         style("background-size", "auto", false);
 
-        //border-box	背景被裁剪到边框盒 
-        //padding-box	背景被裁剪到内边距框 
-        //content-box	背景被裁剪到内容框 
-        style("background-clip", "border-box", false);
 
 
-
-        //color_name	规定颜色值为颜色名称的颜色（比如 red） 
-        //hex_number	规定颜色值为十六进制值的颜色（比如 #ff0000） 
-        //rgb_number	规定颜色值为 rgb 代码的颜色（比如 rgb(255,0,0)） 
+        //控件颜色
+        //color_name	规定颜色值为颜色名称的颜色(比如 red) 
+        //hex_number	规定颜色值为十六进制值的颜色(比如 #ff0000) 
+        //rgb_number	规定颜色值为 rgb 代码的颜色(比如 rgb(255,0,0)) 
         style("color", "black", true);
 
 
 
 
-        //必须按照 style -> variant -> weight -> size -> line-height -> family 的顺序编写 可省略某些属性
+        //控件字体简写方式(必须按照 style -> variant -> weight -> size -> line-height -> family 的顺序编写 可省略某些属性)
         complex("font",
 
             function () {
@@ -984,48 +1115,78 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             })());
 
-        //normal	默认值 浏览器显示一个标准的字体样式 
+        //控件字体样式
+        //normal	浏览器显示一个标准的字体样式 
         //italic	浏览器会显示一个斜体的字体样式 
         //oblique	浏览器会显示一个倾斜的字体样式 
-        style("font-style", "normal", true);
+        style("font-style", "normal", true, "rearrange");
 
-        //normal	    默认值 浏览器会显示一个标准的字体 
+        //控件字体变体
+        //normal	    浏览器会显示一个标准的字体 
         //small-caps	浏览器会显示小型大写字母的字体 
-        style("font-variant", "normal", true);
+        style("font-variant", "normal", true, "rearrange");
 
-        //normal	默认值 定义标准的字符 
+        //控件字体粗细
+        //normal	定义标准的字符 
         //bold	    定义粗体字符 
         //bolder	定义更粗的字符 
         //lighter	定义更细的字符 
         //100-900   定义由粗到细的字符 400 等同于 normal, 而 700 等同于 bold 
-        style("font-weight", "normal", true);
+        style("font-weight", "normal", true, "rearrange");
 
-        //number	数值
-        style("font-size", 12, true);
+        //控件字体大小
+        //number	整数值
+        style("font-size", 12, true, "rearrange");
 
-        //family-name generic-family  用于某个元素的字体族名称或/及类族名称的一个优先表  默认值：取决于浏览器 
-        style("font-family", "arial,宋体,sans-serif", true);
+        //控件字体族 family-name generic-family  用于某个元素的字体族名称或/及类族名称的一个优先表
+        style("font-family", "arial,宋体,sans-serif", true, "rearrange");
+
+        //控件文字行高
+        //number	整数值 
+        style("line-height", 12, true, "relayout");
 
 
+
+        //控件文字对齐方式简写(同时设置横向及纵向对齐方式用空格分开 如:"left bottom")
+        complex("textAlign", ["x", "y"], (function () {
+
+            var regex1 = /left|center|right/,
+                regex2 = /top|middle|bottom/;
+
+            return function (value) {
+
+                this.textAlignX = value.match(regex1) || "center";
+                this.textAlignY = value.match(regex2) || "middle";
+            };
+        }));
+
+        //控件文字横向对齐样式
         //left	    把文本排列到左边 默认值：由浏览器决定 
         //right	    把文本排列到右边 
         //center	把文本排列到中间 
-        style("text-align", "left", true);
+        style("textAlignX", "left", "center", "rearrange");
 
+        //控件文字纵向对齐样式
         //top	        把元素的顶端与行中最高元素的顶端对齐
         //middle	    把此元素放置在父元素的中部 
         //bottom	    把元素的顶端与行中最低的元素的顶端对齐 
-        style("vertical-align", "top", false);
+        style("textAlignY", "top", "middle", "rearrange");
 
-        //number	数值 
-        style("letter-spacing", 0, true);
 
-        //number	数值 
-        style("word-spacing", 0, true);
 
-        //number	数值 
-        style("text-indent", 0, true);
+        //控件文字字间距
+        //number	整数值 
+        style("letter-spacing", 0, true, "rearrange");
 
+        //控件文字词间距(以空格为准)
+        //number	整数值 
+        style("word-spacing", 0, true, "rearrange");
+
+        //控件文字缩进
+        //number	整数值 
+        style("text-indent", 0, true, "rearrange");
+
+        //控件文字装饰
         //none	        默认 定义标准的文本 
         //underline	    定义文本下的一条线 
         //overline	    定义文本上的一条线 
@@ -1033,23 +1194,25 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //blink	        定义闪烁的文本 
         style("text-decoration", "none", false);
 
-        //文字换行
+        //控件文字换行方式
         //false	    不换行
         //true	    自动换行
-        style("text-wrap", false, false)
+        style("text-wrap", false, false, "rearrange")
 
-
+        //控件文字溢出处理方式
         //clip	    修剪文本 	测试
         //ellipsis	显示省略符号来代表被修剪的文本 	
         //string	使用给定的字符串来代表被修剪的文本 
         //"text-overflow"
 
+        //控件文字变换
         //none	        默认 定义带有小写字母和大写字母的标准的文本 
         //capitalize	文本中的每个单词以大写字母开头 
         //uppercase	    定义仅有大写字母 
         //lowercase	    定义无大写字母, 仅有小写字母 
         //"text-transform"
 
+        //
         //normal	    默认 空白会被浏览器忽略 
         //pre	        空白会被浏览器保留 其行为方式类似 HTML 中的 <pre> 标签 
         //nowrap	    文本不会换行, 文本会在在同一行上继续, 直到遇到 <br> 标签为止 
@@ -1057,18 +1220,16 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //pre-line	    合并空白符序列, 但是保留换行符 
         //"white-space"
 
+        //
         //normal	    使用浏览器默认的换行规则 
         //break-all	    允许在单词内换行 
         //keep-all	    只能在半角空格或连字符处换行 
         //"word-break"
 
-        //normal	    只在允许的断字点换行（浏览器保持默认处理） 
+        //
+        //normal	    只在允许的断字点换行(浏览器保持默认处理) 
         //break-word	在长单词或 URL 地址内部进行换行 
         //"word-wrap"
-
-
-        //销毁
-        complex = style = styles = null;
 
 
 
@@ -1246,6 +1407,30 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
+        //重置样式表
+        style_sheets.reset = function () {
+
+            flyingon.clear_styleSheets();
+
+            for (var name in style_sheets)
+            {
+                flyingon.defineStyle(name, style);
+            }
+        };
+
+
+        //清除所有样式
+        style_sheets.clear = function () {
+
+            style_sheets = {};
+            style_cache_list = {};
+            style_type_names = {};
+
+            flyingon.__style_version++;
+        };
+
+
+
         //定义样式
         flyingon.defineStyle = function (selector, style, super_selector) {
 
@@ -1287,29 +1472,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 flyingon.__style_version++;
             }
-        };
-
-
-        //重置样式表
-        flyingon.reset_styleSheets = function () {
-
-            flyingon.clear_styleSheets();
-
-            for (var name in style_sheets)
-            {
-                flyingon.defineStyle(name, style);
-            }
-        };
-
-
-        //清除所有样式
-        flyingon.clear_styleSheets = function () {
-
-            style_sheets = {};
-            style_cache_list = {};
-            style_type_names = {};
-
-            flyingon.__style_version++;
         };
 
 
@@ -1421,12 +1583,20 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 switch (cache_type)
                 {
-                    case 0: //布尔型
+                    case "boolean": //布尔型
                         value = !!value;
                         break;
 
-                    case 1: //数字型
-                        value = +value;
+                    case "integer": //整数
+                        value = parseInt(value);
+                        break;
+
+                    case "number": //小数
+                        value = +value || 0;
+                        break;
+
+                    case "string": //字符串
+                        value = value ? "" + value : "";
                         break;
                 }
             }
@@ -1980,58 +2150,36 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     (function (flyingon) {
 
 
+        //控件大小(含边框及滚动条)
+        this.controlX = 0;   //相对控件左上角偏移
+        this.controlY = 0;   //相对控件左上角偏移
+        this.controlWidth = 0;
+        this.controlHeight = 0;
 
-        //是否需要渲染
-        this.__visible = true;
-
-
-        //注: 布局区域 >= 可视区域 >= 内部区域 >= 客户区域
-
-        //布局区域范围
-        this.layoutX = 0;
-        this.layoutY = 0;
-        this.layoutWidth = 0;
-        this.layoutHeight = 0;
-
-
-        //可视区域范围(含边框及滚动条)
-        this.visualX = 0;
-        this.visualY = 0;
-        this.visualWidth = 0;
-        this.visualHeight = 0;
-
-
-        //内部区域范围(不含边框及滚动条)
-        this.insideX = 0;     //相对可视区偏移
-        this.insideY = 0;     //相对可视区偏移
+        //内框区(含内边距, 不含边框及滚动条)
+        this.insideX = 0;     //相对控件左上角偏移
+        this.insideY = 0;     //相对控件左上角偏移
         this.insideWidth = 0;
         this.insideHeight = 0;
 
-
-        //客户区域范围(不含内边距)
-        this.clientX = 0;     //相对可视区偏移
-        this.clientY = 0;     //相对可视区偏移
+        //客户区(不含内边距)
+        this.clientX = 0;     //相对控件左上角偏移
+        this.clientY = 0;     //相对控件左上角偏移
         this.clientWidth = 0;
         this.clientHeight = 0;
 
-
-        //内容区域范围(实际内容大小,默认等于客户区域范围)
+        //内容区(实际内容大小)
         this.contentX = 0;
         this.contentY = 0;
         this.contentWidth = 0;
         this.contentHeight = 0;
 
 
-        //相对窗口坐标(以边框左上角为基点)
-        this.windowX = 0;
-        this.windowY = 0;
-
-
         //是否需要重新布局
         this.__arrange_dirty = true;
 
         //是否需要重绘
-        this.__self_dirty = false;
+        this.__current_dirty = false;
 
         //子控件是否需要重绘
         this.__children_dirty = false;
@@ -2054,8 +2202,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             var margin_x,
                 margin_y,
 
-                border_x = this.insideY = this.borderLeftWidth,
-                border_y = this.insideX = this.borderTopWidth,
+                border_x = this.borderLeftWidth,
+                border_y = this.borderTopWidth,
 
                 padding_x = this.paddingLeft,
                 padding_y = this.paddingTop,
@@ -2063,25 +2211,26 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 auto_width = false,
                 auto_height = false,
 
+                clientWidth,
+                clientHeight,
+
                 value,
                 cache;
 
 
-            //计算客户区位置
-            this.clientX = border_x + padding_x;
-            this.clientY = border_y + padding_y;
-
-
-            //处理盒模型
+            //计算位置
             if (ignore_margin) //忽略margin 绝对定位时不使用margin
             {
-                margin_x = margin_y = this.visualX = this.visualY = 0;
+                margin_x = margin_y = this.controlX = this.controlY = 0;
             }
             else
             {
-                margin_x = (this.visualX = this.marginLeft) + this.marginRight;
-                margin_y = (this.visualY = this.marginTop) + this.marginBottom;
+                margin_x = (this.controlX = this.marginLeft) + this.marginRight;
+                margin_y = (this.controlY = this.marginTop) + this.marginBottom;
             }
+
+            this.clientX = (this.insideY = this.controlX + border_x) + padding_x;
+            this.clientY = (this.insideX = this.controlY + border_y) + padding_y;
 
             border_x += this.borderRightWidth;
             border_y += this.borderBottomWidth;
@@ -2093,7 +2242,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //处理宽度
             if (value = +(cache = this.width)) //固定大小
             {
-                this.visualWidth = value;
+                this.controlWidth = value;
             }
             else
             {
@@ -2106,7 +2255,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         }
                         else
                         {
-                            this.visualWidth = this.__defaults.width;
+                            this.controlWidth = this.__defaults.width;
                         }
                         break;
 
@@ -2120,7 +2269,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         break;
 
                     default:  //百分比
-                        this.visualWidth = this.__parent ? Math.round(this.__parent.clientWidth * parseFloat(cache) / 100) : 0;
+                        this.controlWidth = this.__parent ? Math.round(this.__parent.clientWidth * parseFloat(cache) / 100) : 0;
                         break;
                 }
 
@@ -2129,15 +2278,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     if (usable_width > margin_x + border_x + padding_x) //至少可以显示边框及内边距
                     {
-                        this.visualWidth = usable_width - margin_x;
+                        this.controlWidth = usable_width - margin_x;
                     }
                     else if (less_to_default) //可用空间不足时使用默认宽度
                     {
-                        this.visualWidth = this.__defaults.width;
+                        this.controlWidth = this.__defaults.width;
                     }
                     else //有多少用多少
                     {
-                        this.visualWidth = usable_width > margin_x ? usable_width - margin_x : 0;
+                        this.controlWidth = usable_width > margin_x ? usable_width - margin_x : 0;
                     }
                 }
             }
@@ -2146,7 +2295,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //处理高度
             if (value = +(cache = this.height)) //固定大小
             {
-                this.visualHeight = value;
+                this.controlHeight = value;
             }
             else
             {
@@ -2159,7 +2308,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         }
                         else
                         {
-                            this.visualHeight = this.__defaults.height;
+                            this.controlHeight = this.__defaults.height;
                         }
                         break;
 
@@ -2173,7 +2322,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         break;
 
                     default:  //百分比
-                        this.visualHeight = this.__parent ? Math.round(this.__parent.clientHeight * parseFloat(cache) / 100) : 0;
+                        this.controlHeight = this.__parent ? Math.round(this.__parent.clientHeight * parseFloat(cache) / 100) : 0;
                         break;
                 }
 
@@ -2182,59 +2331,59 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     if (usable_height > margin_y + border_y + padding_y) //至少可以显示边框及内边距
                     {
-                        this.visualHeight = usable_height - margin_y;
+                        this.controlHeight = usable_height - margin_y;
                     }
                     else if (less_to_default) //可用空间不足时使用默认高度
                     {
-                        this.visualHeight = this.__defaults.height;
+                        this.controlHeight = this.__defaults.height;
                     }
                     else //有多少用多少
                     {
-                        this.visualHeight = usable_height > margin_y ? usable_height - margin_y : 0;
+                        this.controlHeight = usable_height > margin_y ? usable_height - margin_y : 0;
                     }
                 }
             }
 
 
             //处理最小最大值
-            if (this.visualWidth < (cache = this.minWidth))
+            if (this.controlWidth < (cache = this.minWidth))
             {
-                this.visualWidth = cache;
+                this.controlWidth = cache;
             }
-            else if (this.visualWidth > (cache = this.maxWidth))
+            else if ((cache = this.maxWidth) > 0 && this.controlWidth > cache)
             {
-                this.visualWidth = cache;
-            }
-
-            if (this.visualHeight < (cache = this.minHeight))
-            {
-                this.visualHeight = cache;
-            }
-            else if (this.visualHeight > (cache = this.maxHeight))
-            {
-                this.visualHeight = cache;
+                this.controlWidth = cache;
             }
 
+            if (this.controlHeight < (cache = this.minHeight))
+            {
+                this.controlHeight = cache;
+            }
+            else if ((cache = this.maxHeight) > 0 && this.controlHeight > cache)
+            {
+                this.controlHeight = cache;
+            }
 
-            //计算内部区域及客户区域大小
-            if ((this.insideWidth = this.visualWidth - border_x) <= 0)
+
+            //计算内部区及客户区大小
+            if ((this.insideWidth = this.controlWidth - border_x) <= 0)
             {
                 this.insideWidth = 0;
-                this.clientWidth = 0;
+                clientWidth = 0;
             }
-            else if ((this.clientWidth = this.insideWidth - padding_x) < 0)
+            else if ((clientWidth = this.insideWidth - padding_x) < 0)
             {
-                this.clientWidth = 0;
+                clientWidth = 0;
             }
 
-            if ((this.insideHeight = this.visualHeight - border_y) <= 0)
+            if ((this.insideHeight = this.controlHeight - border_y) <= 0)
             {
                 this.insideHeight = 0;
-                this.clientHeight = 0;
+                clientHeight = 0;
             }
-            else if ((this.clientHeight = this.insideHeight - padding_y) < 0)
+            else if ((clientHeight = this.insideHeight - padding_y) < 0)
             {
-                this.clientHeight = 0;
+                clientHeight = 0;
             }
 
 
@@ -2246,168 +2395,163 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 //重计算宽度
                 if (auto_width)
                 {
-                    this.clientWidth = this.contentWidth;
-                    this.insideWidth = this.clientWidth + padding_x;
-                    this.visualWidth = this.insideWidth + border_x;
+                    this.controlWidth = (this.insideWidth = (clientWidth = this.contentWidth) + padding_x) + border_x;
                 }
 
                 //重计算高度
                 if (auto_height)
                 {
-                    this.clientHeight = this.contentHeight;
-                    this.insideHeight = this.clientHeight + padding_y;
-                    this.visualHeight = this.insideHeight + border_y;
+                    this.controlHeight = (this.insideHeight = (clientHeight = this.contentHeight) + padding_y) + border_y;
                 }
             }
 
 
-            //计算布局区域大小
-            this.layoutWidth = this.visualWidth + margin_x;
-            this.layoutHeight = this.visualHeight + margin_y;
+            //设置客户区域大小 客户区变化时才会请求重新排列
+            if (this.clientWidth !== clientWidth || this.clientHeight !== clientHeight)
+            {
+                this.clientWidth = clientWidth;
+                this.clientHeight = clientHeight;
+
+                this.__arrange_dirty = true;
+            }
+
+
+            //返回占用空间
+            return { width: this.controlWidth + margin_x, height: this.controlHeight + margin_y };
         };
 
 
         //测量自动宽高
         this.__fn_measure_auto = function (auto_width, auto_height) {
 
-            this.__fn_arrange();
+            this.__fn_arrange(false);
         };
 
 
-        //计算位置(需先调用__fn_measure方法后才可调用此方法)
-        this.__fn_position = function (x, y, align_width, align_height) {
+        //按指定的宽度横向对齐控件
+        this.__fn_alignX = function (width) {
 
-            var cache;
-
-            //计算水平对齐(对齐宽度小于布局宽度时不处理)
-            if (align_width > 0)
+            switch (this.alignX)
             {
-                switch (cache = this.textAlign)
-                {
-                    case "center":
-                        x += (align_width - this.visualWidth) >> 1;
-                        break;
+                case "center":
+                    this.controlX = (width - this.controlWidth) >> 1;
+                    break;
 
-                    case "right":
-                        x += align_width - this.visualWidth;
-                        break;
-                }
+                case "right":
+                    this.controlX = width - this.controlWidth;
+                    break;
             }
+        };
 
-            //计算竖直对齐(对齐高度小于布局高度时不处理)
-            if (align_height > 0)
+
+        //按指定的高度纵向对齐控件
+        this.__fn_alignY = function (height) {
+
+            switch (this.alignY)
             {
-                switch (cache = this.verticalAlign)
-                {
-                    case "middle":
-                        y += (align_height - this.visualHeight) >> 1;
-                        break;
+                case "middle":
+                    this.controlX = (height - this.controlHeight) >> 1;
+                    break;
 
-                    case "right":
-                        y += align_height - this.visualHeight;
-                        break;
-                }
+                case "right":
+                    this.controlY = height - this.controlHeight;
+                    break;
             }
+        };
 
-            //计算位置
-            this.windowX = (this.visualX += (this.layoutX = x));
-            this.windowY = (this.visualY += (this.layoutY = y));
 
-            if (cache = this.__parent)
-            {
-                this.windowX += cache.windowX;
-                this.windowY += cache.windowY;
-            }
+        //设置控件位置(需先调用__fn_measure才可调用此方法)
+        this.__fn_position = function (x, y) {
+
+            this.controlX += x + this.offsetX;
+            this.controlY += y + this.offsetY;
         };
 
 
         //排列子控件
-        this.__fn_arrange = function () {
+        this.__fn_arrange = function (scroll) {
 
             var overflowX = this.overflowX,
-                overflowY = this.overflowY,
-                rtl = this.direction === "rtl",
-                repeat = false;
+                overflowY = this.overflowY;
 
             //初始化内容区
             this.contentWidth = this.clientWidth;
             this.contentHeight = this.clientHeight;
 
-            //处理横向滚动条
-            if (overflowX === "scroll")
+            //排列
+            if (scroll) //滚动时不处理滚动条直接排列
             {
-                if (!this.__hscroll)
+                this.arrange(true);
+            }
+            else //否则需处理滚动条
+            {
+                var repeat = false,
+                    rtl;
+
+                //处理横向滚动条
+                if (overflowX === "scroll")
+                {
+                    if (!this.__hscroll)
+                    {
+                        this.__fn_sign_hscroll(true);
+                    }
+                }
+                else if (this.__hscroll)
+                {
+                    this.__fn_sign_hscroll(false);
+                }
+
+                //处理纵向滚动条
+                if (overflowY === "scroll")
+                {
+                    if (!this.__vscroll)
+                    {
+                        this.__fn_sign_vscroll(true, rtl || (rtl = this.direction === "rtl"));
+                    }
+                }
+                else if (this.__vscroll)
+                {
+                    this.__fn_sign_vscroll(false);
+                }
+
+
+                //排列 overflow === "auto" 时先按没有滚动条的方式排列
+                this.arrange(false);
+
+                //处理水平方向自动滚动
+                if (overflowX === "auto" && this.contentWidth > this.clientWidth)
                 {
                     this.__fn_sign_hscroll(true);
+                    repeat = true;
                 }
-            }
-            else if (this.__hscroll)
-            {
-                this.__fn_sign_hscroll(false);
-            }
 
-            //处理纵向滚动条
-            if (overflowY === "scroll")
-            {
-                if (!this.__vscroll)
+                //处理竖直方向自动滚动
+                if (overflowY === "auto" && this.contentHeight > this.clientHeight)
                 {
-                    this.__fn_sign_vscroll(true, rtl);
+                    this.__fn_sign_vscroll(true, rtl || this.direction === "rtl");
+                    repeat = true;
                 }
-            }
-            else if (this.__vscroll)
-            {
-                this.__fn_sign_vscroll(false);
-            }
 
+                //重新排列
+                if (repeat)
+                {
+                    this.arrange(false);
+                }
 
-            //排列 overflow === "auto" 时先按没有滚动条的方式排列
-            this.arrange();
-
-            //处理水平方向自动滚动
-            if (overflowX === "auto" && this.contentWidth > this.clientWidth)
-            {
-                this.__fn_sign_hscroll(true);
-                repeat = true;
-            }
-
-            //处理竖直方向自动滚动
-            if (overflowY === "auto" && this.contentHeight > this.clientHeight)
-            {
-                this.__fn_sign_vscroll(true, rtl);
-                repeat = true;
-            }
-
-            //重新排列
-            if (repeat)
-            {
-                this.arrange();
-            }
-
-            //测量滚动条
-            if (this.__scroll_dirty)
-            {
-                this.__fn_measure_scroll();
-            }
-
-            //从右到左坐标变换
-            if (rtl && this.__children)
-            {
-                this.__fn_mirror_x(this.__children);
+                //测量滚动条
+                if (this.__scroll_dirty)
+                {
+                    this.__fn_measure_scroll();
+                }
             }
 
             this.__arrange_dirty = false;
         };
 
 
-        //排列子控件
-        this.arrange = function () {
+        //默认排列方法
+        this.arrange = function (scroll) {
 
-            var items = this.__visible_items;
-
-            if (items && items.length > 0)
-            {
-                flyingon.execute_layout.call(this, this.layoutType, items);
-            }
         };
 
 
@@ -2416,28 +2560,25 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //移动指定距离
         this.moveBy = function (x, y) {
 
-            this.layoutX += x || (x = 0);
-            this.visualX += x;
-            this.windowX += x;
+            this.controlX += x;
+            this.controlY += y;
 
-            this.layoutY += y || (y = 0);
-            this.visualY += y;
-            this.windowY += y;
+            (this.__parent || this).invalidate(false);
         };
 
         //移动到指定坐标
         this.moveTo = function (x, y) {
 
-            this.moveBy(x - this.visualX, y - this.visualY);
+            this.controlX = x;
+            this.controlY = y;
+
+            (this.__parent || this).invalidate(false);
         };
 
         //滚动指定距离
         this.scrollBy = function (x, y) {
 
-            this.contentX += x || 0;
-            this.contentY += y || 0;
-
-            this.invalidate(false);
+            this.scrollTo(this.contentX + x, this.contentY + y);
         };
 
         //滚动到指定坐标
@@ -2446,31 +2587,29 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             this.contentX = x || 0;
             this.contentY = y || 0;
 
-            this.invalidate(false);
+            this.invalidate(false, true);
         };
 
 
         //沿x中心轴变换
         this.__fn_mirror_x = function (items) {
 
-            var height = this.contentHeight,
-                item;
+            var height = this.contentHeight;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
-                (item = items[i]).moveBy(0, height - item.visualY - item.visualHeight);
+                items[i].controlY += height - item.controlY - item.controlHeight;
             }
         };
 
         //沿y中心轴变换
         this.__fn_mirror_y = function (items) {
 
-            var width = this.contentWidth,
-                item;
+            var width = this.contentWidth;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
-                (item = items[i]).moveBy(width - item.visualX - item.visualWidth, 0);
+                items[i].controlX += width - item.controlX - item.controlWidth;
             }
         };
 
@@ -2478,12 +2617,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.__fn_mirror_origin = function (items) {
 
             var width = this.contentWidth,
-                height = this.contentHeight,
-                item;
+                height = this.contentHeight;;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
-                (item = items[i]).moveBy(width - item.visualX - item.visualWidth, height - item.visualY - item.visualHeight);
+                var item = items[i];
+
+                item.controlX += width - item.controlX - item.controlWidth;
+                item.controlY += height - item.controlY - item.controlHeight;
             }
         };
 
@@ -2543,8 +2684,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 return this.__vscroll;
             }
 
-            if ((cache = x - this.visualX) >= 0 && cache <= this.visualWidth &&
-                (cache = y - this.visualY) >= 0 && cache <= this.visualHeight)
+            if ((cache = x - this.controlX) >= 0 && cache <= this.controlWidth &&
+                (cache = y - this.controlY) >= 0 && cache <= this.controlHeight)
             {
                 if ((cache = this.__visible_items) && cache.length > 0)
                 {
@@ -2949,7 +3090,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //显示弹出控件
-        this.showPopup = function (x, y) {
+        this.show = function (x, y) {
 
             var ownerWindow = this.ownerWindow;
 
@@ -2980,7 +3121,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
         //关闭弹出控件
-        this.closePopup = function () {
+        this.close = function () {
 
             var ownerWindow = this.ownerWindow;
 
@@ -2996,11 +3137,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //自定义序列化
         this.serialize = function (writer) {
 
-            var text = this.__style.cssText;
-            if (text)
-            {
-                writer.property("style", text);
-            }
+
 
             base.serialize.call(this, writer);
         };
@@ -3011,7 +3148,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             if (data.style)
             {
                 excludes.style = true;
-                this.__style.cssText = data.style;
+
             }
 
             base.deserialize.call(reader, data, excludes);
@@ -3032,7 +3169,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //使区域无效
         //rearrange  是否需要重新排列
-        this.invalidate = function (rearrange) {
+        //registry   是否注册更新
+        this.invalidate = function (rearrange, update) {
 
             var target = this,
                 parent;
@@ -3042,13 +3180,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 target.__arrange_dirty = true;
             }
 
-            target.__self_dirty = true;
+            target.__current_dirty = true;
 
-            while ((parent = target.parent) && !parent.__self_dirty && !parent.__children_dirty)
+            while ((parent = target.parent) && !parent.__current_dirty && !parent.__children_dirty)
             {
                 if (target.__update_parent)
                 {
-                    parent.__self_dirty = true;
+                    parent.__current_dirty = true;
                 }
                 else
                 {
@@ -3058,27 +3196,36 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 target = parent;
             }
 
-            (this.__ownerLayer || this.ownerLayer).__registry_update();
+            if (target = this.__ownerLayer || this.ownerLayer)
+            {
+                if (update)
+                {
+                    target.__execute_update();
+                }
+                else
+                {
+                    target.__registry_update();
+                }
+            }
         };
 
 
         //更新控件
         this.update = function () {
 
-            this.invalidate();
-            (this.__ownerLayer || this.ownerLayer).__registry_update();
+            this.invalidate(false, true);
         };
 
 
 
 
         //渲染
-        this.__fn_render = function (painter) {
+        this.__fn_render = function (painter, clear) {
 
             //重新排列
             if (this.__arrange_dirty)
             {
-                this.__fn_arrange();
+                this.__fn_arrange(false);
             }
 
             //设置渲染环境
@@ -3087,11 +3234,17 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             context.save();
             context.globalAlpha = this.opacity;
 
+            if (clear !== false)
+            {
+                context.clearRect(this.controlX, this.controlY, this.controlWidth, this.controlHeight);
+                context.translate(0.5, 0.5); //偏移0.5像素解决线条不清晰的问题
+            }
+
             //设置目标控件
             painter.target = this;
 
             //绘制背景
-            this.__update_parent = !this.paint_background(painter) || context.globalAlpha < 1;
+            this.paint_background(painter);
 
             //渲染子项
             if (this.__visible_items)
@@ -3118,7 +3271,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             context.restore();
 
             //修改状态
-            this.__self_dirty = false;
+            this.__current_dirty = false;
         };
 
 
@@ -3139,14 +3292,11 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     contentX = this.contentX,
                     contentY = this.contentY;
 
-                if (contentX > 0 || contentY > 0)
-                {
-                    context.translate(-contentX, -contentY);
-                }
+                context.translate(this.controlX + this.clientX - contentX, this.controlY + this.clientY - contentY);
 
-                context.beginPath();
-                context.rect(this.clientX + contentX, this.clientY + contentX, this.clientWidth, this.clientHeight);
-                context.clip();
+                //context.beginPath();
+                //context.rect(this.clientX + contentX, this.clientY + contentX, this.clientWidth, this.clientHeight);
+                //context.clip();
 
                 if (update)
                 {
@@ -3154,7 +3304,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     {
                         var item = items[i];
 
-                        if (item.__self_dirty) //如果需要更新
+                        if (item.__current_dirty) //如果需要更新
                         {
                             item.__fn_render(painter);
                         }
@@ -3169,7 +3319,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     for (var i = 0; i < length; i++)
                     {
-                        items[i].__fn_render(painter);
+                        items[i].__fn_render(painter, false);
                     }
                 }
 
@@ -3209,8 +3359,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //绘制边框
         this.paint_border = function (painter) {
 
-            painter.context.strokeRect(this.visualX, this.visualY, this.visualWidth, this.visualHeight);
+            painter.context.lineWidth = 0;
+            painter.context.strokeRect(this.controlX, this.controlY, this.controlWidth, this.controlHeight);
 
+            var text = this.controlX + " " + this.controlY + " " + this.controlWidth + " " + this.controlHeight;
+
+            painter.context.fillStyle = "black";
+            painter.context.textBaseline = "top";
+            painter.context.font = this.font;
+            painter.context.fillText("resize" + text, this.controlX, this.controlY);
 
             //var border = boxModel.border;
 

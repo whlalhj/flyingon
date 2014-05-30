@@ -21,7 +21,7 @@ flyingon.defineClass("ContentControl", flyingon.Control, function (Class, base, 
         });
 
 
-    this.arrange = function () {
+    this.arrange = function (scroll) {
 
         
     };

@@ -4,20 +4,9 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
 
 
    
-    this.arrange = function (clientRect) {
+    this.arrange = function (scroll) {
 
-        var items = this.__children,
-            template;
-
-        if ((!items || items.length <= 0) && (template = this.template))
-        {
-            items[0] = this.createTemplateControl(template)
-        }
-
-        if (items && items.length > 0)
-        {
-           
-        }
+        
     };
 
 

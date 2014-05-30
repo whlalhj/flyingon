@@ -27,7 +27,7 @@
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
@@ -57,8 +57,8 @@
                     ctrl.width = 80;
                     ctrl.height = 20;
                     ctrl.border = [1, 1, 1, 1];
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "blue"]]);
-                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, "rect(0,0,1,1) 0 yellow 1 blue");
+                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [0, "red", 0.5, "green", 1, "blue"]);
 
                     panel.children.append(ctrl);
                 }

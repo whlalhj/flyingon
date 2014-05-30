@@ -1,19 +1,22 @@
 ﻿//子项
-flyingon.Item = (function (value) {
+flyingon.Item = flyingon.function_extend(
 
-    this.value = value;
+    function (value) {
 
-}).extend(function () {
+        this.value = value;
+    },
+
+    function () {
 
 
-    //项值
-    this.value = null;
+        //项值
+        this.value = null;
 
-    //关联控件
-    this.control = null;
+        //关联控件
+        this.control = null;
 
-    //是否选中
-    this.selected = false;
+        //是否选中
+        this.selected = false;
 
-});
+    });
 

@@ -212,7 +212,7 @@ flyingon.window_extender = function (base, flyingon) {
             layer.__parent = layer.dom_layer.__ownerWindow = layer.dom_canvas.__ownerWindow = null;
 
             this.dom_window.removeChild(layer.dom_layer);
-            this.layers.remove(layer);
+            this.layers.splice(this.layers.indexOf(layer), 0, 1);
         }
     };
 
@@ -492,8 +492,8 @@ flyingon.window_extender = function (base, flyingon) {
         return rect;
     };
 
-    //重新调整窗口大小
-    this.__fn_resize = function (x, y, width, height) {
+    //重绘窗口
+    this.__fn_update = function (x, y, width, height) {
 
         var layers = this.layers;
 
@@ -505,12 +505,12 @@ flyingon.window_extender = function (base, flyingon) {
             canvas.width = width; //清空画布
             canvas.height = height;
 
-            this.__unregistry_update();
+            layer.__unregistry_update();
 
-            this.__fn_measure(width - x, height - y);
-            this.__fn_position(x, y);
+            layer.__fn_measure(width - x, height - y);
+            layer.__fn_position(x, y);
 
-            this.__fn_render(layer.painter);
+            layer.__fn_render(layer.painter);
         }
     };
 
@@ -537,7 +537,7 @@ flyingon.window_extender = function (base, flyingon) {
 
 
 //主窗口
-flyingon.defineClass("Window", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
@@ -598,7 +598,7 @@ flyingon.defineClass("Window", flyingon.Control, function (Class, base, flyingon
     this.update = function () {
 
         var rect = this.__fn_clientRect(true);
-        this.__fn_resize(0, 0, rect.width, rect.height);
+        this.__fn_update(0, 0, rect.width, rect.height);
     };
 
 
