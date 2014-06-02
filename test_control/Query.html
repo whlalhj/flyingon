@@ -93,7 +93,7 @@
 
         //new flyingon.Control();
 
-        w.layout = "flow";
+        w.layoutType = "flow";
 
 
 
@@ -104,7 +104,7 @@
             var date = new Date();
 
             flyingon.beginInit();
-            w.layout = "flow";
+            w.layoutType = "flow";
 
 
             for (var k = 0; k < 200; k++)
@@ -126,8 +126,8 @@
                     ctrl.height = 21;
                     //ctrl.margin = "10, 10, 10, 10";
                     ctrl.border = "1, 1, 1, 1";
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
+                    ctrl.borderColor = "linear(0, 0, 1, 1, 0, yellow, 1, red)";
+                    ctrl.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
                     ctrl.align = "middle,center";
 
                     panel.children.append(ctrl);
@@ -172,15 +172,15 @@
                 panel.border = "1, 1, 1, 1";
                 panel.padding = "0, 0, 0, 0";
                 panel.borderColor = "orange";
-                //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                panel.layout = "line";
+                //panel.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
+                panel.layoutType = "line";
                 panel.spaceX = 5;
                 panel.spaceY = 5;
                 panel.lineHeight = 50;
                 panel.lineWidth = 160;
                 panel.rows = 4;
                 panel.columns = 4;
-                panel.layoutGrid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+                panel.layoutTable = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
 
 
                 panel.addEventListener("mousedown", function (event) {

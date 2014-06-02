@@ -156,8 +156,8 @@ flyingon.defineClass("ChildWindow_ToolBar", flyingon.Panel, function (Class, bas
 
         var height = this.visibility === "visible" ? +this.height || 25 : 0;
 
-        this.__fn_measure(0, 0, width, height, true, false);
-        this.__fn_position(0, 0);
+        this.measure(width, height);
+        this.locate(0, 0);
         this.__fn_arrange(false);
     };
 

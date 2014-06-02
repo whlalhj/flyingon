@@ -527,29 +527,7 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
-    //转换字符串为整数 支持"%"
-    flyingon.parseInt = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] === "%")
-        {
-            return Math.floor(parseFloat(value) * total / 100);
-        }
-
-        return parseInt(value);
-    };
-
-    //转换字符串为浮点数 支持"%"
-    flyingon.parseFloat = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] === "%")
-        {
-            return parseFloat(value) * total / 100;
-        }
-
-        return parseFloat(value);
-    };
-
-
+ 
 
     //编码对象
     flyingon.encode = function (data) {
@@ -5204,12 +5182,20 @@ flyingon.Matrix = flyingon.function_extend(
 (function (flyingon) {
 
 
+
     var layouts = {},
-        layout_unkown = null;;
+
+        layout_unkown = null,
+
+        parse = parseFloat,
+
+        round = Math.round;
+
+
 
 
     //注册自定义布局 
-    //注1. 遵守回调函数规范(items, spaceX, spaceY)
+    //注1. 遵守回调函数规范(items)
     //注2. 按需内容区宽高 contentWidth, contentHeight
     var registry = flyingon.registry_layout = function (name, arrange_fn) {
 
@@ -5217,42 +5203,51 @@ flyingon.Matrix = flyingon.function_extend(
     };
 
 
-    flyingon.execute_layout = function (layout_type, items, spaceX, spaceY) {
+    flyingon.execute_layout = function (layout_type, items) {
 
-        if (spaceX == null)
+        (layouts[layout_type] || layout_unkown).call(this, items || this.__visiual_item || this.__children);
+    };
+
+
+    function get_line_space(target) {
+
+        var result, cache;
+
+        if ((result = +(cache = target.layoutLineSpace)) >= 0)
         {
-            spaceX = this.spaceX || 0;
-            if (spaceX.constructor !== Number)
-            {
-                spaceX = flyingon.parseInt(spaceX, this.clientWidth);
-            }
+            return result;
         }
 
-        if (spaceY == null)
-        {
-            spaceY = this.spaceY || 0;
+        return round(target.clientWidth * parse(cache) / 100) || 0;
+    };
 
-            if (spaceY.constructor !== Number)
-            {
-                spaceY = flyingon.parseInt(spaceY, this.clientHeight);
-            }
+    function get_item_space(target) {
+
+        var result, cache;
+
+        if ((result = +(cache = target.layoutItemSpace)) >= 0)
+        {
+            return result;
         }
 
-        (layouts[layout_type] || layout_unkown).call(this, items, spaceX, spaceY);
+        return round(target.clientHeight * parse(cache) / 100) || 0;
     };
 
 
 
-    //线性布局
+    //线性布局(支持竖排)
     (function (flyingon) {
 
 
-        function fn1(items, spaceX, spaceY) {
+        function fn1(items) {
 
-            var x = 0,
+            var space2 = get_item_space(this),
                 clientWidth = this.clientWidth,
-                contentHeight = this.alignHeight,
-                alignHeight = contentHeight || this.clientHeight;
+                contentHeight = this.layoutAlignHeight,
+                align_height = contentHeight || this.clientHeight,
+                x = 0,
+                width,
+                bottom;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -5262,19 +5257,17 @@ flyingon.Matrix = flyingon.function_extend(
                 {
                     if (x > 0)
                     {
-                        x += spaceX;
+                        x += space2;
                     }
 
-                    var size = item.__fn_measure(clientWidth - x, alignHeight, false, true);
+                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
+                    bottom = item.locate(x, 0, null, align_height).y;
 
-                    item.__fn_alignY(alignHeight);
-                    item.__fn_position(x, 0);
+                    x += width;
 
-                    x += size.width;
-
-                    if (size.height > contentHeight)
+                    if (bottom > contentHeight)
                     {
-                        contentHeight = size.height;
+                        contentHeight = bottom;
                     }
                 }
             }
@@ -5283,12 +5276,15 @@ flyingon.Matrix = flyingon.function_extend(
             this.contentHeight = contentHeight;
         };
 
-        function fn2(items, spaceX, spaceY) {
+        function fn2(items) {
 
-            var y = 0,
-                contentWidth = this.alignWidth,
-                alignWidth = contentWidth || this.clientWidth,
-                clientHeight = this.clientHeight;
+            var space2 = get_item_space(this),
+                contentWidth = this.layoutAlignWidth,
+                align_width = contentWidth || this.clientWidth,
+                clientHeight = this.clientHeight,
+                y = 0,
+                height,
+                right;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -5298,17 +5294,17 @@ flyingon.Matrix = flyingon.function_extend(
                 {
                     if (y > 0)
                     {
-                        y += spaceY;
+                        y += space2;
                     }
 
-                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
-                    item.__fn_position(item.__fn_alignX(alignWidth), y);
+                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
+                    right = item.locate(0, y, align_width).x;
 
-                    y += item.outlineHeight;
+                    y += height;
 
-                    if (item.outlineWidth > contentWidth)
+                    if (right > contentWidth)
                     {
-                        contentWidth = item.outlineWidth;
+                        contentWidth = right;
                     }
                 }
             }
@@ -5318,9 +5314,9 @@ flyingon.Matrix = flyingon.function_extend(
         };
 
 
-        registry("line", function (items, spaceX, spaceY) {
+        registry("line", function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items, spaceX, spaceY);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -5328,19 +5324,22 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-    //流式布局
+    //流式布局(支持竖排)
     (function (flyingon) {
 
 
-        function fn1(items, spaceX, spaceY) {
+        function fn1(items) {
 
-            var x = 0,
-                y = 0,
+            var space1 = get_line_space(this),
+                space2 = get_item_space(this),
                 contentWidth = 0,
                 contentHeight = 0,
                 clientWidth = this.clientWidth,
-                alignHeight = this.alignHeight || this.clientHeight,
-                cache;
+                align_height = this.layoutAlignHeight || 0,
+                x = 0,
+                y = 0,
+                width,
+                bottom;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -5350,38 +5349,35 @@ flyingon.Matrix = flyingon.function_extend(
                 {
                     if (x > 0)
                     {
-                        if (item.newline) //强制在新行显示
+                        if (item.lineBreak) //强制换行
                         {
                             x = 0;
-                            y = y > 0 ? contentHeight + spaceY : contentHeight;
+                            y = contentHeight + space1;
                         }
                         else
                         {
-                            x += spaceX;
+                            x += space2;
                         }
                     }
 
-                    item.__fn_measure(clientWidth - x, alignHeight, false, true);
+                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
 
-                    cache = x + item.outlineWidth;
-
-                    if (x > 0 && cache > clientWidth) //超行
+                    if (x > 0 && x + width > clientWidth) //超行
                     {
                         x = 0;
-                        y = y > 0 ? contentHeight + spaceY : contentHeight;
+                        y = contentHeight + space1;
                     }
 
-                    //item.__fn_alignY(alignHeight);
-                    item.__fn_position(x, y);
+                    bottom = item.locate(x, y, null, align_height).y;
 
-                    if ((x = cache) > contentWidth)
+                    if ((x += width) > contentWidth)
                     {
                         contentWidth = x;
                     }
 
-                    if ((cache = y + item.outlineHeight) > contentHeight)
+                    if (bottom > contentHeight)
                     {
-                        contentHeight = cache;
+                        contentHeight = bottom;
                     }
                 }
             }
@@ -5390,15 +5386,18 @@ flyingon.Matrix = flyingon.function_extend(
             this.contentHeight = contentHeight;
         };
 
-        function fn2(items, spaceX, spaceY) {
+        function fn2(items) {
 
-            var x = 0,
+            var space1 = get_line_space(this),
+                space2 = get_item_space(this),
+                x = 0,
                 y = 0,
                 clientHeight = this.clientHeight,
-                alignWidth = this.alignWidth || this.clientWidth,
+                align_width = this.layoutAlignWidth || 0,
                 contentWidth = 0,
                 contentHeight = 0,
-                cache;
+                height,
+                right;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -5408,38 +5407,35 @@ flyingon.Matrix = flyingon.function_extend(
                 {
                     if (y > 0)
                     {
-                        if (item.newline) //强制在新行显示
+                        if (item.lineBreak) //强制换行
                         {
                             y = 0;
-                            x = x > 0 ? contentWidth + spaceX : contentWidth;
+                            x = contentWidth + space1;
                         }
                         else
                         {
-                            y += spaceY;
+                            y += space2;
                         }
                     }
 
-                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
+                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
 
-                    cache = y + item.outlineHeight;
-
-                    if (y > 0 && cache > clientHeight) //超行
+                    if (y > 0 && y + height > clientHeight) //超行
                     {
                         y = 0;
-                        x = x > 0 ? contentWidth + spaceX : contentWidth;
+                        x = contentWidth + space1;
                     }
 
-                    //item.__fn_alignX(alignWidth);
-                    item.__fn_position(x, y);
+                    right = item.locate(x, y, align_width).x;
 
-                    if ((y = cache) > contentHeight)
+                    if ((y += height) > contentHeight)
                     {
                         contentHeight = y;
                     }
 
-                    if ((cache = x + item.outlineWidth) > contentWidth)
+                    if (right > contentWidth)
                     {
-                        contentWidth = cache;
+                        contentWidth = right;
                     }
                 }
             }
@@ -5449,9 +5445,9 @@ flyingon.Matrix = flyingon.function_extend(
         };
 
 
-        registry("flow", layout_unkown = function (items, spaceX, spaceY) {
+        registry("flow", layout_unkown = function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items, spaceX, spaceY);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -5459,45 +5455,50 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-    //单页显示
-    registry("page", function (items, spaceX, spaceY) {
+    //单页显示(不支持竖排)
+    registry("page", function (items) {
 
-        var page = this.layoutPage,
+        var width = this.clientWidth,
+            height = this.clientHeight,
+            index = this.layoutPage,
             length = items.length;
 
-        if (page < 0)
+        if (index < 0)
         {
-            page = 0;
+            index = 0;
         }
-        else if (page >= length)
+        else if (index >= length)
         {
-            page = length - 1;
+            index = length - 1;
         }
 
         for (var i = 0; i < length; i++)
         {
             var item = items[i];
 
-            if (item.__visible = (i === page))
+            if (item.__visible = (i === index))
             {
-                item.__fn_measure(this.clientWidth, this.clientHeight, true, false);
-                item.__fn_position(item.__fn_alignX(this.clientWidth), item.__fn_alignY(this.clientHeight));
+                item.measure(width, height, 1, 1);
+                item.locate(0, 0, width, height);
             }
         }
     });
 
 
 
-    //停靠布局
-    registry("dock", function (items, spaceX, spaceY) {
+    //停靠布局(不支持竖排)
+    registry("dock", function (items) {
 
-        var x = 0,
+        var space1 = get_line_space(this),
+            space2 = get_item_space(this),
+            x = 0,
             y = 0,
             width = this.clientWidth,
             height = this.clientHeight,
             right = width,
             bottom = height,
-            fill = [];
+            fill = [],
+            cache;
 
         for (var i = 0, _ = items.length; i < _; i++)
         {
@@ -5514,31 +5515,31 @@ flyingon.Matrix = flyingon.function_extend(
                     switch (item.dock)
                     {
                         case "left":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, y);
+                            cache = item.measure(width, height, 0, 1).width;
+                            item.locate(x, y);
 
-                            width = right - (x += item.outlineWidth + spaceX);
+                            width = right - (x += cache + space2);
                             break;
 
                         case "top":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, y);
+                            cache = item.measure(width, height, 1, 0).height;
+                            item.locate(x, y);
 
-                            height = bottom - (y = item.outlineHeight + spaceY);
+                            height = bottom - (y += cache + space1);
                             break;
 
                         case "right":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(right -= item.outlineWidth, y);
+                            cache = item.measure(width, height, 0, 1).width;
+                            item.locate(right -= cache, y);
 
-                            width = (right -= spaceX) - x;
+                            width = (right -= space2) - x;
                             break;
 
                         case "bottom":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, bottom -= item.outlineHeight);
+                            cache = item.measure(width, height, 1, 0).height;
+                            item.locate(x, bottom -= cache);
 
-                            height = (bottom -= spaceY) - y;
+                            height = (bottom -= space1) - y;
                             break;
 
                         default:
@@ -5560,58 +5561,53 @@ flyingon.Matrix = flyingon.function_extend(
         {
             for (var i = 0, _ = fill.length; i < _; i++)
             {
-                fill[i].__fn_measure(width, height, true, false);
-                fill[i].__fn_position(x, y);
+                fill[i].measure(width, height, 1, 1);
+                fill[i].locate(x, y);
             }
         }
     });
 
 
 
-    //均匀网格布局
-    registry("grid", function (items, spaceX, spaceY) {
+    //网格布局(支持竖排)
+    registry("grid", function (items) {
 
-        var rows = this.layoutRows || 3,
-            columns = this.layoutColumns || 3,
+        var space1 = get_line_space(this),
+            space2 = get_item_space(this),
+            rows = this.layoutGridRows || 3,
+            columns = this.layoutGridColumns || 3,
             row = 0,
             column = 0,
-
             width_cache = [],
             height_cache = [],
+            x = 0,
+            y = 0,
             width,
             height,
             cache;
 
         //分割横向空间
-        width = columns > 1 ? this.clientWidth - spaceY * (columns - 1) : this.clientWidth;
+        width = columns > 1 ? this.clientWidth - space2 * (columns - 1) : this.clientWidth;
 
         for (var i = 0; i < columns; i++)
         {
-            width_cache[i] = [
-
-                i > 0 ? (cache += spaceX) : (cache = 0),
-                cache = Math.floor(width / (columns - i))
-            ];
-
+            width_cache[i] = [x, cache = Math.floor(width / (columns - i))];
             width -= cache;
+            x += cache + space1;
         }
 
         //分割纵向空间
-        height = rows > 1 ? this.clientHeight - spaceY * (rows - 1) : this.clientHeight;
+        height = rows > 1 ? this.clientHeight - space2 * (rows - 1) : this.clientHeight;
 
         for (var i = 0; i < rows; i++)
         {
-            height_cache[i] = [
-
-                i > 0 ? (cache += spaceY) : (cache = 0),
-                cache = Math.floor(height / (columns - i))
-            ];
-
+            height_cache[i] = [y, cache = Math.floor(height / (columns - i))];
             height -= cache;
+            y += cache + space2;
         }
 
         //按顺序排列
-        if (this.vertical)
+        if (this.layoutVertical)
         {
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -5622,8 +5618,8 @@ flyingon.Matrix = flyingon.function_extend(
                     width = width_cache[column];
                     height = height_cache[row++];
 
-                    item.__fn_measure(width[1], height[1], true, false);
-                    item.__fn_position(width[0], height[0]);
+                    item.measure(width[1], height[1], 1, 1);
+                    item.locate(width[0], height[0], width[1], height[1]);
 
                     if (row >= rows)
                     {
@@ -5644,8 +5640,8 @@ flyingon.Matrix = flyingon.function_extend(
                     width = width_cache[column++];
                     height = height_cache[row];
 
-                    item.__fn_measure(width[1], height[1], true, false);
-                    item.__fn_position(width[0], height[0]);
+                    item.measure(width[1], height[1], 1, 1);
+                    item.locate(width[0], height[0], width[1], height[1]);
 
                     if (column >= columns)
                     {
@@ -5659,20 +5655,21 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-    //自定义网格布局
-    registry("custom-grid", function (items, spaceX, spaceY) {
+    //表格布局(不支持竖排)
+    registry("table", function (items) {
 
-        var grid = new flyingon.GridDefine().load(this.layoutGrid);
+        var grid = new flyingon.GridDefine().load(this.gridDefine);
 
-        grid.spaceX = spaceX;
-        grid.spaceY = spaceY;
+        grid.spaceX = get_item_space(this);
+        grid.spaceY = get_line_space(this);
 
         grid.compute(this.clientWidth, this.clientHeight);
-        grid.match(items, this.vertical);
+        grid.match(items);
     });
 
 
-    //绝对定位
+
+    //绝对定位(不支持竖排)
     registry("absolute", function (items) {
 
         var contentWidth = 0,
@@ -5687,8 +5684,8 @@ flyingon.Matrix = flyingon.function_extend(
 
             if (item.__visible = (item.visibility !== "collapsed"))
             {
-                item.controlWidth = width = +item.width || item.__defaults.width;
-                item.controlHeight = height = +item.height || item.__defaults.height;
+                width = item.controlWidth = +item.width || item.__defaults.width;
+                height = item.controlHeight = +item.height || item.__defaults.height;
 
                 if ((cache = (item.controlX = +item.left || 0) + width) > contentWidth)
                 {
@@ -5700,22 +5697,24 @@ flyingon.Matrix = flyingon.function_extend(
                     contentHeight = cache;
                 }
 
-                if ((item.insideWidth = (width -= (item.insideX = item.borderLeftWidth) + item.borderRightWidth)) <= 0)
+                var box = item.__fn_box_style();
+
+                if ((item.insideWidth = (width -= box.border_spaceX)) <= 0)
                 {
                     item.insideWidth = 0;
                     item.clientWidth = 0;
                 }
-                else if ((item.clientWidth = width - (item.clientX = item.paddingLeft) - item.paddingTop) < 0)
+                else if ((item.clientWidth = width - box.padding_spaceX) < 0)
                 {
                     item.clientWidth = 0;
                 }
 
-                if ((item.insideHeight = (height -= (item.insideX = item.borderTopWidth) + item.borderBottomWidth)) <= 0)
+                if ((item.insideHeight = (height -= box.border_spaceY)) <= 0)
                 {
                     item.insideHeight = 0;
                     item.clientHeight = 0;
                 }
-                else if ((item.clientHeight = height - (item.clientX = item.paddingTop) - item.paddingTop) < 0)
+                else if ((item.clientHeight = height - box.padding_spaceY) < 0)
                 {
                     item.clientHeight = 0;
                 }
@@ -6063,7 +6062,7 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-            function horizontal_cells(target, exports) {
+            function match_cells(target, exports) {
 
                 var rows = target.rows;
 
@@ -6080,7 +6079,7 @@ flyingon.Matrix = flyingon.function_extend(
 
                         if (cell.children)
                         {
-                            horizontal_cells(cell.children, exports);
+                            match_cells(cell.children, exports);
                         }
                         else
                         {
@@ -6092,47 +6091,12 @@ flyingon.Matrix = flyingon.function_extend(
                 return exports;
             };
 
-            function vertical_cells(target, exports) {
-
-                var rows = target.rows,
-                    values = [];
-
-                exports = exports || [];
-
-                for (var i = 0, _ = rows.length; i < _; i++)
-                {
-                    var row = rows[i],
-                        cells = row.cells;
-
-                    for (var j = 0, __ = cells.length; j < __; j++)
-                    {
-                        var cell = cells[j];
-
-                        if (cell.children)
-                        {
-                            vertical_cells(cell.children, exports);
-                        }
-                        else
-                        {
-                            (values[i] || (values[i] = [])).push(cell);
-                        }
-                    }
-                }
-
-                for (var i = 0, _ = values.length; i < _; i++)
-                {
-                    exports.push.apply(exports, values[i]);
-                }
-
-                return exports;
-            };
-
 
 
             //按顺序自动排列子控件
-            this.match = function (items, vertical) {
+            this.match = function (items) {
 
-                var cells = vertical ? vertical_cells(this) : horizontal_cells(this),
+                var cells = match_cells(this),
                     length = cells.length,
                     index = 0;
 
@@ -6144,8 +6108,8 @@ flyingon.Matrix = flyingon.function_extend(
                     {
                         var cell = cells[index++];
 
-                        item.__fn_measure(cell.width, cell.row.height, true, false);
-                        item.__fn_position(cell.x, cell.row.y);
+                        item.measure(cell.width, cell.row.height, 1, 1);
+                        item.locate(cell.x, cell.row.y);
                     }
                 }
 
@@ -6153,685 +6117,6 @@ flyingon.Matrix = flyingon.function_extend(
             };
 
         });
-
-
-})(flyingon);
-
-
-
-
-﻿/*
-
-Canvas2D绘图扩展
-
-
-参考:http://www.w3school.com.cn/html5/html5_ref_canvas.asp
-
-*/
-
-(function (flyingon) {
-
-
-
-
-    /*
-    转成RGB颜色
-
-    */
-    flyingon.toRGBString = function (r, g, b, alpha) {
-
-        if (arguments.length <= 2)
-        {
-            alpha = g;
-            b = r & 0xFF;
-            g = r >> 8 & 0xFF;
-            r = r >> 16 & 0xFF;
-        }
-
-        if (alpha == null)
-        {
-            return "rgb(" + r + "," + g + "," + b + ")";
-        }
-
-        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-    };
-
-    /*
-    转成HSL颜色
-
-    */
-    flyingon.toHSLString = function (hue, saturation, lightness, alpha) {
-
-        if (alpha == null)
-        {
-            return "hsl(" + (hue % 360) + "," + saturation + "%," + lightness + "%)";
-        }
-
-        return "hsla(" + (hue % 360) + "," + saturation + "%," + lightness + "%," + alpha + ")";
-    };
-
-
-
-
-    /*
-    线性渐变
-
-    */
-    var LinearGradient = flyingon.LinearGradient = function (x1, y1, x2, y2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.colorStops = colorStops;
-    };
-
-    LinearGradient.prototype.createBrush = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createLinearGradient(x + this.x1 * width, y + this.y1 * height, x + this.x2 * width, y + this.y2 * height),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-
-    /*
-    径向渐变
-
-    */
-    var RadialGradient = flyingon.RadialGradient = function (x1, y1, radius1, x2, y2, radius2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.radius1 = radius1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.radius2 = radius2;
-        this.colorStops = colorStops;
-    };
-
-    RadialGradient.prototype.createBrush = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createRadialGradient(x + this.x1 * width, y + this.y1 * height, this.radius1, x + this.x2 * width, y + this.y2 * height, this.radius2),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-    /*
-    图像填充模式
-
-    */
-    var ImagePattern = flyingon.ImagePattern = function (image, repetition) {
-
-        this.image = image;
-        this.repetition = repetition;
-    };
-
-    ImagePattern.prototype.createBrush = function (context) {
-
-        return context.createPattern(this.image, this.repetition);
-    };
-
-
-
-
-    var radian = Math.PI / 180, //角度转弧度系数
-
-        prototype = CanvasRenderingContext2D.prototype;
-
-
-
-    /****************************以下为标准属性说明********************************/
-
-
-    /*    
-
-    fillStyle(color) = "#000000"	设置填充色
-    strokeStyle(color) = "#000000"	设置边框色
-    
-    shadowColor(color) = "#000000"	设置或返回用于阴影的颜色 
-    
-    shadowBlur(number) = 0	    设置或返回用于阴影的模糊级别 
-    
-    shadowOffsetX(number) = 0	设置或返回阴影距形状的水平距离 
-    
-    shadowOffsetY(number) = 0	设置或返回阴影距形状的垂直距离 
-    
-    lineCap("butt|round|square") = "butt"	    设置或返回线条的结束端点样式 
-    
-    lineJoin("bevel|round|miter") = "miter"	    设置或返回两条线相交时 所创建的拐角类型 
-    
-    lineWidth(number) = 1	    设置或返回当前的线条宽度 
-    
-    miterLimit(number) = 10	    设置或返回最大斜接长度 
-    
-    font("italic small-caps bold 12px arial") = "10px sans-serif"	设置或返回文本内容的当前字体属性 
-    
-    textAlign("center|end|left|right|start") = "start"	设置或返回文本内容的当前对齐方式 
-    //start     文本在指定的位置开始
-    //end       文本在指定的位置结束
-    //center    文本的中心被放置在指定的位置
-    //left      文本左对齐
-    //right     文本右对齐
-    
-    textBaseline("alphabetic|top|hanging|middle|ideographic|bottom") = "alphabetic"	设置或返回在绘制文本时使用的当前文本基线
-    //alphabetic    文本基线是普通的字母基线
-    //top           文本基线是 em 方框的顶端
-    //hanging       文本基线是悬挂基线
-    //middle        文本基线是 em 方框的正中
-    //ideographic   文本基线是表意基线
-    //bottom        文本基线是 em 方框的底端
-    
-    globalAlpha(number)	透明值 必须介于0.0(完全透明)与1.0(不透明)之间
-    
-    globalCompositeOperation("source-over|source-atop|source-in|source-out|destination-over|destination-atop|destination-in|destination-out|lighter|copy|source-over") = "source-over"	设置或返回新图像如何绘制到已有的图像上
-    source-over	默认 在目标图像上显示源图像 
-    source-atop	在目标图像顶部显示源图像 源图像位于目标图像之外的部分是不可见的 
-    source-in	在目标图像中显示源图像 只有目标图像内的源图像部分会显示 目标图像是透明的 
-    source-out	在目标图像之外显示源图像 只会显示目标图像之外源图像部分 目标图像是透明的 
-    destination-over	在源图像上方显示目标图像 
-    destination-atop	在源图像顶部显示目标图像 源图像之外的目标图像部分不会被显示 
-    destination-in	在源图像中显示目标图像 只有源图像内的目标图像部分会被显示 源图像是透明的 
-    destination-out	在源图像外显示目标图像 只有源图像外的目标图像部分会被显示 源图像是透明的 
-    lighter	显示源图像 + 目标图像 
-    copy	显示源图像 忽略目标图像 
-    source-over	使用异或操作对源图像与目标图像进行组合 
-
-    */
-
-
-    /*****************************************************************************/
-
-
-
-
-
-
-    /****************************以下为标准方法说明********************************/
-
-    /*
-    rect(x, y, width, height)	    创建矩形
-    fillRect(x, y, width, height)	绘制“被填充”的矩形
-    strokeRect(x, y, width, height)	绘制矩形(无填充)
-    clearRect(x, y, width, height)	在给定的矩形内清除指定的像素
-
-    fill()	    填充当前绘图(路径)
-    stroke()	绘制已定义的路径
-    beginPath()	起始一条路径 或重置当前路径
-    closePath()	创建从当前点回到起始点的路径
-    clip()	    从原始画布剪切任意形状和尺寸的区域
-    save()	    保存当前环境的状态
-    restore()	返回之前保存过的路径状态和属性
-
-    moveTo(x, y)	把路径移动到画布中的指定点 不创建线条
-    lineTo(x, y)	添加一个新点 然后在画布中创建从该点到最后指定点的线条
-    translate(x, y)	重新映射画布上的 (0,0) 位置
-    scale(x, y)	    缩放当前绘图至更大或更小
-    isPointInPath(x, y)	如果指定的点位于当前路径中 则返回 true 否则返回 false
-
-    quadraticCurveTo(cpx, cpy, x, y)	创建二次贝塞尔曲线
-    cpx	贝塞尔控制点的 x 坐标
-    cpy	贝塞尔控制点的 y 坐标
-    x	结束点的 x 坐标
-    y	结束点的 y 坐标
-
-    bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)	创建三次方贝塞尔曲线
-    cp1x	第一个贝塞尔控制点的 x 坐标
-    cp1y	第一个贝塞尔控制点的 y 坐标
-    cp2x	第二个贝塞尔控制点的 x 坐标
-    cp2y	第二个贝塞尔控制点的 y 坐标
-    x	结束点的 x 坐标
-    y	结束点的 y 坐标
-
-    arc(x,y,r,sAngle,eAngle,counterclockwise)	创建弧/曲线(用于创建圆形或部分圆)
-    x	圆的中心的 x 坐标 
-    y	圆的中心的 y 坐标 
-    r	圆的半径 
-    sAngle	起始角 以弧度计 (弧的圆形的三点钟位置是 0 度) 
-    eAngle	结束角 以弧度计 
-    counterclockwise	可选 规定应该逆时针还是顺时针绘图 False = 顺时针 true = 逆时针 
-
-    arcTo(x1, y1, x2, y2, radius)	创建两切线之间的弧/曲线
-    x1  
-    y1  
-    x2  
-    y2      
-    radius  半径
-
-    rotate(angle)	旋转当前绘图
-
-    transform(a, b, c, d, e, f)	    替换绘图的当前转换矩阵
-    setTransform(a, b, c, d, e, f)	将当前转换重置为单位矩阵 然后运行 transform()
-    a	水平缩放绘图
-    b	水平倾斜绘图
-    c	垂直倾斜绘图
-    d	垂直缩放绘图
-    e	水平移动绘图
-    f	垂直移动绘图
-
-    fillText(text, x, y, maxWidth)	在画布上绘制“被填充的”文本
-    strokeText(text, x, y, maxWidth)	在画布上绘制文本(无填充)
-
-    text	    规定在画布上输出的文本
-    x	        开始绘制文本的x坐标位置(相对于画布)
-    y	        开始绘制文本的y坐标位置(相对于画布)
-    maxWidth	可选 允许的最大文本宽度,以像素计
- 
-    measureText(text)	返回包含指定文本宽度
-
-    drawImage(img, sx, sy, swidth, sheight, x, y, width, height)	向画布上绘制图像、画布或视频
-
-    img	    规定要使用的图像、画布或视频
-    sx	    可选 开始剪切的x坐标位置
-    sy	    可选 开始剪切的y坐标位置
-    swidth	可选 被剪切图像的宽度
-    sheight	可选 被剪切图像的高度
-    x	    可选 在画布上放置图像的x坐标位置
-    y	    可选 在画布上放置图像的y坐标位置
-    width	可选 要使用的图像的宽度(伸展或缩小图像)
-    height	可选 要使用的图像的高度(伸展或缩小图像)
-    */
-
-
-    /*****************************************************************************/
-
-
-
-
-    /****************************以下为方法扩展********************************/
-
-
-    //绘制图像
-    prototype.paint_image = function (image, x, y, width, height, align, stretch) {
-
-        var _width = image.width,
-            _height = image.height,
-            cache;
-
-        if (stretch)
-        {
-            switch (stretch)
-            {
-                case "clip":
-                    if (_width > width)
-                    {
-                        _width = width;
-                    }
-
-                    if (_height > height)
-                    {
-                        _height = height;
-                    }
-                    break;
-
-                case "zoom":
-                    cache = Math.min(_width / width, _height / height);
-                    _width *= cache;
-                    _height *= cache;
-                    break;
-
-                case "stretch":
-                    this.drawImage(image, x, y, width, height);
-                    return;
-            }
-        }
-
-        if (align)
-        {
-            if (cache = width - _width)
-            {
-                switch (align.horizontal)
-                {
-                    case "center":
-                        x += cache >> 1;
-                        break;
-
-                    case "right":
-                        x += cache;
-                        break;
-                }
-            }
-
-            if (cache = height - _height)
-            {
-                switch (align.vertical)
-                {
-                    case "middle":
-                        y += cache >> 1;
-                        break;
-
-                    case "bottom":
-                        y += cache;
-                        break;
-                }
-            }
-        }
-
-        if (stretch)
-        {
-            this.drawImage(image, 0, 0, _width, _height, x, y, width, height);
-        }
-        else
-        {
-            this.drawImage(image, x, y);
-        }
-    };
-
-
-    //绘制边框
-    prototype.paint_border = function (x, y, width, height, border) {
-
-        this.beginPath();
-
-        this.rect(x, y, width - border.right, border.top);
-        this.rect(x + width - border.right, y, border.right, height - border.bottom);
-        this.rect(x + border.left, y + height - border.bottom, width - border.left, border.bottom);
-        this.rect(x, y + border.top, border.left, height - border.top);
-
-        this.fill();
-    };
-
-
-
-    prototype.rectTo = function (x, y, width, height, anticlockwise) {
-
-        var right = x + width,
-            bottom = y + height;
-
-        if (anticlockwise)
-        {
-            this.moveTo(x, y);
-            this.lineTo(x, bottom);
-            this.lineTo(right, bottom);
-            this.lineTo(right, y);
-            this.lineTo(x, y);
-        }
-        else
-        {
-            this.moveTo(x, y);
-            this.lineTo(right, y);
-            this.lineTo(right, bottom);
-            this.lineTo(x, bottom);
-            this.lineTo(x, y);
-        }
-    };
-
-
-    /*
-    * 绘制圆角矩形路径
-    * @param {Number} x The top left x coordinate
-    * @param {Number} y The top left y coordinate 
-    * @param {Number} width The width of the rectangle 
-    * @param {Number} height The height of the rectangle
-    * @param {Number} radius The corner radius. Defaults to 5;
-    */
-    prototype.roundRect = function (x, y, width, height, radius, anticlockwise) {
-
-        var right = x + width,
-            bottom = y + height;
-
-        if (anticlockwise)
-        {
-            this.moveTo(x, y + radius);
-
-            this.lineTo(x, bottom - radius);
-            this.quadraticCurveTo(x, bottom, x + radius, bottom);
-
-            this.lineTo(right - radius, bottom);
-            this.quadraticCurveTo(right, bottom, right, bottom - radius);
-
-            this.lineTo(right, y + radius);
-            this.quadraticCurveTo(right, y, right - radius, y);
-
-            this.lineTo(x + radius, y);
-            this.quadraticCurveTo(x, y, x, y + radius);
-        }
-        else
-        {
-            this.moveTo(x + radius, y);
-
-            this.lineTo(right - radius, y);
-            this.quadraticCurveTo(right, y, right, y + radius);
-
-            this.lineTo(right, bottom - radius);
-            this.quadraticCurveTo(right, bottom, right - radius, bottom);
-
-            this.lineTo(x + radius, bottom);
-            this.quadraticCurveTo(x, bottom, x, bottom - radius);
-
-            this.lineTo(x, y + radius);
-            this.quadraticCurveTo(x, y, x + radius, y);
-        }
-    };
-
-    /*
-    * 填充圆角矩形
-    * @param {Number} x The top left x coordinate
-    * @param {Number} y The top left y coordinate 
-    * @param {Number} width The width of the rectangle 
-    * @param {Number} height The height of the rectangle
-    * @param {Number} radius The corner radius. Defaults to 5;
-    */
-    prototype.fillRoundRect = function (x, y, width, height, radius) {
-
-        this.beginPath();
-        this.roundRect(x, y, width, height, radius);
-        this.fill();
-    };
-
-    /*
-    * 描边圆角矩形
-    * @param {Number} x The top left x coordinate
-    * @param {Number} y The top left y coordinate 
-    * @param {Number} width The width of the rectangle 
-    * @param {Number} height The height of the rectangle
-    * @param {Number} radius The corner radius. Defaults to 5;
-    */
-    prototype.strokeRoundRect = function (x, y, width, height, radius) {
-
-        this.beginPath();
-        this.roundRect(x, y, width, height, radius);
-        this.stroke();
-    };
-
-
-    //多边形
-    prototype.polygon = function (sides, x, y, radius, angle, anticlockwise) {
-
-        var delta = (anticlockwise ? -2 : 2) * Math.PI / sides;
-
-        angle = angle ? angle * radian : 0;
-
-        this.moveTo(x + radius * Math.sin(angle), y - radius * Math.cos(angle));
-
-        for (var i = 1; i <= sides; i++)
-        {
-            angle += delta;
-            this.lineTo(x + radius * Math.sin(angle), y - radius * Math.cos(angle));
-        }
-    };
-
-    prototype.fillPolygon = function (sides, x, y, radius, angle, anticlockwise) {
-
-        this.beginPath();
-        this.polygon(sides, x, y, radius, angle, anticlockwise);
-        this.fill();
-    };
-
-    prototype.strokePolygon = function (sides, x, y, radius, angle, anticlockwise) {
-
-        this.beginPath();
-        this.polygon(sides, x, y, radius, angle, anticlockwise);
-        this.stroke();
-    };
-
-
-
-    prototype.starPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
-
-        var delta = (anticlockwise ? -1 : 1) * Math.PI / vertexes;
-
-        angle = angle ? angle * radian : 0;
-
-        this.moveTo(x + radius1 * Math.sin(angle), y - radius1 * Math.cos(angle));
-
-        for (var i = 1; i <= vertexes; i++)
-        {
-            angle += delta;
-            this.lineTo(x + radius2 * Math.sin(angle), y - radius2 * Math.cos(angle));
-
-            angle += delta;
-            this.lineTo(x + radius1 * Math.sin(angle), y - radius1 * Math.cos(angle));
-        }
-    };
-
-    prototype.fillStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
-
-        this.beginPath();
-        this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
-        this.fill();
-    };
-
-    prototype.strokeStarPolygon = function (vertexes, x, y, radius1, radius2, angle, anticlockwise) {
-
-        this.beginPath();
-        this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
-        this.stroke();
-    };
-
-
-
-    prototype.ellipse = function (x, y, width, height, anticlockwise) {
-
-        var controlX = width / 1.5,  //控制点x(width / 0.75) / 2
-            controlY = height / 2;   //控制点y
-
-        if (anticlockwise)
-        {
-            this.moveTo(x, y + controlY);
-            this.bezierCurveTo(x + controlX, y + controlY, x + controlX, y - controlY, x, y - controlY);
-            this.bezierCurveTo(x - controlX, y - controlY, x - controlX, y + controlY, x, y + controlY);
-        }
-        else
-        {
-            this.moveTo(x, y - controlY);
-            this.bezierCurveTo(x + controlX, y - controlY, x + controlX, y + controlY, x, y + controlY);
-            this.bezierCurveTo(x - controlX, y + controlY, x - controlX, y - controlY, x, y - controlY);
-        }
-    };
-
-    prototype.fillEllipse = function (x, y, width, height) {
-
-        this.beginPath();
-        this.ellipse(x, y, width, height);
-        this.fill();
-    };
-
-    prototype.strokeEllipse = function (x, y, width, height) {
-
-        this.beginPath();
-        this.ellipse(x, y, width, height);
-        this.stroke();
-    };
-
-
-
-    //画虚线
-    prototype.dashLine = function (x1, y1, x2, y2, dashArray) {
-
-        dashArray = dashArray || [10, 5];
-
-        this.moveTo(x1, y1);
-
-        var length = dashArray.length,
-            width = (x2 - x1),
-            height = (y2 - y1),
-            slope = height / width,
-            distRemaining = Math.sqrt(width * width + height * height),
-            index = 0,
-            draw = false;
-
-        while (distRemaining >= 0.1)
-        {
-            var dashLength = dashArray[index++ % length];
-
-            if (dashLength > distRemaining)
-            {
-                dashLength = distRemaining;
-            }
-
-            var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
-
-            if (width < 0)
-            {
-                step = -step;
-            }
-
-            x1 += step;
-            y1 += slope * step;
-
-            this[(draw = !draw) ? "lineTo" : "moveTo"](x1, y1);
-
-            distRemaining -= dashLength;
-        }
-    };
-
-
-
-    /*****************************************************************************/
-
-
-
-
-    var cache = document.createElement("canvas");
-
-    //缓冲绘图
-    prototype.cache = function (width, height) {
-
-        cache.width = width;
-        cache.height = height;
-
-        return cache.getContext("2d");
-    };
-
-    //复制至指定目标
-    prototype.copyTo = function (target, x, y) {
-
-        var data = this.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        target.putImageData(data, x, y);
-    };
-
 
 
 })(flyingon);
@@ -6851,143 +6136,6 @@ Canvas2D绘图
 
 
 
-    /*
-    转成RGB颜色
-
-    */
-    flyingon.toRGBString = function (r, g, b, alpha) {
-
-        if (arguments.length <= 2)
-        {
-            alpha = g;
-            b = r & 0xFF;
-            g = r >> 8 & 0xFF;
-            r = r >> 16 & 0xFF;
-        }
-
-        if (alpha == null)
-        {
-            return "rgb(" + r + "," + g + "," + b + ")";
-        }
-
-        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-    };
-
-    /*
-    转成HSL颜色
-
-    */
-    flyingon.toHSLString = function (hue, saturation, lightness, alpha) {
-
-        if (alpha == null)
-        {
-            return "hsl(" + (hue % 360) + "," + saturation + "%," + lightness + "%)";
-        }
-
-        return "hsla(" + (hue % 360) + "," + saturation + "%," + lightness + "%," + alpha + ")";
-    };
-
-
-
-
-    /*
-    线性渐变
-
-    */
-    var LinearGradient = flyingon.LinearGradient = function (x1, y1, x2, y2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.colorStops = colorStops;
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-        }
-        this.transparent = false;
-    };
-
-    LinearGradient.prototype.style = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createLinearGradient(x + this.x1 * width, y + this.y1 * height, x + this.x2 * width, y + this.y2 * height),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-
-    /*
-    径向渐变
-
-    */
-    var RadialGradient = flyingon.RadialGradient = function (x1, y1, radius1, x2, y2, radius2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.radius1 = radius1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.radius2 = radius2;
-        this.colorStops = colorStops;
-    };
-
-    RadialGradient.prototype.style = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createRadialGradient(x + this.x1 * width, y + this.y1 * height, this.radius1, x + this.x2 * width, y + this.y2 * height, this.radius2),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-    /*
-    图像填充模式
-
-    */
-    var ImagePattern = flyingon.ImagePattern = function (image, repetition) {
-
-        this.image = image;
-        this.repetition = repetition;
-    };
-
-    ImagePattern.prototype.style = function (context) {
-
-        return context.createPattern(this.image, this.repetition);
-    };
-
-
-
-
     //2d图形绘制器
     flyingon.Painter = flyingon.function_extend(
 
@@ -7000,40 +6148,193 @@ Canvas2D绘图
 
 
 
+
             var self = this,
 
                 radian = Math.PI / 180,     //角度转弧度系数
 
-                colors = {};                //已转换颜色缓存
+                regex_transparent = /rgba|hsla/, //透明颜色判断规则
+
+                regex_color = /#|rgb|hsl|rgba|hsla|linear|radial|pattern|[\w-.]+/g, //颜色解析规则
+
+                color_cache = {};
 
 
 
 
-
-            //目标控件
+            //当前目标控件
             this.target = null;
 
 
 
-            //转换样式
+
+            //颜色可选值如下
+            //#rrggbb                                                                           rgb颜色 与css规则相同
+            //name                                                                              颜色名称 与css规则相同
+            // rgb(0-255 | x%, 0-255 | x%, 0-255 | x%)                                          rgb颜色 与css规则相同
+            //rgba(0-255 | x%, 0-255 | x%, 0-255 | x%, 0-1)                                     rgba颜色 与css规则相同
+            // hsl(0-360, x%, x%)                                                               hsl颜色 与css规则相同
+            //hsla(0-360, x%, x%, 0-1)                                                          hsla颜色 与css规则相同
+            //linear(x1, y2, x2, y2, step1, color1, step2, color2[, ...])                       线性渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+            //radial(x1, y1, radius1, x2, y2, radius2, step1, color1, step2, color2[, ...])     径向渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+            //pattern(image, repeat|repeat-x|repeat-y|no-repeat)                                图像填充
+
+
+
+            //解析颜色
             function parse_color(value) {
 
+                var tokens = ("" + value).match(regex_color),
+                    token = tokens[0];
 
+                switch (token)
+                {
+                    case "#":
+                        return { color: "#" + tokens[1] };
+
+                    case "rgb":
+                    case "hsl":
+                        return { color: token + "(" + tokens[1] + ", " + tokens[2] + ", " + tokens[3] + ")" };
+
+                    case "rgba":
+                    case "hsla":
+                        return { color: token + "(" + tokens[1] + ", " + tokens[2] + ", " + tokens[3] + ", " + tokens[4] + ")", transparet: true };
+
+                    case "linear":
+                        return translate_color({
+
+                            x1: +tokens[1] || 0,
+                            y1: +tokens[2] || 0,
+                            x2: +tokens[3] || 0,
+                            y2: +tokens[4] || 0,
+                            fn: linear
+
+                        }, tokens, 5);
+
+                    case "radial":
+                        return translate_color({
+
+                            x1: +tokens[1] || 0,
+                            y1: +tokens[2] || 0,
+                            r1: +tokens[3] || 0,
+                            x2: +tokens[4] || 0,
+                            y2: +tokens[5] || 0,
+                            r2: +tokens[6] || 0,
+                            fn: radial
+
+                        }, tokens, 7);
+
+                    case "pattern":
+                        return {
+
+                            image: tokens[1],
+                            repeat: tokens[2],
+                            fn: pattern,
+                            transparent: true //图片都按透明方式处理
+                        };
+
+                    default:
+                        return { color: token };
+                }
             };
 
 
-            function defineProperty(name, color) {
+            //转换渐变颜色
+            function translate_color(target, tokens, index) {
 
-                var getter = "return this.context." + name + ";",
-                    setter = "this.context." + name + " = value;";
+                var colors = target.colors = [],
+                    flag = true,
+                    color;
 
-                if (color)
+                for (var i = index, _ = tokens.length; i < _; i++)
                 {
-                    
+                    colors.push(+tokens[i++] || 0);
+                    colors.push(color = tokens[i] || "white");
+
+                    if (flag && (color === "transparent" || color.match(regex_transparent)))
+                    {
+                        target.transparet = true;
+                        flag = false;
+                    }
                 }
 
-                flyingon.defineProperty(self, name, new Function(getter), new Function("value", setter));
+                return target;
             };
+
+
+            //线性渐变颜色设置方法
+            function linear(painter) {
+
+                var target = painter.target,
+                    width = target.insideWidth,
+                    height = target.insideHeight,
+                    result = painter.context.createLinearGradient(this.x1 * width, this.y1 * height, this.x2 * width, this.y2 * height),
+                    colors = this.colors;
+
+                for (var i = 0, _ = colors.length; i < _; i++)
+                {
+                    result.addColorStop(colors[i++], colors[i]);
+                }
+
+                return result;
+            };
+
+
+
+            //径向渐变颜色设置方法
+            function radial(painter) {
+
+                var target = painter.target,
+                    width = target.insideWidth,
+                    height = target.insideHeight,
+                    result = painter.context.createRadialGradient(this.x1 * width, this.y1 * height, this.r1, this.x2 * width, this.y2 * height, this.r2),
+                    colors = this.colors;
+
+                for (var i = 0, _ = colors.length; i < _; i++)
+                {
+                    result.addColorStop(colors[i++], colors[i]);
+                }
+
+                return result;
+            };
+
+
+            //图像填充模式设置方法
+            function pattern(context) {
+
+                return context.createPattern(flyingon.get_image(this.image), this.repeat);
+            };
+
+
+
+
+            function defineProperty(name, setter) {
+
+                var getter = new Function("return this.context." + name + ";"),
+                    setter;
+
+                if (setter == null)
+                {
+                    setter = new Function("value", "this.context." + name + " = value;");
+                }
+                else if (setter === "color")
+                {
+                    setter = function (value) {
+
+                        var style = color_cache[value] || (color_cache[value] = parse_color(value));
+
+                        if (style.transparent && !this.target.__update_parent)
+                        {
+                            this.target.__update_parent = true;
+                        }
+
+                        this.context[name] = style.color || style.fn(this);
+                    };
+                }
+
+                flyingon.defineProperty(self, name, getter, setter);
+            };
+
 
 
 
@@ -7041,27 +6342,20 @@ Canvas2D绘图
             设置填充色
             (color) = "#000000"	
             */
-            defineProperty("fillStyle");
+            defineProperty("fillStyle", "color");
 
             /*    
             设置边框色
             (color) = "#000000"	
             */
-            defineProperty("strokeStyle");
-
-
+            defineProperty("strokeStyle", "color");
 
 
             /*    
             设置或返回用于阴影的颜色
             (color) = "#000000"	 
             */
-            defineProperty("shadowColor");
-
-
-
-
-
+            defineProperty("shadowColor", "color");
 
 
 
@@ -7108,6 +6402,12 @@ Canvas2D绘图
             */
             defineProperty("miterLimit");
 
+            /* 
+            设置或返回虚线偏移(ie11, safari7以上才支持)
+            (number) = 10	     
+            */
+            defineProperty("lineDashOffset");
+
 
             /* 
             设置或返回文本内容的当前字体属性
@@ -7145,7 +6445,13 @@ Canvas2D绘图
             透明值 必须介于0.0(完全透明)与1.0(不透明)之间
             set_globalAlpha(number)	
             */
-            defineProperty("globalAlpha");
+            defineProperty("globalAlpha", function (value) {
+
+                if ((this.context.globalAlpha = +value || 1) < 1 && !this.target.__update_parent)
+                {
+                    this.target.__update_parent = true;
+                }
+            });
 
             /* 
             设置或返回新图像如何绘制到已有的图像上
@@ -7163,7 +6469,36 @@ Canvas2D绘图
             copy	显示源图像 忽略目标图像 
             source-over	使用异或操作对源图像与目标图像进行组合 
             */
-            defineProperty("globalCompositeOperation");
+            defineProperty("globalCompositeOperation", function (value) {
+
+                if (!this.target.__update_parent)
+                {
+                    this.target.__update_parent = true;
+                }
+
+                this.context.globalCompositeOperation = value;
+            });
+
+
+
+            //设置虚线样式(ie11, safari7以上才支持)
+            this.getLineDash = function () {
+
+                var context = this.context;
+                return context.getLineDash && context.getLineDash();
+            };
+
+
+            //设置虚线样式(ie11, safari7以上才支持)
+            this.setLineDash = function (dashArray) {
+
+                var context = this.context;
+
+                if (context.setLineDash)
+                {
+                    context.setLineDash(dashArray);
+                }
+            };
 
 
 
@@ -7227,6 +6562,47 @@ Canvas2D绘图
             this.lineTo = function (x, y) {
 
                 this.context.lineTo(x, y);
+            };
+
+            //画虚线
+            this.lineTo_dash = function (x1, y1, x2, y2, dashArray) {
+
+                dashArray = dashArray || [10, 5];
+
+                var context = this.context,
+                    length = dashArray.length,
+                    width = (x2 - x1),
+                    height = (y2 - y1),
+                    slope = height / width,
+                    distance = Math.sqrt(width * width + height * height),
+                    index = 0,
+                    flag = false;
+
+                context.moveTo(x1, y1);
+
+                while (distance >= 0.1)
+                {
+                    var dashLength = dashArray[index++ % length];
+
+                    if (dashLength > distance)
+                    {
+                        dashLength = distance;
+                    }
+
+                    var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
+
+                    if (width < 0)
+                    {
+                        step = -step;
+                    }
+
+                    x1 += step;
+                    y1 += slope * step;
+
+                    context[(flag = !flag) ? "lineTo" : "moveTo"](x1, y1);
+
+                    distance -= dashLength;
+                }
             };
 
             //如果指定的点位于当前路径中 则返回 true 否则返回 false
@@ -7498,22 +6874,6 @@ Canvas2D绘图
             };
 
 
-            //绘制边框
-            this.paint_border = function (x, y, width, height, border) {
-
-                var context = this.context;
-
-                context.beginPath();
-
-                context.rect(x, y, width - border.right, border.top);
-                context.rect(x + width - border.right, y, border.right, height - border.bottom);
-                context.rect(x + border.left, y + height - border.bottom, width - border.left, border.bottom);
-                context.rect(x, y + border.top, border.left, height - border.top);
-
-                context.fill();
-            };
-
-
 
             this.rectTo = function (x, y, width, height, anticlockwise) {
 
@@ -7601,7 +6961,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.roundRect(x, y, width, height, radius);
+                this.roundRect(x, y, width, height, radius);
                 context.fill();
             };
 
@@ -7618,7 +6978,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.roundRect(x, y, width, height, radius);
+                this.roundRect(x, y, width, height, radius);
                 context.stroke();
             };
 
@@ -7645,7 +7005,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.polygon(sides, x, y, radius, angle, anticlockwise);
+                this.polygon(sides, x, y, radius, angle, anticlockwise);
                 context.fill();
             };
 
@@ -7654,7 +7014,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.polygon(sides, x, y, radius, angle, anticlockwise);
+                this.polygon(sides, x, y, radius, angle, anticlockwise);
                 context.stroke();
             };
 
@@ -7684,7 +7044,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
+                this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
                 context.fill();
             };
 
@@ -7693,7 +7053,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
+                this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
                 context.stroke();
             };
 
@@ -7724,7 +7084,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.ellipse(x, y, width, height);
+                this.ellipse(x, y, width, height);
                 context.fill();
             };
 
@@ -7733,51 +7093,8 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.ellipse(x, y, width, height);
+                this.ellipse(x, y, width, height);
                 context.stroke();
-            };
-
-
-
-            //画虚线
-            this.dashLine = function (x1, y1, x2, y2, dashArray) {
-
-                dashArray = dashArray || [10, 5];
-
-                var context = this.context,
-                    length = dashArray.length,
-                    width = (x2 - x1),
-                    height = (y2 - y1),
-                    slope = height / width,
-                    distRemaining = Math.sqrt(width * width + height * height),
-                    index = 0,
-                    draw = false;
-
-                context.moveTo(x1, y1);
-
-                while (distRemaining >= 0.1)
-                {
-                    var dashLength = dashArray[index++ % length];
-
-                    if (dashLength > distRemaining)
-                    {
-                        dashLength = distRemaining;
-                    }
-
-                    var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
-
-                    if (width < 0)
-                    {
-                        step = -step;
-                    }
-
-                    x1 += step;
-                    y1 += slope * step;
-
-                    context[(draw = !draw) ? "lineTo" : "moveTo"](x1, y1);
-
-                    distRemaining -= dashLength;
-                }
             };
 
 
@@ -9794,10 +9111,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //number	整数值
         styles("?", ["width", "height"], "auto", false, "relayout");
 
-        //控件左上角x及y坐标
-        //number	整数值
-        styles("?", ["top", "left"], 0, false, "relayout");
-
         //控件横向偏移距离
         //number	整数值
         style("offset-x", 0, false, "relayout");
@@ -9821,13 +9134,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+        //控件阅读方向
+        //ltr	    从左到右 
+        //rtl	    从右到左 
+        style("direction", "ltr", true, "rearrange");
 
-        //控件是否在同行显示(此值仅在 layoutType == "flow" 时有效 
-        //true:     强制在新行显示
-        //false:    尝试在当前行显示,显示不下才换行
-        style("newline", false, false, "relayout");
-
-        //控件停靠方式(此值仅在 layoutType == "dock" 时有效 
+        //控件停靠方式(此值仅在所属布局类型为停靠布局(dock)时有效)(非html css属性)
         //left:   左见枚举
         //top:    顶部见枚举
         //right:  右见枚举
@@ -9835,54 +9147,85 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //fill:   充满
         style("dock", "left", false, "relayout");
 
+        //是否强制换行(此值仅在所属布局类型为流式布局(flow),网格布局(grid)及表格布局(table)时有效)(非html css属性)
+        //fals
+        //true
+        style("line-break", false, false, "relayout");
 
-        //布局类型(仅对Panel类型控件有效)
-        //line:         线性布局
-        //flow:         流式布局
-        //page:         单页显示
-        //dock:         停靠布局
-        //grid:         均匀网格
-        //custom-grid:  自定义网格
-        //absolute:     绝对定位
+        //纵跨列数(此值仅在所属布局类型为网格布局(grid)或表格布局(table)时有效)(非html css属性)
+        //number	整数值 
+        //all       横跨所有列
+        style("column-span", 0, false, "relayout");
+
+        //横跨行数(此值仅在所属布局类型为网格布局(grid)或表格布局(table)时有效)(非html css属性)
+        //number	整数值 
+        //all       横跨所有行
+        style("row-span", 0, false, "relayout");
+
+        //跳过网格表格数(此值仅在所属布局类型为网格布局(grid)或表格布局(table)时有效)(非html css属性)
+        //number    整数值
+        style("jump-cells", 0, false, "rearrange");
+
+        //控件左上角x及y坐标(此值仅在所属布局类型为绝对定位(absolute)时有效)
+        //number	整数值
+        styles("?", ["top", "left"], 0, false, "relayout");
+
+
+        //布局类型(仅对Panel类型控件有效)(非html css属性)
+        //line:         线性布局(支持竖排)
+        //flow:         流式布局(支持竖排)
+        //page:         单页显示(不支持竖排)
+        //dock:         停靠布局(不支持竖排)
+        //grid:         网格布局(支持竖排)
+        //table:        表格布局(不支持竖排)
+        //absolute:     绝对定位(不支持竖排)
         //...:          其它自定义布局
         style("layout-type", "flow", false, "rearrange");
 
-        //布局时子控件横向间隔
+        //是否竖排布局(非html css属性)
+        //true      竖排
+        //false     横排
+        style("layout-vertical", false, false, "rearrange");
+
+        //布局时行与行之间的间隔(非html css属性)
+        //number	整数值 
         //number%   总宽度的百分比
-        //number	整数值 
-        style("layout-spaceX", 0, false, "rearrange");
+        style("layout-line-space", 0, false, "rearrange");
 
-        //布局时子控件纵向间隔
+        //布局时项与项之间的间隔(非html css属性)
+        //number	整数值 
         //number%   总高度的百分比
-        //number	整数值 
-        style("layout-spaceY", 0, false, "rearrange");
+        style("layout-item-space", 0, false, "rearrange");
 
-        //单页显示布局当前页(此值仅对单页显示布局有效)
+        //布局时对齐宽度(此值仅对线性布局(line)及流式布局(flow)有效)(非html css属性)
+        //number	整数值 
+        style("layout-align-width", 0, false, "rearrange");
+
+        //布局时对齐高度(此值仅对线性布局(line)及流式布局(flow)有效)(非html css属性)
+        //number	整数值 
+        style("layout-align-height", 0, false, "rearrange");
+
+        //单页显示布局当前页(此值仅对单页显示布局(page)有效)(非html css属性)
         //number	整数值 
         style("layout-page", 0, false, "rearrange");
 
-        //均匀网格布局列数(此值仅对均匀网格布局有效)
+        //均匀网格布局列数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        style("layout-columns", 3, false, "rearrange");
+        //string    自定义列 如:"C20 C30% C*"表示3列 第一列固定宽度为20 第2列使用剩下可用空间的30% 第3列使用剩下的全部可用空间
+        style("layout-grid-columns", 3, false, "rearrange");
 
-        //均匀网格布局行数(此值仅对均匀网格布局有效)
+        //均匀网格布局行数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        style("layout-rows", 3, false, "rearrange");
+        //string    自定义行 如:"R20 R30% R*"表示3列 第一行固定宽度为20 第2行使用剩下可用空间的30% 第3行使用剩下的全部可用空间
+        style("layout-grid-rows", 3, false, "rearrange");
 
-        //自定义网格布局定义(此值仅对自定义网格布局有效)
-        style("layout-grid", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false, "rearrange");
-
-        //布局时对齐宽度(此值仅对线性布局及流式布局有效)
-        //number	整数值 
-        style("align-width", 0, false, "rearrange");
-
-        //布局时对齐高度(此值仅对线性布局及流式布局有效)
-        //number	整数值 
-        style("align-height", 0, false, "rearrange");
+        //表格布局定义(此值仅对表格布局(table)有效)(非html css属性)
+        style("layout-table", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false, "rearrange");
 
 
 
-        //控件对齐方式简写方式(同时设置横向及纵向对齐方式以空格分开 如:"left top")
+
+        //控件对齐方式简写方式(同时设置横向及纵向对齐方式以空格分开 如:"left top")(非html css属性)
         //left      左边对齐
         //center    横向居中对齐
         //right     右边对齐
@@ -9899,19 +9242,48 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.alignX = value.match(regex1) || "left";
                 this.alignY = value.match(regex2) || "top";
             };
-        }));
 
-        //控件横向对齐方式
+        })());
+
+        //控件横向对齐方式(非html css属性)
         //left      左边对齐
         //center    横向居中对齐
         //right     右边对齐
         style("align-x", "left", false, "relayout");
 
-        //控件纵向对齐方式
+        //控件纵向对齐方式(非html css属性)
         //top       顶部对齐
         //middle    纵向居中对齐
         //bottom    底部对齐
         style("align-y", "top", false, "relayout");
+
+
+
+        //控件内容对齐方式简写(同时设置横向及纵向对齐方式用空格分开 如:"left bottom")(非html css属性)
+        complex("content-align", ["x", "y"], (function () {
+
+            var regex1 = /left|center|right/,
+                regex2 = /top|middle|bottom/;
+
+            return function (value) {
+
+                this.contentAlignX = value.match(regex1) || "center";
+                this.contentAlignY = value.match(regex2) || "middle";
+            };
+        })());
+
+        //控件内容横向对齐样式(非html css属性)
+        //left      左边对齐
+        //center    横向居中对齐
+        //right     右边对齐
+        style("content-align-x", "left", "center", "rearrange");
+
+        //控件内容纵向对齐样式(非html css属性)
+        //top       顶部对齐
+        //middle    纵向居中对齐
+        //bottom    底部对齐
+        style("content-align-y", "top", "middle", "rearrange");
+
 
 
 
@@ -9973,16 +9345,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //wait	    此光标指示程序正忙(通常是一只表或沙漏) 
         //help	    此光标指示可用的帮助(通常是一个问号或一个气球) 
         style("cursor", "auto", true);
-
-        //控件阅读方向
-        //ltr	    从左到右 
-        //rtl	    从右到左 
-        style("direction", "ltr", true, "rearrange");
-
-        //控件是否竖排
-        //true      竖排
-        //false     横排
-        style("vertical", false, false, "rearrange");
 
 
 
@@ -10338,32 +9700,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //number	整数值 
         style("line-height", 12, true, "relayout");
 
-
-
-        //控件文字对齐方式简写(同时设置横向及纵向对齐方式用空格分开 如:"left bottom")
-        complex("textAlign", ["x", "y"], (function () {
-
-            var regex1 = /left|center|right/,
-                regex2 = /top|middle|bottom/;
-
-            return function (value) {
-
-                this.textAlignX = value.match(regex1) || "center";
-                this.textAlignY = value.match(regex2) || "middle";
-            };
-        }));
-
-        //控件文字横向对齐样式
-        //left	    把文本排列到左边 默认值：由浏览器决定 
-        //right	    把文本排列到右边 
-        //center	把文本排列到中间 
-        style("textAlignX", "left", "center", "rearrange");
-
-        //控件文字纵向对齐样式
-        //top	        把元素的顶端与行中最高元素的顶端对齐
-        //middle	    把此元素放置在父元素的中部 
-        //bottom	    把元素的顶端与行中最低的元素的顶端对齐 
-        style("textAlignY", "top", "middle", "rearrange");
 
 
 
@@ -11305,8 +10641,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 hscroll.length = this.contentWidth;
                 hscroll.viewportSize = this.clientWidth;
 
-                hscroll.__fn_measure(this.insideWidth, thickness1, true);
-                hscroll.__fn_position(this.insideX, this.insideHeight);
+                hscroll.measure(this.insideWidth, thickness1, 1, 1);
+                hscroll.locate(this.insideX, this.insideHeight);
             }
 
             //有竖直滚动条
@@ -11316,8 +10652,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 vscroll.length = this.contentHeight;
                 vscroll.viewportSize = this.clientHeight;
 
-                vscroll.__fn_measure(thickness2, this.insideHeight, true);
-                vscroll.__fn_position(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideY);
+                vscroll.measure(thickness2, this.insideHeight, 1, 1);
+                vscroll.locate(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideY);
             }
 
             //有双滚动条时生成拐角
@@ -11325,8 +10661,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 var corner = initialize(this.__scroll_corner = new ScrollBar_Corner(), this);
 
-                corner.__fn_measure(thickness2, thickness1, true);
-                corner.__fn_position(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideHeight);
+                corner.fn_measure(thickness2, thickness1, "11");
+                corner.locate(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideHeight);
             }
 
             this.__scroll_dirty = false;
@@ -11341,6 +10677,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
     //盒模型
     (function (flyingon) {
+
+
+        var round = Math.round,
+            parse = parseFloat;
 
 
         //控件大小(含边框及滚动条)
@@ -11361,11 +10701,20 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.clientWidth = 0;
         this.clientHeight = 0;
 
-        //内容区(实际内容大小)
+        //内容区(实际内容大小及开始渲染位置)
         this.contentX = 0;
         this.contentY = 0;
         this.contentWidth = 0;
         this.contentHeight = 0;
+
+
+        //添加右下属性
+        ["control", "inside", "client"].forEach(function (name) {
+
+            flyingon.defineProperty(this, name + "Right", new Function("return this." + name + "X + this." + name + "Width;"));
+            flyingon.defineProperty(this, name + "Bottom", new Function("return this." + name + "Y + this." + name + "Height;"));
+
+        }, this);
 
 
         //是否需要重新布局
@@ -11383,72 +10732,87 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+        //计算盒模型样式
+        this.__fn_box_style = function () {
+
+            var box = Object.create(null);
+
+            //计算盒模型
+            box.margin_spaceX =
+                (box.margin_left = this.marginLeft) +
+                (box.margin_right = this.marginRight);
+
+            box.spaceX = box.border_spaceX =
+                (box.border_left = this.insideX = this.borderLeftWidth) +
+                (box.border_right = this.borderRightWidth);
+
+            box.spaceX += (box.padding_spaceX =
+                (box.padding_left = this.clientX = this.paddingLeft) +
+                (box.padding_right = this.paddingRight));
+
+            box.margin_spaceY =
+                (box.margin_top = this.marginTop) +
+                (box.margin_bottom = this.marginBottom);
+
+            box.spaceY = box.border_spaceY =
+                (box.border_top = this.insideY = this.borderTopWidth) +
+                (box.border_bottom = this.borderBottomWidth);
+
+            box.spaceY += (box.padding_spaceY =
+                (box.padding_top = this.clientY = this.paddingTop) +
+                (box.padding_bottom = this.paddingBottom));
+
+            this.clientX += box.border_left;
+            this.clientY += box.border_top;
+
+            //记录是否有边框
+            box.has_border = box.border_top > 0 || box.border_left > 0 || box.border_right > 0 || box.border_bottom > 0;
+
+            //创建临时内部变量并返回
+            return this.__box_style = box;
+        };
+
+
         //测量大小
-        //usable_width      可用宽度
-        //usable_height     可用高度
-        //auto_to_fill      自动大小转充满
-        //less_to_default   空间不足时使用默认大小
-        //ignore_margin     忽略外边距
-        this.__fn_measure = function (usable_width, usable_height, auto_to_fill, less_to_default, ignore_margin) {
+        //usable_width              可用宽度 整数值
+        //usable_height             可用高度 整数值
+        //auto_width_to_fill        当宽度为auto时是否充满可用空间 true|false || 1|0
+        //auto_height_to_fill       当高度为auto时是否充满可用空间 true|false || 1|0
+        //less_width_to_default     当宽度不足时是否使用默认宽度 true|false || 1|0
+        //less_height_to_default    当高度不足时是否使用默认高度 true|false || 1|0
+        //返回最大占用宽度及高度
+        this.measure = function (usable_width, usable_height, auto_width_to_fill, auto_height_to_fill, less_width_to_default, less_height_to_default) {
 
 
-            var margin_x,
-                margin_y,
-
-                border_x = this.borderLeftWidth,
-                border_y = this.borderTopWidth,
-
-                padding_x = this.paddingLeft,
-                padding_y = this.paddingTop,
+            var box = this.__fn_box_style(),
 
                 auto_width = false,
                 auto_height = false,
 
-                clientWidth,
-                clientHeight,
+                width,
+                height,
 
                 value,
                 cache;
 
 
-            //计算位置
-            if (ignore_margin) //忽略margin 绝对定位时不使用margin
-            {
-                margin_x = margin_y = this.controlX = this.controlY = 0;
-            }
-            else
-            {
-                margin_x = (this.controlX = this.marginLeft) + this.marginRight;
-                margin_y = (this.controlY = this.marginTop) + this.marginBottom;
-            }
-
-            this.clientX = (this.insideY = this.controlX + border_x) + padding_x;
-            this.clientY = (this.insideX = this.controlY + border_y) + padding_y;
-
-            border_x += this.borderRightWidth;
-            border_y += this.borderBottomWidth;
-
-            padding_x += this.paddingRight;
-            padding_y += this.paddingBottom;
-
-
             //处理宽度
-            if (value = +(cache = this.width)) //固定大小
+            if ((value = +(cache = this.width)) >= 0) //固定大小
             {
-                this.controlWidth = value;
+                width = value;
             }
             else
             {
                 switch (cache)
                 {
                     case "auto": //默认
-                        if (auto_to_fill)
+                        if (auto_width_to_fill)
                         {
                             cache = true;
                         }
                         else
                         {
-                            this.controlWidth = this.__defaults.width;
+                            width = this.__defaults.width;
                         }
                         break;
 
@@ -11462,46 +10826,62 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         break;
 
                     default:  //百分比
-                        this.controlWidth = this.__parent ? Math.round(this.__parent.clientWidth * parseFloat(cache) / 100) : 0;
+                        width = this.__parent && round(this.__parent.clientWidth * parse(cache) / 100) || 0;
                         break;
                 }
 
                 //充满可用宽度
                 if (cache === true)
                 {
-                    if (usable_width > margin_x + border_x + padding_x) //至少可以显示边框及内边距
+                    if ((usable_width -= box.margin_spaceX) > box.spaceX) //至少可以显示边框及内边距
                     {
-                        this.controlWidth = usable_width - margin_x;
+                        width = usable_width;
                     }
-                    else if (less_to_default) //可用空间不足时使用默认宽度
+                    else if (less_width_to_default) //可用空间不足时使用默认宽度
                     {
-                        this.controlWidth = this.__defaults.width;
+                        width = this.__defaults.width;
                     }
                     else //有多少用多少
                     {
-                        this.controlWidth = usable_width > margin_x ? usable_width - margin_x : 0;
+                        width = usable_width > 0 ? usable_width : 0;
                     }
                 }
             }
 
+            //处理最小及最大宽度
+            if (width < (cache = this.minWidth))
+            {
+                width = cache;
+            }
+            else if ((cache = this.maxWidth) > 0 && width > cache)
+            {
+                width = cache;
+            }
+
+            //计算客户区宽度
+            if ((width = (this.controlWidth = width) - box.spaceX) < 0)
+            {
+                width = 0;
+            };
+
 
             //处理高度
-            if (value = +(cache = this.height)) //固定大小
+            if ((value = +(cache = this.height)) >= 0) //固定大小
             {
-                this.controlHeight = value;
+                height = value;
             }
             else
             {
                 switch (cache)
                 {
                     case "auto": //自动
-                        if (auto_to_fill)
+                        if (auto_height_to_fill)
                         {
                             cache = true;
                         }
                         else
                         {
-                            this.controlHeight = this.__defaults.height;
+                            height = this.__defaults.height;
                         }
                         break;
 
@@ -11515,149 +10895,139 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         break;
 
                     default:  //百分比
-                        this.controlHeight = this.__parent ? Math.round(this.__parent.clientHeight * parseFloat(cache) / 100) : 0;
+                        height = this.__parent && round(this.__parent.clientHeight * parse(cache) / 100) || 0;
                         break;
                 }
 
                 //充满可用高度
                 if (cache === true)
                 {
-                    if (usable_height > margin_y + border_y + padding_y) //至少可以显示边框及内边距
+                    if ((usable_height -= box.margin_spaceY) > box.spaceY) //至少可以显示边框及内边距
                     {
-                        this.controlHeight = usable_height - margin_y;
+                        height = usable_height;
                     }
-                    else if (less_to_default) //可用空间不足时使用默认高度
+                    else if (less_height_to_default) //可用空间不足时使用默认高度
                     {
-                        this.controlHeight = this.__defaults.height;
+                        height = this.__defaults.height;
                     }
                     else //有多少用多少
                     {
-                        this.controlHeight = usable_height > margin_y ? usable_height - margin_y : 0;
+                        height = usable_height > 0 ? usable_height : 0;
                     }
                 }
             }
 
-
-            //处理最小最大值
-            if (this.controlWidth < (cache = this.minWidth))
+            //处理最小及最大宽度
+            if (height < (cache = this.minHeight))
             {
-                this.controlWidth = cache;
+                height = cache;
             }
-            else if ((cache = this.maxWidth) > 0 && this.controlWidth > cache)
+            else if ((cache = this.maxHeight) > 0 && height > cache)
             {
-                this.controlWidth = cache;
-            }
-
-            if (this.controlHeight < (cache = this.minHeight))
-            {
-                this.controlHeight = cache;
-            }
-            else if ((cache = this.maxHeight) > 0 && this.controlHeight > cache)
-            {
-                this.controlHeight = cache;
+                height = cache;
             }
 
-
-            //计算内部区及客户区大小
-            if ((this.insideWidth = this.controlWidth - border_x) <= 0)
+            //计算客户区高度
+            if ((height = (this.controlHeight = height) - box.spaceY) < 0)
             {
-                this.insideWidth = 0;
-                clientWidth = 0;
-            }
-            else if ((clientWidth = this.insideWidth - padding_x) < 0)
-            {
-                clientWidth = 0;
-            }
-
-            if ((this.insideHeight = this.controlHeight - border_y) <= 0)
-            {
-                this.insideHeight = 0;
-                clientHeight = 0;
-            }
-            else if ((clientHeight = this.insideHeight - padding_y) < 0)
-            {
-                clientHeight = 0;
+                height = 0;
             }
 
 
             //处理自动宽高
             if (auto_width || auto_height)
             {
-                this.__fn_measure_auto(auto_width, auto_height);
+                this.__fn_measure_auto(auto_width ? width : 0, auto_height ? height : 0);
 
                 //重计算宽度
                 if (auto_width)
                 {
-                    this.controlWidth = (this.insideWidth = (clientWidth = this.contentWidth) + padding_x) + border_x;
+                    this.controlWidth = (width = this.contentWidth) + box.spaceX;
                 }
 
                 //重计算高度
                 if (auto_height)
                 {
-                    this.controlHeight = (this.insideHeight = (clientHeight = this.contentHeight) + padding_y) + border_y;
+                    this.controlHeight = (height = this.contentHeight) + box.spaceY;
                 }
             }
 
 
             //设置客户区域大小 客户区变化时才会请求重新排列
-            if (this.clientWidth !== clientWidth || this.clientHeight !== clientHeight)
+            if (this.clientWidth !== width || this.clientHeight !== height)
             {
-                this.clientWidth = clientWidth;
-                this.clientHeight = clientHeight;
+                this.clientWidth = width;
+                this.clientHeight = height;
 
                 this.__arrange_dirty = true;
             }
 
 
-            //返回占用空间
-            return { width: this.controlWidth + margin_x, height: this.controlHeight + margin_y };
+            //计算内部空间
+            this.insideWidth = width + box.padding_spaceX;
+            this.insideHeight = height + box.padding_spaceY;
+
+
+            //返回布局大小
+            return { width: this.controlWidth + box.margin_spaceX, height: this.controlHeight + box.margin_spaceY };
         };
 
 
         //测量自动宽高
-        this.__fn_measure_auto = function (auto_width, auto_height) {
+        //maxWidth:     最大可用宽度 0表示无限大
+        //maxHeight:    最大可用高度 0表示无限大
+        this.__fn_measure_auto = function (maxWidth, maxHeight) {
 
             this.__fn_arrange(false);
         };
 
 
-        //按指定的宽度横向对齐控件
-        this.__fn_alignX = function (width) {
+        //设置控件位置(需先调用measure才可调用此方法)
+        //x             起始x坐标
+        //y             起始y坐标
+        //align_width   对齐宽度 大于0则按此宽度分派空间并对齐
+        //align_height  对齐高度 大于0则按此高度分派空间并对齐
+        //返回控件最大占位坐标
+        this.locate = function (x, y, align_width, align_height) {
 
-            switch (this.alignX)
+            var box = this.__box_style,
+                width = this.controlWidth,
+                height = this.controlHeight,
+                cache;
+
+            if (align_width > 0 && (cache = align_width - width))
             {
-                case "center":
-                    this.controlX = (width - this.controlWidth) >> 1;
-                    break;
+                switch (this.alignX)
+                {
+                    case "center":
+                        x += cache >> 1;
+                        break;
 
-                case "right":
-                    this.controlX = width - this.controlWidth;
-                    break;
+                    case "right":
+                        x += cache;
+                        break;
+                }
             }
-        };
 
-
-        //按指定的高度纵向对齐控件
-        this.__fn_alignY = function (height) {
-
-            switch (this.alignY)
+            if (align_height > 0 && (cache = align_height - height))
             {
-                case "middle":
-                    this.controlX = (height - this.controlHeight) >> 1;
-                    break;
+                switch (this.alignY)
+                {
+                    case "middle":
+                        y += cache >> 1;
+                        break;
 
-                case "right":
-                    this.controlY = height - this.controlHeight;
-                    break;
+                    case "right":
+                        y += cache;
+                        break;
+                }
             }
-        };
 
+            return {
 
-        //设置控件位置(需先调用__fn_measure才可调用此方法)
-        this.__fn_position = function (x, y) {
-
-            this.controlX += x + this.offsetX;
-            this.controlY += y + this.offsetY;
+                x: (this.controlX = box.margin_left + x + this.offsetX) + width + this.marginRight,
+                y: (this.controlY = box.margin_top + y + this.offsetY) + height + this.marginBottom
+            }
         };
 
 
@@ -12294,7 +11664,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 if (!layer)
                 {
                     layer = ownerWindow.__popup_layer = ownerWindow.appendLayer(9997);
-                    layer.layout = "absolute";
+                    layer.layoutType = "absolute";
                     layer.paint_background = function () { };
                 }
 
@@ -12410,10 +11780,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
+        //测试变量: 总共绘制的次数
+        var __render_times = 0;
+
+        //测试变量: 本次绘制的控件数
+        var ___render_items = 0;
 
 
         //渲染
+        //注1:IE9在绘制时性能太差(比chrome差5到10倍) 暂时未找个原因(不知道是否与属性访问有关,或者与坐标变量或剪切有关,需要进一步测试)
+        //注2:IE9绘制同样的字符可能线条粗细有不同(估计是IE本身的问题)
+        //注3:oprea的字体渲染不够清晰(不知道是不是与字体设置有关, 需进一步测试)
         this.__fn_render = function (painter, clear) {
+
+            var box = this.__box_style,
+                context = painter.context,
+                x = this.controlX,
+                y = this.controlY;
 
             //重新排列
             if (this.__arrange_dirty)
@@ -12422,22 +11805,65 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             }
 
             //设置渲染环境
-            var context = painter.context;
-
             context.save();
-            context.globalAlpha = this.opacity;
 
+            //移动画布到当前控件坐标
             if (clear !== false)
             {
-                context.clearRect(this.controlX, this.controlY, this.controlWidth, this.controlHeight);
-                context.translate(0.5, 0.5); //偏移0.5像素解决线条不清晰的问题
+                __render_times++;
+                ___render_items = 0;
+
+                context.clearRect(x, y, this.controlWidth, this.controlHeight);
+                context.translate(x + 0.5, y + 0.5); //偏移0.5像素解决线条不清晰的问题
+            }
+            else
+            {
+                context.translate(x, y);
             }
 
             //设置目标控件
             painter.target = this;
 
+            //设置透明度
+            this.__update_parent = (context.globalAlpha = this.opacity) < 1;
+
+            //裁剪防止内容超出边框区范围
+            context.beginPath();
+
+            //创建边框区裁剪区域
+            if (box.has_border && (box.border_clip || initialize_border(this, box)) !== true) //圆角边框
+            {
+                //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+                //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+                var points = box.border_clip;
+
+                context.moveTo(points[0], points[1]);
+
+                for (var i = 2, _ = points.length; i < _; i++)
+                {
+                    if (points[i++]) //如果一下坐标点是圆角
+                    {
+                        context.quadraticCurveTo(points[i++], points[i++], points[i++], points[i++]);
+                    }
+
+                    context.lineTo(points[i++], points[i]);
+                }
+
+                context.closePath();
+            }
+            else
+            {
+                context.rect(0, 0, this.controlWidth, this.controlHeight);
+            }
+
+            //执行边框区裁剪
+            context.clip();
+
             //绘制背景
             this.paint_background(painter);
+
+            //绘制内容
+            this.paint(painter);
 
             //渲染子项
             if (this.__visible_items)
@@ -12445,8 +11871,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.__fn_render_children(painter, false);
             }
 
-            //绘制内框
-            this.paint(painter);
 
             //绘制滚动条
 
@@ -12461,10 +11885,150 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //    this.__fn_paint_decorates(context, decorates);
             //}
 
+            //回滚到绘制本控件前的状态
             context.restore();
 
             //修改状态
             this.__current_dirty = false;
+
+
+            //显示测试数据
+            document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
+        };
+
+
+        //初始化边框坐标点
+        function initialize_border(target, box) {
+
+
+            //计算边框圆角
+            var points = [],
+                clip = [],
+                border_left = box.border_left,
+                border_top = box.border_top,
+                border_right = box.border_right,
+                border_bottom = box.border_bottom,
+                x1 = border_left >> 1,
+                y1 = border_top >> 1,
+                x2 = border_right >> 1,
+                y2 = border_bottom >> 1,
+                right = target.controlWidth - x2,
+                bottom = target.controlHeight - y2,
+                radius_top1 = target.borderTopLeftRadius,
+                radius_top2 = target.borderTopRightRadius,
+                radius_bottom1 = target.borderBottomRightRadius,
+                radius_bottom2 = target.borderBottomLeftRadius,
+                radius = false,
+                push = points.push;
+
+
+            //计算绘制坐标 
+            //数组规则: [x1, y1, 边框厚度, 是否圆弧 是:[, x, y, x, y], x2, y2, 边框厚度, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+
+            //上边框
+            if (radius_top1 > 0) //左上角
+            {
+                radius = radius_top1 - x1 - y1; //调整弧度
+                push.apply(points, [x1, y1 + radius, border_top, true, x1, y1, x1 + radius, y1]);
+            }
+            else
+            {
+                push.apply(points, [x1, y1, border_top, false]);
+            }
+
+            //右边框
+            if (radius_top2 > 0) //右上角
+            {
+                radius = radius_top2 - x2 - y1; //调整弧度
+                push.apply(points, [right - radius, y1, border_right, true, right, y1, right, y1 + radius]);
+            }
+            else
+            {
+                push.apply(points, [right, y1, border_right, false]);
+            }
+
+            //下边框
+            if (radius_bottom1 > 1) //右下角
+            {
+                radius = radius_bottom1 - x2 - y2; //调整弧度
+                push.apply(points, [right, bottom - radius, border_bottom, true, right, bottom, right - radius, bottom]);
+            }
+            else
+            {
+                push.apply(points, [right, bottom, border_bottom, false]);
+            }
+
+            //左边框
+            if (radius_bottom2 > 0) //左下角
+            {
+                radius = radius_bottom2 - x1 - y2; //调整弧度
+                push.apply(points, [x1 + radius, bottom, border_left, true, x1, bottom, x1, bottom - radius]);
+            }
+            else
+            {
+                push.apply(points, [x1, bottom, border_left, false]);
+            }
+
+            //记录绘制坐标
+            box.border_points = points;
+
+
+            //计算剪切坐标 
+            //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+            if (radius)
+            {
+                points = [];
+
+                right = target.controlWidth;
+                bottom = target.controlHeight;
+
+                //上边框
+                if (radius_top1 > 0) //左上角
+                {
+                    push.apply(points, [0, radius_top1, true, 0, 0, radius_top1, 0]);
+                }
+                else
+                {
+                    push.apply(points, [0, 0, false]);
+                }
+
+                //右边框
+                if (radius_top2 > 0) //右上角
+                {
+                    push.apply(points, [right - radius_top2, 0, true, right, 0, right, radius_top2]);
+                }
+                else
+                {
+                    push.apply(points, [right, 0, false]);
+                }
+
+                //下边框
+                if (radius_bottom1 > 1) //右下角
+                {
+                    push.apply(points, [right, bottom - radius_bottom1, true, right, bottom, right - radius_bottom1, bottom]);
+                }
+                else
+                {
+                    push.apply(points, [right, bottom, false]);
+                }
+
+                //左边框
+                if (radius_bottom2 > 0) //左下角
+                {
+                    push.apply(points, [radius_bottom2, bottom, true, 0, bottom, 0, bottom - radius_bottom2]);
+                }
+                else
+                {
+                    push.apply(points, [0, bottom, false]);
+                }
+
+                //记录并返回剪切坐标
+                return box.border_clip = points;
+            }
+
+            return box.border_clip = true;
         };
 
 
@@ -12477,19 +12041,21 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (length > 0)
             {
-                var context = painter.context;
-
-                context.save();
+                ___render_items += length; //记录本次绘制控件数
 
                 var context = painter.context,
+                    x = this.clientX,
+                    y = this.clientY,
                     contentX = this.contentX,
                     contentY = this.contentY;
 
-                context.translate(this.controlX + this.clientX - contentX, this.controlY + this.clientY - contentY);
+                context.save();
 
-                //context.beginPath();
-                //context.rect(this.clientX + contentX, this.clientY + contentX, this.clientWidth, this.clientHeight);
-                //context.clip();
+                context.beginPath();
+                context.rect(x, y, this.clientWidth, this.clientHeight);
+                context.clip();
+
+                context.translate(x - contentX, y - contentY);
 
                 if (update)
                 {
@@ -12544,73 +12110,32 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-
-
-
-
-
-        //绘制边框
-        this.paint_border = function (painter) {
-
-            painter.context.lineWidth = 0;
-            painter.context.strokeRect(this.controlX, this.controlY, this.controlWidth, this.controlHeight);
-
-            var text = this.controlX + " " + this.controlY + " " + this.controlWidth + " " + this.controlHeight;
-
-            painter.context.fillStyle = "black";
-            painter.context.textBaseline = "top";
-            painter.context.font = this.font;
-            painter.context.fillText("resize" + text, this.controlX, this.controlY);
-
-            //var border = boxModel.border;
-
-            //if (border && border.border)
-            //{
-            //    var color = this.borderColor;
-
-            //    if (boxModel.borderRadius > 0)
-            //    {
-            //        context.lineWidth = border.top;
-            //        context.set_strokeStyle(color);
-            //        context.strokeRoundRect(boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, boxModel.borderRadius);
-            //    }
-            //    else
-            //    {
-            //        context.set_fillStyle(color);
-            //        context.paint_border(boxModel.windowX, boxModel.windowY, boxModel.width, boxModel.height, border);
-            //    }
-            //}
-
-
-
-        };
-
-
         //绘制背景
         this.paint_background = function (painter) {
 
-            //var backgroundColor = this.backgroundColor;
+            var color = this.backgroundColor,
+                image = this.backgroundImage,
+                cache;
 
-            //if (backgroundColor)
-            //{
-            //    var r = boxModel.usableRect;
+            if ((cache = (color !== "transparent")) || image)
+            {
+                var context = painter.context,
+                    box = this.__box_style;
 
-            //    context.beginPath();
-            //    context.set_fillStyle(backgroundColor);
+                context.beginPath();
+                context.rect(this.insideX, this.insideY, this.insideWidth, this.insideHeight);
 
-            //    if (boxModel.borderRadius > 0) //圆角矩形
-            //    {
-            //        context.roundRect(r.windowX, r.windowY, r.width, r.height, boxModel.borderRadius);
-            //    }
-            //    else
-            //    {
-            //        context.rect(r.windowX, r.windowY, r.width, r.height);
-            //    }
+                if (cache)
+                {
+                    painter.fillStyle = color;
+                    context.fill();
+                }
 
-            //    context.fill();
+                if (image)
+                {
 
-            //    return true;
-            //}
+                }
+            }
         };
 
 
@@ -12618,7 +12143,26 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //绘制内框
         this.paint = function (painter) {
 
+            var box = this.__box_style,
+                width = this.controlWidth,
+                height = this.controlHeight,
+                context = painter.context;
 
+            context.strokeStyle = "silver";
+            context.strokeRect(-box.margin_left, -box.margin_top, width + box.margin_spaceX, height + box.margin_spaceY);
+
+            context.strokeStyle = "green";
+            context.strokeRect(this.insideX, this.insideY, this.insideWidth, this.insideHeight);
+
+            context.strokeStyle = "blue";
+            context.strokeRect(this.clientX, this.clientY, this.clientWidth, this.clientHeight);
+
+            var text = this.uniqueId + ":" + this.controlX + "," + this.controlY + "," + width + "," + height;
+
+            context.fillStyle = "black";
+            context.textBaseline = "top";
+            context.font = this.font;
+            context.fillText(text, this.clientX, this.clientY);
         };
 
 
@@ -12627,6 +12171,76 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         };
+
+
+
+        //边框绘制顺序
+        var border_colors = [],
+            border_styles = [];
+
+        ["top", "right", "bottom", "left"].forEach(function (name) {
+
+            name = name[0].toUpperCase() + name.substring(1);
+
+            border_colors.push("border" + name + "Color");
+            border_styles.push("border" + name + "Style");
+        });
+
+
+        //绘制边框
+        this.paint_border = function (painter) {
+
+            if (this.__box_style.has_border)
+            {
+                //数组规则: [x1, y1, 边框厚度, 是否圆弧 是:[, x, y, x, y], x2, y2, 边框厚度, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+                //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+
+                var context = painter.context,
+                    points = this.__box_style.border_points,
+                    lineWidth = points[2],
+                    index = 0;
+
+                context.beginPath();
+                context.moveTo(points[0], points[1]);
+
+                for (var i = 3, _ = points.length; i < _; i++)
+                {
+                    if (points[i++]) //如果一下坐标点是圆角
+                    {
+                        context.quadraticCurveTo(points[i++], points[i++], points[i++], points[i++]);
+                    }
+
+                    context.lineTo(points[i++], points[i++]);
+
+                    if (lineWidth !== points[i])
+                    {
+                        if (lineWidth > 0)
+                        {
+                            context.lineWidth = lineWidth;
+                            context.strokeStyle = this[border_colors[index]];
+
+                            if (i >= _)
+                            {
+                                context.lineTo(points[0], points[1]);
+                            }
+
+                            context.stroke();
+                        }
+
+                        if (i < _)
+                        {
+                            context.beginPath();
+                            context.moveTo(points[i - 2], points[i - 1]);
+                        }
+
+                        lineWidth = points[i];
+                    }
+
+                    index++;
+                }
+            }
+        };
+
 
 
     }).call(this, flyingon);
@@ -12696,7 +12310,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     this.defineProperty("value", 0, "invalidate");
 
     //滚动条长度
-    this.defineProperty("length", 100, "invalidate");
+    this.defineProperty("maxValue", 100, "invalidate");
 
     //显示值大小
     this.defineProperty("viewportSize", 10, "rearrange");
@@ -12757,12 +12371,12 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
             if (value < this.__offset_value) //slider before
             {
-                limit = Math.round((value - this.thickness) * this.length / this.__length_value);
+                limit = Math.round((value - this.thickness) * this.maxValue / this.__length_value);
                 value = -this.max_change;
             }
             else  //slider after
             {
-                limit = Math.round((value - this.thickness - this.__slider_value) * this.length / this.__length_value);
+                limit = Math.round((value - this.thickness - this.__slider_value) * this.maxValue / this.__length_value);
                 value = this.max_change;
             }
         }
@@ -12779,7 +12393,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         if (dragger)
         {
             var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                value = Math.round(offset * this.length / this.__length_value);
+                value = Math.round(offset * this.maxValue / this.__length_value);
 
             if (value)
             {
@@ -12807,7 +12421,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     this.step_to = function (step, limit, originalEvent) {
 
         var value = this.value + step,
-            length = this.length - this.viewportSize;
+            length = this.maxValue - this.viewportSize;
 
 
         if (limit == null)
@@ -12885,7 +12499,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        var result = Math.round(length * this.viewportSize / this.length);
+        var result = Math.round(length * this.viewportSize / this.maxValue);
         return result <= 8 ? 8 : result;
     };
 
@@ -12896,54 +12510,54 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        if (this.value >= this.length - this.viewportSize)
+        if (this.value >= this.maxValue - this.viewportSize)
         {
             return length - slider;
         }
 
-        return Math.round(this.value * length / this.length);
+        return Math.round(this.value * length / this.maxValue);
     };
 
 
 
-    this.measure = function (boxModel) {
+    //this.measure = function (boxModel) {
 
-        boxModel.compute();
+    //    boxModel.compute();
 
-        var r = boxModel.clientRect,
-            x = 0,
-            y = 0,
-            value,
-            button1 = this.__button1,
-            button2 = this.__button2,
-            slider0 = this.__slider0.__boxModel,
-            thickness = this.thickness;
+    //    var r = boxModel.clientRect,
+    //        x = 0,
+    //        y = 0,
+    //        value,
+    //        button1 = this.__button1,
+    //        button2 = this.__button2,
+    //        slider0 = this.__slider0.__boxModel,
+    //        thickness = this.thickness;
 
-        button1.__boxModel.measure(0, 0, thickness, thickness);
+    //    button1.__boxModel.measure(0, 0, thickness, thickness);
 
-        if (button1.vertical = button2.vertical = this.vertical)
-        {
-            var length = this.__length_value = (value = boxModel.clientRect.height) - (thickness << 1),
-                slider = this.__slider_value = slider_length.call(this, length),
-                offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
+    //    if (button1.vertical = button2.vertical = this.vertical)
+    //    {
+    //        var length = this.__length_value = (value = boxModel.clientRect.height) - (thickness << 1),
+    //            slider = this.__slider_value = slider_length.call(this, length),
+    //            offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
-            y = Math.max(value - thickness, 0);
+    //        y = Math.max(value - thickness, 0);
 
-            slider0.measure(0, offset, thickness, slider);
-        }
-        else
-        {
-            length = this.__length_value = (value = boxModel.clientRect.width) - (thickness << 1);
-            slider = this.__slider_value = slider_length.call(this, length);
-            offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
+    //        slider0.measure(0, offset, thickness, slider);
+    //    }
+    //    else
+    //    {
+    //        length = this.__length_value = (value = boxModel.clientRect.width) - (thickness << 1);
+    //        slider = this.__slider_value = slider_length.call(this, length);
+    //        offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
-            x = Math.max(value - thickness, 0);
+    //        x = Math.max(value - thickness, 0);
 
-            slider0.measure(offset, 0, slider, thickness);
-        }
+    //        slider0.measure(offset, 0, slider, thickness);
+    //    }
 
-        button2.__boxModel.measure(x, y, thickness, thickness);
-    };
+    //    button2.__boxModel.measure(x, y, thickness, thickness);
+    //};
 
 
 
@@ -13345,6 +12959,166 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
 
 
+﻿/*
+用户控件
+*/
+flyingon.defineClass("UserControl", flyingon.Panel, function (Class, base, flyingon) {
+
+
+
+
+
+});
+
+
+
+
+
+
+﻿
+//图层扩展
+flyingon.layer_extender = function (host) {
+
+
+    var div = this.dom_layer = document.createElement("div"),
+        canvas = this.dom_canvas = document.createElement("canvas"),
+
+        target = this,
+        timer;
+
+
+    //创建dom
+    div.setAttribute("flyingon", "layer");
+    div.setAttribute("style", "position:absolute;width:100%;height:100%;overflow:hidden;outline:none;");
+
+    canvas.setAttribute("flyingon", "canvas");
+    canvas.setAttribute("style", "position:absolute;outline:none;");
+
+    div.appendChild(canvas);
+
+    if (host)
+    {
+        host.appendChild(div);
+    }
+
+
+    //重载当前图层
+    this.defineProperty("ownerLayer", function () {
+
+        return this;
+    });
+
+
+    //创建绘画环境
+    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
+
+
+    //更新画布
+    function update() {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+        }
+
+        var self = target;
+
+        if (self.__current_dirty) //如果需要更新
+        {
+            self.__fn_render(self.painter);
+        }
+        else if (self.__children_dirty) //如果子控件需要更新
+        {
+            self.__fn_render_children(self.painter);
+            self.__children_dirty = false;
+        }
+    };
+
+
+
+    //立即执行更新
+    this.__execute_update = update();
+
+
+
+    //注册更新
+    this.__registry_update = function () {
+
+        //图层测量过后才可自动更新
+        if (this.__box_style)
+        {
+            if (timer)
+            {
+                clearTimeout(timer);
+            }
+
+            timer = setTimeout(update, 5);
+        }
+    };
+
+    //注销更新
+    this.__unregistry_update = function () {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+            timer = 0;
+        };
+    };
+
+};
+
+
+
+
+/*
+
+*/
+flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
+
+
+
+    Class.create = function (host) {
+
+        //执行图层扩展
+        flyingon.layer_extender.call(this, host);
+    };
+
+
+
+    //修改透明度属性
+    this.defineProperty("opacity", 1, {
+
+        complete: "this.dom_layer.style.opacity = value;"
+    });
+
+    //修改宽度属性
+    this.defineProperty("width", function () {
+
+        return this.dom_canvas.width;
+    });
+
+    //修改高度属性
+    this.defineProperty("height", function () {
+
+        return this.dom_canvas.height;
+    });
+
+
+    this.update = function () {
+
+        this.__unregistry_update();
+        this.__fn_render(this.painter);
+    };
+
+
+}, true);
+
+
+
+
+
+
 ﻿//绘制型多子项控件基础服务
 flyingon["items-painter"] = function (Class, flyingon, items_name) {
 
@@ -13601,162 +13375,6 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
 
 
 
-﻿/*
-用户控件
-*/
-flyingon.defineClass("UserControl", flyingon.Panel, function (Class, base, flyingon) {
-
-
-
-
-
-});
-
-
-
-
-
-
-﻿
-//图层扩展
-flyingon.layer_extender = function (host) {
-
-
-    var div = this.dom_layer = document.createElement("div"),
-        canvas = this.dom_canvas = document.createElement("canvas"),
-
-        target = this,
-        timer;
-
-
-    //创建dom
-    div.setAttribute("flyingon", "layer");
-    div.setAttribute("style", "position:absolute;width:100%;height:100%;overflow:hidden;outline:none;");
-
-    canvas.setAttribute("flyingon", "canvas");
-    canvas.setAttribute("style", "position:absolute;outline:none;");
-
-    div.appendChild(canvas);
-
-    if (host)
-    {
-        host.appendChild(div);
-    }
-
-
-    //重载当前图层
-    this.defineProperty("ownerLayer", function () {
-
-        return this;
-    });
-
-
-    //创建绘画环境
-    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
-
-
-    //更新画布
-    function update() {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
-
-        var self = target;
-
-        if (self.__current_dirty) //如果需要更新
-        {
-            self.__fn_render(self.painter);
-        }
-        else if (self.__children_dirty) //如果子控件需要更新
-        {
-            self.__fn_render_children(self.painter);
-            self.__children_dirty = false;
-        }
-    };
-
-
-
-    //立即执行更新
-    this.__execute_update = update();
-
-
-
-    //注册更新
-    this.__registry_update = function () {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
-
-        timer = setTimeout(update, 5);
-    };
-
-    //注销更新
-    this.__unregistry_update = function () {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-            timer = 0;
-        };
-    };
-
-};
-
-
-
-
-/*
-
-*/
-flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
-
-
-
-    Class.create = function (host) {
-
-        //执行图层扩展
-        flyingon.layer_extender.call(this, host);
-    };
-
-
-
-    //修改透明度属性
-    this.defineProperty("opacity", 1, {
-
-        complete: "this.dom_layer.style.opacity = value;"
-    });
-
-    //修改宽度属性
-    this.defineProperty("width", function () {
-
-        return this.dom_canvas.width;
-    });
-
-    //修改高度属性
-    this.defineProperty("height", function () {
-
-        return this.dom_canvas.height;
-    });
-
-
-    this.update = function () {
-
-        this.__unregistry_update();
-        this.__fn_render(this.painter);
-    };
-
-
-}, true);
-
-
-
-
-
-
 ﻿//窗口扩展服务
 flyingon.window_extender = function (base, flyingon) {
 
@@ -13953,8 +13571,8 @@ flyingon.window_extender = function (base, flyingon) {
         }
 
         result.__parent = this;
-        result.__fn_measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
-        result.__fn_position(0, 0);
+        result.measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
+        result.locate(0, 0);
 
         dom_layer.__ownerWindow = dom_canvas.__ownerWindow = this;
 
@@ -14266,8 +13884,8 @@ flyingon.window_extender = function (base, flyingon) {
 
             layer.__unregistry_update();
 
-            layer.__fn_measure(width - x, height - y);
-            layer.__fn_position(x, y);
+            layer.measure(width - x, height - y);
+            layer.locate(x, y);
 
             layer.__fn_render(layer.painter);
         }
@@ -14527,8 +14145,8 @@ flyingon.defineClass("ChildWindow_ToolBar", flyingon.Panel, function (Class, bas
 
         var height = this.visibility === "visible" ? +this.height || 25 : 0;
 
-        this.__fn_measure(0, 0, width, height, true, false);
-        this.__fn_position(0, 0);
+        this.measure(width, height);
+        this.locate(0, 0);
         this.__fn_arrange(false);
     };
 
@@ -14747,41 +14365,41 @@ flyingon.defineClass("TextButtonBase", flyingon.TextBoxBase, function (Class, ba
 
 
 
-    this.measure = function (boxModel) {
+    //this.measure = function (boxModel) {
 
 
-        boxModel.compute();
+    //    boxModel.compute();
 
 
-        var clientRect = boxModel.clientRect,
-            imageRect = boxModel.imageRect;
+    //    var clientRect = boxModel.clientRect,
+    //        imageRect = boxModel.imageRect;
 
 
-        if (!imageRect)
-        {
-            imageRect = boxModel.imageRect = new flyingon.Rect();
-        }
+    //    if (!imageRect)
+    //    {
+    //        imageRect = boxModel.imageRect = new flyingon.Rect();
+    //    }
 
-        imageRect.x = clientRect.x;
-        imageRect.y = clientRect.y;
+    //    imageRect.x = clientRect.x;
+    //    imageRect.y = clientRect.y;
 
 
-        if (this.showButton)
-        {
-            clientRect.width -= 16;
+    //    if (this.showButton)
+    //    {
+    //        clientRect.width -= 16;
 
-            imageRect.canvasX = clientRect.canvasX + clientRect.width;
-            imageRect.canvasY = clientRect.canvasY;
+    //        imageRect.canvasX = clientRect.canvasX + clientRect.width;
+    //        imageRect.canvasY = clientRect.canvasY;
 
-            imageRect.width = 16;
-            imageRect.height = clientRect.height;
-        }
-        else
-        {
-            imageRect.width = 0;
-            imageRect.height = 0;
-        }
-    };
+    //        imageRect.width = 16;
+    //        imageRect.height = clientRect.height;
+    //    }
+    //    else
+    //    {
+    //        imageRect.width = 0;
+    //        imageRect.height = 0;
+    //    }
+    //};
 
 
 

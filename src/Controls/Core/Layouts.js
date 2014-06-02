@@ -5,12 +5,20 @@
 (function (flyingon) {
 
 
+
     var layouts = {},
-        layout_unkown = null;;
+
+        layout_unkown = null,
+
+        parse = parseFloat,
+
+        round = Math.round;
+
+
 
 
     //注册自定义布局 
-    //注1. 遵守回调函数规范(items, spaceX, spaceY)
+    //注1. 遵守回调函数规范(items)
     //注2. 按需内容区宽高 contentWidth, contentHeight
     var registry = flyingon.registry_layout = function (name, arrange_fn) {
 
@@ -18,42 +26,51 @@
     };
 
 
-    flyingon.execute_layout = function (layout_type, items, spaceX, spaceY) {
+    flyingon.execute_layout = function (layout_type, items) {
 
-        if (spaceX == null)
+        (layouts[layout_type] || layout_unkown).call(this, items || this.__visiual_item || this.__children);
+    };
+
+
+    function get_line_space(target) {
+
+        var result, cache;
+
+        if ((result = +(cache = target.layoutLineSpace)) >= 0)
         {
-            spaceX = this.spaceX || 0;
-            if (spaceX.constructor !== Number)
-            {
-                spaceX = flyingon.parseInt(spaceX, this.clientWidth);
-            }
+            return result;
         }
 
-        if (spaceY == null)
-        {
-            spaceY = this.spaceY || 0;
+        return round(target.clientWidth * parse(cache) / 100) || 0;
+    };
 
-            if (spaceY.constructor !== Number)
-            {
-                spaceY = flyingon.parseInt(spaceY, this.clientHeight);
-            }
+    function get_item_space(target) {
+
+        var result, cache;
+
+        if ((result = +(cache = target.layoutItemSpace)) >= 0)
+        {
+            return result;
         }
 
-        (layouts[layout_type] || layout_unkown).call(this, items, spaceX, spaceY);
+        return round(target.clientHeight * parse(cache) / 100) || 0;
     };
 
 
 
-    //线性布局
+    //线性布局(支持竖排)
     (function (flyingon) {
 
 
-        function fn1(items, spaceX, spaceY) {
+        function fn1(items) {
 
-            var x = 0,
+            var space2 = get_item_space(this),
                 clientWidth = this.clientWidth,
-                contentHeight = this.alignHeight,
-                alignHeight = contentHeight || this.clientHeight;
+                contentHeight = this.layoutAlignHeight,
+                align_height = contentHeight || this.clientHeight,
+                x = 0,
+                width,
+                bottom;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -63,19 +80,17 @@
                 {
                     if (x > 0)
                     {
-                        x += spaceX;
+                        x += space2;
                     }
 
-                    var size = item.__fn_measure(clientWidth - x, alignHeight, false, true);
+                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
+                    bottom = item.locate(x, 0, null, align_height).y;
 
-                    item.__fn_alignY(alignHeight);
-                    item.__fn_position(x, 0);
+                    x += width;
 
-                    x += size.width;
-
-                    if (size.height > contentHeight)
+                    if (bottom > contentHeight)
                     {
-                        contentHeight = size.height;
+                        contentHeight = bottom;
                     }
                 }
             }
@@ -84,12 +99,15 @@
             this.contentHeight = contentHeight;
         };
 
-        function fn2(items, spaceX, spaceY) {
+        function fn2(items) {
 
-            var y = 0,
-                contentWidth = this.alignWidth,
-                alignWidth = contentWidth || this.clientWidth,
-                clientHeight = this.clientHeight;
+            var space2 = get_item_space(this),
+                contentWidth = this.layoutAlignWidth,
+                align_width = contentWidth || this.clientWidth,
+                clientHeight = this.clientHeight,
+                y = 0,
+                height,
+                right;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -99,17 +117,17 @@
                 {
                     if (y > 0)
                     {
-                        y += spaceY;
+                        y += space2;
                     }
 
-                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
-                    item.__fn_position(item.__fn_alignX(alignWidth), y);
+                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
+                    right = item.locate(0, y, align_width).x;
 
-                    y += item.outlineHeight;
+                    y += height;
 
-                    if (item.outlineWidth > contentWidth)
+                    if (right > contentWidth)
                     {
-                        contentWidth = item.outlineWidth;
+                        contentWidth = right;
                     }
                 }
             }
@@ -119,9 +137,9 @@
         };
 
 
-        registry("line", function (items, spaceX, spaceY) {
+        registry("line", function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items, spaceX, spaceY);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -129,19 +147,22 @@
 
 
 
-    //流式布局
+    //流式布局(支持竖排)
     (function (flyingon) {
 
 
-        function fn1(items, spaceX, spaceY) {
+        function fn1(items) {
 
-            var x = 0,
-                y = 0,
+            var space1 = get_line_space(this),
+                space2 = get_item_space(this),
                 contentWidth = 0,
                 contentHeight = 0,
                 clientWidth = this.clientWidth,
-                alignHeight = this.alignHeight || this.clientHeight,
-                cache;
+                align_height = this.layoutAlignHeight || 0,
+                x = 0,
+                y = 0,
+                width,
+                bottom;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -151,38 +172,35 @@
                 {
                     if (x > 0)
                     {
-                        if (item.newline) //强制在新行显示
+                        if (item.lineBreak) //强制换行
                         {
                             x = 0;
-                            y = y > 0 ? contentHeight + spaceY : contentHeight;
+                            y = contentHeight + space1;
                         }
                         else
                         {
-                            x += spaceX;
+                            x += space2;
                         }
                     }
 
-                    item.__fn_measure(clientWidth - x, alignHeight, false, true);
+                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
 
-                    cache = x + item.outlineWidth;
-
-                    if (x > 0 && cache > clientWidth) //超行
+                    if (x > 0 && x + width > clientWidth) //超行
                     {
                         x = 0;
-                        y = y > 0 ? contentHeight + spaceY : contentHeight;
+                        y = contentHeight + space1;
                     }
 
-                    //item.__fn_alignY(alignHeight);
-                    item.__fn_position(x, y);
+                    bottom = item.locate(x, y, null, align_height).y;
 
-                    if ((x = cache) > contentWidth)
+                    if ((x += width) > contentWidth)
                     {
                         contentWidth = x;
                     }
 
-                    if ((cache = y + item.outlineHeight) > contentHeight)
+                    if (bottom > contentHeight)
                     {
-                        contentHeight = cache;
+                        contentHeight = bottom;
                     }
                 }
             }
@@ -191,15 +209,18 @@
             this.contentHeight = contentHeight;
         };
 
-        function fn2(items, spaceX, spaceY) {
+        function fn2(items) {
 
-            var x = 0,
+            var space1 = get_line_space(this),
+                space2 = get_item_space(this),
+                x = 0,
                 y = 0,
                 clientHeight = this.clientHeight,
-                alignWidth = this.alignWidth || this.clientWidth,
+                align_width = this.layoutAlignWidth || 0,
                 contentWidth = 0,
                 contentHeight = 0,
-                cache;
+                height,
+                right;
 
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -209,38 +230,35 @@
                 {
                     if (y > 0)
                     {
-                        if (item.newline) //强制在新行显示
+                        if (item.lineBreak) //强制换行
                         {
                             y = 0;
-                            x = x > 0 ? contentWidth + spaceX : contentWidth;
+                            x = contentWidth + space1;
                         }
                         else
                         {
-                            y += spaceY;
+                            y += space2;
                         }
                     }
 
-                    item.__fn_measure(alignWidth, clientHeight - y, false, true);
+                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
 
-                    cache = y + item.outlineHeight;
-
-                    if (y > 0 && cache > clientHeight) //超行
+                    if (y > 0 && y + height > clientHeight) //超行
                     {
                         y = 0;
-                        x = x > 0 ? contentWidth + spaceX : contentWidth;
+                        x = contentWidth + space1;
                     }
 
-                    //item.__fn_alignX(alignWidth);
-                    item.__fn_position(x, y);
+                    right = item.locate(x, y, align_width).x;
 
-                    if ((y = cache) > contentHeight)
+                    if ((y += height) > contentHeight)
                     {
                         contentHeight = y;
                     }
 
-                    if ((cache = x + item.outlineWidth) > contentWidth)
+                    if (right > contentWidth)
                     {
-                        contentWidth = cache;
+                        contentWidth = right;
                     }
                 }
             }
@@ -250,9 +268,9 @@
         };
 
 
-        registry("flow", layout_unkown = function (items, spaceX, spaceY) {
+        registry("flow", layout_unkown = function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items, spaceX, spaceY);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -260,45 +278,50 @@
 
 
 
-    //单页显示
-    registry("page", function (items, spaceX, spaceY) {
+    //单页显示(不支持竖排)
+    registry("page", function (items) {
 
-        var page = this.layoutPage,
+        var width = this.clientWidth,
+            height = this.clientHeight,
+            index = this.layoutPage,
             length = items.length;
 
-        if (page < 0)
+        if (index < 0)
         {
-            page = 0;
+            index = 0;
         }
-        else if (page >= length)
+        else if (index >= length)
         {
-            page = length - 1;
+            index = length - 1;
         }
 
         for (var i = 0; i < length; i++)
         {
             var item = items[i];
 
-            if (item.__visible = (i === page))
+            if (item.__visible = (i === index))
             {
-                item.__fn_measure(this.clientWidth, this.clientHeight, true, false);
-                item.__fn_position(item.__fn_alignX(this.clientWidth), item.__fn_alignY(this.clientHeight));
+                item.measure(width, height, 1, 1);
+                item.locate(0, 0, width, height);
             }
         }
     });
 
 
 
-    //停靠布局
-    registry("dock", function (items, spaceX, spaceY) {
+    //停靠布局(不支持竖排)
+    registry("dock", function (items) {
 
-        var x = 0,
+        var space1 = get_line_space(this),
+            space2 = get_item_space(this),
+            x = 0,
             y = 0,
             width = this.clientWidth,
             height = this.clientHeight,
             right = width,
             bottom = height,
-            fill = [];
+            fill = [],
+            cache;
 
         for (var i = 0, _ = items.length; i < _; i++)
         {
@@ -315,31 +338,31 @@
                     switch (item.dock)
                     {
                         case "left":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, y);
+                            cache = item.measure(width, height, 0, 1).width;
+                            item.locate(x, y);
 
-                            width = right - (x += item.outlineWidth + spaceX);
+                            width = right - (x += cache + space2);
                             break;
 
                         case "top":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, y);
+                            cache = item.measure(width, height, 1, 0).height;
+                            item.locate(x, y);
 
-                            height = bottom - (y = item.outlineHeight + spaceY);
+                            height = bottom - (y += cache + space1);
                             break;
 
                         case "right":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(right -= item.outlineWidth, y);
+                            cache = item.measure(width, height, 0, 1).width;
+                            item.locate(right -= cache, y);
 
-                            width = (right -= spaceX) - x;
+                            width = (right -= space2) - x;
                             break;
 
                         case "bottom":
-                            item.__fn_measure(width, height, true, false);
-                            item.__fn_position(x, bottom -= item.outlineHeight);
+                            cache = item.measure(width, height, 1, 0).height;
+                            item.locate(x, bottom -= cache);
 
-                            height = (bottom -= spaceY) - y;
+                            height = (bottom -= space1) - y;
                             break;
 
                         default:
@@ -361,58 +384,53 @@
         {
             for (var i = 0, _ = fill.length; i < _; i++)
             {
-                fill[i].__fn_measure(width, height, true, false);
-                fill[i].__fn_position(x, y);
+                fill[i].measure(width, height, 1, 1);
+                fill[i].locate(x, y);
             }
         }
     });
 
 
 
-    //均匀网格布局
-    registry("grid", function (items, spaceX, spaceY) {
+    //网格布局(支持竖排)
+    registry("grid", function (items) {
 
-        var rows = this.layoutRows || 3,
-            columns = this.layoutColumns || 3,
+        var space1 = get_line_space(this),
+            space2 = get_item_space(this),
+            rows = this.layoutGridRows || 3,
+            columns = this.layoutGridColumns || 3,
             row = 0,
             column = 0,
-
             width_cache = [],
             height_cache = [],
+            x = 0,
+            y = 0,
             width,
             height,
             cache;
 
         //分割横向空间
-        width = columns > 1 ? this.clientWidth - spaceY * (columns - 1) : this.clientWidth;
+        width = columns > 1 ? this.clientWidth - space2 * (columns - 1) : this.clientWidth;
 
         for (var i = 0; i < columns; i++)
         {
-            width_cache[i] = [
-
-                i > 0 ? (cache += spaceX) : (cache = 0),
-                cache = Math.floor(width / (columns - i))
-            ];
-
+            width_cache[i] = [x, cache = Math.floor(width / (columns - i))];
             width -= cache;
+            x += cache + space1;
         }
 
         //分割纵向空间
-        height = rows > 1 ? this.clientHeight - spaceY * (rows - 1) : this.clientHeight;
+        height = rows > 1 ? this.clientHeight - space2 * (rows - 1) : this.clientHeight;
 
         for (var i = 0; i < rows; i++)
         {
-            height_cache[i] = [
-
-                i > 0 ? (cache += spaceY) : (cache = 0),
-                cache = Math.floor(height / (columns - i))
-            ];
-
+            height_cache[i] = [y, cache = Math.floor(height / (columns - i))];
             height -= cache;
+            y += cache + space2;
         }
 
         //按顺序排列
-        if (this.vertical)
+        if (this.layoutVertical)
         {
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -423,8 +441,8 @@
                     width = width_cache[column];
                     height = height_cache[row++];
 
-                    item.__fn_measure(width[1], height[1], true, false);
-                    item.__fn_position(width[0], height[0]);
+                    item.measure(width[1], height[1], 1, 1);
+                    item.locate(width[0], height[0], width[1], height[1]);
 
                     if (row >= rows)
                     {
@@ -445,8 +463,8 @@
                     width = width_cache[column++];
                     height = height_cache[row];
 
-                    item.__fn_measure(width[1], height[1], true, false);
-                    item.__fn_position(width[0], height[0]);
+                    item.measure(width[1], height[1], 1, 1);
+                    item.locate(width[0], height[0], width[1], height[1]);
 
                     if (column >= columns)
                     {
@@ -460,20 +478,21 @@
 
 
 
-    //自定义网格布局
-    registry("custom-grid", function (items, spaceX, spaceY) {
+    //表格布局(不支持竖排)
+    registry("table", function (items) {
 
-        var grid = new flyingon.GridDefine().load(this.layoutGrid);
+        var grid = new flyingon.GridDefine().load(this.gridDefine);
 
-        grid.spaceX = spaceX;
-        grid.spaceY = spaceY;
+        grid.spaceX = get_item_space(this);
+        grid.spaceY = get_line_space(this);
 
         grid.compute(this.clientWidth, this.clientHeight);
-        grid.match(items, this.vertical);
+        grid.match(items);
     });
 
 
-    //绝对定位
+
+    //绝对定位(不支持竖排)
     registry("absolute", function (items) {
 
         var contentWidth = 0,
@@ -488,8 +507,8 @@
 
             if (item.__visible = (item.visibility !== "collapsed"))
             {
-                item.controlWidth = width = +item.width || item.__defaults.width;
-                item.controlHeight = height = +item.height || item.__defaults.height;
+                width = item.controlWidth = +item.width || item.__defaults.width;
+                height = item.controlHeight = +item.height || item.__defaults.height;
 
                 if ((cache = (item.controlX = +item.left || 0) + width) > contentWidth)
                 {
@@ -501,22 +520,24 @@
                     contentHeight = cache;
                 }
 
-                if ((item.insideWidth = (width -= (item.insideX = item.borderLeftWidth) + item.borderRightWidth)) <= 0)
+                var box = item.__fn_box_style();
+
+                if ((item.insideWidth = (width -= box.border_spaceX)) <= 0)
                 {
                     item.insideWidth = 0;
                     item.clientWidth = 0;
                 }
-                else if ((item.clientWidth = width - (item.clientX = item.paddingLeft) - item.paddingTop) < 0)
+                else if ((item.clientWidth = width - box.padding_spaceX) < 0)
                 {
                     item.clientWidth = 0;
                 }
 
-                if ((item.insideHeight = (height -= (item.insideX = item.borderTopWidth) + item.borderBottomWidth)) <= 0)
+                if ((item.insideHeight = (height -= box.border_spaceY)) <= 0)
                 {
                     item.insideHeight = 0;
                     item.clientHeight = 0;
                 }
-                else if ((item.clientHeight = height - (item.clientX = item.paddingTop) - item.paddingTop) < 0)
+                else if ((item.clientHeight = height - box.padding_spaceY) < 0)
                 {
                     item.clientHeight = 0;
                 }
@@ -864,7 +885,7 @@
 
 
 
-            function horizontal_cells(target, exports) {
+            function match_cells(target, exports) {
 
                 var rows = target.rows;
 
@@ -881,7 +902,7 @@
 
                         if (cell.children)
                         {
-                            horizontal_cells(cell.children, exports);
+                            match_cells(cell.children, exports);
                         }
                         else
                         {
@@ -893,47 +914,12 @@
                 return exports;
             };
 
-            function vertical_cells(target, exports) {
-
-                var rows = target.rows,
-                    values = [];
-
-                exports = exports || [];
-
-                for (var i = 0, _ = rows.length; i < _; i++)
-                {
-                    var row = rows[i],
-                        cells = row.cells;
-
-                    for (var j = 0, __ = cells.length; j < __; j++)
-                    {
-                        var cell = cells[j];
-
-                        if (cell.children)
-                        {
-                            vertical_cells(cell.children, exports);
-                        }
-                        else
-                        {
-                            (values[i] || (values[i] = [])).push(cell);
-                        }
-                    }
-                }
-
-                for (var i = 0, _ = values.length; i < _; i++)
-                {
-                    exports.push.apply(exports, values[i]);
-                }
-
-                return exports;
-            };
-
 
 
             //按顺序自动排列子控件
-            this.match = function (items, vertical) {
+            this.match = function (items) {
 
-                var cells = vertical ? vertical_cells(this) : horizontal_cells(this),
+                var cells = match_cells(this),
                     length = cells.length,
                     index = 0;
 
@@ -945,8 +931,8 @@
                     {
                         var cell = cells[index++];
 
-                        item.__fn_measure(cell.width, cell.row.height, true, false);
-                        item.__fn_position(cell.x, cell.row.y);
+                        item.measure(cell.width, cell.row.height, 1, 1);
+                        item.locate(cell.x, cell.row.y);
                     }
                 }
 

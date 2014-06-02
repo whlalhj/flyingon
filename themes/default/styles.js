@@ -1,4 +1,9 @@
-﻿/*
+﻿/// <reference path="../js/flyingon.js" />
+
+
+
+
+/*
 
 定义样式
 
@@ -7,7 +12,7 @@
 注3: 注意选择器权重(与css相仿)
 注4: class样式书写顺序无所谓,同一个对象应用多个class时后置优先
 注5: 伪类优先级 selection > enabled, disabled > active > hover > focus > checked 
-注6: 仅 writingMode, align, textAlign ... 支持继承
+注6: 仅 visibility, cursor, direction 支持继承
 注7: font, background, margin, border, padding可分子属性设置样式, 但不支持与其它样式的子属性合并 如: .class1 { marginLeft: 10 } .class2 { marginTop: 10 } 在优先应用.class2样式时不使用.class1的marginLeft属性值 
 
 
@@ -39,7 +44,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 */
 (function (flyingon) {
 
-    
+
+
 
     //颜色可选值如下
     //#rrggbb                                                                           rgb颜色 与css规则相同
@@ -59,11 +65,157 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     var defineStyle = flyingon.defineStyle;
 
 
-    //示例
+
+    //默认样式
+    defineStyle("*", {
+
+        backgroundColor: "#AAAAAA",
+        color: "#000000",
+        borderColor: "blue"
+    });
+
+    //选中时控件默认样式
+    defineStyle("*:checked", {
+
+        backgroundColor: "#FFFFFF",
+        borderColor: "#CCCCCC"
+    });
+
+    //获取焦点时控件默认样式
+    defineStyle("*:focus", {
+
+        borderColor: "#CCCCCC"
+    });
+
+
+    //捕获鼠标时控件默认样式
     defineStyle("*:hover", {
 
- 
+        borderColor: "#CCCCCC"
+    });
+
+    //活动状态时控件默认样式
+    defineStyle("*:active", {
+
+        borderColor: "#222222"
+    });
+
+    //禁用时控件默认样式
+    defineStyle("*:disabled", {
+
+        backgroundColor: "#444444",
+        color: "#222222"
+    });
+
+
+
+
+    //选中文字颜色
+    defineStyle(".selection-text", {
+
+        backgroundColor: "skyblue",
+        color: "white"
+    });
+
+
+
+
+    //滚动条
+    defineStyle("ScrollBar", {
+
+        backgroundColor: "silver"
+    });
+
+
+    //滚动条按钮
+    defineStyle("ScrollBar_Button", {
+
+        margin: 2
+    });
+
+
+    //滚动条滑块
+    defineStyle("ScrollBar_Slider", {
+
+        margin: "2 0",
+        backgroundColor: "#666666",
+    });
+
+    defineStyle("ScrollBar_Slider:active", {
+
+        backgroundColor: "red"
+    });
+
+    defineStyle("ScrollBar_Slider:hover", {
+
+        backgroundColor: "yellow"
+    });
+
+
+    //滚动条拐角
+    defineStyle("ScrollBar_Corner", {
+
+    });
+
+
+
+
+    //内容控件样式
+    defineStyle("ContentControl", {
+
+    });
+
+
+
+    //面板控件样式
+    defineStyle("Panel", {
+
+    });
+
+
+
+    //文本框样式
+    defineStyle("TextBoxBase", {
+
+        backgroundColor: "#FFFFFF",
+        border: "1 solid #CCCCCC",
+        cursor: "text"
+    });
+
+
+
+    //文本框样式
+    defineStyle("ListBox", {
+
+    });
+
+
+
+    //文本框样式
+    defineStyle("Button", {
+
+        backgroundColor: "linear(0, 0, 0, 1, 0, skyblue, 0.5, blue, 0.5, blue, 1, skyblue)",
+        cursor: "pointer"
+    });
+
+
+    defineStyle("WindowBase", {
+
+        backgroundColor: "#FFFFFF",
+        border: "1 solid #CCCCCC"
+    });
+
+    defineStyle("Window", {
+
+    });
+
+
+    defineStyle("ChildWindow", {
+
     });
 
 
 })(flyingon);
+
+
+

@@ -194,8 +194,8 @@ flyingon.window_extender = function (base, flyingon) {
         }
 
         result.__parent = this;
-        result.__fn_measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
-        result.__fn_position(0, 0);
+        result.measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
+        result.locate(0, 0);
 
         dom_layer.__ownerWindow = dom_canvas.__ownerWindow = this;
 
@@ -507,8 +507,8 @@ flyingon.window_extender = function (base, flyingon) {
 
             layer.__unregistry_update();
 
-            layer.__fn_measure(width - x, height - y);
-            layer.__fn_position(x, y);
+            layer.measure(width - x, height - y);
+            layer.locate(x, y);
 
             layer.__fn_render(layer.painter);
         }

@@ -10,143 +10,6 @@ Canvas2D绘图
 
 
 
-    /*
-    转成RGB颜色
-
-    */
-    flyingon.toRGBString = function (r, g, b, alpha) {
-
-        if (arguments.length <= 2)
-        {
-            alpha = g;
-            b = r & 0xFF;
-            g = r >> 8 & 0xFF;
-            r = r >> 16 & 0xFF;
-        }
-
-        if (alpha == null)
-        {
-            return "rgb(" + r + "," + g + "," + b + ")";
-        }
-
-        return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-    };
-
-    /*
-    转成HSL颜色
-
-    */
-    flyingon.toHSLString = function (hue, saturation, lightness, alpha) {
-
-        if (alpha == null)
-        {
-            return "hsl(" + (hue % 360) + "," + saturation + "%," + lightness + "%)";
-        }
-
-        return "hsla(" + (hue % 360) + "," + saturation + "%," + lightness + "%," + alpha + ")";
-    };
-
-
-
-
-    /*
-    线性渐变
-
-    */
-    var LinearGradient = flyingon.LinearGradient = function (x1, y1, x2, y2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.colorStops = colorStops;
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-        }
-        this.transparent = false;
-    };
-
-    LinearGradient.prototype.style = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createLinearGradient(x + this.x1 * width, y + this.y1 * height, x + this.x2 * width, y + this.y2 * height),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-
-    /*
-    径向渐变
-
-    */
-    var RadialGradient = flyingon.RadialGradient = function (x1, y1, radius1, x2, y2, radius2, colorStops) {
-
-        this.x1 = x1;
-        this.y1 = y1;
-        this.radius1 = radius1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.radius2 = radius2;
-        this.colorStops = colorStops;
-    };
-
-    RadialGradient.prototype.style = function (context) {
-
-        var r = context.boxModel.clientRect,
-
-            x = r.windowX,
-            y = r.windowY,
-            width = r.width,
-            height = r.height,
-
-            g = context.createRadialGradient(x + this.x1 * width, y + this.y1 * height, this.radius1, x + this.x2 * width, y + this.y2 * height, this.radius2),
-
-            colorStops = this.colorStops;
-
-
-        for (var i = 0; i < colorStops.length; i++)
-        {
-            g.addColorStop(colorStops[i][0], colorStops[i][1]);
-        }
-
-        return g;
-    };
-
-
-    /*
-    图像填充模式
-
-    */
-    var ImagePattern = flyingon.ImagePattern = function (image, repetition) {
-
-        this.image = image;
-        this.repetition = repetition;
-    };
-
-    ImagePattern.prototype.style = function (context) {
-
-        return context.createPattern(this.image, this.repetition);
-    };
-
-
-
-
     //2d图形绘制器
     flyingon.Painter = flyingon.function_extend(
 
@@ -159,40 +22,193 @@ Canvas2D绘图
 
 
 
+
             var self = this,
 
                 radian = Math.PI / 180,     //角度转弧度系数
 
-                colors = {};                //已转换颜色缓存
+                regex_transparent = /rgba|hsla/, //透明颜色判断规则
+
+                regex_color = /#|rgb|hsl|rgba|hsla|linear|radial|pattern|[\w-.]+/g, //颜色解析规则
+
+                color_cache = {};
 
 
 
 
-
-            //目标控件
+            //当前目标控件
             this.target = null;
 
 
 
-            //转换样式
+
+            //颜色可选值如下
+            //#rrggbb                                                                           rgb颜色 与css规则相同
+            //name                                                                              颜色名称 与css规则相同
+            // rgb(0-255 | x%, 0-255 | x%, 0-255 | x%)                                          rgb颜色 与css规则相同
+            //rgba(0-255 | x%, 0-255 | x%, 0-255 | x%, 0-1)                                     rgba颜色 与css规则相同
+            // hsl(0-360, x%, x%)                                                               hsl颜色 与css规则相同
+            //hsla(0-360, x%, x%, 0-1)                                                          hsla颜色 与css规则相同
+            //linear(x1, y2, x2, y2, step1, color1, step2, color2[, ...])                       线性渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+            //radial(x1, y1, radius1, x2, y2, radius2, step1, color1, step2, color2[, ...])     径向渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+            //pattern(image, repeat|repeat-x|repeat-y|no-repeat)                                图像填充
+
+
+
+            //解析颜色
             function parse_color(value) {
 
+                var tokens = ("" + value).match(regex_color),
+                    token = tokens[0];
 
+                switch (token)
+                {
+                    case "#":
+                        return { color: "#" + tokens[1] };
+
+                    case "rgb":
+                    case "hsl":
+                        return { color: token + "(" + tokens[1] + ", " + tokens[2] + ", " + tokens[3] + ")" };
+
+                    case "rgba":
+                    case "hsla":
+                        return { color: token + "(" + tokens[1] + ", " + tokens[2] + ", " + tokens[3] + ", " + tokens[4] + ")", transparet: true };
+
+                    case "linear":
+                        return translate_color({
+
+                            x1: +tokens[1] || 0,
+                            y1: +tokens[2] || 0,
+                            x2: +tokens[3] || 0,
+                            y2: +tokens[4] || 0,
+                            fn: linear
+
+                        }, tokens, 5);
+
+                    case "radial":
+                        return translate_color({
+
+                            x1: +tokens[1] || 0,
+                            y1: +tokens[2] || 0,
+                            r1: +tokens[3] || 0,
+                            x2: +tokens[4] || 0,
+                            y2: +tokens[5] || 0,
+                            r2: +tokens[6] || 0,
+                            fn: radial
+
+                        }, tokens, 7);
+
+                    case "pattern":
+                        return {
+
+                            image: tokens[1],
+                            repeat: tokens[2],
+                            fn: pattern,
+                            transparent: true //图片都按透明方式处理
+                        };
+
+                    default:
+                        return { color: token };
+                }
             };
 
 
-            function defineProperty(name, color) {
+            //转换渐变颜色
+            function translate_color(target, tokens, index) {
 
-                var getter = "return this.context." + name + ";",
-                    setter = "this.context." + name + " = value;";
+                var colors = target.colors = [],
+                    flag = true,
+                    color;
 
-                if (color)
+                for (var i = index, _ = tokens.length; i < _; i++)
                 {
-                    
+                    colors.push(+tokens[i++] || 0);
+                    colors.push(color = tokens[i] || "white");
+
+                    if (flag && (color === "transparent" || color.match(regex_transparent)))
+                    {
+                        target.transparet = true;
+                        flag = false;
+                    }
                 }
 
-                flyingon.defineProperty(self, name, new Function(getter), new Function("value", setter));
+                return target;
             };
+
+
+            //线性渐变颜色设置方法
+            function linear(painter) {
+
+                var target = painter.target,
+                    width = target.insideWidth,
+                    height = target.insideHeight,
+                    result = painter.context.createLinearGradient(this.x1 * width, this.y1 * height, this.x2 * width, this.y2 * height),
+                    colors = this.colors;
+
+                for (var i = 0, _ = colors.length; i < _; i++)
+                {
+                    result.addColorStop(colors[i++], colors[i]);
+                }
+
+                return result;
+            };
+
+
+
+            //径向渐变颜色设置方法
+            function radial(painter) {
+
+                var target = painter.target,
+                    width = target.insideWidth,
+                    height = target.insideHeight,
+                    result = painter.context.createRadialGradient(this.x1 * width, this.y1 * height, this.r1, this.x2 * width, this.y2 * height, this.r2),
+                    colors = this.colors;
+
+                for (var i = 0, _ = colors.length; i < _; i++)
+                {
+                    result.addColorStop(colors[i++], colors[i]);
+                }
+
+                return result;
+            };
+
+
+            //图像填充模式设置方法
+            function pattern(context) {
+
+                return context.createPattern(flyingon.get_image(this.image), this.repeat);
+            };
+
+
+
+
+            function defineProperty(name, setter) {
+
+                var getter = new Function("return this.context." + name + ";"),
+                    setter;
+
+                if (setter == null)
+                {
+                    setter = new Function("value", "this.context." + name + " = value;");
+                }
+                else if (setter === "color")
+                {
+                    setter = function (value) {
+
+                        var style = color_cache[value] || (color_cache[value] = parse_color(value));
+
+                        if (style.transparent && !this.target.__update_parent)
+                        {
+                            this.target.__update_parent = true;
+                        }
+
+                        this.context[name] = style.color || style.fn(this);
+                    };
+                }
+
+                flyingon.defineProperty(self, name, getter, setter);
+            };
+
 
 
 
@@ -200,27 +216,20 @@ Canvas2D绘图
             设置填充色
             (color) = "#000000"	
             */
-            defineProperty("fillStyle");
+            defineProperty("fillStyle", "color");
 
             /*    
             设置边框色
             (color) = "#000000"	
             */
-            defineProperty("strokeStyle");
-
-
+            defineProperty("strokeStyle", "color");
 
 
             /*    
             设置或返回用于阴影的颜色
             (color) = "#000000"	 
             */
-            defineProperty("shadowColor");
-
-
-
-
-
+            defineProperty("shadowColor", "color");
 
 
 
@@ -267,6 +276,12 @@ Canvas2D绘图
             */
             defineProperty("miterLimit");
 
+            /* 
+            设置或返回虚线偏移(ie11, safari7以上才支持)
+            (number) = 10	     
+            */
+            defineProperty("lineDashOffset");
+
 
             /* 
             设置或返回文本内容的当前字体属性
@@ -304,7 +319,13 @@ Canvas2D绘图
             透明值 必须介于0.0(完全透明)与1.0(不透明)之间
             set_globalAlpha(number)	
             */
-            defineProperty("globalAlpha");
+            defineProperty("globalAlpha", function (value) {
+
+                if ((this.context.globalAlpha = +value || 1) < 1 && !this.target.__update_parent)
+                {
+                    this.target.__update_parent = true;
+                }
+            });
 
             /* 
             设置或返回新图像如何绘制到已有的图像上
@@ -322,7 +343,36 @@ Canvas2D绘图
             copy	显示源图像 忽略目标图像 
             source-over	使用异或操作对源图像与目标图像进行组合 
             */
-            defineProperty("globalCompositeOperation");
+            defineProperty("globalCompositeOperation", function (value) {
+
+                if (!this.target.__update_parent)
+                {
+                    this.target.__update_parent = true;
+                }
+
+                this.context.globalCompositeOperation = value;
+            });
+
+
+
+            //设置虚线样式(ie11, safari7以上才支持)
+            this.getLineDash = function () {
+
+                var context = this.context;
+                return context.getLineDash && context.getLineDash();
+            };
+
+
+            //设置虚线样式(ie11, safari7以上才支持)
+            this.setLineDash = function (dashArray) {
+
+                var context = this.context;
+
+                if (context.setLineDash)
+                {
+                    context.setLineDash(dashArray);
+                }
+            };
 
 
 
@@ -386,6 +436,47 @@ Canvas2D绘图
             this.lineTo = function (x, y) {
 
                 this.context.lineTo(x, y);
+            };
+
+            //画虚线
+            this.lineTo_dash = function (x1, y1, x2, y2, dashArray) {
+
+                dashArray = dashArray || [10, 5];
+
+                var context = this.context,
+                    length = dashArray.length,
+                    width = (x2 - x1),
+                    height = (y2 - y1),
+                    slope = height / width,
+                    distance = Math.sqrt(width * width + height * height),
+                    index = 0,
+                    flag = false;
+
+                context.moveTo(x1, y1);
+
+                while (distance >= 0.1)
+                {
+                    var dashLength = dashArray[index++ % length];
+
+                    if (dashLength > distance)
+                    {
+                        dashLength = distance;
+                    }
+
+                    var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
+
+                    if (width < 0)
+                    {
+                        step = -step;
+                    }
+
+                    x1 += step;
+                    y1 += slope * step;
+
+                    context[(flag = !flag) ? "lineTo" : "moveTo"](x1, y1);
+
+                    distance -= dashLength;
+                }
             };
 
             //如果指定的点位于当前路径中 则返回 true 否则返回 false
@@ -657,22 +748,6 @@ Canvas2D绘图
             };
 
 
-            //绘制边框
-            this.paint_border = function (x, y, width, height, border) {
-
-                var context = this.context;
-
-                context.beginPath();
-
-                context.rect(x, y, width - border.right, border.top);
-                context.rect(x + width - border.right, y, border.right, height - border.bottom);
-                context.rect(x + border.left, y + height - border.bottom, width - border.left, border.bottom);
-                context.rect(x, y + border.top, border.left, height - border.top);
-
-                context.fill();
-            };
-
-
 
             this.rectTo = function (x, y, width, height, anticlockwise) {
 
@@ -760,7 +835,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.roundRect(x, y, width, height, radius);
+                this.roundRect(x, y, width, height, radius);
                 context.fill();
             };
 
@@ -777,7 +852,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.roundRect(x, y, width, height, radius);
+                this.roundRect(x, y, width, height, radius);
                 context.stroke();
             };
 
@@ -804,7 +879,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.polygon(sides, x, y, radius, angle, anticlockwise);
+                this.polygon(sides, x, y, radius, angle, anticlockwise);
                 context.fill();
             };
 
@@ -813,7 +888,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.polygon(sides, x, y, radius, angle, anticlockwise);
+                this.polygon(sides, x, y, radius, angle, anticlockwise);
                 context.stroke();
             };
 
@@ -843,7 +918,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
+                this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
                 context.fill();
             };
 
@@ -852,7 +927,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
+                this.starPolygon(vertexes, x, y, radius1, radius2, angle, anticlockwise);
                 context.stroke();
             };
 
@@ -883,7 +958,7 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.ellipse(x, y, width, height);
+                this.ellipse(x, y, width, height);
                 context.fill();
             };
 
@@ -892,51 +967,8 @@ Canvas2D绘图
                 var context = this.context;
 
                 context.beginPath();
-                context.ellipse(x, y, width, height);
+                this.ellipse(x, y, width, height);
                 context.stroke();
-            };
-
-
-
-            //画虚线
-            this.dashLine = function (x1, y1, x2, y2, dashArray) {
-
-                dashArray = dashArray || [10, 5];
-
-                var context = this.context,
-                    length = dashArray.length,
-                    width = (x2 - x1),
-                    height = (y2 - y1),
-                    slope = height / width,
-                    distRemaining = Math.sqrt(width * width + height * height),
-                    index = 0,
-                    draw = false;
-
-                context.moveTo(x1, y1);
-
-                while (distRemaining >= 0.1)
-                {
-                    var dashLength = dashArray[index++ % length];
-
-                    if (dashLength > distRemaining)
-                    {
-                        dashLength = distRemaining;
-                    }
-
-                    var step = Math.sqrt(dashLength * dashLength / (1 + slope * slope));
-
-                    if (width < 0)
-                    {
-                        step = -step;
-                    }
-
-                    x1 += step;
-                    y1 += slope * step;
-
-                    context[(draw = !draw) ? "lineTo" : "moveTo"](x1, y1);
-
-                    distRemaining -= dashLength;
-                }
             };
 
 

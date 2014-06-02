@@ -16,41 +16,41 @@ flyingon.defineClass("TextButtonBase", flyingon.TextBoxBase, function (Class, ba
 
 
 
-    this.measure = function (boxModel) {
+    //this.measure = function (boxModel) {
 
 
-        boxModel.compute();
+    //    boxModel.compute();
 
 
-        var clientRect = boxModel.clientRect,
-            imageRect = boxModel.imageRect;
+    //    var clientRect = boxModel.clientRect,
+    //        imageRect = boxModel.imageRect;
 
 
-        if (!imageRect)
-        {
-            imageRect = boxModel.imageRect = new flyingon.Rect();
-        }
+    //    if (!imageRect)
+    //    {
+    //        imageRect = boxModel.imageRect = new flyingon.Rect();
+    //    }
 
-        imageRect.x = clientRect.x;
-        imageRect.y = clientRect.y;
+    //    imageRect.x = clientRect.x;
+    //    imageRect.y = clientRect.y;
 
 
-        if (this.showButton)
-        {
-            clientRect.width -= 16;
+    //    if (this.showButton)
+    //    {
+    //        clientRect.width -= 16;
 
-            imageRect.canvasX = clientRect.canvasX + clientRect.width;
-            imageRect.canvasY = clientRect.canvasY;
+    //        imageRect.canvasX = clientRect.canvasX + clientRect.width;
+    //        imageRect.canvasY = clientRect.canvasY;
 
-            imageRect.width = 16;
-            imageRect.height = clientRect.height;
-        }
-        else
-        {
-            imageRect.width = 0;
-            imageRect.height = 0;
-        }
-    };
+    //        imageRect.width = 16;
+    //        imageRect.height = clientRect.height;
+    //    }
+    //    else
+    //    {
+    //        imageRect.width = 0;
+    //        imageRect.height = 0;
+    //    }
+    //};
 
 
 

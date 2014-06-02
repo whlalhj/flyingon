@@ -57,8 +57,8 @@
                     ctrl.width = 80;
                     ctrl.height = 20;
                     ctrl.border = [1, 1, 1, 1];
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, "rect(0,0,1,1) 0 yellow 1 blue");
-                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [0, "red", 0.5, "green", 1, "blue"]);
+                    ctrl.borderColor = "linear(0, 0, 1, 1, 0, yellow, 1, blue)";
+                    ctrl.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
 
                     panel.children.append(ctrl);
                 }
@@ -66,8 +66,8 @@
                 panel.width = 500;
                 panel.height = 500;
                 panel["border"] = [10,10,10,10];
-                panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                panel.layout = "flow";
+                panel.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
+                panel.layoutType = "flow";
    
                 w.children.append(panel);
             };
@@ -117,7 +117,7 @@
                 w.update();
             };
 
-            w.layout = "flow";
+            w.layoutType = "flow";
 
             flyingon.endInit();
             alert(new Date() - date);

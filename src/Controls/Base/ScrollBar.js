@@ -55,7 +55,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     this.defineProperty("value", 0, "invalidate");
 
     //滚动条长度
-    this.defineProperty("length", 100, "invalidate");
+    this.defineProperty("maxValue", 100, "invalidate");
 
     //显示值大小
     this.defineProperty("viewportSize", 10, "rearrange");
@@ -116,12 +116,12 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
 
             if (value < this.__offset_value) //slider before
             {
-                limit = Math.round((value - this.thickness) * this.length / this.__length_value);
+                limit = Math.round((value - this.thickness) * this.maxValue / this.__length_value);
                 value = -this.max_change;
             }
             else  //slider after
             {
-                limit = Math.round((value - this.thickness - this.__slider_value) * this.length / this.__length_value);
+                limit = Math.round((value - this.thickness - this.__slider_value) * this.maxValue / this.__length_value);
                 value = this.max_change;
             }
         }
@@ -138,7 +138,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
         if (dragger)
         {
             var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                value = Math.round(offset * this.length / this.__length_value);
+                value = Math.round(offset * this.maxValue / this.__length_value);
 
             if (value)
             {
@@ -166,7 +166,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
     this.step_to = function (step, limit, originalEvent) {
 
         var value = this.value + step,
-            length = this.length - this.viewportSize;
+            length = this.maxValue - this.viewportSize;
 
 
         if (limit == null)
@@ -244,7 +244,7 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        var result = Math.round(length * this.viewportSize / this.length);
+        var result = Math.round(length * this.viewportSize / this.maxValue);
         return result <= 8 ? 8 : result;
     };
 
@@ -255,54 +255,54 @@ flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyin
             return 0;
         }
 
-        if (this.value >= this.length - this.viewportSize)
+        if (this.value >= this.maxValue - this.viewportSize)
         {
             return length - slider;
         }
 
-        return Math.round(this.value * length / this.length);
+        return Math.round(this.value * length / this.maxValue);
     };
 
 
 
-    this.measure = function (boxModel) {
+    //this.measure = function (boxModel) {
 
-        boxModel.compute();
+    //    boxModel.compute();
 
-        var r = boxModel.clientRect,
-            x = 0,
-            y = 0,
-            value,
-            button1 = this.__button1,
-            button2 = this.__button2,
-            slider0 = this.__slider0.__boxModel,
-            thickness = this.thickness;
+    //    var r = boxModel.clientRect,
+    //        x = 0,
+    //        y = 0,
+    //        value,
+    //        button1 = this.__button1,
+    //        button2 = this.__button2,
+    //        slider0 = this.__slider0.__boxModel,
+    //        thickness = this.thickness;
 
-        button1.__boxModel.measure(0, 0, thickness, thickness);
+    //    button1.__boxModel.measure(0, 0, thickness, thickness);
 
-        if (button1.vertical = button2.vertical = this.vertical)
-        {
-            var length = this.__length_value = (value = boxModel.clientRect.height) - (thickness << 1),
-                slider = this.__slider_value = slider_length.call(this, length),
-                offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
+    //    if (button1.vertical = button2.vertical = this.vertical)
+    //    {
+    //        var length = this.__length_value = (value = boxModel.clientRect.height) - (thickness << 1),
+    //            slider = this.__slider_value = slider_length.call(this, length),
+    //            offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
-            y = Math.max(value - thickness, 0);
+    //        y = Math.max(value - thickness, 0);
 
-            slider0.measure(0, offset, thickness, slider);
-        }
-        else
-        {
-            length = this.__length_value = (value = boxModel.clientRect.width) - (thickness << 1);
-            slider = this.__slider_value = slider_length.call(this, length);
-            offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
+    //        slider0.measure(0, offset, thickness, slider);
+    //    }
+    //    else
+    //    {
+    //        length = this.__length_value = (value = boxModel.clientRect.width) - (thickness << 1);
+    //        slider = this.__slider_value = slider_length.call(this, length);
+    //        offset = this.__offset_value = thickness + slider_start.call(this, length, slider);
 
-            x = Math.max(value - thickness, 0);
+    //        x = Math.max(value - thickness, 0);
 
-            slider0.measure(offset, 0, slider, thickness);
-        }
+    //        slider0.measure(offset, 0, slider, thickness);
+    //    }
 
-        button2.__boxModel.measure(x, y, thickness, thickness);
-    };
+    //    button2.__boxModel.measure(x, y, thickness, thickness);
+    //};
 
 
 

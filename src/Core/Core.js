@@ -527,29 +527,7 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
-    //转换字符串为整数 支持"%"
-    flyingon.parseInt = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] === "%")
-        {
-            return Math.floor(parseFloat(value) * total / 100);
-        }
-
-        return parseInt(value);
-    };
-
-    //转换字符串为浮点数 支持"%"
-    flyingon.parseFloat = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] === "%")
-        {
-            return parseFloat(value) * total / 100;
-        }
-
-        return parseFloat(value);
-    };
-
-
+ 
 
     //编码对象
     flyingon.encode = function (data) {
