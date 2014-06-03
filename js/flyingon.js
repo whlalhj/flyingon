@@ -5360,7 +5360,7 @@ flyingon.Matrix = flyingon.function_extend(
                         }
                     }
 
-                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
+                    width = item.measure(clientWidth - x, align_height, 0, 0, 1, 0).width;
 
                     if (x > 0 && x + width > clientWidth) //超行
                     {
@@ -5418,7 +5418,7 @@ flyingon.Matrix = flyingon.function_extend(
                         }
                     }
 
-                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
+                    height = item.measure(align_width, clientHeight - y, 0, 0, 1, 0).height;
 
                     if (y > 0 && y + height > clientHeight) //超行
                     {
@@ -5483,6 +5483,28 @@ flyingon.Matrix = flyingon.function_extend(
             }
         }
     });
+
+
+
+
+    //单页显示(不支持竖排)
+    registry("xxxx", function (items) {
+
+        var width = this.clientWidth,
+            height = this.clientHeight;
+
+        for (var i = 0, _ = items.length; i < _; i++)
+        {
+            var item = items[i];
+
+            if (item.__visible = (item.visibility !== "collapsed"))
+            {
+                //item.measure(width, height, 1, 1);
+                //item.locate(0, 0, width, height);
+            }
+        }
+    });
+
 
 
 
@@ -5658,13 +5680,10 @@ flyingon.Matrix = flyingon.function_extend(
     //表格布局(不支持竖排)
     registry("table", function (items) {
 
-        var grid = new flyingon.GridDefine().load(this.gridDefine);
+        var table = new flyingon.TableDefine().parse(this.layoutTable);
 
-        grid.spaceX = get_item_space(this);
-        grid.spaceY = get_line_space(this);
-
-        grid.compute(this.clientWidth, this.clientHeight);
-        grid.match(items);
+        table.compute(this.clientWidth, this.clientHeight, get_item_space(this), get_line_space(this));
+        table.arrange(items);
     });
 
 
@@ -5741,310 +5760,383 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-    //布局格
-    flyingon.CellDefine = flyingon.function_extend(
+    var round = Math.round,
+        regex_value = /\d+(.\d*)?|[*%]/g;
 
-        function (grid, row) {
 
-            this.grid = grid;
-            this.row = row;
+    //定义表格属性
+    function defineProperty(target, name) {
+
+        flyingon.defineProperty(target, name,
+
+            function () {
+
+                return this.__type ? this.__value + this.__type : this.__value;
+            },
+
+            function (value) {
+
+                var cache = this.__value;
+
+                if (cache = +value) //固定大小
+                {
+                    this.__type = null;
+                    this.__value = round(cache); //取整
+                }
+                else //字符串
+                {
+                    var values = (value = "" + value).match(regex_value);
+
+                    this.__type = values.pop();
+                    this.__value = values[0] || 100;
+                }
+            });
+    };
+
+
+
+    //单元
+    var cell_type = flyingon.function_extend(
+
+        function (row) {
+
+            (this.parent = row)[row.length++] = this;
         },
 
         function () {
 
-            this.grid = null;
+            //子表
+            this.subtable = null;
 
+            //x坐标
             this.x = 0;
 
+            //实际宽度
             this.width = 0;
 
-            this.__width_string = "*";
-
-            this.__width_weight = 100;
-
-            this.__width_auto = false;
 
 
-            //设置列宽
-            this.set_width = function (value) {
+            //表格类型
+            this.__type = "*";
 
-                if (this.__width_auto)
-                {
-                    this.row.__width_weights -= this.__width_weight;
-                    this.__width_auto = false;
-                }
-                else if (this.width)
-                {
-                    this.row.__width_fixed -= this.width;
-                }
+            //表格值
+            this.__value = 100;
 
-                this.__width_string = value = value || "*";
 
-                var length = value.length - 1;
+            //表格值
+            defineProperty(this, "value");
 
-                if (value[length] === "*")
-                {
-                    this.__width_weight = length ? value.substring(0, length) : 100;
-                    this.__width_auto = true;
-                    this.width = 0;
-                    this.row.__width_weights += this.__width_weight;
-                }
-                else
-                {
-                    this.width = parseInt(value);
-                    this.row.__width_fixed += this.width;
-                }
-            };
 
         });
 
 
 
-    //布局行
-    flyingon.RowDefine = flyingon.function_extend(
+    //表格行
+    var row_type = flyingon.function_extend(
 
-        function (grid) {
+        function (table) {
 
-            this.grid = grid;
-            this.cells = [];
+            (this.parent = table)[table.length++] = this;
         },
 
         function () {
 
-            this.grid = null;
-
+            //y坐标
             this.y = 0;
 
+            //实际高度
             this.height = 0;
 
-            this.__height_string = "*";
-
-            this.__height_weight = 100;
-
-            this.__height_auto = false;
-
-            //所属单元格所有固定宽度的总和
-            this.__width_fixed = 0;
-
-            //自动宽度的表格数
-            this.__width_weights = 0;
+            //单元格数
+            this.length = 0;
 
 
+            //表格类型
+            this.__type = "*";
 
-            //设置行高
-            this.set_height = function (value) {
+            //表格值
+            this.__value = 100;
 
-                if (this.__height_auto)
-                {
-                    this.grid.__height_weights -= this.__height_weight;
-                    this.__height_auto = false;
-                }
-                else if (this.height)
-                {
-                    this.grid.__height_fixed -= this.height;
-                }
 
-                this.__height_string = value = value || "*";
-                var length = value.length - 1;
+            //表格行值
+            defineProperty(this, "value");
 
-                if (value[length] === "*")
-                {
-                    this.__height_weight = length === 0 ? 100 : value.substring(0, length);
-                    this.__height_auto = true;
-                    this.height = 0;
-                    this.grid.__height_weights += this.__height_weight;
-                }
-                else
-                {
-                    this.height = parseInt(value);
-                    this.grid.__height_fixed += this.height;
-                }
+
+            //添加单元格
+            this.append = function (value) {
+
+                var cell = new cell_type(this);
+                cell.value = value;
+                return cell;
             };
 
         });
 
 
 
-    //布局表
-    flyingon.GridDefine = flyingon.function_extend(
+    //表
+    flyingon.TableDefine = flyingon.function_extend(
 
         function () {
 
-            this.rows = [];
         },
 
         function () {
 
 
-            //列留空
-            this.spaceX = 0;
-
-            //行留空
-            this.spaceY = 0;
-
-            //所属行中所有固定高度的总和
-            this.__height_fixed = 0;
-
-            //自动高度的权重总数
-            this.__height_weights = 0;
+            var round = Math.round,
+                convert = parseFloat,
+                regex_parse = /\d(.\d*)?[*%]?|[*%\[\]()]|table|end/g;
 
 
-            this.compute = function (width, height) {
+            this.__x = 0;
 
-                this.width = width || 0;
-                this.height = height || 0;
+            this.__y = 0;
 
-                var spaceX = this.spaceX || 0,
-                    spaceY = this.spaceY || 0,
+            //行数
+            this.length = 0;
 
-                    rows = this.rows,
-                    length = rows.length,
+            //列间距(仅对子表有效)
+            this.spaceX = "100%";
 
-                    y = this.y || 0,
-                    height = Math.max(this.height - this.__height_fixed - (length - 1) * spaceY, 0),
-                    height_weights = this.__height_weights;
+            //行间距(仅对子表有效)
+            this.spaceY = "100%";
 
 
-                for (var i = 0; i < length; i++)
+            //添加表格行
+            this.append = function (value) {
+
+                var row = new row_type(this);
+                row.value = value;
+                return row;
+            };
+
+             //创建均匀表格
+            this.initialize = function (rows, columns) {
+
+                var rows = rows > 0 ? rows : 3,
+                    columns = columns > 0 ? columns : 3;
+
+                for (var i = 0; i < rows; i++)
                 {
-                    var row = rows[i];
+                    var row = new row_type(this);
+
+                    for (var j = 0; j < columns; j++)
+                    {
+                        new cell_type(row);
+                    }
+                }
+
+                return this;
+            };
+
+            //解析表格定义
+            this.parse = function (value) {
+
+                if (!value)
+                {
+                    return this.create(3, 3);
+                }
+
+                var type = row_type,
+                    parent = this,
+                    item,
+                    values = ("" + value).match(regex_parse),
+                    token;
+
+                for (var i = 0, _ = values.length; i < _; i++)
+                {
+                    switch (token = values[i])
+                    {
+                        case "[": //开始单元格
+                            if (item)
+                            {
+                                parent = item;
+                                type = cell_type;
+                                row = false;
+                            }
+                            break;
+
+                        case "]": //结束单元格
+                            parent = parent.parent || parent;
+                            type = row_type;
+                            row = true;
+                            break;
+
+                        case "table": //开始子表 
+                            if (item instanceof cell_type)
+                            {
+                                parent = item.subtable = new flyingon.TableDefine();
+                                parent.parent = item;
+                                type = row_type;
+                                row = true;
+                            }
+                            break;
+
+                        case "end": //结束子表
+                            if (parent.parent instanceof cell_type)
+                            {
+                                parent = parent.parent.parent;
+                                type = cell_type;
+                                row = false;
+                            }
+                            break;
+
+                        case "(": //开始子表间距
+                            var j = i++;
+                            while (values[j] != ")")  //")" 结束子表间距
+                            {
+                                j++;
+                            }
+
+                            if (parent.parent instanceof cell_type)
+                            {
+                                if (j > i++)
+                                {
+                                    parent.spaceX = +(value = values[i]) || value;
+                                }
+
+                                if (j > i)
+                                {
+                                    parent.spaceY = +(value = values[i]) || value;
+                                }
+                            }
+
+                            i = j;
+                            break;
+
+                        default:
+                            item = new type(parent);
+
+                            switch (token[token.length - 1])
+                            {
+                                case "*":
+                                    item.__value = convert(token) || 100;
+                                    break;
+
+                                case "%":
+                                    item.__type = "%";
+                                    item.__value = convert(token) || 0;
+                                    break;
+
+                                default:
+                                    item.__value = round(+token) || 0;
+                                    break;
+                            }
+                            break;
+                    }
+                }
+
+                return this;
+            };
+
+            //计算
+            this.compute = function (width, height, spaceX, spaceY) {
+
+                var length1 = this.length,
+                    weight1 = 0,
+                    y = this.__y || 0;
+
+                //先计算并减去百分比行及固定高度
+                for (var i = 0; i < length1; i++)
+                {
+                    var row = this[i];
+
+                    switch (row.__type)
+                    {
+                        case "%":
+                            height -= (row.height = round(height * row.__value));
+                            break;
+
+                        case "*":
+                            weight1 += row.__value;
+                            break;
+
+                        default:
+                            height -= (row.height = row.__value);
+                            break;
+                    }
+                }
+
+                //再减去行距
+                if (height > 0 && (height -= (length1 - 1) * spaceY) < 0)
+                {
+                    height = 0;
+                }
+
+                //循环处理行
+                for (var i = 0; i < length1; i++)
+                {
+                    var row = this[i];
 
                     row.y = y;
 
-                    if (row.__height_auto)
+                    if (row.__type === "*")
                     {
-                        row.height = Math.round(height * row.__height_weight / height_weights);
-                        height_weights -= row.__height_weight;
-                        height -= row.height;
+                        height -= (row.height = round(height * row.__value / weight1));
+                        weight1 -= row.__value;
                     }
 
+                    //处理行格
+                    var length2 = row.length,
+                        weight2 = 0,
+                        width2 = width,
+                        x = this.__x || 0;
 
-                    var cells = row.cells,
-                        count = cells.length,
-
-                        x = this.x || 0,
-                        width = Math.max(this.width - row.__width_fixed - (count - 1) * spaceX, 0),
-                        width_weights = row.__width_weights;
-
-                    for (var j = 0; j < count; j++)
+                    //先计算并减去百分比行及固定高度
+                    for (var j = 0; j < length2; j++)
                     {
-                        var cell = cells[j];
+                        var cell = row[j];
+
+                        switch (cell.__type)
+                        {
+                            case "%":
+                                width2 -= (cell.width = round(width * cell.__value));
+                                break;
+
+                            case "*":
+                                weight2 += cell.__value;
+                                break;
+
+                            default:
+                                width2 -= (cell.width = cell.__value);
+                                break;
+                        }
+                    }
+
+                    //再减去列距
+                    if (width2 > 0 && (width2 -= (length2 - 1) * spaceX) < 0)
+                    {
+                        width2 = 0;
+                    }
+
+                    for (var j = 0; j < length2; j++)
+                    {
+                        var cell = row[j];
 
                         cell.x = x;
 
-                        if (cell.__width_auto)
+                        if (cell.__type === "*")
                         {
-                            cell.width = Math.round(width * cell.__width_weight / width_weights);
-                            width_weights -= cell.__width_weight;
-                            width -= cell.width;
+                            width2 -= (cell.width = round(width2 * cell.__value / weight2));
+                            weight2 -= cell.__value;
                         }
 
-                        if (cell.children)
+                        if (cell.subtable)
                         {
-                            var children = cell.children;
+                            var table = cell.subtable;
 
-                            children.x = x;
-                            children.y = y;
-                            children.spaceX = spaceX;
-                            children.spaceY = spaceY;
-                            children.compute(cell.width, row.height);
+                            table.__x = x;
+                            table.__y = y;
+                            table.compute(cell.width, row.height,
+                                table.spaceX >= 0 ? table.spaceX : (round(spaceX * convert(table.spaceX)) || 0),
+                                table.spaceY >= 0 ? table.spaceY : (round(spaceY * convert(table.spaceY)) || 0));
                         }
 
                         x += cell.width + spaceX;
                     }
 
                     y += row.height + spaceY;
-                }
-
-                return this;
-            };
-
-
-
-            this.create = function (rows, columns) {
-
-                var rows = Math.max(rows, 0) || 3,
-                    columns = Math.max(columns, 0) || 3;
-
-
-                for (var i = 0; i < rows; i++)
-                {
-                    var row = new flyingon.RowDefine(this);
-
-                    row.__height_auto = true;
-                    this.__height_weights += row.__height_weight;
-
-                    for (var j = 0; j < columns; j++)
-                    {
-                        var cell = new flyingon.CellDefine(this, row);
-
-                        cell.__width_auto = true;
-                        row.__width_weights += cell.__width_weight;
-
-                        row.cells.push(cell);
-                    }
-
-                    this.rows.push(row);
-                }
-
-                return this;
-            };
-
-            this.load = function (value) {
-
-                value = value || "T R* C* C* C* R* C* C* C* R* C* C* C* END";
-
-                var children = [],
-                    rows = [],
-                    grid = this,
-                    row,
-                    cell,
-                    tokens = value.split(/\s/g);
-
-
-                for (var i = 0, _ = tokens.length; i < _; i++)
-                {
-                    var token = tokens[i],
-                        value = token.substring(1);
-
-                    if (token === "END")
-                    {
-                        grid = children.pop();
-                        row = rows.pop();
-                    }
-                    else
-                    {
-                        switch (token[0])
-                        {
-                            case "T":
-                                if (cell != null)
-                                {
-                                    children.push(grid);
-                                    rows.push(row);
-
-                                    grid = cell.children = new flyingon.GridDefine();
-                                    row = null;
-                                }
-                                break;
-
-                            case "R":
-                                row = new flyingon.RowDefine(grid);
-                                row.set_height(value);
-                                grid.rows.push(row);
-
-                                cell = null;
-                                break;
-
-                            case "C":
-                                if (row)
-                                {
-                                    cell = new flyingon.CellDefine(grid, row);
-                                    cell.set_width(value);
-                                    row.cells.push(cell);
-                                }
-                                break;
-                        }
-                    }
                 }
 
                 return this;
@@ -6062,41 +6154,10 @@ flyingon.Matrix = flyingon.function_extend(
 
 
 
-            function match_cells(target, exports) {
-
-                var rows = target.rows;
-
-                exports = exports || [];
-
-                for (var i = 0, _ = rows.length; i < _; i++)
-                {
-                    var row = rows[i],
-                        cells = row.cells;
-
-                    for (var j = 0, __ = cells.length; j < __; j++)
-                    {
-                        var cell = cells[j];
-
-                        if (cell.children)
-                        {
-                            match_cells(cell.children, exports);
-                        }
-                        else
-                        {
-                            exports.push(cell);
-                        }
-                    }
-                }
-
-                return exports;
-            };
-
-
-
             //按顺序自动排列子控件
-            this.match = function (items) {
+            this.arrange = function (items) {
 
-                var cells = match_cells(this),
+                var cells = template_cells(this),
                     length = cells.length,
                     index = 0;
 
@@ -6108,13 +6169,42 @@ flyingon.Matrix = flyingon.function_extend(
                     {
                         var cell = cells[index++];
 
-                        item.measure(cell.width, cell.row.height, 1, 1);
-                        item.locate(cell.x, cell.row.y);
+                        item.measure(cell.width, cell.parent.height, 1, 1);
+                        item.locate(cell.x, cell.parent.y);
                     }
                 }
 
                 return this;
             };
+
+
+            //获取表格模板
+            function template_cells(target, exports) {
+
+                exports = exports || [];
+
+                for (var i = 0, _ = target.length; i < _; i++)
+                {
+                    var row = target[i];
+
+                    for (var j = 0, __ = row.length; j < __; j++)
+                    {
+                        var cell = row[j];
+
+                        if (cell.subtable)
+                        {
+                            template_cells(cell.subtable, exports);
+                        }
+                        else
+                        {
+                            exports.push(cell);
+                        }
+                    }
+                }
+
+                return exports;
+            };
+
 
         });
 
@@ -9211,16 +9301,19 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //均匀网格布局列数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        //string    自定义列 如:"C20 C30% C*"表示3列 第一列固定宽度为20 第2列使用剩下可用空间的30% 第3列使用剩下的全部可用空间
+        //string    自定义列 如:"20 30% 20* *"表示3列 第一列固定宽度为20 第2列使用剩下可用空间的30% 第3,4行使用全部剩余空间,第3行占比20/120 第4行占比100/120
         style("layout-grid-columns", 3, false, "rearrange");
 
         //均匀网格布局行数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        //string    自定义行 如:"R20 R30% R*"表示3列 第一行固定宽度为20 第2行使用剩下可用空间的30% 第3行使用剩下的全部可用空间
+        //string    自定义行 如:"20 30% 20* *"表示3列 第一行固定宽度为20 第2行使用剩下可用空间的30% 第3,4行使用全部剩余空间,第3行占比20/120 第4行占比100/120
         style("layout-grid-rows", 3, false, "rearrange");
 
         //表格布局定义(此值仅对表格布局(table)有效)(非html css属性)
-        style("layout-table", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false, "rearrange");
+        //行列格式: row[column ...] ...
+        //row,column可选值: 整数(固定行高或列宽) 数字%(总宽度或高度的百分比) [数字]*(剩余空间的百分比,数字表示权重,省略时权重默认为100)
+        //column可嵌套表,嵌套表格式: { (spaceX spaceY) row[column ...] ... } spaceX,spaceY为横或纵向留空(可省略,默认与父表相等),整数或父留空的百分比
+        style("layout-table", "*[* * *] *[* * *] *[* * *]", false, "rearrange");
 
 
 
@@ -9276,13 +9369,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //left      左边对齐
         //center    横向居中对齐
         //right     右边对齐
-        style("content-align-x", "left", "center", "rearrange");
+        style("content-align-x", "left", false, "rearrange");
 
         //控件内容纵向对齐样式(非html css属性)
         //top       顶部对齐
         //middle    纵向居中对齐
         //bottom    底部对齐
-        style("content-align-y", "top", "middle", "rearrange");
+        style("content-align-y", "top", false, "rearrange");
 
 
 
@@ -9363,7 +9456,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         function split_border(name) {
 
             var regex = /(\d+)?\s*(none|hidden|dotted|dashed|solid|double|groove|ridge|inset)?\s*(\S+)?/,
-                names = toUpperCase(["width", "style", "color"], "border" + (name ? name[0].toUpperCase() + name.substring(1) : ""));
+                border = toUpperCase(["top", "right", "bottom", "left"]),
+                names = toUpperCase(["width", "style", "color"], "border" + (name ? name[0].toUpperCase() + name.substring(1) : "?"));
 
             return function (value) {
 
@@ -9373,9 +9467,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                     ("" + value).replace(regex, function (_, width, style, color) {
 
-                        self[names[0]] = width;
-                        self[names[1]] = style;
-                        self[names[2]] = color;
+                        if (name) //单一边框
+                        {
+                            self[names[0]] = width;
+                            self[names[1]] = style;
+                            self[names[2]] = color;
+                        }
+                        else //所有边框
+                        {
+                            for (var i = 0; i < 4; i++)
+                            {
+                                value = border[i];
+
+                                self[names[0].replace("?", value)] = width;
+                                self[names[1].replace("?", value)] = style;
+                                self[names[2].replace("?", value)] = color;
+                            }
+                        }
                     });
                 }
             };
@@ -9822,7 +9930,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 var types = this.__style_types || this.__fn_style_types();
 
-                for (var i = 0, _ = types.length; i < _; i++)
+                for (var i = types.length - 1; i >= 0; i--)
                 {
                     if (cache_type = cache_name[types[i]])
                     {
@@ -11017,7 +11125,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         y += cache >> 1;
                         break;
 
-                    case "right":
+                    case "bottom":
                         y += cache;
                         break;
                 }
@@ -11893,7 +12001,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
             //显示测试数据
-            document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
+            //document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
         };
 
 
@@ -11903,7 +12011,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             //计算边框圆角
             var points = [],
-                clip = [],
                 border_left = box.border_left,
                 border_top = box.border_top,
                 border_right = box.border_right,
@@ -12030,6 +12137,226 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             return box.border_clip = true;
         };
+
+
+
+        //初始化边框坐标点
+        function initialize_border1(target, box) {
+
+
+            //计算边框圆角
+            var border_left = box.border_left,
+                border_top = box.border_top,
+                border_right = box.border_right,
+                border_bottom = box.border_bottom,
+
+                x1 = border_left >> 1,
+                y1 = border_top >> 1,
+                x2 = border_right >> 1,
+                y2 = border_bottom >> 1,
+
+                x = 0,
+                y = 0,
+                width = target.controlWidth,
+                height = target.controlHeight,
+
+                radius1,
+                radius2,
+                radius3,
+                radius4,
+
+                cache;
+
+
+            //先计算圆角边框坐标
+            if (border_top > 0)
+            {
+                if ((cache = target.borderTopLeftRadius) > 0)
+                {
+                    radius1 = [0, cache, cache, 0];
+                }
+
+                if ((cache = target.borderTopRightRadius) > 0)
+                {
+                    radius2 = [width - cache, 0, width, cache];
+                }
+            }
+
+            if (border_bottom > 0)
+            {
+                if ((cache = target.borderBottomLeftRadius) > 0)
+                {
+                    radius3 = [width, height - cache, width - cache, height];
+                }
+
+                if ((cache = target.borderBottomRightRadius) > 0)
+                {
+                    radius4 = [cache, height, 0, height - cache];
+                }
+            }
+
+
+            //如果有圆角
+            if (radius1 || radius2 || radius3 || radius4)
+            {
+                var lines1 = [],
+                    lines2 = [],
+                    line1 = [],
+                    line2 = [],
+                    push = lines1.push;
+
+                if (radius1)
+                {
+                    push.apply(line1, [border_top, true, radius1[0] + x1, radius1[1], radius1[2], radius1[3] + y1]);
+
+                    push.apply(line2, [border_top, true]);
+                    push.apply(line2, radius1);
+                }
+                else
+                {
+
+                }
+            }
+
+            ////无圆角边框(不用计算剪切坐标)
+            //return [
+            //    x1, y1,
+            //    border_top, false, right - x2, y1,
+            //    border_right, false, right-x2
+            //];
+
+
+
+            //计算绘制坐标 
+
+            //上边框
+            if (border_top > 0)
+            {
+                var line1 = [];
+
+                if ((radius = target.borderTopLeftRadius) > 0) //上左圆角
+                {
+                    radius -= x1 + y1; //调整弧度
+                    push.apply(points, [border_top, x1, y1 + radius, true, x1, y1, x1 + radius, y1]);
+
+
+                }
+                else
+                {
+                    push.apply(points, [border_top, x1, y1]);
+                }
+
+                if ((radius = target.borderTopRightRadius) > 0) //上右圆角
+                {
+                    radius -= x2 + y1; //调整弧度
+                    push.apply(points, [right - radius, y1, true, right, y1, right, y1 + radius]);
+                }
+                else
+                {
+
+                }
+
+                lines1.push(line);
+            }
+            else
+            {
+                lines1.push(null);
+            }
+
+            //右边框
+            if (border_right > 0)
+            {
+                push.apply(points, [right, y1, border_right, false]);
+            }
+
+            //下边框
+            if (border_bottom > 0)
+            {
+                if ((radius = target.borderBottomRightRadius) > 1) //下右圆角
+                {
+                    radius = radius_bottom1 - x2 - y2; //调整弧度
+                    push.apply(points, [right, bottom - radius, border_bottom, true, right, bottom, right - radius, bottom]);
+                }
+                else
+                {
+                    push.apply(points, [right, bottom, border_bottom, false]);
+                }
+
+                //左边框
+                if ((radius = target.borderBottomLeftRadius) > 0) //下左圆角
+                {
+                    radius = radius_bottom2 - x1 - y2; //调整弧度
+                    push.apply(points, [x1 + radius, bottom, border_left, true, x1, bottom, x1, bottom - radius]);
+                }
+            }
+
+            //左边框
+            if (border_left > 0)
+            {
+                push.apply(points, [x1, bottom, border_left, false]);
+            }
+
+            //记录绘制坐标
+            box.border_points = points;
+
+
+            //计算剪切坐标 
+            //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+            if (radius)
+            {
+                points = [];
+
+                right = target.controlWidth;
+                bottom = target.controlHeight;
+
+                //上边框
+                if (radius_top1 > 0) //左上角
+                {
+                    push.apply(points, [0, radius_top1, true, 0, 0, radius_top1, 0]);
+                }
+                else
+                {
+                    push.apply(points, [0, 0, false]);
+                }
+
+                //右边框
+                if (radius_top2 > 0) //右上角
+                {
+                    push.apply(points, [right - radius_top2, 0, true, right, 0, right, radius_top2]);
+                }
+                else
+                {
+                    push.apply(points, [right, 0, false]);
+                }
+
+                //下边框
+                if (radius_bottom1 > 1) //右下角
+                {
+                    push.apply(points, [right, bottom - radius_bottom1, true, right, bottom, right - radius_bottom1, bottom]);
+                }
+                else
+                {
+                    push.apply(points, [right, bottom, false]);
+                }
+
+                //左边框
+                if (radius_bottom2 > 0) //左下角
+                {
+                    push.apply(points, [radius_bottom2, bottom, true, 0, bottom, 0, bottom - radius_bottom2]);
+                }
+                else
+                {
+                    push.apply(points, [0, bottom, false]);
+                }
+
+                //记录并返回剪切坐标
+                return box.border_clip = points;
+            }
+
+            return box.border_clip = true;
+        };
+
 
 
 
@@ -12197,11 +12524,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 var context = painter.context,
                     points = this.__box_style.border_points,
+                    x = points[0],
+                    y = points[1],
                     lineWidth = points[2],
                     index = 0;
 
                 context.beginPath();
-                context.moveTo(points[0], points[1]);
+                context.moveTo(x, y);
 
                 for (var i = 3, _ = points.length; i < _; i++)
                 {

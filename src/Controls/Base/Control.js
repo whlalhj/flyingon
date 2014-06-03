@@ -701,16 +701,19 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //均匀网格布局列数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        //string    自定义列 如:"C20 C30% C*"表示3列 第一列固定宽度为20 第2列使用剩下可用空间的30% 第3列使用剩下的全部可用空间
+        //string    自定义列 如:"20 30% 20* *"表示3列 第一列固定宽度为20 第2列使用剩下可用空间的30% 第3,4行使用全部剩余空间,第3行占比20/120 第4行占比100/120
         style("layout-grid-columns", 3, false, "rearrange");
 
         //均匀网格布局行数(此值仅对网格布局(grid)有效)(非html css属性)
         //number	整数值 
-        //string    自定义行 如:"R20 R30% R*"表示3列 第一行固定宽度为20 第2行使用剩下可用空间的30% 第3行使用剩下的全部可用空间
+        //string    自定义行 如:"20 30% 20* *"表示3列 第一行固定宽度为20 第2行使用剩下可用空间的30% 第3,4行使用全部剩余空间,第3行占比20/120 第4行占比100/120
         style("layout-grid-rows", 3, false, "rearrange");
 
         //表格布局定义(此值仅对表格布局(table)有效)(非html css属性)
-        style("layout-table", "T R* C* C* C* R* C* C* C* R* C* C* C* END", false, "rearrange");
+        //行列格式: row[column ...] ...
+        //row,column可选值: 整数(固定行高或列宽) 数字%(总宽度或高度的百分比) [数字]*(剩余空间的百分比,数字表示权重,省略时权重默认为100)
+        //column可嵌套表,嵌套表格式: { (spaceX spaceY) row[column ...] ... } spaceX,spaceY为横或纵向留空(可省略,默认与父表相等),整数或父留空的百分比
+        style("layout-table", "*[* * *] *[* * *] *[* * *]", false, "rearrange");
 
 
 
@@ -766,13 +769,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //left      左边对齐
         //center    横向居中对齐
         //right     右边对齐
-        style("content-align-x", "left", "center", "rearrange");
+        style("content-align-x", "left", false, "rearrange");
 
         //控件内容纵向对齐样式(非html css属性)
         //top       顶部对齐
         //middle    纵向居中对齐
         //bottom    底部对齐
-        style("content-align-y", "top", "middle", "rearrange");
+        style("content-align-y", "top", false, "rearrange");
 
 
 
@@ -853,7 +856,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         function split_border(name) {
 
             var regex = /(\d+)?\s*(none|hidden|dotted|dashed|solid|double|groove|ridge|inset)?\s*(\S+)?/,
-                names = toUpperCase(["width", "style", "color"], "border" + (name ? name[0].toUpperCase() + name.substring(1) : ""));
+                border = toUpperCase(["top", "right", "bottom", "left"]),
+                names = toUpperCase(["width", "style", "color"], "border" + (name ? name[0].toUpperCase() + name.substring(1) : "?"));
 
             return function (value) {
 
@@ -863,9 +867,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                     ("" + value).replace(regex, function (_, width, style, color) {
 
-                        self[names[0]] = width;
-                        self[names[1]] = style;
-                        self[names[2]] = color;
+                        if (name) //单一边框
+                        {
+                            self[names[0]] = width;
+                            self[names[1]] = style;
+                            self[names[2]] = color;
+                        }
+                        else //所有边框
+                        {
+                            for (var i = 0; i < 4; i++)
+                            {
+                                value = border[i];
+
+                                self[names[0].replace("?", value)] = width;
+                                self[names[1].replace("?", value)] = style;
+                                self[names[2].replace("?", value)] = color;
+                            }
+                        }
                     });
                 }
             };
@@ -1312,7 +1330,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 var types = this.__style_types || this.__fn_style_types();
 
-                for (var i = 0, _ = types.length; i < _; i++)
+                for (var i = types.length - 1; i >= 0; i--)
                 {
                     if (cache_type = cache_name[types[i]])
                     {
@@ -2507,7 +2525,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                         y += cache >> 1;
                         break;
 
-                    case "right":
+                    case "bottom":
                         y += cache;
                         break;
                 }
@@ -3383,7 +3401,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
             //显示测试数据
-            document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
+            //document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
         };
 
 
@@ -3393,7 +3411,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             //计算边框圆角
             var points = [],
-                clip = [],
                 border_left = box.border_left,
                 border_top = box.border_top,
                 border_right = box.border_right,
@@ -3520,6 +3537,226 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             return box.border_clip = true;
         };
+
+
+
+        //初始化边框坐标点
+        function initialize_border1(target, box) {
+
+
+            //计算边框圆角
+            var border_left = box.border_left,
+                border_top = box.border_top,
+                border_right = box.border_right,
+                border_bottom = box.border_bottom,
+
+                x1 = border_left >> 1,
+                y1 = border_top >> 1,
+                x2 = border_right >> 1,
+                y2 = border_bottom >> 1,
+
+                x = 0,
+                y = 0,
+                width = target.controlWidth,
+                height = target.controlHeight,
+
+                radius1,
+                radius2,
+                radius3,
+                radius4,
+
+                cache;
+
+
+            //先计算圆角边框坐标
+            if (border_top > 0)
+            {
+                if ((cache = target.borderTopLeftRadius) > 0)
+                {
+                    radius1 = [0, cache, cache, 0];
+                }
+
+                if ((cache = target.borderTopRightRadius) > 0)
+                {
+                    radius2 = [width - cache, 0, width, cache];
+                }
+            }
+
+            if (border_bottom > 0)
+            {
+                if ((cache = target.borderBottomLeftRadius) > 0)
+                {
+                    radius3 = [width, height - cache, width - cache, height];
+                }
+
+                if ((cache = target.borderBottomRightRadius) > 0)
+                {
+                    radius4 = [cache, height, 0, height - cache];
+                }
+            }
+
+
+            //如果有圆角
+            if (radius1 || radius2 || radius3 || radius4)
+            {
+                var lines1 = [],
+                    lines2 = [],
+                    line1 = [],
+                    line2 = [],
+                    push = lines1.push;
+
+                if (radius1)
+                {
+                    push.apply(line1, [border_top, true, radius1[0] + x1, radius1[1], radius1[2], radius1[3] + y1]);
+
+                    push.apply(line2, [border_top, true]);
+                    push.apply(line2, radius1);
+                }
+                else
+                {
+
+                }
+            }
+
+            ////无圆角边框(不用计算剪切坐标)
+            //return [
+            //    x1, y1,
+            //    border_top, false, right - x2, y1,
+            //    border_right, false, right-x2
+            //];
+
+
+
+            //计算绘制坐标 
+
+            //上边框
+            if (border_top > 0)
+            {
+                var line1 = [];
+
+                if ((radius = target.borderTopLeftRadius) > 0) //上左圆角
+                {
+                    radius -= x1 + y1; //调整弧度
+                    push.apply(points, [border_top, x1, y1 + radius, true, x1, y1, x1 + radius, y1]);
+
+
+                }
+                else
+                {
+                    push.apply(points, [border_top, x1, y1]);
+                }
+
+                if ((radius = target.borderTopRightRadius) > 0) //上右圆角
+                {
+                    radius -= x2 + y1; //调整弧度
+                    push.apply(points, [right - radius, y1, true, right, y1, right, y1 + radius]);
+                }
+                else
+                {
+
+                }
+
+                lines1.push(line);
+            }
+            else
+            {
+                lines1.push(null);
+            }
+
+            //右边框
+            if (border_right > 0)
+            {
+                push.apply(points, [right, y1, border_right, false]);
+            }
+
+            //下边框
+            if (border_bottom > 0)
+            {
+                if ((radius = target.borderBottomRightRadius) > 1) //下右圆角
+                {
+                    radius = radius_bottom1 - x2 - y2; //调整弧度
+                    push.apply(points, [right, bottom - radius, border_bottom, true, right, bottom, right - radius, bottom]);
+                }
+                else
+                {
+                    push.apply(points, [right, bottom, border_bottom, false]);
+                }
+
+                //左边框
+                if ((radius = target.borderBottomLeftRadius) > 0) //下左圆角
+                {
+                    radius = radius_bottom2 - x1 - y2; //调整弧度
+                    push.apply(points, [x1 + radius, bottom, border_left, true, x1, bottom, x1, bottom - radius]);
+                }
+            }
+
+            //左边框
+            if (border_left > 0)
+            {
+                push.apply(points, [x1, bottom, border_left, false]);
+            }
+
+            //记录绘制坐标
+            box.border_points = points;
+
+
+            //计算剪切坐标 
+            //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
+            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+            if (radius)
+            {
+                points = [];
+
+                right = target.controlWidth;
+                bottom = target.controlHeight;
+
+                //上边框
+                if (radius_top1 > 0) //左上角
+                {
+                    push.apply(points, [0, radius_top1, true, 0, 0, radius_top1, 0]);
+                }
+                else
+                {
+                    push.apply(points, [0, 0, false]);
+                }
+
+                //右边框
+                if (radius_top2 > 0) //右上角
+                {
+                    push.apply(points, [right - radius_top2, 0, true, right, 0, right, radius_top2]);
+                }
+                else
+                {
+                    push.apply(points, [right, 0, false]);
+                }
+
+                //下边框
+                if (radius_bottom1 > 1) //右下角
+                {
+                    push.apply(points, [right, bottom - radius_bottom1, true, right, bottom, right - radius_bottom1, bottom]);
+                }
+                else
+                {
+                    push.apply(points, [right, bottom, false]);
+                }
+
+                //左边框
+                if (radius_bottom2 > 0) //左下角
+                {
+                    push.apply(points, [radius_bottom2, bottom, true, 0, bottom, 0, bottom - radius_bottom2]);
+                }
+                else
+                {
+                    push.apply(points, [0, bottom, false]);
+                }
+
+                //记录并返回剪切坐标
+                return box.border_clip = points;
+            }
+
+            return box.border_clip = true;
+        };
+
 
 
 
@@ -3687,11 +3924,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 var context = painter.context,
                     points = this.__box_style.border_points,
+                    x = points[0],
+                    y = points[1],
                     lineWidth = points[2],
                     index = 0;
 
                 context.beginPath();
-                context.moveTo(points[0], points[1]);
+                context.moveTo(x, y);
 
                 for (var i = 3, _ = points.length; i < _; i++)
                 {

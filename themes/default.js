@@ -216,7 +216,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //rgba(0-255 | x%, 0-255 | x%, 0-255 | x%, 0-1)                                     rgba颜色 与css规则相同
     // hsl(0-360, x%, x%)                                                               hsl颜色 与css规则相同
     //hsla(0-360, x%, x%, 0-1)                                                          hsla颜色 与css规则相同
-    //linear(x1, y2, x2, y2, step1, color1, step2, color2[, ...])                       线性渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+    //linear(x1, y1, x2, y2, step1, color1, step2, color2[, ...])                       线性渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
     //radial(x1, y1, radius1, x2, y2, radius2, step1, color1, step2, color2[, ...])     径向渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
     //pattern(image, repeat|repeat-x|repeat-y|no-repeat)                                图像填充
 
@@ -360,13 +360,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         cursor: "pointer"
     });
 
-
-    defineStyle("WindowBase", {
-
-        backgroundColor: "#FFFFFF",
-        border: "1 solid #CCCCCC"
-    });
-
+    
     defineStyle("Window", {
 
     });
