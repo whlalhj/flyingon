@@ -10,10 +10,7 @@
 注1: 使用类css选择器样式字符串
 注2: 子类直接继承父类控件样式
 注3: 注意选择器权重(与css相仿)
-注4: class样式书写顺序无所谓,同一个对象应用多个class时后置优先
-注5: 伪类优先级 selection > enabled, disabled > active > hover > focus > checked 
-注6: 仅 visibility, cursor, direction 支持继承
-注7: font, background, margin, border, padding可分子属性设置样式, 但不支持与其它样式的子属性合并 如: .class1 { marginLeft: 10 } .class2 { marginTop: 10 } 在优先应用.class2样式时不使用.class1的marginLeft属性值 
+注4: 伪类优先级 selection > enabled, disabled > active > hover > focus > checked 
 
 
 支持的伪类如下:

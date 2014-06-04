@@ -734,7 +734,7 @@
                 return row;
             };
 
-             //创建均匀表格
+            //创建均匀表格
             this.initialize = function (rows, columns) {
 
                 var rows = rows > 0 ? rows : 3,
@@ -762,6 +762,7 @@
                 }
 
                 var type = row_type,
+                    row = true,
                     parent = this,
                     item,
                     values = ("" + value).match(regex_parse),
@@ -772,7 +773,7 @@
                     switch (token = values[i])
                     {
                         case "[": //开始单元格
-                            if (item)
+                            if (row)
                             {
                                 parent = item;
                                 type = cell_type;
@@ -781,9 +782,12 @@
                             break;
 
                         case "]": //结束单元格
-                            parent = parent.parent || parent;
-                            type = row_type;
-                            row = true;
+                            if (!row)
+                            {
+                                parent = parent.parent || parent;
+                                type = row_type;
+                                row = true;
+                            }
                             break;
 
                         case "table": //开始子表 
@@ -805,7 +809,7 @@
                             }
                             break;
 
-                        case "(": //开始子表间距
+                        case "(": //开始子表间距 以后可扩展成参数
                             var j = i++;
                             while (values[j] != ")")  //")" 结束子表间距
                             {
@@ -868,7 +872,7 @@
                     switch (row.__type)
                     {
                         case "%":
-                            height -= (row.height = round(height * row.__value));
+                            height -= (row.height = round(height * row.__value / 100));
                             break;
 
                         case "*":
@@ -914,7 +918,7 @@
                         switch (cell.__type)
                         {
                             case "%":
-                                width2 -= (cell.width = round(width * cell.__value));
+                                width2 -= (cell.width = round(width * cell.__value / 100));
                                 break;
 
                             case "*":
@@ -952,8 +956,8 @@
                             table.__x = x;
                             table.__y = y;
                             table.compute(cell.width, row.height,
-                                table.spaceX >= 0 ? table.spaceX : (round(spaceX * convert(table.spaceX)) || 0),
-                                table.spaceY >= 0 ? table.spaceY : (round(spaceY * convert(table.spaceY)) || 0));
+                                +table.spaceX || round(spaceX * convert(table.spaceX) / 100) || 0,
+                                +table.spaceY || round(spaceY * convert(table.spaceY) / 100) || 0);
                         }
 
                         x += cell.width + spaceX;

@@ -5911,7 +5911,7 @@ flyingon.Matrix = flyingon.function_extend(
                 return row;
             };
 
-             //创建均匀表格
+            //创建均匀表格
             this.initialize = function (rows, columns) {
 
                 var rows = rows > 0 ? rows : 3,
@@ -5939,6 +5939,7 @@ flyingon.Matrix = flyingon.function_extend(
                 }
 
                 var type = row_type,
+                    row = true,
                     parent = this,
                     item,
                     values = ("" + value).match(regex_parse),
@@ -5949,7 +5950,7 @@ flyingon.Matrix = flyingon.function_extend(
                     switch (token = values[i])
                     {
                         case "[": //开始单元格
-                            if (item)
+                            if (row)
                             {
                                 parent = item;
                                 type = cell_type;
@@ -5958,9 +5959,12 @@ flyingon.Matrix = flyingon.function_extend(
                             break;
 
                         case "]": //结束单元格
-                            parent = parent.parent || parent;
-                            type = row_type;
-                            row = true;
+                            if (!row)
+                            {
+                                parent = parent.parent || parent;
+                                type = row_type;
+                                row = true;
+                            }
                             break;
 
                         case "table": //开始子表 
@@ -5982,7 +5986,7 @@ flyingon.Matrix = flyingon.function_extend(
                             }
                             break;
 
-                        case "(": //开始子表间距
+                        case "(": //开始子表间距 以后可扩展成参数
                             var j = i++;
                             while (values[j] != ")")  //")" 结束子表间距
                             {
@@ -6045,7 +6049,7 @@ flyingon.Matrix = flyingon.function_extend(
                     switch (row.__type)
                     {
                         case "%":
-                            height -= (row.height = round(height * row.__value));
+                            height -= (row.height = round(height * row.__value / 100));
                             break;
 
                         case "*":
@@ -6091,7 +6095,7 @@ flyingon.Matrix = flyingon.function_extend(
                         switch (cell.__type)
                         {
                             case "%":
-                                width2 -= (cell.width = round(width * cell.__value));
+                                width2 -= (cell.width = round(width * cell.__value / 100));
                                 break;
 
                             case "*":
@@ -6129,8 +6133,8 @@ flyingon.Matrix = flyingon.function_extend(
                             table.__x = x;
                             table.__y = y;
                             table.compute(cell.width, row.height,
-                                table.spaceX >= 0 ? table.spaceX : (round(spaceX * convert(table.spaceX)) || 0),
-                                table.spaceY >= 0 ? table.spaceY : (round(spaceY * convert(table.spaceY)) || 0));
+                                +table.spaceX || round(spaceX * convert(table.spaceX) / 100) || 0,
+                                +table.spaceY || round(spaceY * convert(table.spaceY) / 100) || 0);
                         }
 
                         x += cell.width + spaceX;
@@ -9312,7 +9316,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //表格布局定义(此值仅对表格布局(table)有效)(非html css属性)
         //行列格式: row[column ...] ...
         //row,column可选值: 整数(固定行高或列宽) 数字%(总宽度或高度的百分比) [数字]*(剩余空间的百分比,数字表示权重,省略时权重默认为100)
-        //column可嵌套表,嵌套表格式: { (spaceX spaceY) row[column ...] ... } spaceX,spaceY为横或纵向留空(可省略,默认与父表相等),整数或父留空的百分比
+        //column可嵌套表,嵌套表格式: table(spaceX spaceY) row[column ...] ... end spaceX,spaceY为横或纵向留空(可省略,默认与父表相等),整数值或百分比
+        //九宫格正中内嵌九宫格(留空为父表的一半)示例: "*[* * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * *]"
         style("layout-table", "*[* * *] *[* * *] *[* * *]", false, "rearrange");
 
 
@@ -9363,6 +9368,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.contentAlignX = value.match(regex1) || "center";
                 this.contentAlignY = value.match(regex2) || "middle";
             };
+
         })());
 
         //控件内容横向对齐样式(非html css属性)
@@ -9451,13 +9457,27 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-        //拆分边框
-        //必须按照 width -> style -> color 的顺序编写 可省略某些属性 未传入有效数据则清空相关属性
-        function split_border(name) {
+        //注: 控件的边框与css有些不同 不支持对不同的边框线设置不同的宽度,样式及圆角大小等, 但可设置是否绘制边框
+        //border            统一设置四边都绘制的边框风格
+        //border-top        是否绘制顶边框 true|false
+        //border-right      是否绘制右边框 true|false
+        //border-bottom     是否绘制底边框 true|false
+        //border-left       是否绘制左边框 true|false
+        //border-width      边框厚度 整数值
+        //border-style      边框样式 目前仅支持solid
+        //border-color      边框颜色 
+        //border-radius     边框圆角大小 整数值
 
-            var regex = /(\d+)?\s*(none|hidden|dotted|dashed|solid|double|groove|ridge|inset)?\s*(\S+)?/,
-                border = toUpperCase(["top", "right", "bottom", "left"]),
-                names = toUpperCase(["width", "style", "color"], "border" + (name ? name[0].toUpperCase() + name.substring(1) : "?"));
+
+        //控件边框简写方式(按照 width -> style -> color 的顺序设置)
+        //width	边框宽度 整数值 
+        //style	边框样式
+        //color	边框颜色
+        complex("border", ["width", "style", "color"], (function () {
+
+            var regex = /(\d+)?\s*(solid|dotted|dashed)?\s*(\S+)?/,
+                names1 = toUpperCase(["width", "style", "color"], "border"),
+                names2 = toUpperCase(["top", "right", "bottom", "left"], "border");
 
             return function (value) {
 
@@ -9467,127 +9487,50 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                     ("" + value).replace(regex, function (_, width, style, color) {
 
-                        if (name) //单一边框
-                        {
-                            self[names[0]] = width;
-                            self[names[1]] = style;
-                            self[names[2]] = color;
-                        }
-                        else //所有边框
-                        {
-                            for (var i = 0; i < 4; i++)
-                            {
-                                value = border[i];
+                        self[names1[0]] = width;
+                        self[names1[1]] = style;
+                        self[names1[2]] = color;
 
-                                self[names[0].replace("?", value)] = width;
-                                self[names[1].replace("?", value)] = style;
-                                self[names[2].replace("?", value)] = color;
-                            }
-                        }
+                        self[names2[0]] = self[names2[1]] = self[names2[2]] = self[names2[3]] = width > 0;
                     });
                 }
             };
-        };
 
-        //控件边框简写方式(按照 width -> style -> color 的顺序设置)
-        //width	边框宽度 整数值 
-        //style	边框样式
-        //color	边框颜色
-        complex("border", (function () {
+        })());
 
-            var items1 = toUpperCase(["width", "style", "color"]),
-                items2 = toUpperCase(["top", "right", "bottom", "left"]);
+        //是否绘制控件上边框 true|false
+        style("border-top", true, false, "relayout");
 
-            return function () {
+        //是否绘制控件右边框 true|false
+        style("border-right", true, false, "relayout");
 
-                var values = [];
+        //是否绘制控件下边框 true|false
+        style("border-bottom", true, false, "relayout");
 
-                loop:
-                    for (var i = 0; i < 3; i++)
-                    {
-                        var name = items1[i],
-                            value = this["border" + items2[0] + name];
+        //是否绘制控件左边框 true|false
+        style("border-left", true, false, "relayout");
 
-                        for (var j = 1; j < 4; j++)
-                        {
-                            if (value !== this["border" + items2[j] + name])
-                            {
-                                continue loop;
-                            }
-                        }
-
-                        values.push(value);
-                    }
-
-                return values.join(" ");
-            };
-
-        })(), split_border());
-
-        //控件上边框简写方式(按照 width -> style -> color 的顺序设置)
-        //width	边框宽度 整数值 
-        //style	边框样式
-        //color	边框颜色
-        complex("border-top", ["width", "style", "color"], split_border("top"));
-
-        //控件右边框简写方式(按照 width -> style -> color 的顺序设置)
-        //width	边框宽度 整数值 
-        //style	边框样式
-        //color	边框颜色
-        complex("border-right", ["width", "style", "color"], split_border("right"));
-
-        //控件下边框简写方式(按照 width -> style -> color 的顺序设置)
-        //width	边框宽度 整数值 
-        //style	边框样式
-        //color	边框颜色
-        complex("border-bottom", ["width", "style", "color"], split_border("bottom"));
-
-        //控件左边框简写方式(按照 width -> style -> color 的顺序设置)
-        //width	边框宽度 整数值 
-        //style	边框样式
-        //color	边框颜色
-        complex("border-left", ["width", "style", "color"], split_border("left"));
-
-        //控件边框样式简写方式(按照上右下左的顺序编写 与css规则相同)
-        complex("border-style", ["border-?-style", ["top", "right", "bottom", "left"]]);
-
-        //控件上右下左边框样式
-        //none	    定义无边框 
-        //hidden	与 "none" 相同 不过应用于表时除外, 对于表, hidden 用于解决边框冲突 
+        //控件边框样式(注: 目前仅支持solid边框样式)
+        //solid	    定义实线边框
         //dotted	定义点状边框 在大多数浏览器中呈现为实线 
         //dashed	定义虚线 在大多数浏览器中呈现为实线 
-        //solid	    定义实线 
-        //double	定义双线 双线的宽度等于 border-width 的值 
-        //groove	定义 3D 凹槽边框 其效果取决于 border-color 的值 
-        //ridge	    定义 3D 垄状边框 其效果取决于 border-color 的值 
-        //inset	    定义 3D inset 边框 其效果取决于 border-color 的值 
-        //outset	定义 3D outset 边框 其效果取决于 border-color 的值 
-        styles("border-?-style", ["top", "right", "bottom", "left"], "none", false);
+        style("border-style", "solid", false);
 
-        //控件边框宽度简写方式(按照上右下左的顺序编写 与css规则相同)
-        complex("border-width", ["border-?-width", ["top", "right", "bottom", "left"]]);
-
-        //控件上右下左边框宽度
+        //控件边框宽度
         //number	整数值 
-        styles("border-?-width", ["top", "right", "bottom", "left"], 0, false, "relayout");
+        style("border-width", 0, false, "relayout");
 
-        //控件边框颜色简写方式(按照上右下左的顺序编写 与css规则相同)
-        complex("border-color", ["border-?-color", ["top", "right", "bottom", "left"]]);
-
-        //控件上右下左边框颜色
+        //控件边框颜色
         //color_name	规定颜色值为颜色名称的边框颜色(比如 red) 
         //hex_number	规定颜色值为十六进制值的边框颜色(比如 #ff0000) 
         //rgb_number	规定颜色值为 rgb 代码的边框颜色(比如 rgb(255,0,0)) 
         //transparent	边框颜色为透明 
         //inherit	    规定应该从父元素继承边框颜色 
-        styles("border-?-color", ["top", "right", "bottom", "left"], "transparent", false);
+        style("border-color", "transparent", false);
 
-        //控件边框圆角大小简写方式(按照上右下左的顺序编写 与css规则相同)
-        complex("border-radius", ["border-?-radius", ["top-left", "top-right", "bottom-left", "bottom-right"]]);
-
-        //控件上左上右下左下右边框圆角大小
+        //控件边框圆角大小
         //number	整数值
-        styles("border-?-radius", ["top-left", "top-right", "bottom-left", "bottom-right"], 0, false);
+        style("border-radius", 0, false);
 
 
         //"border-collapse"
@@ -10843,38 +10786,58 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //计算盒模型样式
         this.__fn_box_style = function () {
 
-            var box = Object.create(null);
+            var box = Object.create(null),
+                width = box.border_width = this.borderWidth;
 
-            //计算盒模型
-            box.margin_spaceX =
-                (box.margin_left = this.marginLeft) +
-                (box.margin_right = this.marginRight);
+            box.margin_spaceX = (box.margin_left = this.marginLeft) + (box.margin_right = this.marginRight);
+            box.margin_spaceY = (box.margin_top = this.marginTop) + (box.margin_bottom = this.marginBottom);
 
-            box.spaceX = box.border_spaceX =
-                (box.border_left = this.insideX = this.borderLeftWidth) +
-                (box.border_right = this.borderRightWidth);
+            box.border_spaceX = (box.border_left = this.borderLeft ? width : 0) + (box.border_right = this.borderRight ? width : 0);
+            box.border_spaceY = (box.border_top = this.borderTop ? width : 0) + (box.border_bottom = this.borderBottom ? width : 0);
 
-            box.spaceX += (box.padding_spaceX =
-                (box.padding_left = this.clientX = this.paddingLeft) +
-                (box.padding_right = this.paddingRight));
+            box.padding_spaceX = (box.padding_left = this.paddingLeft) + (box.padding_right = this.paddingRight);
+            box.padding_spaceY = (box.padding_top = this.paddingTop) + (box.padding_bottom = this.paddingBottom);
 
-            box.margin_spaceY =
-                (box.margin_top = this.marginTop) +
-                (box.margin_bottom = this.marginBottom);
+            box.control_spaceX = box.border_spaceX + box.padding_spaceX;
+            box.control_spaceY = box.border_spaceY + box.padding_spaceY;
 
-            box.spaceY = box.border_spaceY =
-                (box.border_top = this.insideY = this.borderTopWidth) +
-                (box.border_bottom = this.borderBottomWidth);
+            if (width > 0)
+            {
+                if (box.border_top === box.border_right &&
+                    box.border_bottom === box.border_left &&
+                    box.border_right === box.border_bottom) //四条边相等
+                {
+                    if (box.border_top === 0) //4条边都为0
+                    {
+                        box.border_width = 0;
+                    }
+                    else
+                    {
+                        box.border_same = true; //标记4条边相等
+                    }
+                }
+            }
 
-            box.spaceY += (box.padding_spaceY =
-                (box.padding_top = this.clientY = this.paddingTop) +
-                (box.padding_bottom = this.paddingBottom));
+            if (box.border_width > 0)
+            {
+                box.border_radius = box.border_top > 0 || box.border_bottom > 0 ? this.borderRadius : 0;
+            }
 
-            this.clientX += box.border_left;
-            this.clientY += box.border_top;
+            this.clientX = box.padding_left + (this.insideX = box.border_left);
+            this.clientY = box.padding_top + (this.insideY = box.border_top);
 
-            //记录是否有边框
-            box.has_border = box.border_top > 0 || box.border_left > 0 || box.border_right > 0 || box.border_bottom > 0;
+            box.minWidth = this.minWidth;
+            box.minHeight = this.minHeight;
+
+            if ((box.maxWidth = this.maxWidth) <= 0)
+            {
+                box.maxWidth = 99999999;
+            }
+
+            if ((box.maxHeight = this.maxHeight) <= 0)
+            {
+                box.maxHeight = 99999999;
+            }
 
             //创建临时内部变量并返回
             return this.__box_style = box;
@@ -10891,7 +10854,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //返回最大占用宽度及高度
         this.measure = function (usable_width, usable_height, auto_width_to_fill, auto_height_to_fill, less_width_to_default, less_height_to_default) {
 
-
             var box = this.__fn_box_style(),
 
                 auto_width = false,
@@ -10902,7 +10864,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 value,
                 cache;
-
 
             //处理宽度
             if ((value = +(cache = this.width)) >= 0) //固定大小
@@ -10941,7 +10902,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 //充满可用宽度
                 if (cache === true)
                 {
-                    if ((usable_width -= box.margin_spaceX) > box.spaceX) //至少可以显示边框及内边距
+                    if ((usable_width -= box.margin_spaceX) > box.control_spaceX) //至少可以显示边框及内边距
                     {
                         width = usable_width;
                     }
@@ -10957,21 +10918,20 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             }
 
             //处理最小及最大宽度
-            if (width < (cache = this.minWidth))
+            if (width < box.minWidth)
             {
-                width = cache;
+                width = box.minWidth;
             }
-            else if ((cache = this.maxWidth) > 0 && width > cache)
+            else if (width > box.maxWidth)
             {
-                width = cache;
+                width = box.maxWidth;
             }
 
             //计算客户区宽度
-            if ((width = (this.controlWidth = width) - box.spaceX) < 0)
+            if ((width = (this.controlWidth = width) - box.control_spaceX) < 0)
             {
                 width = 0;
             };
-
 
             //处理高度
             if ((value = +(cache = this.height)) >= 0) //固定大小
@@ -11010,7 +10970,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 //充满可用高度
                 if (cache === true)
                 {
-                    if ((usable_height -= box.margin_spaceY) > box.spaceY) //至少可以显示边框及内边距
+                    if ((usable_height -= box.margin_spaceY) > box.control_spaceY) //至少可以显示边框及内边距
                     {
                         height = usable_height;
                     }
@@ -11026,21 +10986,20 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             }
 
             //处理最小及最大宽度
-            if (height < (cache = this.minHeight))
+            if (height < box.minHeight)
             {
-                height = cache;
+                height = box.minHeight;
             }
-            else if ((cache = this.maxHeight) > 0 && height > cache)
+            else if (height > box.maxHeight)
             {
-                height = cache;
+                height = box.maxHeight;
             }
 
             //计算客户区高度
-            if ((height = (this.controlHeight = height) - box.spaceY) < 0)
+            if ((height = (this.controlHeight = height) - box.control_spaceY) < 0)
             {
                 height = 0;
             }
-
 
             //处理自动宽高
             if (auto_width || auto_height)
@@ -11048,18 +11007,39 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.__fn_measure_auto(auto_width ? width : 0, auto_height ? height : 0);
 
                 //重计算宽度
-                if (auto_width)
+                if (width !== (cache = this.contentWidth))
                 {
-                    this.controlWidth = (width = this.contentWidth) + box.spaceX;
+                    if ((cache += box.control_spaceX) < box.minWidth)
+                    {
+                        width = (this.controlWidth = box.minWidth) - box.control_spaceX;
+                    }
+                    else if (cache > box.maxWidth)
+                    {
+                        width = (this.controlWidth = box.maxWidth) - box.control_spaceX;
+                    }
+                    else
+                    {
+                        this.controlWidth = (width = cache) + box.control_spaceX;
+                    }
                 }
 
                 //重计算高度
-                if (auto_height)
+                if (height !== (cache = this.contentHeight))
                 {
-                    this.controlHeight = (height = this.contentHeight) + box.spaceY;
+                    if ((cache += box.control_spaceY) < box.minHeight)
+                    {
+                        height = (this.controlHeight = box.minHeight) - box.control_spaceY;
+                    }
+                    else if (cache > box.maxHeight)
+                    {
+                        height = (this.controlHeight = box.maxHeight) - box.control_spaceY;
+                    }
+                    else
+                    {
+                        this.controlHeight = (height = cache) + box.control_spaceY;
+                    }
                 }
             }
-
 
             //设置客户区域大小 客户区变化时才会请求重新排列
             if (this.clientWidth !== width || this.clientHeight !== height)
@@ -11070,11 +11050,9 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.__arrange_dirty = true;
             }
 
-
             //计算内部空间
             this.insideWidth = width + box.padding_spaceX;
             this.insideHeight = height + box.padding_spaceY;
-
 
             //返回布局大小
             return { width: this.controlWidth + box.margin_spaceX, height: this.controlHeight + box.margin_spaceY };
@@ -11939,25 +11917,9 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             context.beginPath();
 
             //创建边框区裁剪区域
-            if (box.has_border && (box.border_clip || initialize_border(this, box)) !== true) //圆角边框
+            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true) //圆角边框
             {
-                //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
-                //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
-                var points = box.border_clip;
-
-                context.moveTo(points[0], points[1]);
-
-                for (var i = 2, _ = points.length; i < _; i++)
-                {
-                    if (points[i++]) //如果一下坐标点是圆角
-                    {
-                        context.quadraticCurveTo(points[i++], points[i++], points[i++], points[i++]);
-                    }
-
-                    context.lineTo(points[i++], points[i]);
-                }
-
-                context.closePath();
+                border_path(context, box.border_clip);
             }
             else
             {
@@ -12008,353 +11970,187 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //初始化边框坐标点
         function initialize_border(target, box) {
 
-
-            //计算边框圆角
-            var points = [],
-                border_left = box.border_left,
-                border_top = box.border_top,
-                border_right = box.border_right,
-                border_bottom = box.border_bottom,
-                x1 = border_left >> 1,
-                y1 = border_top >> 1,
-                x2 = border_right >> 1,
-                y2 = border_bottom >> 1,
-                right = target.controlWidth - x2,
-                bottom = target.controlHeight - y2,
-                radius_top1 = target.borderTopLeftRadius,
-                radius_top2 = target.borderTopRightRadius,
-                radius_bottom1 = target.borderBottomRightRadius,
-                radius_bottom2 = target.borderBottomLeftRadius,
-                radius = false,
-                push = points.push;
-
-
-            //计算绘制坐标 
-            //数组规则: [x1, y1, 边框厚度, 是否圆弧 是:[, x, y, x, y], x2, y2, 边框厚度, 是否圆弧 是:[, x, y, x, y], x3, y3...]
-            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
-
-            //上边框
-            if (radius_top1 > 0) //左上角
+            //圆角处理
+            if (box.border_radius > 0)
             {
-                radius = radius_top1 - x1 - y1; //调整弧度
-                push.apply(points, [x1, y1 + radius, border_top, true, x1, y1, x1 + radius, y1]);
-            }
-            else
-            {
-                push.apply(points, [x1, y1, border_top, false]);
+                return initialize_border2(target, box);
             }
 
-            //右边框
-            if (radius_top2 > 0) //右上角
+            //有4条非圆角边框则直接画矩形
+            if (box.border_same)
             {
-                radius = radius_top2 - x2 - y1; //调整弧度
-                push.apply(points, [right - radius, y1, border_right, true, right, y1, right, y1 + radius]);
-            }
-            else
-            {
-                push.apply(points, [right, y1, border_right, false]);
-            }
+                var border = box.border_width,
+                    offset = border >> 1;
 
-            //下边框
-            if (radius_bottom1 > 1) //右下角
-            {
-                radius = radius_bottom1 - x2 - y2; //调整弧度
-                push.apply(points, [right, bottom - radius, border_bottom, true, right, bottom, right - radius, bottom]);
+                box.border_lines = [offset, offset, target.controlWidth - border, target.controlHeight - border];
             }
-            else
+            else //否则画线条
             {
-                push.apply(points, [right, bottom, border_bottom, false]);
+                initialize_border1(target, box);
             }
 
-            //左边框
-            if (radius_bottom2 > 0) //左下角
-            {
-                radius = radius_bottom2 - x1 - y2; //调整弧度
-                push.apply(points, [x1 + radius, bottom, border_left, true, x1, bottom, x1, bottom - radius]);
-            }
-            else
-            {
-                push.apply(points, [x1, bottom, border_left, false]);
-            }
-
-            //记录绘制坐标
-            box.border_points = points;
-
-
-            //计算剪切坐标 
-            //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
-            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
-            if (radius)
-            {
-                points = [];
-
-                right = target.controlWidth;
-                bottom = target.controlHeight;
-
-                //上边框
-                if (radius_top1 > 0) //左上角
-                {
-                    push.apply(points, [0, radius_top1, true, 0, 0, radius_top1, 0]);
-                }
-                else
-                {
-                    push.apply(points, [0, 0, false]);
-                }
-
-                //右边框
-                if (radius_top2 > 0) //右上角
-                {
-                    push.apply(points, [right - radius_top2, 0, true, right, 0, right, radius_top2]);
-                }
-                else
-                {
-                    push.apply(points, [right, 0, false]);
-                }
-
-                //下边框
-                if (radius_bottom1 > 1) //右下角
-                {
-                    push.apply(points, [right, bottom - radius_bottom1, true, right, bottom, right - radius_bottom1, bottom]);
-                }
-                else
-                {
-                    push.apply(points, [right, bottom, false]);
-                }
-
-                //左边框
-                if (radius_bottom2 > 0) //左下角
-                {
-                    push.apply(points, [radius_bottom2, bottom, true, 0, bottom, 0, bottom - radius_bottom2]);
-                }
-                else
-                {
-                    push.apply(points, [0, bottom, false]);
-                }
-
-                //记录并返回剪切坐标
-                return box.border_clip = points;
-            }
-
+            //返回不需处理圆角剪切标记
             return box.border_clip = true;
         };
 
-
-
-        //初始化边框坐标点
+        //初始化无圆角部分边框线
         function initialize_border1(target, box) {
 
+            var lines = box.border_lines = [],  //边框线
 
-            //计算边框圆角
-            var border_left = box.border_left,
-                border_top = box.border_top,
-                border_right = box.border_right,
-                border_bottom = box.border_bottom,
+                offset = box.border_width >> 1, //边框偏移(中线)
 
-                x1 = border_left >> 1,
-                y1 = border_top >> 1,
-                x2 = border_right >> 1,
-                y2 = border_bottom >> 1,
-
-                x = 0,
-                y = 0,
                 width = target.controlWidth,
                 height = target.controlHeight,
 
-                radius1,
-                radius2,
-                radius3,
-                radius4,
-
-                cache;
-
-
-            //先计算圆角边框坐标
-            if (border_top > 0)
-            {
-                if ((cache = target.borderTopLeftRadius) > 0)
-                {
-                    radius1 = [0, cache, cache, 0];
-                }
-
-                if ((cache = target.borderTopRightRadius) > 0)
-                {
-                    radius2 = [width - cache, 0, width, cache];
-                }
-            }
-
-            if (border_bottom > 0)
-            {
-                if ((cache = target.borderBottomLeftRadius) > 0)
-                {
-                    radius3 = [width, height - cache, width - cache, height];
-                }
-
-                if ((cache = target.borderBottomRightRadius) > 0)
-                {
-                    radius4 = [cache, height, 0, height - cache];
-                }
-            }
-
-
-            //如果有圆角
-            if (radius1 || radius2 || radius3 || radius4)
-            {
-                var lines1 = [],
-                    lines2 = [],
-                    line1 = [],
-                    line2 = [],
-                    push = lines1.push;
-
-                if (radius1)
-                {
-                    push.apply(line1, [border_top, true, radius1[0] + x1, radius1[1], radius1[2], radius1[3] + y1]);
-
-                    push.apply(line2, [border_top, true]);
-                    push.apply(line2, radius1);
-                }
-                else
-                {
-
-                }
-            }
-
-            ////无圆角边框(不用计算剪切坐标)
-            //return [
-            //    x1, y1,
-            //    border_top, false, right - x2, y1,
-            //    border_right, false, right-x2
-            //];
-
-
-
-            //计算绘制坐标 
+                border1 = box.border_top > 0,
+                border2 = box.border_right > 0,
+                border3 = box.border_bottom > 0,
+                border4 = box.border_left > 0;
 
             //上边框
-            if (border_top > 0)
+            if (border1)
             {
-                var line1 = [];
-
-                if ((radius = target.borderTopLeftRadius) > 0) //上左圆角
-                {
-                    radius -= x1 + y1; //调整弧度
-                    push.apply(points, [border_top, x1, y1 + radius, true, x1, y1, x1 + radius, y1]);
-
-
-                }
-                else
-                {
-                    push.apply(points, [border_top, x1, y1]);
-                }
-
-                if ((radius = target.borderTopRightRadius) > 0) //上右圆角
-                {
-                    radius -= x2 + y1; //调整弧度
-                    push.apply(points, [right - radius, y1, true, right, y1, right, y1 + radius]);
-                }
-                else
-                {
-
-                }
-
-                lines1.push(line);
+                lines.push(["moveTo", [box.border_same ? offset : 0, offset]]);
+                lines.push(["lineTo", [border2 ? width - offset : width, offset]]);
             }
-            else
+            else if (border2)
             {
-                lines1.push(null);
+                lines.push(["moveTo", [width - offset, 0]]);
             }
 
             //右边框
-            if (border_right > 0)
+            if (border2)
             {
-                push.apply(points, [right, y1, border_right, false]);
+                lines.push(["lineTo", [width - offset, border3 ? height - offset : height]]);
+            }
+            else if (border3)
+            {
+                lines.push(["moveTo", [width, height - offset]]);
             }
 
             //下边框
-            if (border_bottom > 0)
+            if (border3)
             {
-                if ((radius = target.borderBottomRightRadius) > 1) //下右圆角
-                {
-                    radius = radius_bottom1 - x2 - y2; //调整弧度
-                    push.apply(points, [right, bottom - radius, border_bottom, true, right, bottom, right - radius, bottom]);
-                }
-                else
-                {
-                    push.apply(points, [right, bottom, border_bottom, false]);
-                }
-
-                //左边框
-                if ((radius = target.borderBottomLeftRadius) > 0) //下左圆角
-                {
-                    radius = radius_bottom2 - x1 - y2; //调整弧度
-                    push.apply(points, [x1 + radius, bottom, border_left, true, x1, bottom, x1, bottom - radius]);
-                }
+                lines.push(["lineTo", [border4 ? offset : 0, height - offset]]);
+            }
+            else if (border4)
+            {
+                lines.push(["moveTo", [offset, height]]);
             }
 
             //左边框
-            if (border_left > 0)
+            if (border4)
             {
-                push.apply(points, [x1, bottom, border_left, false]);
+                lines.push(["lineTo", [offset, border1 ? offset : 0]]);
+            }
+        };
+
+        //初始化圆角边框
+        function initialize_border2(target, box) {
+
+            var lines1 = box.border_lines = [],    //边框线
+                lines2 = box.border_clip = [],     //剪切框
+
+                offset = box.border_width >> 1, //边框偏移(中线)
+
+                radius1 = box.border_radius,
+                radius2 = radius1 + offset,
+
+                width = target.controlWidth,
+                height = target.controlHeight,
+
+                border1 = box.border_top > 0,
+                border2 = box.border_right > 0,
+                border3 = box.border_bottom > 0,
+                border4 = box.border_left > 0;
+
+            //上边框
+            if (border1)
+            {
+                lines1.push(["moveTo", [offset, radius1]]);
+                lines1.push(["quadraticCurveTo", [offset, offset, radius1, offset]]);
+                lines1.push(["lineTo", [width - radius1, offset]]);
+                lines1.push(["quadraticCurveTo", [width - offset, offset, width - offset, radius1]]);
+
+                lines2.push(["moveTo", [0, radius2]]);
+                lines2.push(["quadraticCurveTo", [0, 0, radius2, 0]]);
+                lines2.push(["lineTo", [width - radius2, 0]]);
+                lines2.push(["quadraticCurveTo", [width, 0, width, radius2]]);
+            }
+            else
+            {
+                if (border2)
+                {
+                    lines1.push(["moveTo", [width - offset, 0]]);
+                }
+
+                lines2.push(["moveTo", [0, 0]]);
+                lines2.push(["lineTo", [width, 0]]);
             }
 
-            //记录绘制坐标
-            box.border_points = points;
-
-
-            //计算剪切坐标 
-            //数组规则: [x1, y1, 是否圆弧 是:[, x, y, x, y], x2, y2, 是否圆弧 是:[, x, y, x, y], x3, y3...]
-            //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
-            if (radius)
+            //右边框
+            if (border2)
             {
-                points = [];
-
-                right = target.controlWidth;
-                bottom = target.controlHeight;
-
-                //上边框
-                if (radius_top1 > 0) //左上角
-                {
-                    push.apply(points, [0, radius_top1, true, 0, 0, radius_top1, 0]);
-                }
-                else
-                {
-                    push.apply(points, [0, 0, false]);
-                }
-
-                //右边框
-                if (radius_top2 > 0) //右上角
-                {
-                    push.apply(points, [right - radius_top2, 0, true, right, 0, right, radius_top2]);
-                }
-                else
-                {
-                    push.apply(points, [right, 0, false]);
-                }
-
-                //下边框
-                if (radius_bottom1 > 1) //右下角
-                {
-                    push.apply(points, [right, bottom - radius_bottom1, true, right, bottom, right - radius_bottom1, bottom]);
-                }
-                else
-                {
-                    push.apply(points, [right, bottom, false]);
-                }
-
-                //左边框
-                if (radius_bottom2 > 0) //左下角
-                {
-                    push.apply(points, [radius_bottom2, bottom, true, 0, bottom, 0, bottom - radius_bottom2]);
-                }
-                else
-                {
-                    push.apply(points, [0, bottom, false]);
-                }
-
-                //记录并返回剪切坐标
-                return box.border_clip = points;
+                lines1.push(["lineTo", [width - offset, border3 ? height - radius1 : height]]);
+            }
+            else if (border3)
+            {
+                lines1.push(["moveTo", [width - offset, height - radius1]]);
             }
 
-            return box.border_clip = true;
+            lines2.push(["lineTo", [width, border3 ? height - radius2 : height]]);
+
+            //下边框
+            if (border3)
+            {
+                lines1.push(["quadraticCurveTo", [width - offset, height - offset, width - radius1, height - offset]]);
+                lines1.push(["lineTo", [radius1, height - offset]]);
+                lines1.push(["quadraticCurveTo", [offset, height - offset, offset, height - radius1]]);
+
+                lines2.push(["quadraticCurveTo", [width, height, width - radius2, height]]);
+                lines2.push(["lineTo", [radius2, height]]);
+                lines2.push(["quadraticCurveTo", [0, height, 0, height - radius2]]);
+            }
+            else
+            {
+                if (border4)
+                {
+                    lines1.push(["moveTo", [offset, height]]);
+                }
+
+                lines2.push(["lineTo", [0, height]]);
+            }
+
+            //左边框
+            if (border4)
+            {
+                if (box.border_same) //有4条边则关闭
+                {
+                    lines1.push(["closePath"]);
+                    box.border_same = false;
+                }
+                else
+                {
+                    lines1.push(["lineTo", [offset, border1 ? radius1 : 0]]);
+                }
+            }
+
+            lines2.push(["closePath"]);
+
+            //返回需处理圆角矩形剪切标记
+            return lines2;
+        };
+
+
+        //绘制边框路径
+        function border_path(context, lines) {
+
+            for (var i = 0, _ = lines.length; i < _; i++)
+            {
+                var line = lines[i];
+                context[line[0]].apply(context, line[1]);
+            }
         };
 
 
@@ -12501,72 +12297,30 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-        //边框绘制顺序
-        var border_colors = [],
-            border_styles = [];
-
-        ["top", "right", "bottom", "left"].forEach(function (name) {
-
-            name = name[0].toUpperCase() + name.substring(1);
-
-            border_colors.push("border" + name + "Color");
-            border_styles.push("border" + name + "Style");
-        });
-
 
         //绘制边框
         this.paint_border = function (painter) {
 
-            if (this.__box_style.has_border)
-            {
-                //数组规则: [x1, y1, 边框厚度, 是否圆弧 是:[, x, y, x, y], x2, y2, 边框厚度, 是否圆弧 是:[, x, y, x, y], x3, y3...]
-                //开始坐标: 从左上圆弧点开始(无圆弧则从左上角开始)
+            var box = this.__box_style;
 
-                var context = painter.context,
-                    points = this.__box_style.border_points,
-                    x = points[0],
-                    y = points[1],
-                    lineWidth = points[2],
-                    index = 0;
+            if (box.border_lines)
+            {
+                var context = painter.context;
 
                 context.beginPath();
-                context.moveTo(x, y);
 
-                for (var i = 3, _ = points.length; i < _; i++)
+                if (box.border_same) //无圆角四条相同的边
                 {
-                    if (points[i++]) //如果一下坐标点是圆角
-                    {
-                        context.quadraticCurveTo(points[i++], points[i++], points[i++], points[i++]);
-                    }
-
-                    context.lineTo(points[i++], points[i++]);
-
-                    if (lineWidth !== points[i])
-                    {
-                        if (lineWidth > 0)
-                        {
-                            context.lineWidth = lineWidth;
-                            context.strokeStyle = this[border_colors[index]];
-
-                            if (i >= _)
-                            {
-                                context.lineTo(points[0], points[1]);
-                            }
-
-                            context.stroke();
-                        }
-
-                        if (i < _)
-                        {
-                            context.beginPath();
-                            context.moveTo(points[i - 2], points[i - 1]);
-                        }
-
-                        lineWidth = points[i];
-                    }
-
-                    index++;
+                    context.rect.apply(context, box.border_lines);
                 }
+                else
+                {
+                    border_path(context, box.border_lines);
+                }
+
+                context.lineWidth = box.border_width;
+                context.strokeStyle = this.borderColor;
+                context.stroke();
             }
         };
 

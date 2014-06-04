@@ -77,7 +77,6 @@
 
         w.layoutType = "flow";
         w.padding = 10;
-        w.borderWidth = 2;
         w.layoutLineSpace = 10;
         w.layoutItemSpace = 10;
 
@@ -100,12 +99,12 @@
                     ctrl.top = i / 5 * 30;
 
                     ctrl.margin = 2;
-                    //ctrl.borderWidth = 2;
-                    ctrl.borderRadius = 16;
-                    ctrl.padding = 2;
+                    ctrl.borderWidth = 2;
                     ctrl.borderColor = "red";
+                    ctrl.padding = 2;
+
                     //ctrl.backgroundColor = "linear(0, 0, 1, 0, 0, red, 0.5, green, 1, blue)";
-                    ctrl.align = "right bottom";
+                    //ctrl.align = "right bottom";
 
 
                     panel.children.append(ctrl);
@@ -142,14 +141,14 @@
                 panel.padding = 10;
 
                 panel.layoutType = "flow";
-                panel.layoutLineSpace = 0;
-                panel.layoutItemSpace = 0;
+                panel.layoutLineSpace = 10;
+                panel.layoutItemSpace = 10;
 
                 //panel.layoutAlignHeight = 100;
-                panel.layoutAlignWidth = 160;
+                //panel.layoutAlignWidth = 160;
                 panel.layoutGridRows = 4;
                 panel.layoutGridColumns = 4;
-                panel.layoutTable = "*[* * *] *[* * table (50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * *]";
+                panel.layoutTable = "*[* * * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
             
                 w.children.append(panel);
 
@@ -158,6 +157,7 @@
 
             alert(new Date() - date);
 
+            w.borderWidth;
             w.update();
 
         };
