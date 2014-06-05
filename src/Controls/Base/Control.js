@@ -630,11 +630,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         style("direction", "ltr", true, "rearrange");
 
         //控件停靠方式(此值仅在所属布局类型为停靠布局(dock)时有效)(非html css属性)
-        //left:   左见枚举
-        //top:    顶部见枚举
-        //right:  右见枚举
-        //bottom: 底部见枚举
-        //fill:   充满
+        //left:     左见枚举
+        //top:      顶部见枚举
+        //right:    右见枚举
+        //bottom:   底部见枚举
+        //fill:     充满
+        //none:     不停靠(使用绝对定位)
         style("dock", "left", false, "relayout");
 
         //是否强制换行(此值仅在所属布局类型为流式布局(flow),网格布局(grid)及表格布局(table)时有效)(非html css属性)
@@ -1930,15 +1931,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-        var ScrollBar = flyingon.ScrollBar,
-            Corner = flyingon.ScrollBar_Corner;
-
-
-
-        //滚动条厚度
-        flyingon.hscroll_thickness = flyingon.vscroll_thickness = 16;
-
-
 
         this.__event_scroll = function (event) {
 
@@ -1968,7 +1960,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         this.__event_mousewheel = function (event) {
 
-            var vscroll = this.__vscroll;
+            var vscroll = this.__vscroll_bar;
 
             if (vscroll)
             {
@@ -1987,99 +1979,53 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-
-        //竖直滚动条是否在左边
-        this.__hscroll_rtl = false;
-
         //是否需重新处理滚动条
         this.__scroll_dirty = false;
 
 
 
-
-        function initialize(target, parent) {
-
-            target.__parent = parent;
-            target.__addtions = true;
-
-            target.width = "fill";
-            target.height = "fill";
-
-            return target;
-        };
-
-
-
         //标记水平滚动条
-        this.__fn_sign_hscroll = function (visible, rtl) {
+        this.__fn_sign_hscroll = function (box, rtl) {
 
-            var thickness = flyingon.hscroll_thickness;
+            var hscroll = this.__hscroll_bar || (this.__hscroll_bar = this.__hscroll_cache || new flyingon.HScrollBar(this));
 
-            if (visible)
-            {
-                this.clientHeight -= thickness;
-                this.insideHeight -= thickness;
+            hscroll.__rtl = rtl;
 
-                initialize(this.__hscroll = new ScrollBar(), this).direction = rtl ? "rtl" : "ltr";
-            }
-            else
-            {
-                this.clientHeight += thickness;
-                this.insideHeight += thickness;
-
-                this.__hscroll = null;
-                this.__scroll_corner = null;
-            }
-
+            this.clientHeight = this.controlHeight - box.control_spaceY - (+hscroll.height || 16);
             this.__scroll_dirty = true;
         };
 
         //标记竖直滚动条
-        this.__fn_sign_vscroll = function (visible, rtl) {
+        this.__fn_sign_vscroll = function (box, rtl) {
 
-            var thickness = flyingon.vscroll_thickness;
+            var vscroll = this.__vscroll_bar || (this.__vscroll_bar = this.__vscroll_cache || new flyingon.VScrollBar(this)),
+                thickness = +vscroll.width || 16;
 
-            if (visible)
+            if (vscroll.__rtl = rtl) //滚动条在左边
             {
-                if (rtl) //滚动在左边
-                {
-                    this.clientX += thickness;
-                    this.insideX += thickness;
-                }
-
-                this.clientWidth -= thickness;
-                this.insideWidth -= thickness;
-
-                initialize(this.__vscroll = new ScrollBar(), this).vertical = true;
-                this.__vscroll.direction = "ltr";
+                this.clientX = box.clientX + thickness;
             }
             else
             {
-                if (rtl) //滚动条在左边
-                {
-                    this.clientX -= thickness;
-                    this.insideX -= thickness;
-                }
-
-                this.clientWidth += thickness;
-                this.insideWidth += thickness;
-
-                this.__vscroll = null;
-                this.__scroll_corner = null;
+                this.clientX = box.clientX;
             }
 
-            this.__vscroll_rtl = rtl;
+            this.clientWidth = this.controlWidth - box.control_spaceX - thickness;
             this.__scroll_dirty = true;
         };
 
 
         //测量滚动条 需先进行标记
-        this.__fn_measure_scroll = function () {
+        this.__fn_measure_scroll = function (box) {
 
-            var thickness1 = flyingon.hscroll_thickness,
-                thickness2 = flyingon.vscroll_thickness,
-                hscroll = this.__hscroll,
-                vscroll = this.__vscroll;
+            var hscroll = this.__hscroll_bar,
+                vscroll = this.__vscroll_bar,
+                thickness1 = hscroll && +hscroll.height || 16,
+                thickness2 = vscroll && +vscroll.width || 16,
+                x,
+                y,
+                width = this.controlWidth - box.border_spaceX - (vscroll ? thickness2 : 0),
+                height = this.controlHeight - box.border_spaceY - (hscroll ? thickness1 : 0);
 
             //有水平滚动条
             if (hscroll)
@@ -2088,8 +2034,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 hscroll.length = this.contentWidth;
                 hscroll.viewportSize = this.clientWidth;
 
-                hscroll.measure(this.insideWidth, thickness1, 1, 1);
-                hscroll.locate(this.insideX, this.insideHeight);
+                hscroll.measure(width, thickness1, 1, 1);
+                hscroll.locate(
+                    vscroll && vscroll.__rtl ? box.border_left + thickness2 : box.border_left,
+                    y = this.controlHeight - box.border_bottom - thickness1);
             }
 
             //有竖直滚动条
@@ -2099,17 +2047,19 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 vscroll.length = this.contentHeight;
                 vscroll.viewportSize = this.clientHeight;
 
-                vscroll.measure(thickness2, this.insideHeight, 1, 1);
-                vscroll.locate(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideY);
+                vscroll.measure(thickness2, height, 1, 1);
+                vscroll.locate(
+                    x = vscroll && vscroll.__rtl ? box.border_left : box.border_left + width,
+                    box.border_top);
             }
 
             //有双滚动条时生成拐角
             if (hscroll && vscroll)
             {
-                var corner = initialize(this.__scroll_corner = new ScrollBar_Corner(), this);
+                var corner = this.__scroll_corner || (this.__scroll_corner = new flyingon.ScrollCorner(this));
 
-                corner.fn_measure(thickness2, thickness1, "11");
-                corner.locate(this.__scroll_rtl ? this.insideX : this.insideWidth, this.insideHeight);
+                corner.measure(thickness2, thickness1, 1, 1);
+                corner.locate(x, y);
             }
 
             this.__scroll_dirty = false;
@@ -2131,18 +2081,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //控件大小(含边框及滚动条)
-        this.controlX = 0;   //相对控件左上角偏移
-        this.controlY = 0;   //相对控件左上角偏移
+        this.controlX = 0;   //相对父控件客户区左上角偏移
+        this.controlY = 0;   //相对父控件客户区左上角偏移
         this.controlWidth = 0;
         this.controlHeight = 0;
 
-        //内框区(含内边距, 不含边框及滚动条)
-        this.insideX = 0;     //相对控件左上角偏移
-        this.insideY = 0;     //相对控件左上角偏移
-        this.insideWidth = 0;
-        this.insideHeight = 0;
-
-        //客户区(不含内边距)
+        //客户区(不含内边距及滚动条)
         this.clientX = 0;     //相对控件左上角偏移
         this.clientY = 0;     //相对控件左上角偏移
         this.clientWidth = 0;
@@ -2156,7 +2100,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //添加右下属性
-        ["control", "inside", "client"].forEach(function (name) {
+        ["control", "client"].forEach(function (name) {
 
             flyingon.defineProperty(this, name + "Right", new Function("return this." + name + "X + this." + name + "Width;"));
             flyingon.defineProperty(this, name + "Bottom", new Function("return this." + name + "Y + this." + name + "Height;"));
@@ -2205,7 +2149,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     if (box.border_top === 0) //4条边都为0
                     {
-                        box.border_width = 0;
+                        box.border_width = width = 0;
                     }
                     else
                     {
@@ -2214,14 +2158,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 }
             }
 
-            if (box.border_width > 0)
-            {
-                box.border_radius = box.border_top > 0 || box.border_bottom > 0 ? this.borderRadius : 0;
-            }
+            //处理圆角边框
+            box.border_radius = width <= 0 || (box.border_top <= 0 && box.border_bottom <= 0) ? 0 : this.borderRadius;
 
-            this.clientX = box.padding_left + (this.insideX = box.border_left);
-            this.clientY = box.padding_top + (this.insideY = box.border_top);
+            //计算内部区及客户区位置
+            this.clientX = box.clientX = box.border_left + box.padding_left;
+            this.clientY = box.clientY = box.border_top + box.padding_top;
 
+            //缓存最大最小值
             box.minWidth = this.minWidth;
             box.minHeight = this.minHeight;
 
@@ -2446,10 +2390,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.__arrange_dirty = true;
             }
 
-            //计算内部空间
-            this.insideWidth = width + box.padding_spaceX;
-            this.insideHeight = height + box.padding_spaceY;
-
             //返回布局大小
             return { width: this.controlWidth + box.margin_spaceX, height: this.controlHeight + box.margin_spaceY };
         };
@@ -2460,7 +2400,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //maxHeight:    最大可用高度 0表示无限大
         this.__fn_measure_auto = function (maxWidth, maxHeight) {
 
-            this.__fn_arrange(false);
+            this.__fn_arrange();
         };
 
 
@@ -2514,89 +2454,165 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //排列子控件
-        this.__fn_arrange = function (scroll) {
+        this.__fn_arrange = function () {
 
-            var overflowX = this.overflowX,
-                overflowY = this.overflowY;
+            var box = this.__box_style,
+                overflowX = this.overflowX,
+                overflowY = this.overflowY,
+                rtl = this.direction === "rtl",
+                repeat = false;
+
+            //处理横向滚动条
+            if (overflowX === "scroll")
+            {
+                this.__fn_sign_hscroll(box, rtl);
+            }
+            else if (this.__hscroll_bar) //如果存在滚动条则先隐藏并重算客户区
+            {
+                this.clientHeight = this.controlHeight - box.control_spaceY;
+
+                this.__hscroll_cache = this.__hscroll_bar;
+                this.__hscroll_bar = null;
+            }
+
+            //处理纵向滚动条
+            if (overflowY === "scroll")
+            {
+                this.__fn_sign_vscroll(box, rtl);
+            }
+            else if (this.__vscroll_bar) //如果存在滚动条则先隐藏并重算客户区
+            {
+                this.clientX = box.clientX;
+                this.clientWidth = this.controlWidth - box.control_spaceX;
+
+                this.__vscroll_cache = this.__vscroll_bar;
+                this.__vscroll_bar = null;
+            }
 
             //初始化内容区
             this.contentWidth = this.clientWidth;
             this.contentHeight = this.clientHeight;
 
-            //排列
-            if (scroll) //滚动时不处理滚动条直接排列
+            //排列 overflow === "auto" 时先按没有滚动条的方式排列
+            this.arrange();
+
+            //处理水平方向自动滚动
+            if (this.contentWidth > this.clientWidth && overflowX === "auto")
             {
-                this.arrange(true);
+                this.__fn_sign_hscroll(box, rtl);
+                repeat = true;
             }
-            else //否则需处理滚动条
+
+            //处理竖直方向自动滚动
+            if (this.contentHeight > this.clientHeight && overflowY === "auto")
             {
-                var repeat = false,
-                    rtl;
+                this.__fn_sign_vscroll(box, rtl);
+                repeat = true;
+            }
 
-                //处理横向滚动条
-                if (overflowX === "scroll")
-                {
-                    if (!this.__hscroll)
-                    {
-                        this.__fn_sign_hscroll(true);
-                    }
-                }
-                else if (this.__hscroll)
-                {
-                    this.__fn_sign_hscroll(false);
-                }
+            //重新排列
+            if (repeat)
+            {
+                this.arrange();
+            }
 
-                //处理纵向滚动条
-                if (overflowY === "scroll")
-                {
-                    if (!this.__vscroll)
-                    {
-                        this.__fn_sign_vscroll(true, rtl || (rtl = this.direction === "rtl"));
-                    }
-                }
-                else if (this.__vscroll)
-                {
-                    this.__fn_sign_vscroll(false);
-                }
+            //测量滚动条
+            if (this.__scroll_dirty)
+            {
+                this.__fn_measure_scroll(box);
+            }
 
-
-                //排列 overflow === "auto" 时先按没有滚动条的方式排列
-                this.arrange(false);
-
-                //处理水平方向自动滚动
-                if (overflowX === "auto" && this.contentWidth > this.clientWidth)
-                {
-                    this.__fn_sign_hscroll(true);
-                    repeat = true;
-                }
-
-                //处理竖直方向自动滚动
-                if (overflowY === "auto" && this.contentHeight > this.clientHeight)
-                {
-                    this.__fn_sign_vscroll(true, rtl || this.direction === "rtl");
-                    repeat = true;
-                }
-
-                //重新排列
-                if (repeat)
-                {
-                    this.arrange(false);
-                }
-
-                //测量滚动条
-                if (this.__scroll_dirty)
-                {
-                    this.__fn_measure_scroll();
-                }
+            //执行rtl变换
+            if (rtl && this.__children)
+            {
+                this.__fn_arrange_rtl(this.__children);
             }
 
             this.__arrange_dirty = false;
         };
 
 
-        //默认排列方法
-        this.arrange = function (scroll) {
+        //默认使用线性布局, Panel控件才支持自定义布局
+        var layout_line = flyingon.layouts["line"];
 
+        //默认排列方法
+        this.arrange = function () {
+
+            var items = this.__children;
+
+            if (items && items.length > 0)
+            {
+                layout_line.call(this, items);
+            }
+        };
+
+
+        //rtl排列变换
+        this.__fn_arrange_rtl = function (items) {
+
+            if (this.layoutVertical)
+            {
+                this.__fn_arrange_x(items);
+            }
+            else
+            {
+                this.__fn_arrange_y(items);
+            }
+        };
+
+        //沿x中心轴进行排列变换
+        this.__fn_arrange_x = function (items) {
+
+            var height, item;
+
+            if ((height = this.contentHeight) < this.clientHeight)
+            {
+                height = this.clientHeight;
+            }
+
+            for (var i = 0, _ = items.length; i < _; i++)
+            {
+                (item = items[i]).controlY = height - item.controlY - item.controlHeight;
+            }
+        };
+
+        //沿y中心轴进行排列变换
+        this.__fn_arrange_y = function (items) {
+
+            var width, item;
+
+            if ((width = this.contentWidth) < this.clientWidth)
+            {
+                width = this.clientWidth;
+            }
+
+            for (var i = 0, _ = items.length; i < _; i++)
+            {
+                (item = items[i]).controlX = width - item.controlX - item.controlWidth;
+            }
+        };
+
+        //沿坐标原点进行排列变换
+        this.__fn_arrange_origin = function (items) {
+
+            var width, height, item;
+
+            if ((width = this.contentWidth) < this.clientWidth)
+            {
+                width = this.clientWidth;
+            }
+
+            if ((height = this.contentHeight) < this.clientHeight)
+            {
+                height = this.clientHeight;
+            }
+
+            for (var i = 0, _ = items.length; i < _; i++)
+            {
+                item = items[i];
+                item.controlX = width - item.controlX - item.controlWidth;
+                item.controlY = height - item.controlY - item.controlHeight;
+            }
         };
 
 
@@ -2634,47 +2650,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             this.invalidate(false, true);
         };
-
-
-        //沿x中心轴变换
-        this.__fn_mirror_x = function (items) {
-
-            var height = this.contentHeight;
-
-            for (var i = 0, _ = items.length; i < _; i++)
-            {
-                items[i].controlY += height - item.controlY - item.controlHeight;
-            }
-        };
-
-        //沿y中心轴变换
-        this.__fn_mirror_y = function (items) {
-
-            var width = this.contentWidth;
-
-            for (var i = 0, _ = items.length; i < _; i++)
-            {
-                items[i].controlX += width - item.controlX - item.controlWidth;
-            }
-        };
-
-        //沿坐标原点变换
-        this.__fn_mirror_origin = function (items) {
-
-            var width = this.contentWidth,
-                height = this.contentHeight;;
-
-            for (var i = 0, _ = items.length; i < _; i++)
-            {
-                var item = items[i];
-
-                item.controlX += width - item.controlX - item.controlWidth;
-                item.controlY += height - item.controlY - item.controlHeight;
-            }
-        };
-
-
-
 
 
 
@@ -2719,14 +2694,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             var cache;
 
-            if (this.__hscroll && this.__hscroll.hitTest(x, y))
+            if (this.__hscroll_bar && this.__hscroll_bar.hitTest(x, y))
             {
-                return this.__hscroll;
+                return this.__hscroll_bar;
             }
 
-            if (this.__vscroll && this.__vscroll.hitTest(x, y))
+            if (this.__vscroll_bar && this.__vscroll_bar.hitTest(x, y))
             {
-                return this.__vscroll;
+                return this.__vscroll_bar;
             }
 
             if ((cache = x - this.controlX) >= 0 && cache <= this.controlWidth &&
@@ -3262,12 +3237,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
-        //测试变量: 总共绘制的次数
-        var __render_times = 0;
-
-        //测试变量: 本次绘制的控件数
-        var ___render_items = 0;
-
 
         //渲染
         //注1:IE9在绘制时性能太差(比chrome差5到10倍) 暂时未找个原因(不知道是否与属性访问有关,或者与坐标变量或剪切有关,需要进一步测试)
@@ -3277,31 +3246,16 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             var box = this.__box_style,
                 context = painter.context,
-                x = this.controlX,
-                y = this.controlY;
+                cache;
 
             //重新排列
             if (this.__arrange_dirty)
             {
-                this.__fn_arrange(false);
+                this.__fn_arrange();
             }
 
-            //设置渲染环境
+            //保存渲染环境
             context.save();
-
-            //移动画布到当前控件坐标
-            if (clear !== false)
-            {
-                __render_times++;
-                ___render_items = 0;
-
-                context.clearRect(x, y, this.controlWidth, this.controlHeight);
-                context.translate(x + 0.5, y + 0.5); //偏移0.5像素解决线条不清晰的问题
-            }
-            else
-            {
-                context.translate(x, y);
-            }
 
             //设置目标控件
             painter.target = this;
@@ -3309,11 +3263,19 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //设置透明度
             this.__update_parent = (context.globalAlpha = this.opacity) < 1;
 
+            //切换原点到当前控件左上角
+            context.translate(this.controlX, this.controlY);
+
+            //移动画布到当前控件坐标
+            if (clear !== false)
+            {
+                context.clearRect(0, 0, this.controlWidth, this.controlHeight);
+            }
+
             //裁剪防止内容超出边框区范围
             context.beginPath();
 
-            //创建边框区裁剪区域
-            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true) //圆角边框
+            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
             {
                 border_path(context, box.border_clip);
             }
@@ -3322,7 +3284,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 context.rect(0, 0, this.controlWidth, this.controlHeight);
             }
 
-            //执行边框区裁剪
+            context.save();
             context.clip();
 
             //绘制背景
@@ -3337,29 +3299,68 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 this.__fn_render_children(painter, false);
             }
 
+            //回滚至剪切区域
+            context.restore();
 
             //绘制滚动条
+            if (cache = this.__hscroll_bar)
+            {
+                cache.__fn_render(painter, false);
+            }
 
+            if (this.__vscroll_bar)
+            {
+                this.__vscroll_bar.__fn_render(painter, false);
 
-            //绘制外框
-            this.paint_border(painter);
+                if (cache && (cache = this.__scroll_corner))
+                {
+                    cache.__fn_render(painter, false);
+                }
+            }
 
-            ////绘制装饰
-            //var decorates = this.decorates;
-            //if (decorates && decorates.length > 0)
-            //{
-            //    this.__fn_paint_decorates(context, decorates);
-            //}
+            //绘制边框
+            if (box.border_lines)
+            {
+                painter.strokeStyle = this.borderColor;
 
-            //回滚到绘制本控件前的状态
-            context.restore();
+                //奇数宽度线要平移0.5像素以防止线条模糊
+                //注意IE在进行0.5像素偏移绘制的时候性能很差,所以在偏移后绘制的内容越少越好,绘制完毕马上回退
+                if ((context.lineWidth = box.border_width) & 1)
+                {
+                    context.translate(0.5, 0.5);
+                }
+
+                context.beginPath();
+
+                if (box.border_same) //无圆角四条相同的边
+                {
+                    context.rect.apply(context, box.border_lines);
+                }
+                else
+                {
+                    border_path(context, box.border_lines);
+                }
+
+                if ((cache = this.borderStyle) != "solid")
+                {
+                    if (cache === "dashed")
+                    {
+                        painter.setLineDash([12, 4]);
+                    }
+                    else
+                    {
+                        painter.setLineDash([12, 4, 4, 4]);
+                    }
+                }
+
+                context.stroke();
+            }
 
             //修改状态
             this.__current_dirty = false;
 
-
-            //显示测试数据
-            //document.title = "共:" + __render_times + "次 本次:" + ___render_items + "个";
+            //回滚到绘制本控件前的状态
+            context.restore();
         };
 
 
@@ -3380,12 +3381,13 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 box.border_lines = [offset, offset, target.controlWidth - border, target.controlHeight - border];
             }
-            else //否则画线条
+            else
             {
+                //否则画线条
                 initialize_border1(target, box);
             }
 
-            //返回不需处理圆角剪切标记
+            //返回无需剪切标记
             return box.border_clip = true;
         };
 
@@ -3445,77 +3447,60 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //初始化圆角边框
         function initialize_border2(target, box) {
 
-            var lines1 = box.border_lines = [],    //边框线
-                lines2 = box.border_clip = [],     //剪切框
 
-                offset = box.border_width >> 1, //边框偏移(中线)
+            var lines = box.border_lines = [],
 
-                radius1 = box.border_radius,
-                radius2 = radius1 + offset,
+                thickness = box.border_width,
+                offset = thickness >> 1,      //边框中线偏移
 
                 width = target.controlWidth,
                 height = target.controlHeight,
+                right = width - offset,              //右边框中线坐标
+                bottom = height - offset,            //下边框中线坐标
 
                 border1 = box.border_top > 0,
                 border2 = box.border_right > 0,
                 border3 = box.border_bottom > 0,
-                border4 = box.border_left > 0;
+                border4 = box.border_left > 0,
+
+                radius = box.border_radius + offset;
+
+
+            //生成绘制路径
 
             //上边框
             if (border1)
             {
-                lines1.push(["moveTo", [offset, radius1]]);
-                lines1.push(["quadraticCurveTo", [offset, offset, radius1, offset]]);
-                lines1.push(["lineTo", [width - radius1, offset]]);
-                lines1.push(["quadraticCurveTo", [width - offset, offset, width - offset, radius1]]);
-
-                lines2.push(["moveTo", [0, radius2]]);
-                lines2.push(["quadraticCurveTo", [0, 0, radius2, 0]]);
-                lines2.push(["lineTo", [width - radius2, 0]]);
-                lines2.push(["quadraticCurveTo", [width, 0, width, radius2]]);
+                lines.push(["moveTo", [offset, radius]]);
+                lines.push(["quadraticCurveTo", [offset, offset, radius, offset]]);
+                lines.push(["lineTo", [width - radius, offset]]);
+                lines.push(["quadraticCurveTo", [right, offset, right, radius]]);
             }
-            else
+            else if (border2)
             {
-                if (border2)
-                {
-                    lines1.push(["moveTo", [width - offset, 0]]);
-                }
-
-                lines2.push(["moveTo", [0, 0]]);
-                lines2.push(["lineTo", [width, 0]]);
+                lines.push(["moveTo", [right, 0]]);
             }
 
             //右边框
             if (border2)
             {
-                lines1.push(["lineTo", [width - offset, border3 ? height - radius1 : height]]);
+                lines.push(["lineTo", [right, border3 ? height - radius : height]]);
             }
             else if (border3)
             {
-                lines1.push(["moveTo", [width - offset, height - radius1]]);
+                lines.push(["moveTo", [right, height - radius]]);
             }
-
-            lines2.push(["lineTo", [width, border3 ? height - radius2 : height]]);
 
             //下边框
             if (border3)
             {
-                lines1.push(["quadraticCurveTo", [width - offset, height - offset, width - radius1, height - offset]]);
-                lines1.push(["lineTo", [radius1, height - offset]]);
-                lines1.push(["quadraticCurveTo", [offset, height - offset, offset, height - radius1]]);
-
-                lines2.push(["quadraticCurveTo", [width, height, width - radius2, height]]);
-                lines2.push(["lineTo", [radius2, height]]);
-                lines2.push(["quadraticCurveTo", [0, height, 0, height - radius2]]);
+                lines.push(["quadraticCurveTo", [right, bottom, width - radius, bottom]]);
+                lines.push(["lineTo", [radius, bottom]]);
+                lines.push(["quadraticCurveTo", [offset, bottom, offset, height - radius]]);
             }
-            else
+            else if (border4)
             {
-                if (border4)
-                {
-                    lines1.push(["moveTo", [offset, height]]);
-                }
-
-                lines2.push(["lineTo", [0, height]]);
+                lines.push(["moveTo", [offset, height]]);
             }
 
             //左边框
@@ -3523,19 +3508,54 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 if (box.border_same) //有4条边则关闭
                 {
-                    lines1.push(["closePath"]);
+                    lines.push(["closePath"]);
                     box.border_same = false;
                 }
                 else
                 {
-                    lines1.push(["lineTo", [offset, border1 ? radius1 : 0]]);
+                    lines.push(["lineTo", [offset, border1 ? radius : 0]]);
                 }
             }
 
-            lines2.push(["closePath"]);
+
+            //生成剪切路径
+            var clip = box.border_clip = [];
+
+            radius += offset;
+
+            //上边框
+            if (border1)
+            {
+                clip.push(["moveTo", [0, radius]]);
+                clip.push(["quadraticCurveTo", [0, 0, radius, 0]]);
+                clip.push(["lineTo", [width - radius, 0]]);
+                clip.push(["quadraticCurveTo", [width, 0, width, radius]]);
+            }
+            else
+            {
+                clip.push(["moveTo", [0, 0]]);
+                clip.push(["lineTo", [width, 0]]);
+            }
+
+            //右边框
+            clip.push(["lineTo", [width, border3 ? height - radius : height]]);
+
+            //下边框
+            if (border3)
+            {
+                clip.push(["quadraticCurveTo", [width, height, width - radius, height]]);
+                clip.push(["lineTo", [radius, height]]);
+                clip.push(["quadraticCurveTo", [0, height, 0, height - radius]]);
+            }
+            else
+            {
+                clip.push(["lineTo", [0, height]]);
+            }
+
+            clip.push(["closePath"]);
 
             //返回需处理圆角矩形剪切标记
-            return lines2;
+            return clip;
         };
 
 
@@ -3560,21 +3580,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (length > 0)
             {
-                ___render_items += length; //记录本次绘制控件数
-
                 var context = painter.context,
-                    x = this.clientX,
-                    y = this.clientY,
-                    contentX = this.contentX,
-                    contentY = this.contentY;
+                    x = this.clientX - this.contentX,
+                    y = this.clientY - this.contentY;
 
                 context.save();
-
-                context.beginPath();
-                context.rect(x, y, this.clientWidth, this.clientHeight);
-                context.clip();
-
-                context.translate(x - contentX, y - contentY);
+                context.translate(this.clientX - this.contentX, this.clientY - this.contentY);
 
                 if (update)
                 {
@@ -3642,7 +3653,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     box = this.__box_style;
 
                 context.beginPath();
-                context.rect(this.insideX, this.insideY, this.insideWidth, this.insideHeight);
+                context.rect(box.border_left, box.border_top, this.controlWidth - box.border_spaceX, this.controlHeight - box.border_spaceY);
 
                 if (cache)
                 {
@@ -3667,14 +3678,21 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 height = this.controlHeight,
                 context = painter.context;
 
-            context.strokeStyle = "silver";
-            context.strokeRect(-box.margin_left, -box.margin_top, width + box.margin_spaceX, height + box.margin_spaceY);
+            //context.translate(0.5, 0.5);
+            //context.lineWidth = 1;
+            //context.strokeStyle = "silver";
+            //context.strokeRect(-box.margin_left, -box.margin_top - 1, width + box.margin_spaceX, height + box.margin_spaceY - 1);
 
-            context.strokeStyle = "green";
-            context.strokeRect(this.insideX, this.insideY, this.insideWidth, this.insideHeight);
+            if (this.__fullTypeName === "Panel")
+            {
+                context.fillStyle = "green";
+                context.fillRect(box.border_left, box.border_top, this.controlWidth - box.border_spaceX, this.controlHeight - box.border_spaceY);
+            }
 
-            context.strokeStyle = "blue";
-            context.strokeRect(this.clientX, this.clientY, this.clientWidth, this.clientHeight);
+            //context.strokeStyle = "blue";
+            //context.strokeRect(this.clientX, this.clientY, this.clientWidth - 1, this.clientHeight - 1);
+
+            //context.translate(-0.5, -0.5);
 
             var text = this.uniqueId + ":" + this.controlX + "," + this.controlY + "," + width + "," + height;
 
@@ -3689,35 +3707,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.paint_text = function (painter) {
 
 
-        };
-
-
-
-
-        //绘制边框
-        this.paint_border = function (painter) {
-
-            var box = this.__box_style;
-
-            if (box.border_lines)
-            {
-                var context = painter.context;
-
-                context.beginPath();
-
-                if (box.border_same) //无圆角四条相同的边
-                {
-                    context.rect.apply(context, box.border_lines);
-                }
-                else
-                {
-                    border_path(context, box.border_lines);
-                }
-
-                context.lineWidth = box.border_width;
-                context.strokeStyle = this.borderColor;
-                context.stroke();
-            }
         };
 
 

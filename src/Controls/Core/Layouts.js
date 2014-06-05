@@ -6,9 +6,7 @@
 
 
 
-    var layouts = {},
-
-        layout_unkown = null,
+    var layouts = flyingon.layouts = {},
 
         parse = parseFloat,
 
@@ -25,11 +23,6 @@
         layouts[name] = arrange_fn;
     };
 
-
-    flyingon.execute_layout = function (layout_type, items) {
-
-        (layouts[layout_type] || layout_unkown).call(this, items || this.__visiual_item || this.__children);
-    };
 
 
     function get_line_space(target) {
@@ -268,7 +261,7 @@
         };
 
 
-        registry("flow", layout_unkown = function (items) {
+        registry("flow", function (items) {
 
             (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
@@ -387,8 +380,13 @@
                             height = (bottom -= space1) - y;
                             break;
 
-                        default:
+                        case "fill":
                             fill.push(item);
+                            break;
+
+                        default: //不停靠(使用绝对定位)
+                            item.measure();
+                            item.locate(+item.left || 0, +item.top || 0);
                             break;
                     }
                 }
@@ -541,22 +539,12 @@
 
                 var box = item.__fn_box_style();
 
-                if ((item.insideWidth = (width -= box.border_spaceX)) <= 0)
-                {
-                    item.insideWidth = 0;
-                    item.clientWidth = 0;
-                }
-                else if ((item.clientWidth = width - box.padding_spaceX) < 0)
+                if ((item.clientWidth = width - box.control_spaceX) <= 0)
                 {
                     item.clientWidth = 0;
                 }
 
-                if ((item.insideHeight = (height -= box.border_spaceY)) <= 0)
-                {
-                    item.insideHeight = 0;
-                    item.clientHeight = 0;
-                }
-                else if ((item.clientHeight = height - box.padding_spaceY) < 0)
+                if ((item.clientHeight = height - box.control_spaceY) <= 0)
                 {
                     item.clientHeight = 0;
                 }

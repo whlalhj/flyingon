@@ -4,7 +4,7 @@ flyingon.defineClass("TemplateControl", flyingon.Control, function (Class, base,
 
 
    
-    this.arrange = function (scroll) {
+    this.arrange = function () {
 
         
     };

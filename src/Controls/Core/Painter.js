@@ -140,8 +140,8 @@ Canvas2D绘图
             function linear(painter) {
 
                 var target = painter.target,
-                    width = target.insideWidth,
-                    height = target.insideHeight,
+                    width = target.controlWidth,
+                    height = target.controlHeight,
                     result = painter.context.createLinearGradient(this.x1 * width, this.y1 * height, this.x2 * width, this.y2 * height),
                     colors = this.colors;
 
@@ -159,8 +159,8 @@ Canvas2D绘图
             function radial(painter) {
 
                 var target = painter.target,
-                    width = target.insideWidth,
-                    height = target.insideHeight,
+                    width = target.controlWidth,
+                    height = target.controlHeight,
                     result = painter.context.createRadialGradient(this.x1 * width, this.y1 * height, this.r1, this.x2 * width, this.y2 * height, this.r2),
                     colors = this.colors;
 

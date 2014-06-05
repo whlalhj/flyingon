@@ -8,8 +8,8 @@ flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon
         this.__boxModel.children = [];
 
         (this.__children = new flyingon.ControlCollection(this)).addRange([
-            this.__line = new flyingon.ScrollBar_Slider(),
-            this.__button = new flyingon.ScrollBar_Button(true)]);
+            this.__line = new flyingon.ScrollSlider(),
+            this.__button = new flyingon.ScrollButton(true)]);
     };
 
 

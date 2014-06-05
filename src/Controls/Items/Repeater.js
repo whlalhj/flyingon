@@ -28,7 +28,7 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
     };
 
     //排列子项
-    this.arrange = function (scroll) {
+    this.arrange = function () {
 
     };
 

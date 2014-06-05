@@ -3,6 +3,12 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
 
 
 
+    var layouts = flyingon.layouts,         //缓存布局服务
+
+        layout_unkown = layouts["flow"];    //设置未知布局类型
+
+
+
 
     //子控件功能扩展
     flyingon.children_extender.call(this, base);
@@ -22,22 +28,17 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
 
 
 
-
-    this.__fn_arrange = function (scroll) {
+    //重载内部排列方法
+    this.__fn_arrange = function () {
 
         var children = this.__children,
             length;
 
         if (children && (length = children.length) > 0)
         {
-            base.__fn_arrange.call(this, scroll);
+            base.__fn_arrange.call(this);
 
-            //从右到左坐标变换
-            if (!scroll && this.direction === "rtl")
-            {
-                this.__fn_mirror_x(this.__visible_items);
-            }
-
+            //计算可视控件
             var items = this.__visible_items = [],
                 x = this.contentX,
                 y = this.contentY,
@@ -63,15 +64,19 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
         }
     };
 
-    
+
+    //设置rtl排列变换为沿y中心轴变换
+    this.__fn_arrange_rtl = this.__fn_arrange_y;
+
+
     //排列子控件
-    this.arrange = function (scroll) {
+    this.arrange = function () {
 
-        var items;
+        var items = this.__children;
 
-        if (!scroll && (items = this.__children) && items.length > 0)
+        if (items && items.length > 0)
         {
-            flyingon.execute_layout.call(this, this.layoutType, items);
+            (layouts[this.layoutType] || layout_unkown).call(this, items);
         }
     };
 

@@ -125,32 +125,32 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //滚动条按钮
-    defineStyle("ScrollBar_Button", {
+    defineStyle("ScrollButton", {
 
         margin: 2
     });
 
 
     //滚动条滑块
-    defineStyle("ScrollBar_Slider", {
+    defineStyle("ScrollSlider", {
 
         margin: "2 0",
         backgroundColor: "#666666",
     });
 
-    defineStyle("ScrollBar_Slider:active", {
+    defineStyle("ScrollSlider:active", {
 
         backgroundColor: "red"
     });
 
-    defineStyle("ScrollBar_Slider:hover", {
+    defineStyle("ScrollSlider:hover", {
 
         backgroundColor: "yellow"
     });
 
 
     //滚动条拐角
-    defineStyle("ScrollBar_Corner", {
+    defineStyle("ScrollCorner", {
 
     });
 
@@ -167,6 +167,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //面板控件样式
     defineStyle("Panel", {
 
+        overflowX: "auto",
+        overflowY: "auto"
     });
 
 
@@ -195,7 +197,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         cursor: "pointer"
     });
 
-    
+
     defineStyle("Window", {
 
     });

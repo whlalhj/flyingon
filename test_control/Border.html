@@ -24,9 +24,9 @@
             <input type="button" value="bottom" onclick="set_border('Bottom')" />
             <input type="button" value="left" onclick="set_border('Left')" />
 
-            宽度:<input id="borderwidth" type="text" value="40" />
+            宽度:<input id="borderwidth" type="text" value="20" />
             颜色:<input id="bordercolor" type="text" value="red" />
-            圆角:<input id="borderradius" type="text" value="0" />
+            圆角:<input id="borderradius" type="text" value="20" />
 
             <input type="button" value="确定" onclick="execute()" />
 
@@ -59,10 +59,11 @@
         panel.width = 400;
         panel.height = 400;
 
+        panel.padding = 8;
         panel.borderWidth = borderwidth.value;
         panel.borderColor = bordercolor.value;
         panel.borderRadius = borderradius.value;
-        panel.backgroundColor = "silver";
+        panel.backgroundColor = "blue";
 
 
         w.children.append(panel);
