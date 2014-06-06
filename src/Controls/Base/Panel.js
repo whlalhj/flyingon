@@ -14,6 +14,8 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
     flyingon.children_extender.call(this, base);
 
 
+    //是否可响应事件 如不可响应事件则直接分发至父控件
+    this.__dispatch_event = true;
 
 
     //修改默认修值接受拖放

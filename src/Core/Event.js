@@ -9,7 +9,7 @@ flyingon.Event = function () { };
     //事件类型
     this.type = null;
 
-    //事件目标
+    //触发事件目标对象
     this.target = null;
 
     //是否取消冒泡
@@ -78,21 +78,9 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
     //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
     defineProperty("button");
 
-    //相对屏幕的x坐标
-    defineProperty("screenX");
-
-    //相对屏幕的y坐标
-    defineProperty("screenY");
-
-    //相对窗口客户区的x坐标
-    defineProperty("clientX");
-
-    //相对窗口客户区的y坐标
-    defineProperty("clientY");
-
 
     defineProperty = null;
-    
+
 
 
 
@@ -182,8 +170,8 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 flyingon.DragEvent = function (type, target, originalEvent) {
 
     this.type = type;
-    this.dragTargets = [target];
     this.target = target;
+    this.dragTargets = [target];
     this.originalEvent = originalEvent;
 };
 

@@ -152,7 +152,7 @@ flyingon.defineClass("ChildWindow_ToolBar", flyingon.Panel, function (Class, bas
 
 
 
-    this.__fn_render = function (width) {
+    this.render = function (width) {
 
         var height = this.visibility === "visible" ? +this.height || 25 : 0;
 
@@ -302,15 +302,15 @@ flyingon.defineClass("ChildWindow", flyingon.Panel, function (Class, base, flyin
         style.width = width + "px";
         style.height = height + "px";
 
-        this.toolbar.__fn_render(width);
+        this.toolbar.render(width);
         this.__fn_update(0, this.toolbar.marginBottom, width, height);
     };
 
 
 
-    this.hitTest = function (x, y) {
+    this.fintAt = function (x, y) {
 
-        return this.toolbar.hitTest(x, y) || base.hitTest.call(this, x, y);
+        return this.toolbar.fintAt(x, y) || base.fintAt.call(this, x, y);
     };
 
 

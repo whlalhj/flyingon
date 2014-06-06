@@ -32,14 +32,18 @@
             <input type="button" value="grid" onclick="layout('grid')" />
             <input type="button" value="table" onclick="layout('table')" />
             <input type="button" value="absolute" onclick="layout('absolute')" />
-            
+
             <span style="width: 10px"></span>
             <input type="button" value="horizontalLine" onclick="layoutVertical(false)" />
             <input type="button" value="verticalLine" onclick="layoutVertical(true)" />
-            
+
             <span style="width: 10px"></span>
             <input type="button" value="ltr" onclick="direction('ltr')" />
             <input type="button" value="rtl" onclick="direction('rtl')" />
+
+        </div>
+
+        <div id="message">
 
         </div>
 
@@ -71,7 +75,7 @@
             };
         };
 
-        
+
 
         var w = new flyingon.Window(host);
 
@@ -134,7 +138,7 @@
                 }
 
 
-                panel.width = 580;
+                panel.width = 500;
                 panel.height = 400;
                 panel.margin = 10;
                 panel.border = "4 solid red";
@@ -149,7 +153,7 @@
                 panel.layoutGridRows = 4;
                 panel.layoutGridColumns = 4;
                 panel.layoutTable = "*[* * * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
-            
+
                 w.children.append(panel);
 
             }
@@ -246,28 +250,30 @@
         };
 
 
-        flyingon.defineClass("MyClass", flyingon.Control, function (Class, base, flyingon) {
+        w.onmousemove = function (event) {
 
+            message.innerHTML = "target:" + event.target.uniqueId
+                + " canvasX:" + event.canvasX + " canvasY:" + event.canvasY
+                + " windowX:" + event.windowX + " windowY:" + event.windowY
+                + " controlX:" + event.controlX + " controlY:" + event.controlY;
+        };
 
-            Class.create = function () {
+        w.onclick = function (event) {
 
-                //
-            };
+            var target = w.fintAt(event.canvasX, event.canvasY);
 
-            this.fn = function () {
+            target.stateTo("hover", false);
 
-              
-            };
+            target.backgroundColor;
+            target.borderColor;
+            var color = event.target.backgroundColor;
+        };
 
+        //w.onmouseover = function (event) {
 
-            this.paint = function (painter) {
+        //    document.title = "source :" + event.source.uniqueId + " target:" + event.target.uniqueId;
+        //};
 
-                var context = painter.context;
-
-                
-            };
-
-        });
 
 
     </script>

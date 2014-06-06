@@ -51,9 +51,9 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     };
 
     //添加多个子项
-    this.appendRange = function (items) {
+    this.appendRange = function (item1, item2, __) {
 
-        if (items && items.length > 0)
+        if (arguments.length > 0)
         {
             var fn = this.__fn_validate;
 
@@ -61,9 +61,9 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
             {
                 var item;
 
-                for (var i = 0, _ = items.length; i < _; i++)
+                for (var i = 0, _ = arguments.length; i < _; i++)
                 {
-                    if ((item = fn.call(this, this.length, items[i])) !== undefined)
+                    if ((item = fn.call(this, this.length, arguments[i])) !== undefined)
                     {
                         this.__push(item);
                     }
@@ -71,7 +71,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
             }
             else
             {
-                this.__push.apply(this, items);
+                this.__push.apply(this, arguments);
             }
         }
     };
@@ -92,16 +92,16 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     };
 
     //在指定位置插入多个子项
-    this.insertRange = function (index, items) {
+    this.insertRange = function (index, item1, item2, __) {
 
-        if (index >= 0 && items && items.length > 0)
+        if (index >= 0 && arguments.length > 1)
         {
             var fn = this.__fn_validate,
                 item;
 
-            for (var i = 0, _ = items.length; i < _; i++)
+            for (var i = 0, _ = arguments.length; i < _; i++)
             {
-                if (!fn || (item = fn.call(this, index, item)) !== undefined)
+                if (!fn || (item = fn.call(this, index, arguments[i])) !== undefined)
                 {
                     this.__splice(index++, 0, item);
                 }

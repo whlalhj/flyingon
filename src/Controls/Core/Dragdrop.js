@@ -92,7 +92,7 @@
         move: function (dom_MouseEvent, offsetX, offsetY) {
 
             //需修正div移动偏差
-            var target = ownerWindow.hitTest(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
+            var target = ownerWindow.fintAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
                 event;
 
 

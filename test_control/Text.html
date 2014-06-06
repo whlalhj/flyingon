@@ -53,7 +53,7 @@
 
         canvas.onclick = function (event) {
 
-            var result = text.hitTest(event.offsetX, event.offsetY);
+            var result = text.fintAt(event.offsetX, event.offsetY);
             alert(result.x + " " + result.y + " " + result.index);
 
             text.replace("YYYYYYY");

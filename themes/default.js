@@ -278,10 +278,18 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
 
+    //横向滚动条
+    defineStyle("HScrollBar", {
 
-    //滚动条
-    defineStyle("ScrollBar", {
+        padding: 1,
+        backgroundColor: "silver"
+    });
 
+
+    //纵向滚动条
+    defineStyle("VScrollBar", {
+
+        padding: 1,
         backgroundColor: "silver"
     });
 
@@ -289,14 +297,27 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //滚动条按钮
     defineStyle("ScrollButton", {
 
-        margin: 2
+        width: "fill",
+        height: "fill",
+        backgroundColor: "#666666"
+    });
+
+    //defineStyle("ScrollButton:active", {
+
+    //    backgroundColor: "red"
+    //});
+
+    defineStyle("ScrollButton:hover", {
+
+        backgroundColor: "yellow"
     });
 
 
     //滚动条滑块
     defineStyle("ScrollSlider", {
 
-        margin: "2 0",
+        width: "fill",
+        height: "fill",
         backgroundColor: "#666666",
     });
 
@@ -314,6 +335,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //滚动条拐角
     defineStyle("ScrollCorner", {
 
+        width: "fill",
+        height: "fill",
     });
 
 

@@ -48,7 +48,7 @@ flyingon.layer_extender = function (host) {
 
         if (self.__current_dirty) //如果需要更新
         {
-            self.__fn_render(self.painter);
+            self.render(self.painter);
         }
         else if (self.__children_dirty) //如果子控件需要更新
         {
@@ -131,7 +131,7 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
     this.update = function () {
 
         this.__unregistry_update();
-        this.__fn_render(this.painter);
+        this.render(this.painter);
     };
 
 

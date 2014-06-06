@@ -218,7 +218,7 @@ flyingon.window_extender = function (base, flyingon) {
 
 
 
-    this.hitTest = function (x, y) {
+    this.fintAt = function (x, y) {
 
         for (var i = this.layers.length - 1; i >= 0; i--)
         {
@@ -226,7 +226,7 @@ flyingon.window_extender = function (base, flyingon) {
 
             if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] !== 0)
             {
-                return base.hitTest.call(layer, x, y);
+                return base.fintAt.call(layer, x, y);
             }
         }
 
@@ -273,7 +273,7 @@ flyingon.window_extender = function (base, flyingon) {
     function capture_control(dom_MouseEvent) {
 
         var source = flyingon.__hover_control,
-            target = this.hitTest(dom_MouseEvent.canvasX, dom_MouseEvent.canvasY) || this;
+            target = this.fintAt(dom_MouseEvent.canvasX, dom_MouseEvent.canvasY) || this;
 
         if (target !== source)
         {
@@ -295,6 +295,10 @@ flyingon.window_extender = function (base, flyingon) {
                 dispatchEvent("mouseover", target, dom_MouseEvent);
                 dispatchEvent("mousemove", target, dom_MouseEvent);
             }
+        }
+        else
+        {
+            dispatchEvent("mousemove", target, dom_MouseEvent);
         }
     };
 
@@ -510,7 +514,7 @@ flyingon.window_extender = function (base, flyingon) {
             layer.measure(width - x, height - y);
             layer.locate(x, y);
 
-            layer.__fn_render(layer.painter);
+            layer.render(layer.painter);
         }
     };
 

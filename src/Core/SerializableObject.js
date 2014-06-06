@@ -227,6 +227,10 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
 
+    //是否可响应事件 如不可响应事件则直接分发至父控件
+    this.__dispatch_event = true;
+
+
     //定义事件 name为不带on的事件名
     this.defineEvent = function (name) {
 
@@ -316,24 +320,31 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             }
 
             //处理冒泡事件
-            if ((events = target.__events) && (events = events[type]) && (length = events.length) > 0)
+            if (target.__dispatch_event) //是否可响应事件 如不可响应事件则直接分发至父控件
             {
-                for (var i = 0; i < length; i++)
+                if ((events = target.__events) && (events = events[type]) && (length = events.length) > 0)
                 {
-                    if (events[i].call(target, event) === false)
+                    for (var i = 0; i < length; i++)
                     {
-                        result = false;
+                        if (events[i].call(target, event) === false)
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+
+                    if (event.cancelBubble)
+                    {
                         break;
                     }
                 }
 
-                if (event.cancelBubble)
-                {
-                    break;
-                }
+                target = target.__parent;
             }
-
-            target = target.__parent;
+            else
+            {
+                event.target = target = target.__parent; //指向上级对象
+            }
         }
 
         if (event.originalEvent)
