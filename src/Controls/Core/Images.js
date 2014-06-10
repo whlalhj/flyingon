@@ -34,13 +34,13 @@
     //按顺序获取其中一张有效的图片
     flyingon.get_image_any = function (names) {
 
-        var result;
+        var image;
 
         for (var i = 0, _ = names.length; i < _; i++)
         {
-            if (result = image_list[names[i]])
+            if (image = image_list[names[i]])
             {
-                return result;
+                return image;
             }
         }
 

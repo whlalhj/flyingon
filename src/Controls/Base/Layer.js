@@ -59,23 +59,25 @@ flyingon.layer_extender = function (host) {
 
 
 
-    //立即执行更新
-    this.__execute_update = update();
-
-
-
     //注册更新
-    this.__registry_update = function () {
+    this.__registry_update = function (update_now) {
 
         //图层测量过后才可自动更新
         if (this.__box_style)
         {
-            if (timer)
+            if (update_now)
             {
-                clearTimeout(timer);
+                update();
             }
+            else
+            {
+                if (timer)
+                {
+                    clearTimeout(timer);
+                }
 
-            timer = setTimeout(update, 5);
+                timer = setTimeout(update, 5);
+            }
         }
     };
 

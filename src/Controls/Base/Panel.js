@@ -14,9 +14,6 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
     flyingon.children_extender.call(this, base);
 
 
-    //是否可响应事件 如不可响应事件则直接分发至父控件
-    this.__dispatch_event = true;
-
 
     //修改默认修值接受拖放
     this.defaultValue("droppable", true);
@@ -30,16 +27,30 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
 
 
 
-    //重载内部排列方法
-    this.__fn_arrange = function () {
+    //设置rtl排列变换为沿y中心轴变换
+    this.__fn_arrange_rtl = this.__fn_arrange_y;
+
+
+    //排列子控件
+    this.arrange = function () {
+
+        var items = this.__children;
+
+        if (items && items.length > 0)
+        {
+            (layouts[this.layoutType] || layout_unkown).call(this, items);
+        }
+    };
+
+
+    //重载子控件渲染方法 在渲染前计算可视控件
+    this.__fn_render_children = function (painter, update) {
 
         var children = this.__children,
             length;
 
         if (children && (length = children.length) > 0)
         {
-            base.__fn_arrange.call(this);
-
             //计算可视控件
             var items = this.__visible_items = [],
                 x = this.contentX,
@@ -64,25 +75,9 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
                 }
             }
         }
+
+        base.__fn_render_children.call(this, painter, update);
     };
-
-
-    //设置rtl排列变换为沿y中心轴变换
-    this.__fn_arrange_rtl = this.__fn_arrange_y;
-
-
-    //排列子控件
-    this.arrange = function () {
-
-        var items = this.__children;
-
-        if (items && items.length > 0)
-        {
-            (layouts[this.layoutType] || layout_unkown).call(this, items);
-        }
-    };
-
-
 
 
     //this.focus = function () {

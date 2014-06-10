@@ -59,8 +59,7 @@
 
             var space2 = get_item_space(this),
                 clientWidth = this.clientWidth,
-                contentHeight = this.layoutAlignHeight,
-                align_height = contentHeight || this.clientHeight,
+                clientHeight = this.clientHeight,
                 x = 0,
                 width,
                 bottom;
@@ -76,27 +75,21 @@
                         x += space2;
                     }
 
-                    width = item.measure(clientWidth - x, align_height, 0, 1, 1, 0).width;
-                    bottom = item.locate(x, 0, null, align_height).y;
+                    width = item.measure(clientWidth - x, clientHeight, 0, 1, 1, 0).width;
+                    bottom = item.locate(x, 0, null, clientHeight).y;
 
                     x += width;
-
-                    if (bottom > contentHeight)
-                    {
-                        contentHeight = bottom;
-                    }
                 }
             }
 
             this.contentWidth = x;
-            this.contentHeight = contentHeight;
+            this.contentHeight = 0;
         };
 
         function fn2(items) {
 
             var space2 = get_item_space(this),
-                contentWidth = this.layoutAlignWidth,
-                align_width = contentWidth || this.clientWidth,
+                clientWidth = this.clientWidth,
                 clientHeight = this.clientHeight,
                 y = 0,
                 height,
@@ -113,26 +106,21 @@
                         y += space2;
                     }
 
-                    height = item.measure(align_width, clientHeight - y, 1, 0, 0, 1).height;
-                    right = item.locate(0, y, align_width).x;
+                    height = item.measure(clientWidth, clientHeight - y, 1, 0, 0, 1).height;
+                    right = item.locate(0, y, clientWidth).x;
 
                     y += height;
-
-                    if (right > contentWidth)
-                    {
-                        contentWidth = right;
-                    }
                 }
             }
 
-            this.contentWidth = contentWidth;
+            this.contentWidth = 0;
             this.contentHeight = y;
         };
 
 
         registry("line", function (items) {
 
-            (this.layoutVertical ? fn2 : fn1).call(this, items);
+            (this.vertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -151,7 +139,7 @@
                 contentWidth = 0,
                 contentHeight = 0,
                 clientWidth = this.clientWidth,
-                align_height = this.layoutAlignHeight || 0,
+                align_height = this.layoutHeight || 0,
                 x = 0,
                 y = 0,
                 width,
@@ -209,7 +197,7 @@
                 x = 0,
                 y = 0,
                 clientHeight = this.clientHeight,
-                align_width = this.layoutAlignWidth || 0,
+                align_width = this.layoutWidth || 0,
                 contentWidth = 0,
                 contentHeight = 0,
                 height,
@@ -263,7 +251,7 @@
 
         registry("flow", function (items) {
 
-            (this.layoutVertical ? fn2 : fn1).call(this, items);
+            (this.vertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -450,7 +438,7 @@
         }
 
         //按顺序排列
-        if (this.layoutVertical)
+        if (this.vertical)
         {
             for (var i = 0, _ = items.length; i < _; i++)
             {

@@ -389,7 +389,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
     function state_check(target) {
 
-        return target.states && target.states[this.name] ? target : false;
+        return target.__states && target.__states[this.name] ? target : false;
     };
 
     var pseudo_check = {
@@ -403,7 +403,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
         enabled: function (target) {
 
-            return !target.states || !target.states.disabled ? target : false
+            return !target.__states || !target.__states.disabled ? target : false
         },
 
         empty: function (target) {

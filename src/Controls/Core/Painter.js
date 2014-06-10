@@ -671,7 +671,7 @@ Canvas2D绘图
             };
 
             //绘制图像
-            this.paint_image = function (image, x, y, width, height, align, stretch) {
+            this.paint_image = function (image, x, y, width, height, alignX, alignY, stretch) {
 
                 var context = this.context,
                     _width = image.width,
@@ -706,34 +706,27 @@ Canvas2D绘图
                     }
                 }
 
-                if (align)
+                if (alignX && (cache = width - _width) && alignX !== "left")
                 {
-                    if (cache = width - _width)
+                    if (alignX === "center")
                     {
-                        switch (align.horizontal)
-                        {
-                            case "center":
-                                x += cache >> 1;
-                                break;
-
-                            case "right":
-                                x += cache;
-                                break;
-                        }
+                        x += cache >> 1;
                     }
-
-                    if (cache = height - _height)
+                    else //right
                     {
-                        switch (align.vertical)
-                        {
-                            case "middle":
-                                y += cache >> 1;
-                                break;
+                        x += cache;
+                    }
+                }
 
-                            case "bottom":
-                                y += cache;
-                                break;
-                        }
+                if (alignY && (cache = height - _height) && alignY !== "top")
+                {
+                    if (alignY === "middle")
+                    {
+                        y += cache >> 1;
+                    }
+                    else //bottom
+                    {
+                        y += cache;
                     }
                 }
 

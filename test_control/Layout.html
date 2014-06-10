@@ -148,8 +148,8 @@
                 panel.layoutLineSpace = 10;
                 panel.layoutItemSpace = 10;
 
-                //panel.layoutAlignHeight = 100;
-                //panel.layoutAlignWidth = 160;
+                //panel.layoutHeight = 100;
+                //panel.layoutWidth = 160;
                 panel.layoutGridRows = 4;
                 panel.layoutGridColumns = 4;
                 panel.layoutTable = "*[* * * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
@@ -225,7 +225,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.layoutVertical = value;
+                panel.vertical = value;
             }
 
             w.update();
@@ -253,6 +253,7 @@
         w.onmousemove = function (event) {
 
             message.innerHTML = "target:" + event.target.uniqueId
+                + " hover:" + (event.target.__states && event.target.__states.hover ? "true" : "false")
                 + " canvasX:" + event.canvasX + " canvasY:" + event.canvasY
                 + " windowX:" + event.windowX + " windowY:" + event.windowY
                 + " controlX:" + event.controlX + " controlY:" + event.controlY;
@@ -262,11 +263,7 @@
 
             var target = w.fintAt(event.canvasX, event.canvasY);
 
-            target.stateTo("hover", false);
-
-            target.backgroundColor;
-            target.borderColor;
-            var color = event.target.backgroundColor;
+            target.canvas_to_control(event.canvasX, event.canvasY);
         };
 
         //w.onmouseover = function (event) {

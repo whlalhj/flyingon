@@ -26,13 +26,14 @@
 
 
 
+
     //滑块控件扩展器
-    flyingon.slider_extender = function (vertical) {
+    function slider_extender() {
 
 
 
-        var timer,      //定时变更定时器
-            dragger;    //拖拉者
+        var timer,          //定时变更定时器
+            dragger;        //拖拉者
 
 
 
@@ -47,22 +48,38 @@
 
 
         //当前值
-        this.defineProperty("value", 0, "invalidate");
+        this.defineProperty("value", 0, {
+
+            changing: flyingon.function_body(function () {
+
+                if (value < this.minValue)
+                {
+                    value = this.minValue;
+                }
+                else if (value > this.maxValue)
+                {
+                    value = this.maxValue;
+                }
+            }),
+
+            changed: "this.__fn_change_value(value - oldValue, false);"
+        });
 
         //最小值
-        this.defineProperty("minValue", 0, "invalidate");
+        this.defineProperty("minValue", 0, {
+
+            attributes: "invalidate",
+            changing: "if (value < 0) value = 0;",
+            changed: "if (this.value < value) fields.value = value;"
+        });
 
         //最大值
-        this.defineProperty("maxValue", 100, "invalidate");
+        this.defineProperty("maxValue", 100, {
 
-        //视图尺寸
-        this.defineProperty("view_size", 10, "invalidate");
-
-        //最大变更值
-        this.defineProperty("max_change", 200);
-
-        //最小变更值
-        this.defineProperty("min_change", 20);
+            attributes: "invalidate",
+            changing: "if (value < 0) value = 0;",
+            changed: "if (this.value > value) fields.value = value;"
+        });
 
 
 
@@ -74,82 +91,26 @@
 
 
 
-        //滚动事件
-        this.defineEvent("scroll");
-
-
-
 
         this.__event_mousedown = function (event) {
 
-            if (timer)
+            if (dragger = this.__fn_mousedown(event))
             {
-                clearTimeout(timer);
-            }
+                this.ownerWindow.__capture_control = this.slider;
 
-            var value = this.__target, limit;
-
-            if (value)
-            {
-                if (value === this.__button1)
-                {
-                    value = -this.min_change;
-                }
-                else if (value === this.__button2)
-                {
-                    value = this.min_change;
-                }
-                else //slider
-                {
-                    this.ownerWindow.__capture_control = this;
-
-                    dragger = {
-
-                        x: event.offsetX,
-                        y: event.offsetY,
-                        value: this.value
-                    };
-
-                    event.stopPropagation();
-                    event.preventDefault();
-                    return;
-                }
-            }
-            else
-            {
-                //var r = this.__boxModel.clientRect;
-                //value = this.vertical ? event.windowY - r.windowY : event.windowX - r.windowX;
-
-                //if (value < this.__offset_value) //slider before
-                //{
-                //    limit = Math.round((value - this.thickness) * this.maxValue / this.__length_value);
-                //    value = -this.max_change;
-                //}
-                //else  //slider after
-                //{
-                //    limit = Math.round((value - this.thickness - this.__slider_value) * this.maxValue / this.__length_value);
-                //    value = this.max_change;
-                //}
-            }
-
-            if (this.step_to(value, limit, event))
-            {
-                step_to_delay.call(this, value, limit, event);
+                event.stopPropagation();
+                event.preventDefault();
             }
         };
 
 
         this.__event_mousemove = function (event) {
 
-            if (dragger)
-            {
-                var offset = this.vertical ? (event.offsetY - dragger.y) : (event.offsetX - dragger.x),
-                    value = Math.round(offset * this.maxValue / this.__length_value);
+            var change;
 
-                if (value)
-                {
-                    this.step_to(0, dragger.value + value, event);
-                }
+            if (dragger && (change = this.__fn_drag_value(event, dragger) - this.value))
+            {
+                this.__fn_change_value(change, event);
             }
         };
 
@@ -162,236 +123,355 @@
                 timer = null;
             }
 
-            this.ownerWindow.__capture_control = null;
-            dragger = null;
+            if (dragger)
+            {
+                this.ownerWindow.__capture_control = null;
+                dragger = null;
+            }
+        };
+
+
+        //值改变方法
+        this.__fn_change_value = function (change, event) {
+
+            this.invalidate(false);
         };
 
 
 
-        //移动指定距离
-        this.step_to = function (step, limit, originalEvent) {
 
-            var value = this.value + step,
-                length = this.maxValue - this.viewportSize;
+        //定时移动至指定的位置
+        this.__fn_delay_change = function (change, limit, event) {
 
-
-            if (limit == null)
+            if (delay_change(this, change, limit, event) != limit)
             {
-                limit = step < 0 ? 0 : length;
-            }
-            else if (limit < 0)
-            {
-                limit = 0;
-            }
-            else if (limit > length)
-            {
-                limit = length;
-            }
+                var self = this;
 
+                function fn() {
 
-            if (!step || (step > 0 && value > limit) || (step < 0 && value < limit))
-            {
-                value = limit;
-            }
-
-
-            if ((step = value - this.value) === 0)
-            {
-                return false;
-            }
-
-
-            this.value = value;
-
-
-            var event = new flyingon.ScrollEvent(this, originalEvent);
-
-            if (this.vertical)
-            {
-                event.changeY = step;
-            }
-            else
-            {
-                event.changeX = step;
-            }
-
-            this.dispatchEvent(event);
-
-
-            this.invalidate(true);
-
-            return value !== limit;
-        };
-
-
-        //定时移动指定的距离
-        function step_to_delay(step, limit, originalEvent) {
-
-            var self = this,
-
-                fn = function () {
-
-                    clearTimeout(timer);
-
-                    if (self.step_to(step, limit, originalEvent))
+                    if (delay_change(self, change, limit, event) != limit)
                     {
                         timer = setTimeout(fn, 200);
                     }
                 };
 
-            timer = setTimeout(fn, 200);
+                timer = setTimeout(fn, 200);
+            }
+        };
+
+        function delay_change(target, change, limit, event) {
+
+            if (change > 0)
+            {
+                if (target.value + change > limit)
+                {
+                    change = limit - target.value;
+                }
+            }
+            else if (change < 0)
+            {
+                if (target.value + change < limit)
+                {
+                    change = limit - target.value;
+                }
+            }
+
+            return target.__fn_change_value(change, event) != limit;
         };
 
 
     };
 
 
-    
-
-    //水平滚动条控件
-    flyingon.defineClass("HScrollBar", flyingon.Control, function (Class, base, flyingon) {
 
 
-        Class.create = function (parent) {
+    //滚动条基类
+    flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyingon) {
 
-            var button1 = this.__button1 = new flyingon.ScrollButton(true),
-                button2 = this.__button2 = new flyingon.ScrollButton(false),
-                slider = this.__slider = new flyingon.ScrollSlider();
 
-            button1.image = "scroll-left";
-            button2.image = "scroll-right";
+        var round = Math.round;
+
+
+
+        Class.create = function (parent, vertical) {
+
+            var button1 = this.button1 = new flyingon.ScrollButton(),
+                button2 = this.button2 = new flyingon.ScrollButton(),
+                slider = this.slider = new flyingon.ScrollBlock();
+
+            button1.first = true;
+
+            if (vertical)
+            {
+                this.__fields.vertical = true;
+                this.__fn_vertical(true);
+            }
 
             (this.__children = this.__visible_items = new flyingon.ControlCollection(this)).appendRange(slider, button1, button2);
 
             this.__parent = parent;
-            this.__addtions = true;
+            this.__additions = true;
         };
 
 
 
-        //flyingon.slider_extender.call(this);
+        slider_extender.call(this);
 
 
-        
 
-        function slider_length(length) {
+        //是否竖直滚动条
+        this.defineProperty("vertical", false, {
 
-            if (length <= 8)
+            attributes: "rearrange",
+            changed: "this.__fn_vertical(value);"
+        });
+
+
+
+        //滚动事件
+        this.defineEvent("scroll");
+
+
+        this.__fn_mousedown = function (event) {
+
+            var vertical = this.vertical,
+                limit = vertical ? event.controlY : event.controlX,
+                change;
+
+            if (limit < this.scroll_start)
             {
-                return 0;
+                change = -20;
+                limit = 0;
             }
-
-            var result = Math.round(length * this.viewportSize / this.maxValue);
-            return result <= 8 ? 8 : result;
-        };
-
-        function slider_start(length, slider) {
-
-            if (length <= 0)
+            else if (limit > this.scroll_end)
             {
-                return 0;
+                change = 20;
+                limit = this.maxValue;
             }
-
-            if (this.value >= this.maxValue - this.viewportSize)
+            else if (limit >= this.slider_start && limit <= this.slider_end)
             {
-                return length - slider;
-            }
-
-            return Math.round(this.value * length / this.maxValue);
-        };
-
-
-
-        //重载子控件排列
-        this.__fn_arrange = function () {
-
-            var button1 = this.__button1,
-                button2 = this.__button2,
-                slider = this.__slider,
-                width,
-                height = this.clientHeight;
-
-
-            //执行rtl变换
-            if (this.__rtl)
-            {
-                width = button1.measure(height, height, 1, 1).width;
-                button1.locate(this.clientWidth - width, 0, height, height);
-
-                button2.measure(height, height, 1, 1);
-                button2.locate(0, 0, height, height);
-
-                slider.measure(height, height, 1, 1);
-                slider.locate(0, 0, height, height);
+                return this.slider.canvas_to_control(event.canvasX, event.canvasY); //返回拖动初始位置
             }
             else
             {
-                button1.measure(height, height, 1, 1);
-                button1.locate(0, 0, height, height);
+                change = vertical ? this.__parent.clientHeight : this.__parent.clientWidth;
 
-                width = button2.measure(height, height, 1, 1).width;
-                button2.locate(this.clientWidth - width, 0, height, height);
+                if (limit < this.slider_start)
+                {
+                    change = -change;
+                }
+                else if (limit > this.slider_end)
+                {
+                    limit -= this.slider_length;
+                }
 
-                slider.measure(height, height, 1, 1);
-                slider.locate(0, 0, height, height);
+                limit = round((limit - this.scroll_start) * this.maxValue / this.scroll_length);
             }
 
+            if (this.__rtl && !this.vertical) //右向顺序转换
+            {
+                change = -change;
+                limit = this.maxValue - limit;
+            }
+
+            this.__fn_delay_change(change, limit, event);
+        };
+
+
+        //获取当前位置的拖动值 竖直滚动条不支持rtl
+        this.__fn_drag_value = function (event, offset) {
+
+            var vertical = this.vertical,
+                maxValue = this.maxValue,
+                value = vertical ? event.controlY - offset.y : event.controlX - offset.x;
+
+            if (value <= this.scroll_start)
+            {
+                value = 0;
+            }
+            else if (value >= this.scroll_start + this.scroll_length)
+            {
+                value = maxValue;
+            }
+            else
+            {
+                value = round((value - this.scroll_start) * maxValue / this.scroll_length);
+            }
+
+            if (!vertical && this.__rtl) //处理右向顺序
+            {
+                value = maxValue - value;
+            }
+
+            return value;
+        };
+
+
+        //重载值改变方法触发父控件滚动事件
+        this.__fn_change_value = function (change, event) {
+
+            var fields = this.__fields,
+                vertical = this.vertical,
+                parent = this.__parent;
+
+            if (event !== false) //不是直接设置value
+            {
+                fields.value += change;
+            }
+
+            if (parent)
+            {
+                event = new flyingon.ScrollEvent(event, event);
+
+                if (vertical)
+                {
+                    event.changeY = change;
+                    parent.contentY = fields.value;
+                }
+                else
+                {
+                    event.changeX = change;
+                    parent.contentX = this.__rtl ? this.maxValue - fields.value : fields.value;
+                }
+
+                parent.dispatchEvent(event);
+                parent.invalidate(false);
+
+                //修正因滚动造成的输入符位置变更问题
+                var ownerWindow = parent.ownerWindow;
+                if (ownerWindow && parent.isParent(ownerWindow.__focused_control))
+                {
+                    ownerWindow.__fn_change_caret(event.changeX, event.changeY);
+                }
+            }
+
+            return fields.value; //返加新值
+        };
+
+
+
+        //水平滚动条子控件排列
+        function arrange1() {
+
+            var button1 = this.button1,
+                button2 = this.button2,
+                height = this.clientHeight;
+
+            this.scroll_start = button1.measure(height, height, 1, 1).width;
+            button1.locate(0, 0, 0, height);
+
+            this.scroll_end = this.clientWidth - button2.measure(height, height, 1, 1).width;
+            button2.locate(this.scroll_end, 0, 0, height);
+
+            this.__arrange_dirty = false;
+        };
+
+        //竖直滚动条子控件排列
+        function arrange2() {
+
+            var button1 = this.button1,
+                button2 = this.button2,
+                width = this.clientWidth;
+
+            this.scroll_start = button1.measure(width, width, 1, 1).height;
+            button1.locate(0, 0, width, 0);
+
+            this.scroll_end = this.clientHeight - button2.measure(width, width, 1, 1).height;
+            button2.locate(0, this.scroll_end, width, 0);
+
             this.__arrange_dirty = false;
         };
 
 
+        //水平滚动条渲染
+        function render1(painter, clear) {
 
-    });
+            var slider = this.slider,
+                height = this.clientHeight,
+                scroll = this.scroll_end - this.scroll_start,
+                maxValue = this.maxValue,
+                length = round(scroll * scroll / maxValue),
+                x;
 
+            if (length < 20) //保证滑块不小于20
+            {
+                length = 20;
+            }
 
+            length = slider.measure(length, height, 1, 1).width;
 
-    //水平滚动条控件
-    flyingon.defineClass("VScrollBar", flyingon.Control, function (Class, base, flyingon) {
+            var box = slider.__fn_box_style();
+            this.slider_length = (length -= box.margin_spaceX);
+            this.scroll_length = scroll - length; //有效滚动区域
 
+            if (this.__rtl) //右向顺序处理
+            {
+                x = round((maxValue - this.value) * this.scroll_length / maxValue) + this.scroll_start;
+            }
+            else
+            {
+                x = round(this.value * this.scroll_length / maxValue) + this.scroll_start;
+            }
 
-        Class.create = function (parent) {
+            this.slider_start = x;
+            this.slider_end = x + length;
 
-            var button1 = this.__button1 = new flyingon.ScrollButton(true),
-                button2 = this.__button2 = new flyingon.ScrollButton(false),
-                slider = this.__slider = new flyingon.ScrollSlider();
+            box.margin_left = box.margin_right = box.margin_spaceX = 0; //忽略左边距和右边距
+            slider.locate(x, 0, 0, height);
 
-            button1.image = "scroll-up";
-            button2.image = "scroll-down";
-
-            (this.__children = this.__visible_items = new flyingon.ControlCollection(this)).appendRange(slider, button1, button2);
-
-            this.__parent = parent;
-            this.__addtions = true;
+            base.render.call(this, painter, clear);
         };
 
+        //竖直滚动条渲染
+        function render2(painter, clear) {
 
-
-        //flyingon.slider_extender.call(this);
-
-        
-
-        //重载子控件排列
-        this.__fn_arrange = function () {
-
-            var button1 = this.__button1,
-                button2 = this.__button2,
-                slider = this.__slider,
+            var slider = this.slider,
                 width = this.clientWidth,
-                height;
+                scroll = this.scroll_end - this.scroll_start,
+                maxValue = this.maxValue,
+                length = round(scroll * scroll / maxValue),
+                y;
 
-            button1.measure(width, width, 1, 1);
-            button1.locate(0, 0);
+            if (length < 20)
+            {
+                length = 20;
+            }
 
-            height = button2.measure(width, width, 1, 1).height;
-            button2.locate(0, this.clientHeight - height);
+            length = slider.measure(width, length, 1, 1).height;
 
-            slider.measure(width, width, 1, 1);
-            slider.locate(0, 0);
+            var box = slider.__fn_box_style();
+            this.slider_length = (length -= box.margin_spaceY);
+            this.scroll_length = scroll - length; //有效区域
 
-            this.__arrange_dirty = false;
+            this.slider_start = y = round(this.value * this.scroll_length / maxValue) + this.scroll_start;
+            this.slider_end = y + length;
+
+            box.margin_top = box.margin_bottom = box.margin_spaceY = 0; //忽略顶边距和底边距
+            slider.locate(0, y, width, 0);
+
+            base.render.call(this, painter, clear);
         };
 
-    });
+
+
+        //切换滚动条方向
+        this.__fn_vertical = function (value) {
+
+            this.__fn_arrange = value ? arrange2 : arrange1;
+            this.render = value ? render2 : render1;
+        };
+
+
+        //默认绑定水平滚动条
+        this.__fn_arrange = arrange1;
+        this.render = render1;
+
+
+
+    }, true);
+
+
+
 
 
 
@@ -402,7 +482,7 @@
         Class.create = function (parent) {
 
             this.__parent = parent;
-            this.__addtions = true;
+            this.__additions = true;
         };
 
 
@@ -413,8 +493,8 @@
         //禁止获取焦点
         this.defaultValue("focusable", false);
 
-        //禁止事件响应 如不可响应事件则直接分发至父控件
-        this.__dispatch_event = false;
+        //屏蔽事件响应直接分发至父控件
+        this.__event_mask = false;
 
 
         //重载排列子控件方法
@@ -427,6 +507,7 @@
     }
 
 
+
     //滚动条按钮
     flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, flyingon) {
 
@@ -434,19 +515,18 @@
         extender_fn.call(this, Class);
 
 
-        //图片名
-        this.image = null;
+        //是否开始控件
+        this.start = true;
 
 
         //绘制图像
-        this.paint = function (context, boxModel) {
+        this.paint = function (painter) {
 
-            var image = this.__fn_state_image(this.image);
+            var image = this.__parent.vertical ? (this.first ? "up" : "down") : (this.first ? "left" : "right");
 
-            if (image)
+            if (image = this.__fn_state_image("scroll-" + image))
             {
-                //var r = boxModel.clientRect;
-                //context.paint_image(image, r.windowX, r.windowY, r.width, r.height, this.textAlign);
+                painter.paint_image(image, this.clientX, this.clientY, this.clientWidth, this.clientHeight, "center", "middle");
             }
         };
 
@@ -455,15 +535,37 @@
 
 
 
-
-    //滚动条滑块
-    flyingon.defineClass("ScrollSlider", flyingon.Control, extender_fn);
-
+    //滚动块
+    flyingon.defineClass("ScrollBlock", flyingon.Control, extender_fn);
 
 
 
     //滚动条拐角控件
     flyingon.defineClass("ScrollCorner", flyingon.Control, extender_fn);
+
+
+
+
+
+
+    //滑块
+    flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon) {
+
+
+
+
+        slider_extender.call(this, false);
+
+
+
+
+    });
+
+
+
+
+    //滑动块
+    flyingon.defineClass("SliderBlock", flyingon.Control, extender_fn);
 
 
 

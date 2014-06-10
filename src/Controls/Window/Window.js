@@ -277,8 +277,6 @@ flyingon.window_extender = function (base, flyingon) {
 
         if (target !== source)
         {
-            document.title = target.id;
-
             flyingon.__hover_control = target;
 
             if (source)
@@ -296,7 +294,7 @@ flyingon.window_extender = function (base, flyingon) {
                 dispatchEvent("mousemove", target, dom_MouseEvent);
             }
         }
-        else
+        else if (target)
         {
             dispatchEvent("mousemove", target, dom_MouseEvent);
         }
