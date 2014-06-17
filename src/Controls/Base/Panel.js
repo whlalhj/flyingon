@@ -31,6 +31,15 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
     this.__fn_arrange_rtl = this.__fn_arrange_y;
 
 
+    this.__fn_arrange = function () {
+
+        base.__fn_arrange.call(this);
+
+        //计算可视控件
+        this.__fn_scrollTo(this.contentX, this.contentY);
+    };
+
+
     //排列子控件
     this.arrange = function () {
 
@@ -43,8 +52,8 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
     };
 
 
-    //重载子控件渲染方法 在渲染前计算可视控件
-    this.__fn_render_children = function (painter, update) {
+    //滚动时重算可视控件集
+    this.__fn_scrollTo = function (x, y) {
 
         var children = this.__children,
             length;
@@ -53,8 +62,6 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
         {
             //计算可视控件
             var items = this.__visible_items = [],
-                x = this.contentX,
-                y = this.contentY,
                 right = x + this.clientWidth,
                 bottom = y + this.clientHeight,
                 cache;
@@ -75,8 +82,6 @@ flyingon.defineClass("Panel", flyingon.Control, function (Class, base, flyingon)
                 }
             }
         }
-
-        base.__fn_render_children.call(this, painter, update);
     };
 
 

@@ -57,6 +57,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             + "}\n\n"
 
             + (attributes.complete || "")
+            + "\nreturn;\n"
             + "}\n\n\n";
     };
 
@@ -73,7 +74,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             + "}\n\n";
     };
 
-    this.__define_setter = function (name, defaultValue, attributes) {
+    this.__define_setter = function (name, defaultValue, attributes, fields) {
 
         var body = [];
 
@@ -93,7 +94,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         }
 
 
-        body.push("var fields = this.__fields, cache;\n\n");
+        body.push(fields || "var fields = this.__fields, cache;\n\n");
 
         body.push(this.__define_initializing(name, attributes));
 
@@ -155,16 +156,35 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
 
-    function split_attributes(attributes, value) {
+    this.__define_attributes = function (attributes) {
 
-        var values = value.split("|");
-
-        for (var i = 0, _ = values.length; i < _; i++)
+        if (attributes)
         {
-            attributes[values[i]] = true;
+            var values;
+
+            if (attributes.constructor === String)
+            {
+                values = attributes.split("|");
+                attributes = {};
+            }
+            else if (attributes.attributes)
+            {
+                values = attributes.attributes.split("|");
+                delete attributes.attributes;
+            }
+
+            if (values)
+            {
+                for (var i = 0, _ = values.length; i < _; i++)
+                {
+                    attributes[values[i]] = true;
+                }
+            }
+
+            return attributes;
         }
 
-        return attributes;
+        return {};
     };
 
 
@@ -177,26 +197,11 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         }
         else
         {
+            attributes = this.__define_attributes(attributes);
+
             if (defaultValue !== undefined)
             {
                 this.__defaults[name] = defaultValue;
-            }
-
-            if (attributes)
-            {
-                if (attributes.constructor === String)
-                {
-                    attributes = split_attributes({}, attributes);
-                }
-                else if (attributes.attributes)
-                {
-                    split_attributes(attributes, attributes.attributes);
-                    delete attributes.attributes;
-                }
-            }
-            else
-            {
-                attributes = {};
             }
 
             var getter = attributes.getter || this.__define_getter(name, attributes),
@@ -204,9 +209,8 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
             flyingon.defineProperty(this, name, getter, setter);
 
-
-            //扩展至选择器(样式属性直接扩展)
-            if (attributes.query || attributes.style)
+            //扩展至选择器
+            if (attributes.query)
             {
                 flyingon.query[name] = function (value) {
 
@@ -228,17 +232,27 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //定义事件 name为不带on的事件名
-    this.defineEvent = function (name) {
+    this.defineEvent = function (type) {
 
-        flyingon.defineProperty(this, "on" + name, null, function (fn) {
+        var name = "__on" + type;
 
-            var events = (this.__events || (this.__events = {}))[name];
+        flyingon.defineProperty(this, "on" + type,
 
-            events ? (events.length > 0 && (events.length = 0)) : (events = this.__events[name] = []);
-            events.push(fn);
+            function () {
 
-            return this;
-        });
+                return this[name] || null;
+            },
+
+            function (value) {
+
+                (this.__events || (this.__events = {}))[type] = [this[name] = value];
+
+                //清除事件缓存
+                if (this.__events_cache)
+                {
+                    delete this.__events_cache[type];
+                }
+            });
     };
 
     //定义多个事件 names为不带on的事件名数组
@@ -252,108 +266,85 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //绑定事件处理 注:type不带on
-    this.addEventListener = function (type, fn) {
+    this.addEventListener = function (type, listener, useCapture) {
 
-        if (fn)
+        if (listener)
         {
             var events = (this.__events || (this.__events = {}));
-            (events[type] || (events[type] = [])).push(fn);
-        }
 
-        return this;
+            listener.useCapture = useCapture;
+            (events[type] || (events[type] = [])).push(listener);
+
+            //清除事件缓存
+            if (this.__events_cache)
+            {
+                delete this.__events_cache[type];
+            }
+        }
     };
 
     //移除事件处理
-    this.removeEventListener = function (type, fn) {
+    this.removeEventListener = function (type, listener) {
 
         var events = this.__events;
 
         if (events && (events = events[type]))
         {
-            if (fn == null)
+            if (listener == null)
             {
                 events.length = 0;
             }
-            else if (events.indexOf(fn) >= 0)
+            else if (events.indexOf(listener) >= 0)
             {
-                events.splice(fn, 1);
+                events.splice(listener, 1);
+            }
+
+            //清除事件缓存
+            if (this.__events_cache)
+            {
+                delete this.__events_cache[type];
             }
         }
-
-        return this;
     };
 
     //分发事件
     this.dispatchEvent = function (event) {
 
-        var target = this,
-            type = event.type,
-            result = true,
-            events,
-            length;
+        var result = true,
+            type = event.type || event,
+            events = this.__events_cache && this.__events_cache[type] || cache_events(this, type),
+            length = events.length;
 
-        if (!type)
+        //获取相关事件
+        if (length > 0)
         {
-            type = event;
-            event = new flyingon.Event(type, this);
-        }
-
-        while (target)
-        {
-            //处理默认事件 默认事件方法规定: "__event_" + type
-            if ((events = target["__event_" + type]))
+            //如果未传入事件则创建默认事件
+            if (event === type)
             {
-                if (events.call(target, event) === false)
+                event = new flyingon.Event(type, this);
+            }
+
+            //指定事件目标(某些附属控件不能触发事件)
+            if (events.target)
+            {
+                event.source = event.target;
+                event.target = target = events.target; //指向上级对象
+            }
+
+            //循环处理相关事件
+            for (var i = 0; i < length; i++)
+            {
+                var target = events[i++];
+
+                if (events[i].call(target, event) === false)
                 {
                     result = false;
-                    break;
                 }
 
                 if (event.cancelBubble)
                 {
                     break;
                 }
-            }
-
-            //处理冒泡事件
-            if (target.__event_mask !== false) //是否可响应事件 如不可响应事件则直接分发至父控件
-            {
-                if ((events = target.__events) && (events = events[type]) && (length = events.length) > 0)
-                {
-                    for (var i = 0; i < length; i++)
-                    {
-                        if (events[i].call(target, event) === false)
-                        {
-                            result = false;
-                            break;
-                        }
-                    }
-
-                    if (event.cancelBubble)
-                    {
-                        break;
-                    }
-                }
-
-                target = target.__parent;
-            }
-            else
-            {
-                event.source = event.target;
-                event.target = target = target.__parent; //指向上级对象
-            }
-        }
-
-        if (event.originalEvent)
-        {
-            if (event.defaultPrevented)
-            {
-                event.originalEvent.preventDefault();
-            }
-
-            if (event.cancelBubble)
-            {
-                event.originalEvent.stopPropagation();
             }
         }
 
@@ -373,6 +364,61 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
         return bubbleEvent ? parent.hasEvent(type, true) : false;
     };
+
+
+    //缓存事件
+    function cache_events(target, type) {
+
+        var result = (target.__events_cache || (target.__events_cache = {  }))[type] = [],
+            events,
+            listener,
+            name;
+
+        //默认不变更事件目标
+        result.target = null;
+
+        while (target)
+        {
+            //是否屏蔽事件响应 是则设置事件目标为父控件
+            if (target.__event_mask === true)
+            {
+                result.target = target.__parent;
+            }
+
+            //添加默认冒泡事件
+            if ((name = "__event_bubble_" + type) in target)
+            {
+                result.push(target, target[name]);
+            }
+
+            //插入默认捕获事件
+            if ((name = "__event_capture_" + type) in target)
+            {
+                result.unshift(target, target[name]);
+            }
+
+            //循环处理注册的事件
+            if ((events = target.__events) && (events = events[type]))
+            {
+                for (var i = 0, _ = events.length; i < _; i++)
+                {
+                    if ((listener = events[i]).useCapture) //插入捕获事件
+                    {
+                        result.unshift(target, listener);
+                    }
+                    else //添加冒泡事件
+                    {
+                        result.push(target, listener);
+                    }
+                }
+            }
+
+            target = target.__parent;
+        }
+
+        return result;
+    };
+
 
 
     //定义值变更事件

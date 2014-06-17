@@ -195,14 +195,21 @@ Canvas2D绘图
                 {
                     setter = function (value) {
 
-                        var style = color_cache[value] || (color_cache[value] = parse_color(value));
-
-                        if (style.transparent && !this.target.__update_parent)
+                        if (value)
                         {
-                            this.target.__update_parent = true;
-                        }
+                            var style = color_cache[value] || (color_cache[value] = parse_color(value));
 
-                        this.context[name] = style.color || style.fn(this);
+                            if (style.transparent && !this.target.__update_parent)
+                            {
+                                this.target.__update_parent = true;
+                            }
+
+                            this.context[name] = style.color || style.fn(this);
+                        }
+                        else
+                        {
+                            this.context[name] = "";
+                        }
                     };
                 }
 
@@ -706,28 +713,14 @@ Canvas2D绘图
                     }
                 }
 
-                if (alignX && (cache = width - _width) && alignX !== "left")
+                if ((cache = width - _width) && alignX !== "left")
                 {
-                    if (alignX === "center")
-                    {
-                        x += cache >> 1;
-                    }
-                    else //right
-                    {
-                        x += cache;
-                    }
+                    x += (alignX === "right") ? cache : (cache >> 1); //right|center
                 }
 
-                if (alignY && (cache = height - _height) && alignY !== "top")
+                if ((cache = height - _height) && alignY !== "top")
                 {
-                    if (alignY === "middle")
-                    {
-                        y += cache >> 1;
-                    }
-                    else //bottom
-                    {
-                        y += cache;
-                    }
+                    y += alignY === "bottom" ? cache : (cache >> 1); //bottom|middle
                 }
 
                 if (stretch)

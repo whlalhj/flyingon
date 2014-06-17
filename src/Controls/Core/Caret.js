@@ -310,7 +310,7 @@ flyingon.__fn_initialize_caret = function (parentNode) {
         if (timer)
         {
             clearInterval(timer);
-            timer = null;
+            timer = 0;
         }
 
         caret.style.visibility = "hidden";

@@ -2,6 +2,9 @@
 flyingon.defineClass("HtmlControl", flyingon.Control, function (Class, base, flyingon) {
 
 
+
+    Class.combine_create = true;
+
     Class.create = function () {
 
         this.dom = $(this.render.apply(this, arguments));
@@ -12,7 +15,7 @@ flyingon.defineClass("HtmlControl", flyingon.Control, function (Class, base, fly
 
     };
 
-}, true);
+});
 
 
 

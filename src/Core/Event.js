@@ -20,14 +20,39 @@ flyingon.Event = function () { };
 
 
 
+    //阻止事件冒泡
     this.stopPropagation = function () {
 
         this.cancelBubble = true;
+
+        if (this.original_event)
+        {
+            this.original_event.stopPropagation();
+        }
     };
 
+    //阻止事件冒泡及禁止默认事件
+    this.stopImmediatePropagation = function () {
+
+        this.cancelBubble = true;
+        this.defaultPrevented = true;
+
+        if (this.original_event)
+        {
+            this.original_event.preventDefault();
+            this.original_event.stopPropagation();
+        }
+    };
+
+    //禁止默认事件
     this.preventDefault = function () {
 
         this.defaultPrevented = true;
+
+        if (this.original_event)
+        {
+            this.original_event.preventDefault();
+        }
     };
 
 
@@ -37,11 +62,11 @@ flyingon.Event = function () { };
 
 
 //鼠标事件类型
-flyingon.MouseEvent = function (type, target, originalEvent) {
+flyingon.MouseEvent = function (type, target, original_event) {
 
     this.type = type;
     this.target = target;
-    this.originalEvent = originalEvent;
+    this.original_event = original_event;
 };
 
 
@@ -55,7 +80,7 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
         flyingon.defineProperty(target, name, function () {
 
-            return this.originalEvent[name];
+            return this.original_event[name];
         });
     };
 
@@ -86,7 +111,7 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
     function canvas_to_window() {
 
-        var event = this.originalEvent;
+        var event = this.original_event;
 
         if (!event.windowX)
         {
@@ -102,7 +127,7 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
     function canvas_to_control() {
 
-        var event = this.originalEvent;
+        var event = this.original_event;
 
         if (!event.controlX)
         {
@@ -120,45 +145,45 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
     //x画布坐标
     flyingon.defineProperty(this, "canvasX", function () {
 
-        return this.originalEvent.canvasX;
+        return this.original_event.canvasX;
     });
 
     //y画布坐标
     flyingon.defineProperty(this, "canvasY", function () {
 
-        return this.originalEvent.canvasY;
+        return this.original_event.canvasY;
     });
 
 
     //x窗口坐标
     flyingon.defineProperty(this, "windowX", function () {
 
-        return this.originalEvent.windowX || canvas_to_window.call(this).windowX;
+        return this.original_event.windowX || canvas_to_window.call(this).windowX;
     });
 
     //y窗口坐标
     flyingon.defineProperty(this, "windowY", function () {
 
-        return this.originalEvent.windowY || canvas_to_window.call(this).windowY;
+        return this.original_event.windowY || canvas_to_window.call(this).windowY;
     });
 
     //x控件坐标
     flyingon.defineProperty(this, "controlX", function () {
 
-        return this.originalEvent.controlX || canvas_to_control.call(this).controlX;
+        return this.original_event.controlX || canvas_to_control.call(this).controlX;
     });
 
     //y控件坐标
     flyingon.defineProperty(this, "controlY", function () {
 
-        return this.originalEvent.controlY || canvas_to_control.call(this).controlY;
+        return this.original_event.controlY || canvas_to_control.call(this).controlY;
     });
 
 
     //鼠标滚轮数据
     flyingon.defineProperty(this, "wheelDelta", function () {
 
-        return this.originalEvent.wheelDelta || (-this.originalEvent.detail * 40);
+        return this.original_event.wheelDelta || (-this.original_event.detail * 40);
     });
 
 
@@ -167,12 +192,12 @@ flyingon.MouseEvent = function (type, target, originalEvent) {
 
 
 //拖拉事件类型
-flyingon.DragEvent = function (type, target, originalEvent) {
+flyingon.DragEvent = function (type, target, original_event) {
 
     this.type = type;
     this.target = target;
     this.dragTargets = [target];
-    this.originalEvent = originalEvent;
+    this.original_event = original_event;
 };
 
 
@@ -191,11 +216,11 @@ flyingon.DragEvent = function (type, target, originalEvent) {
 
 
 //键盘事件类型
-flyingon.KeyEvent = function (type, target, originalEvent) {
+flyingon.KeyEvent = function (type, target, original_event) {
 
     this.type = type;
     this.target = target;
-    this.originalEvent = originalEvent;
+    this.original_event = original_event;
 };
 
 
@@ -204,37 +229,37 @@ flyingon.KeyEvent = function (type, target, originalEvent) {
     //是否按下ctrl键
     flyingon.defineProperty(this, "ctrlKey", function () {
 
-        return this.originalEvent.ctrlKey;
+        return this.original_event.ctrlKey;
     });
 
     //是否按下shift键
     flyingon.defineProperty(this, "shiftKey", function () {
 
-        return this.originalEvent.shiftKey;
+        return this.original_event.shiftKey;
     });
 
     //是否按下alt键
     flyingon.defineProperty(this, "altKey", function () {
 
-        return this.originalEvent.altKey;
+        return this.original_event.altKey;
     });
 
     //是否按下meta键
     flyingon.defineProperty(this, "metaKey", function () {
 
-        return this.originalEvent.metaKey;
+        return this.original_event.metaKey;
     });
 
     //事件触发时间
     flyingon.defineProperty(this, "timeStamp", function () {
 
-        return this.originalEvent.timeStamp;
+        return this.original_event.timeStamp;
     });
 
     //键码
     flyingon.defineProperty(this, "keyCode", function () {
 
-        return this.originalEvent.which || this.originalEvent.keyCode;
+        return this.original_event.which || this.original_event.keyCode;
     });
 
 

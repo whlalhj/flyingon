@@ -45,8 +45,8 @@ var flyingon_setting = flyingon_setting || {
     var support = flyingon.support = {};
 
 
-    //是否ie ie不对"\v"作转义处理
-    support.ie = !+"\v1";
+    //是否IE IE不对"\v"作转义处理
+    support.IE = !+"\v1";
 
 
     //是否支持canvas
@@ -527,7 +527,7 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
- 
+
 
     //编码对象
     flyingon.encode = function (data) {
@@ -679,6 +679,8 @@ var flyingon_setting = flyingon_setting || {
 
         RootObject = flyingon.RootObject = function () { }, //根类
 
+        unkown_index = 1, //未知类索引
+
         self = this; //记下根对象
 
 
@@ -761,30 +763,32 @@ var flyingon_setting = flyingon_setting || {
 
 
     //初始化类型系统
-    function initialize(namespace, type, typeName) {
+    function initialize(namespace, Class, typeName) {
 
 
-        var prototype = type.prototype,
-            fullTypeName = namespace.name ? namespace.name + "." + typeName : typeName;
+        var prototype = Class.prototype,
+            name = typeName || "unkown_type_" + unkown_index++;
 
 
         //绑定类型
-        prototype.__class_type = type;
+        prototype.__class_type = Class;
 
         //获取当前类型
         prototype.getType = function () {
 
-            return type;
+            return Class;
         };
 
-        type.namesapce = prototype.__namespace = namespace;
-        type.typeName = prototype.__typeName = typeName;
-        type.fullTypeName = prototype.__fullTypeName = fullTypeName;
+        Class.namesapce = prototype.__namespace = namespace;
 
+        Class.typeName = prototype.__typeName = name;
+        Class.fullTypeName = prototype.__fullTypeName = namespace.name ? namespace.name + "." + name : name;
 
-        //输出及注册类
-        namespace[typeName] = class_list[fullTypeName] = type;
-
+        //输出及注册类(匿名类不注册)
+        if (typeName)
+        {
+            namespace[typeName] = class_list[Class.fullTypeName] = Class;
+        }
 
         prototype.toString = prototype.toLocaleString = function () {
 
@@ -802,12 +806,18 @@ var flyingon_setting = flyingon_setting || {
 
     //定义类方法
     //class_fn: 类型扩展函数 共有三个参数 Class:当前类型 base:父类 flyingon:系统对象 
-    //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.defineClass = namespace_fn.prototype.defineClass = function (typeName, superclass, class_fn, constructor_merge) {
+    flyingon.defineClass = namespace_fn.prototype.defineClass = function (typeName, superclass, class_fn) {
 
 
         //处理参数
-        if (!class_fn || typeof class_fn === "boolean")
+        if (typeName && typeName.constructor !== String) //不传typeName则创建匿名类
+        {
+            class_fn = superclass;
+            superclass = typeName;
+            typeName = null;
+        }
+
+        if (!class_fn)
         {
             class_fn = superclass;
             superclass = RootObject;
@@ -817,7 +827,7 @@ var flyingon_setting = flyingon_setting || {
             superclass = RootObject;
         }
 
-        if (!typeName || typeof class_fn !== "function")
+        if (class_fn.constructor !== Function)
         {
             throw new Error("class_fn error!");
         }
@@ -827,7 +837,7 @@ var flyingon_setting = flyingon_setting || {
         var create, base_create = superclass.create;
 
         //定义类模板
-        function fn() {
+        function Class() {
 
             if (create)
             {
@@ -838,27 +848,27 @@ var flyingon_setting = flyingon_setting || {
 
 
         //创建类原型
-        var prototype = fn.prototype = Object.create(superclass.prototype);
+        var prototype = Class.prototype = Object.create(superclass.prototype);
 
         //父类
-        fn.superclass = superclass;
+        Class.superclass = superclass;
 
         //父类原型
-        fn.base = superclass.prototype;
+        Class.base = superclass.prototype;
 
         //子类集合
-        (superclass.subtypes || (superclass.subtypes = [])).push(fn);
+        (superclass.subtypes || (superclass.subtypes = [])).push(Class);
 
         //构造函数/所属类型
-        prototype.constructor = fn;
+        prototype.constructor = Class;
         //默认值
-        prototype.__defaults = fn.__defaults = Object.create(superclass.__defaults || null);
+        prototype.__defaults = Class.__defaults = Object.create(superclass.__defaults || null);
 
         //初始化类型系统
-        initialize(this, fn, typeName);
+        initialize(this, Class, typeName);
 
         //扩展
-        class_fn.call(prototype, fn, fn.base, flyingon);
+        class_fn.call(prototype, Class, Class.base, flyingon);
 
 
         //处理构造函数(自动调用父类的构造函数)
@@ -866,21 +876,21 @@ var flyingon_setting = flyingon_setting || {
         {
             var create_list = superclass.__create_list;
 
-            if (create = fn.create)
+            if (create = Class.create)
             {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
-                if (!create_list && constructor_merge)
+                if (!create_list && Class.combine_create)
                 {
-                    fn.create = flyingon.function_merge(create, base_create, true);
+                    Class.create = flyingon.function_merge(create, base_create, true);
                 }
                 else //生成构造链
                 {
-                    create_list = fn.__create_list = create_list ? create_list.slice(0) : [base_create];
+                    create_list = Class.__create_list = create_list ? create_list.slice(0) : [base_create];
                     create_list.push(create);
 
-                    fn.create = function () {
+                    Class.create = function () {
 
-                        var list = fn.__create_list;
+                        var list = Class.__create_list;
                         for (var i = 0, _ = list.length; i < _; i++)
                         {
                             list[i].apply(this, arguments);
@@ -892,16 +902,16 @@ var flyingon_setting = flyingon_setting || {
             {
                 if (create_list)
                 {
-                    fn.__create_list = create_list;
+                    Class.__create_list = create_list;
                 }
 
-                fn.create = base_create;
+                Class.create = base_create;
             }
         }
 
-        create = fn.create;
+        create = Class.create;
 
-        return fn;
+        return Class;
     };
 
 

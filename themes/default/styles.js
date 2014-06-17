@@ -66,7 +66,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //默认样式
     defineStyle("*", {
 
-        backgroundColor: "#AAAAAA",
         color: "#000000",
         borderColor: "blue"
     });
@@ -74,7 +73,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //选中时控件默认样式
     defineStyle("*:checked", {
 
-        backgroundColor: "#FFFFFF",
         borderColor: "#CCCCCC"
     });
 
@@ -100,19 +98,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //禁用时控件默认样式
     defineStyle("*:disabled", {
 
-        backgroundColor: "#444444",
         color: "#222222"
     });
 
-
-
-
-    //选中文字颜色
-    defineStyle(".selection-text", {
-
-        backgroundColor: "skyblue",
-        color: "white"
-    });
 
 
 
@@ -122,35 +110,52 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
         backgroundColor: "silver"
     });
 
-    
-    //滚动条按钮
-    defineStyle("ScrollButton", {
-
-        margin: 1,
-    });
 
     //滚动条按钮
-    defineStyle("ScrollButton:hover", {
+    defineStyle(".scrollbar-button:hover", {
 
         backgroundColor: "yellow"
+    });
+
+    //横向滚动条按钮
+    defineStyle(".scrollbar-button-x", {
+
+        margin: "0 1",
+    });
+
+    //纵向滚动条按钮
+    defineStyle(".scrollbar-button-y", {
+
+        margin: "1 0",
     });
 
 
     //滚动条滑块
-    defineStyle("ScrollBlock", {
+    defineStyle(".scrollbar-block", {
 
-        margin: 2,
         backgroundColor: "#666666",
     });
 
-    defineStyle("ScrollBlock:active", {
+    defineStyle(".scrollbar-block:active", {
 
         backgroundColor: "red"
     });
 
-    defineStyle("ScrollBlock:hover", {
+    defineStyle(".scrollbar-block:hover", {
 
         backgroundColor: "yellow"
+    });
+
+    //横向滚动条滑块
+    defineStyle(".scrollbar-block-x", {
+
+        margin: "2 0"
+    });
+
+    //纵向滚动条滑块
+    defineStyle(".scrollbar-block-y", {
+
+        margin: "0 2"
     });
 
 
@@ -179,6 +184,26 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
 
+    defineStyle("Window", {
+
+    });
+
+
+    defineStyle("ChildWindow", {
+
+        backgroundColor: "white",
+        border: "1px solid black",
+        padding: 2
+    });
+
+    defineStyle(".window-header", {
+
+        backgroundColor: "linear(0, 0, 0, 1, 0, skyblue, 0.5, blue, 0.5, blue, 1, skyblue)"
+    });
+
+
+
+
     //文本框样式
     defineStyle("TextBoxBase", {
 
@@ -204,14 +229,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     });
 
 
-    defineStyle("Window", {
-
-    });
-
-
-    defineStyle("ChildWindow", {
-
-    });
 
 
 })(flyingon);

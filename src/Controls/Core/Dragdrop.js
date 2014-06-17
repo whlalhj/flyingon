@@ -5,6 +5,19 @@
 
 
 
+    //控件可重载拖拉接口
+
+    //drag_cursor:      拖动时鼠标样式
+    //drag_opacity:     拖动时图层透明度
+
+    //__fn_drag_start:  自定义开始拖动方法
+    //__fn_drag_paint:  自定义拖动绘制方式
+    //__fn_drag_move:   自定义拖动方式
+    //__fn_drag_stop:   自定义拖停止方法
+
+
+
+
     //拖拉管理
     var Dragdrop = flyingon.Dragdrop = {};
 
@@ -13,8 +26,7 @@
 
 
     //局部变量
-    var dragger,            //拖拉者
-        timer,              //定时器
+    var timer,              //定时器
 
         ownerWindow,        //所属窗口
         ownerLayer,         //拖拉层
@@ -27,17 +39,17 @@
         droppable,          //是否可放下
 
         start_event,        //原始事件
-        last_event,  //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
-        offsetX,    //X方向因移动造成的修正距离
-        offsetY;    //Y方向因移动造成的修正距离
+        last_event,         //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
+        offsetX,            //x方向因移动造成的修正距离
+        offsetY;            //y方向因移动造成的修正距离
 
 
 
 
     //新建事件
-    function new_event(type, originalEvent) {
+    function new_event(type, original_event) {
 
-        var result = new flyingon.DragEvent(type, ownerControl, originalEvent);
+        var result = new flyingon.DragEvent(type, ownerControl, original_event);
 
         result.dragTargets = dragTargets;
         result.dropTarget = dropTarget;
@@ -45,121 +57,87 @@
         return result;
     };
 
-    //创建拖拉层
-    function createLayer() {
 
-        ownerLayer = new flyingon.Layer();
-        ownerLayer.disableGetControlAt = true;
-        ownerLayer.clipToBounds = false;
 
-        var style = ownerLayer.dom_layer.style;
 
-        style.overflow = "visible";
-        style.cursor = dragger.drop_cursor || "move";
-        style.opacity = dragger.opacity || 0.5;
+    //默认开始行为
+    function drag_start(event) {
 
-        ownerWindow.appendLayer(9999, ownerLayer);
+        //发送事件
+        ownerControl.dispatchEvent(event);
     };
 
 
+    //默认绘制行为
+    function drag_paint(layer, dragTargets) {
 
+        for (var i = 0; i < dragTargets.length; i++)
+        {
+            dragTargets[i].paint_to_layer(layer);
+        }
+    };
 
-    //默认拖拉者
-    Dragdrop.dragger = {
+    //默认拖动行为
+    function drag_move(dom_MouseEvent, offsetX, offsetY) {
 
+        //需修正div移动偏差
+        var target = ownerWindow.fintAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
+            event;
 
-        //默认开始行为
-        start: function (event) {
-
-            //发送事件
-            ownerControl.dispatchEvent(event);
-        },
-
-        //默认绘制行为
-        paint: function (context, dragTargets) {
-
-            for (var i = 0; i < dragTargets.length; i++)
-            {
-                var box = dragTargets[i].__boxModel;
-                if (box)
-                {
-                    box.render(context);
-                }
-            }
-        },
-
-        //默认移动行为
-        move: function (dom_MouseEvent, offsetX, offsetY) {
-
-            //需修正div移动偏差
-            var target = ownerWindow.fintAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
-                event;
-
-
-            if (target === ownerControl)
-            {
-                target = ownerControl.__parent;
-            }
-
-            if (dropTarget !== target)
-            {
-                if (dropTarget)
-                {
-                    event = new_event("dragleave", dom_MouseEvent);
-                    dropTarget.dispatchEvent(event);
-                }
-
-
-                droppable = false;
-
-                if (target && target.droppable)
-                {
-                    dropTarget = target;
-
-                    event = new_event("dragenter", dom_MouseEvent);
-
-                    if (target.dispatchEvent(event))
-                    {
-                        droppable = true;
-                    }
-                }
-                else
-                {
-                    dropTarget = target = null;
-                }
-
-
-                var cursor = droppable ? (dragger.drop_cursor || "move") : (dragger.nodrop_cursor || "no-drop");
-                ownerLayer.dom_layer.style.cursor = cursor;
-            }
-
-
-            event = new_event("drag", dom_MouseEvent);
-            ownerControl.dispatchEvent(event);
-
-
-            if (target)
-            {
-                event = new_event("dragover", dom_MouseEvent);
-                target.dispatchEvent(event);
-            }
-        },
-
-        //默认停止行为
-        stop: function (dom_MouseEvent, offsetX, offsetY) {
-
-            if (dropTarget)
-            {
-                dropTarget.dispatchEvent(new_event("drop", dom_MouseEvent));
-            }
-
-            ownerControl.dispatchEvent(new_event("dragend", dom_MouseEvent));
+        if (target === ownerControl)
+        {
+            target = ownerControl.__parent;
         }
 
+        if (dropTarget !== target)
+        {
+            if (dropTarget)
+            {
+                event = new_event("dragleave", dom_MouseEvent);
+                dropTarget.dispatchEvent(event);
+            }
+
+            droppable = false;
+
+            if (target && target.droppable)
+            {
+                dropTarget = target;
+
+                event = new_event("dragenter", dom_MouseEvent);
+
+                if (target.dispatchEvent(event))
+                {
+                    droppable = true;
+                }
+            }
+            else
+            {
+                dropTarget = target = null;
+            }
+
+            ownerLayer.dom_layer.style.cursor = droppable ? (ownerControl.drag_cursor || "move") : "no-drop";
+        }
+
+        event = new_event("drag", dom_MouseEvent);
+        ownerControl.dispatchEvent(event);
+
+        if (target)
+        {
+            event = new_event("dragover", dom_MouseEvent);
+            target.dispatchEvent(event);
+        }
     };
 
+    //默认停止行为
+    function drag_stop(dom_MouseEvent, offsetX, offsetY) {
 
+        if (dropTarget)
+        {
+            dropTarget.dispatchEvent(new_event("drop", dom_MouseEvent));
+        }
 
+        ownerControl.dispatchEvent(new_event("dragend", dom_MouseEvent));
+    }
 
 
 
@@ -170,17 +148,11 @@
         if (timer)
         {
             clearTimeout(timer);
-            timer = null;
+            timer = 0;
         }
-
-
-        //拖动者
-        dragger = Dragdrop.dragger;
-
 
         //拖动目标
         dragTargets = [ownerControl];
-
 
         //开始拖拉事件
         var event = new_event("dragstart", start_event);
@@ -188,13 +160,8 @@
         //是否取消
         event.canceled = false;
 
-
         //开始
-        if (dragger.start)
-        {
-            dragger.start(event);
-        }
-
+        (ownerControl.__fn_drag_start || drag_start).call(ownerControl, event);
 
         if (!event.canceled)
         {
@@ -203,8 +170,14 @@
                 dragTargets = event.dragTargets;
             }
 
-            createLayer();
-            dragger.paint.call(ownerControl, ownerLayer.context, dragTargets);
+            //创建拖拉层
+            var style = (ownerLayer = ownerWindow.appendLayer(9999, true)).dom_layer.style;
+
+            style.overflow = "visible";
+            style.cursor = ownerControl.drag_cursor || "move";
+            style.opacity = ownerControl.drag_opacity || 0.5;
+
+            (ownerControl.__fn_drag_paint || drag_paint).call(ownerControl, ownerLayer, dragTargets);
         }
         else
         {
@@ -212,13 +185,9 @@
         }
     };
 
+
     //开始拖动(200毫秒内保持按下鼠标则执行拖动)
     Dragdrop.start = function (window, target, dom_MouseEvent) {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-        }
 
         dragging = true;
 
@@ -243,9 +212,6 @@
 
         if (timer)
         {
-            clearTimeout(timer);
-            timer = null;
-
             start();
         }
 
@@ -257,19 +223,20 @@
             offsetX = event.clientX - start_event.clientX;
             offsetY = event.clientY - start_event.clientY;
 
-            var offset = dragger.move.call(ownerControl, event, offsetX, offsetY);
+            var offset = (ownerControl.__fn_drag_move || drag_move).call(ownerControl, event, offsetX, offsetY),
+                style = ownerLayer.dom_layer.style;
 
             if (offset)
             {
                 offsetX = offset.x || 0;
                 offsetY = offset.y || 0;
-            };
+            }
 
-            ownerLayer.dom_layer.style.left = offsetX + "px";
-            ownerLayer.dom_layer.style.top = offsetY + "px";
+            style.left = offsetX + "px";
+            style.top = offsetY + "px";
 
             return true;
-        };
+        }
 
         return false;
     };
@@ -279,12 +246,6 @@
     //停止拖动, 成功取消则返回true
     Dragdrop.stop = function () {
 
-        if (timer)
-        {
-            clearTimeout(timer);
-            timer = null;
-        };
-
         var result = !ownerLayer;
 
         //如果未执行则补上mousedown事件
@@ -293,8 +254,8 @@
             //如果按下且移动过且可接受拖放时才触发停止方法
             if (last_event && droppable)
             {
-                dragger.stop.call(ownerControl, last_event, offsetX, offsetY);
-            };
+                (ownerControl.__fn_drag_stop || drag_stop).call(ownerControl, last_event, offsetX, offsetY);
+            }
 
             ownerWindow.removeLayer(ownerLayer);
             ownerLayer = null;
@@ -305,11 +266,11 @@
         else
         {
             ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event));
-        };
+        }
 
+        dragTargets = dropTarget = dragging = null;
         ownerWindow = ownerLayer = ownerControl = null;
         start_event = last_event = null;
-        dragger = dragTargets = dropTarget = dragging = null;
 
         return result;
     };

@@ -18,14 +18,15 @@
             throw new Error(flyingon_lang.query_must_start);
         }
 
-        var nodes = selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector)),
-            node,
-            items = [start],
-            exports;
+        selector = selector_cache[selector] || (selector_cache[selector] = flyingon.parse_selector(selector));
 
-        for (var i = 0, _ = nodes.length; i < _; i++)
+        var items = [start],
+            exports,
+            node;
+
+        for (var i = 0, _ = selector.length; i < _; i++)
         {
-            node = nodes[i];
+            node = selector[i];
 
             type_fn[node.type](node, items, exports = []); //批量传入数组减少函数调用以提升性能
 
@@ -112,13 +113,15 @@
         //合并元素集
         this[","] = function (node, items, exports) {
 
-            var fn, values;
+            var item, fn, values;
 
             for (var i = 0, _ = node.length; i < _; i++)
             {
-                if (fn = type_fn[node.type])
+                item = node[i];
+
+                if (fn = type_fn[item.type])
                 {
-                    fn(node, items, values = []);
+                    fn(item, items, values = []);
 
                     if (values.length > 0)
                     {
@@ -127,7 +130,7 @@
                 }
             }
         };
-        
+
         //所有后代元素
         this[" "] = function (node, items, exports) {
 
@@ -156,7 +159,7 @@
                 }
             }
         };
-        
+
         //子元素
         this[">"] = function (node, items, exports) {
 

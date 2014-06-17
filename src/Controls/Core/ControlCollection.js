@@ -6,9 +6,11 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
 
 
-    Class.create = function (target) {
+    Class.combine_create = true;
 
-        this.target = target;
+    Class.create = function (ownerControl) {
+
+        this.ownerControl = ownerControl;
     };
 
 
@@ -20,11 +22,11 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
         {
             if (flyingon.__initializing)
             {
-                item.__parent = this.target;
+                item.__parent = this.ownerControl;
             }
             else
             {
-                item.__fn_parent(this.target);
+                item.__fn_parent(this.ownerControl);
             }
 
             return item;
@@ -42,7 +44,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
             item.__ownerWindow = null;
             item.__ownerLayer = null;
 
-            this.target.invalidate(false);
+            this.ownerControl.invalidate(false);
 
             if ((item = item.__children) && item.length > 0)
             {
@@ -116,14 +118,14 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
         {
             reader.properties(this, data, excludes);
 
-            var terget = this.target,
+            var parent = this.ownerControl,
                 item;
 
             for (var i = 0, _ = this.length; i < _; i++)
             {
                 if (item = this[i])
                 {
-                    item.__parent = target;
+                    item.__parent = parent;
                 }
             }
         }
@@ -131,5 +133,5 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
 
 
-}, true);
+});
 

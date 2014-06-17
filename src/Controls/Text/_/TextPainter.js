@@ -103,12 +103,13 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
 
-    this.__event_mousedown = function (event) {
+    this.__event_bubble_mousedown = function (event) {
 
-        this.ownerWindow.__capture_control = this; //捕获鼠标
+        flyingon.__capture_control = this; //捕获鼠标
+        event.stopImmediatePropagation();
     };
 
-    this.__event_mousemove = function (event) {
+    this.__event_bubble_mousemove = function (event) {
 
         if (event.mousedown && this.ownerWindow.__focused_control === this)
         {
@@ -131,10 +132,11 @@ flyingon["text-painter"] = function (multiline, readOnly) {
 
 
             this.ownerWindow.__fn_reset_ime();
+            event.stopImmediatePropagation();
         }
     };
 
-    this.__event_mouseup = function (event) {
+    this.__event_bubble_mouseup = function (event) {
 
         var ownerWindow = this.ownerWindow;
 
@@ -143,7 +145,8 @@ flyingon["text-painter"] = function (multiline, readOnly) {
             ownerWindow.__fn_reset_ime();
         }
 
-        ownerWindow.__capture_control = null; //释放鼠标
+        flyingon.__capture_control = null; //释放鼠标
+        event.stopImmediatePropagation();
     };
 
 

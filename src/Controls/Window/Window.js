@@ -5,7 +5,10 @@ flyingon.window_extender = function (base, flyingon) {
 
     var host,                       //主容器
         dragging = false,           //是否处理拖动
-        mousedown_cache = false;    //鼠标是否按下
+        mousedown_state = false,
+
+        MouseEvent = flyingon.MouseEvent,
+        KeyEvent = flyingon.KeyEvent;
 
 
 
@@ -105,19 +108,7 @@ flyingon.window_extender = function (base, flyingon) {
     //修改透明度属性
     this.defineProperty("opacity", 1, {
 
-        complete: "this.dom_layer.style.opacity = value;"
-    });
-
-    //修改宽度属性
-    this.defineProperty("width", function () {
-
-        return this.dom_canvas.width;
-    });
-
-    //修改高度属性
-    this.defineProperty("height", function () {
-
-        return this.dom_canvas.height;
+        complete: "this.dom_window.style.opacity = value;"
     });
 
 
@@ -182,26 +173,31 @@ flyingon.window_extender = function (base, flyingon) {
 
     */
 
-    this.appendLayer = function (zIndex, layer) {
+    this.appendLayer = function (zIndex, disable_findAt) {
 
-        var result = layer || new flyingon.Layer(this.dom_window),
-            dom_layer = result.dom_layer,
-            dom_canvas = result.dom_canvas;
+        var layer = new flyingon.Layer(this.dom_window),
+            dom_layer = layer.dom_layer,
+            dom_canvas = layer.dom_canvas;
 
         if (zIndex)
         {
             dom_layer.style.zIndex = zIndex;
         }
 
-        result.__parent = this;
-        result.measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
-        result.locate(0, 0);
+        if (disable_findAt) //禁止查找控件
+        {
+            layer.disable_findAt = true;
+        }
+
+        layer.__parent = this;
+        layer.measure(dom_canvas.width = this.width, dom_canvas.height = this.height);
+        layer.locate(0, 0);
 
         dom_layer.__ownerWindow = dom_canvas.__ownerWindow = this;
 
-        this.layers.push(result);
+        this.layers.push(layer);
 
-        return result;
+        return layer;
     };
 
 
@@ -212,7 +208,11 @@ flyingon.window_extender = function (base, flyingon) {
             layer.__parent = layer.dom_layer.__ownerWindow = layer.dom_canvas.__ownerWindow = null;
 
             this.dom_window.removeChild(layer.dom_layer);
-            this.layers.splice(this.layers.indexOf(layer), 0, 1);
+
+            if ((layer = this.layers.indexOf(layer)) >= 0)
+            {
+                this.layers.splice(layer, 1);
+            }
         }
     };
 
@@ -224,7 +224,7 @@ flyingon.window_extender = function (base, flyingon) {
         {
             var layer = this.layers[i];
 
-            if (!layer.disableGetControlAt && layer.context.getImageData(x, y, 1, 1).data[3] !== 0)
+            if (!layer.disable_findAt && (i === 0 || layer.context.getImageData(x, y, 1, 1).data[3] !== 0))
             {
                 return base.fintAt.call(layer, x, y);
             }
@@ -259,12 +259,12 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
 
-    //触发带mousedown的鼠标事件
-    function dispatchEvent(type, target, dom_MouseEvent) {
 
-        var event = new flyingon.MouseEvent(type, target, dom_MouseEvent);
-        event.mousedown = mousedown_cache;
+    //触发mousemove事件
+    function dispatch_mousemove(target, dom_MouseEvent) {
 
+        var event = new MouseEvent("mousemove", target, dom_MouseEvent);
+        event.mousedown = mousedown_state;
         target.dispatchEvent(event);
     };
 
@@ -282,7 +282,7 @@ flyingon.window_extender = function (base, flyingon) {
             if (source)
             {
                 source.stateTo("hover", false);
-                dispatchEvent("mouseout", source, dom_MouseEvent);
+                source.dispatchEvent(new MouseEvent("mouseout", source, dom_MouseEvent));
             }
 
             if (target && target.enabled)
@@ -290,13 +290,13 @@ flyingon.window_extender = function (base, flyingon) {
                 this.dom_window.style.cursor = target.cursor;
                 target.stateTo("hover", true);
 
-                dispatchEvent("mouseover", target, dom_MouseEvent);
-                dispatchEvent("mousemove", target, dom_MouseEvent);
+                target.dispatchEvent(new MouseEvent("mouseover", target, dom_MouseEvent));
+                dispatch_mousemove(target, dom_MouseEvent);
             }
         }
         else if (target)
         {
-            dispatchEvent("mousemove", target, dom_MouseEvent);
+            dispatch_mousemove(target, dom_MouseEvent);
         }
     };
 
@@ -306,17 +306,17 @@ flyingon.window_extender = function (base, flyingon) {
         //处理延时
         var ownerWindow = this.__ownerWindow.__capture_delay.execute();
 
-        //设置鼠标按下
-        mousedown_cache = true;
-
         //处理弹出窗口
         if (ownerWindow !== ownerWindow.activeWindow) //活动窗口不是当前点击窗口
         {
             ownerWindow.setActive();
         }
 
+        //记录鼠标按下状态
+        mousedown_state = true;
+
         //处理鼠标按下事件
-        var target = ownerWindow.__capture_control || flyingon.__hover_control;
+        var target = flyingon.__capture_control || flyingon.__hover_control;
 
         if (target && target.enabled)
         {
@@ -344,15 +344,14 @@ flyingon.window_extender = function (base, flyingon) {
                 }
 
                 //分发事件
-                var event = new flyingon.MouseEvent("mousedown", target, dom_MouseEvent);
-                target.dispatchEvent(event);
+                target.dispatchEvent(new MouseEvent("mousedown", target, dom_MouseEvent));
             }
 
             //设置捕获(注:setCapture及releaseCapture仅IE支持,不能使用)
             host.__ownerWindow = ownerWindow;
 
             //取消冒泡
-            dom_MouseEvent.stopPropagation();
+            dom_MouseEvent.stopImmediatePropagation();
         }
     };
 
@@ -370,11 +369,11 @@ flyingon.window_extender = function (base, flyingon) {
             {
                 flyingon.Dragdrop.move(dom_MouseEvent);
             }
-            else if (target = ownerWindow.__capture_control) //启用捕获
+            else if (target = flyingon.__capture_control) //启用捕获
             {
                 if (target.enabled)
                 {
-                    dispatchEvent("mousemove", target, dom_MouseEvent);
+                    dispatch_mousemove(target, dom_MouseEvent);
                 }
             }
             else
@@ -387,7 +386,7 @@ flyingon.window_extender = function (base, flyingon) {
             flyingon.__hover_control = null;
 
             target.stateTo("hover", false);
-            dispatchEvent("mouseout", target, dom_MouseEvent);
+            target.dispatchEvent(new MouseEvent("mouseout", target, dom_MouseEvent));
         }
     };
 
@@ -398,7 +397,7 @@ flyingon.window_extender = function (base, flyingon) {
 
         if (ownerWindow)
         {
-            var target = ownerWindow.__capture_control || flyingon.__hover_control;
+            var target = flyingon.__capture_control || flyingon.__hover_control;
 
             if (target && target.enabled)
             {
@@ -415,15 +414,15 @@ flyingon.window_extender = function (base, flyingon) {
                 }
 
                 target.stateTo("active", false);
-                target.dispatchEvent(new flyingon.MouseEvent("mouseup", target, dom_MouseEvent));
+                target.dispatchEvent(new MouseEvent("mouseup", target, dom_MouseEvent));
             }
 
             //取消捕获
             host.__ownerWindow = null;
-
-            //设置鼠标弹起
-            mousedown_cache = false;
         }
+
+        //取消鼠标按下状态
+        mousedown_state = false;
     };
 
 
@@ -432,15 +431,15 @@ flyingon.window_extender = function (base, flyingon) {
     function translate_MouseEvent(type, dom_MouseEvent) {
 
         var ownerWindow = this.__ownerWindow.__capture_delay.execute(),
-            target = ownerWindow.__capture_control || flyingon.__hover_control;
+            target = flyingon.__capture_control || flyingon.__hover_control;
 
         if (target && target.enabled)
         {
             offset.call(ownerWindow, dom_MouseEvent);
-            target.dispatchEvent(new flyingon.MouseEvent(type, target, dom_MouseEvent));
+            target.dispatchEvent(new MouseEvent(type, target, dom_MouseEvent));
         }
 
-        dom_MouseEvent.stopPropagation();
+        dom_MouseEvent.stopImmediatePropagation();
     };
 
     function click(dom_MouseEvent) {
@@ -468,7 +467,7 @@ flyingon.window_extender = function (base, flyingon) {
         //如果有输入焦点控件则发送事件至输入焦点控件
         if (focused && focused.enabled)
         {
-            focused.dispatchEvent(new flyingon.KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent));
+            focused.dispatchEvent(new KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent));
         }
         else //否则处理accessKey
         {
@@ -495,7 +494,7 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
     //重绘窗口
-    this.__fn_update = function (x, y, width, height) {
+    this.__fn_update = function (width, height) {
 
         var layers = this.layers;
 
@@ -509,9 +508,7 @@ flyingon.window_extender = function (base, flyingon) {
 
             layer.__unregistry_update();
 
-            layer.measure(width - x, height - y);
-            layer.locate(x, y);
-
+            layer.measure(width, height);
             layer.render(layer.painter);
         }
     };
@@ -547,6 +544,8 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
 
 
+    Class.combine_create = true;
+
     Class.create = function (host) {
 
         this.__fn_create();
@@ -571,6 +570,20 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
         }, true);
     };
 
+
+
+
+    //修改宽度属性
+    this.defineProperty("width", function () {
+
+        return this.dom_canvas.width;
+    });
+
+    //修改高度属性
+    this.defineProperty("height", function () {
+
+        return this.dom_canvas.height;
+    });
 
 
 
@@ -600,11 +613,11 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
     this.update = function () {
 
         var rect = this.__fn_clientRect(true);
-        this.__fn_update(0, 0, rect.width, rect.height);
+        this.__fn_update(rect.width, rect.height);
     };
 
 
-}, true);
+});
 
 
 

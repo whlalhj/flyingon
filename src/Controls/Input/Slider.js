@@ -3,6 +3,7 @@
 flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon) {
 
 
+
     Class.create = function () {
 
         this.__boxModel.children = [];

@@ -6,7 +6,7 @@ flyingon.layer_extender = function (host) {
     var div = this.dom_layer = document.createElement("div"),
         canvas = this.dom_canvas = document.createElement("canvas"),
 
-        target = this,
+        self = this,
         timer;
 
 
@@ -44,19 +44,16 @@ flyingon.layer_extender = function (host) {
             clearTimeout(timer);
         }
 
-        var self = target;
-
         if (self.__current_dirty) //如果需要更新
         {
             self.render(self.painter);
         }
         else if (self.__children_dirty) //如果子控件需要更新
         {
-            self.__fn_render_children(self.painter);
+            self.__fn_update_children(self.painter);
             self.__children_dirty = false;
         }
     };
-
 
 
     //注册更新
@@ -88,8 +85,10 @@ flyingon.layer_extender = function (host) {
         {
             clearTimeout(timer);
             timer = 0;
-        };
+        }
     };
+
+
 
 };
 
@@ -102,6 +101,8 @@ flyingon.layer_extender = function (host) {
 flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
+
+    Class.combine_create = true;
 
     Class.create = function (host) {
 
@@ -130,13 +131,19 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
     });
 
 
+
+    //更新
     this.update = function () {
 
-        this.__unregistry_update();
+        if (timer)
+        {
+            clearTimeout(timer);
+            timer = 0;
+        }
+
         this.render(this.painter);
     };
 
-
-}, true);
+});
 
 

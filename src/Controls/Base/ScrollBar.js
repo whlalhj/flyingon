@@ -1,11 +1,13 @@
-﻿(function (flyingon) {
+﻿
+//滚动条及滑块
+(function (flyingon) {
 
 
     //滚动事件
-    flyingon.ScrollEvent = function (target, originalEvent) {
+    flyingon.ScrollEvent = function (target, original_event) {
 
         this.target = target;
-        this.originalEvent = originalEvent;
+        this.original_event = original_event;
     };
 
 
@@ -92,41 +94,42 @@
 
 
 
-        this.__event_mousedown = function (event) {
+        this.__event_bubble_mousedown = function (event) {
 
             if (dragger = this.__fn_mousedown(event))
             {
-                this.ownerWindow.__capture_control = this.slider;
-
-                event.stopPropagation();
-                event.preventDefault();
+                flyingon.__capture_control = this.slider;
+                event.stopImmediatePropagation();
             }
         };
 
 
-        this.__event_mousemove = function (event) {
+        this.__event_bubble_mousemove = function (event) {
 
             var change;
 
             if (dragger && (change = this.__fn_drag_value(event, dragger) - this.value))
             {
                 this.__fn_change_value(change, event);
+                event.stopImmediatePropagation();
             }
         };
 
 
-        this.__event_mouseup = function (event) {
+        this.__event_bubble_mouseup = function (event) {
 
             if (timer)
             {
                 clearTimeout(timer);
-                timer = null;
+                timer = 0;
             }
 
             if (dragger)
             {
-                this.ownerWindow.__capture_control = null;
+                flyingon.__capture_control = null;
                 dragger = null;
+
+                event.stopImmediatePropagation();
             }
         };
 
@@ -145,15 +148,15 @@
 
             if (delay_change(this, change, limit, event) != limit)
             {
-                var self = this;
+                var self = this,
 
-                function fn() {
+                    fn = function () {
 
-                    if (delay_change(self, change, limit, event) != limit)
-                    {
-                        timer = setTimeout(fn, 200);
-                    }
-                };
+                        if (delay_change(self, change, limit, event) != limit)
+                        {
+                            timer = setTimeout(fn, 200);
+                        }
+                    };
 
                 timer = setTimeout(fn, 200);
             }
@@ -195,22 +198,29 @@
 
         Class.create = function (parent, vertical) {
 
-            var button1 = this.button1 = new flyingon.ScrollButton(),
-                button2 = this.button2 = new flyingon.ScrollButton(),
-                slider = this.slider = new flyingon.ScrollBlock();
+            this.__parent = parent;
+            this.__additions = true;
 
-            button1.first = true;
+            var name;
 
             if (vertical)
             {
+                name = "y";
                 this.__fields.vertical = true;
                 this.__fn_vertical(true);
             }
+            else
+            {
+                name = "x";
+            }
 
-            (this.__children = this.__visible_items = new flyingon.ControlCollection(this)).appendRange(slider, button1, button2);
+            //添加.scrollbar-x或.scrollbar-y className
+            this.__fn_initialize_className("scrollbar-" + name);
 
-            this.__parent = parent;
-            this.__additions = true;
+            this.__visible_items = [
+                this.button1 = new scroll_button(this, name, true),
+                this.button2 = new scroll_button(this, name),
+                this.slider = new scroll_block(this, name)];
         };
 
 
@@ -334,6 +344,7 @@
                     parent.contentX = this.__rtl ? this.maxValue - fields.value : fields.value;
                 }
 
+                parent.__fn_scrollTo(parent.contentX, parent.contentY);
                 parent.dispatchEvent(event);
                 parent.invalidate(false);
 
@@ -390,7 +401,7 @@
                 height = this.clientHeight,
                 scroll = this.scroll_end - this.scroll_start,
                 maxValue = this.maxValue,
-                length = round(scroll * scroll / maxValue),
+                length = round(scroll * scroll / this.__parent.contentWidth),
                 x;
 
             if (length < 20) //保证滑块不小于20
@@ -398,10 +409,7 @@
                 length = 20;
             }
 
-            length = slider.measure(length, height, 1, 1).width;
-
-            var box = slider.__fn_box_style();
-            this.slider_length = (length -= box.margin_spaceX);
+            this.slider_length = length = slider.measure(length, height, 1, 1).width;
             this.scroll_length = scroll - length; //有效滚动区域
 
             if (this.__rtl) //右向顺序处理
@@ -414,10 +422,7 @@
             }
 
             this.slider_start = x;
-            this.slider_end = x + length;
-
-            box.margin_left = box.margin_right = box.margin_spaceX = 0; //忽略左边距和右边距
-            slider.locate(x, 0, 0, height);
+            this.slider_end = slider.locate(x, 0, 0, height).x;
 
             base.render.call(this, painter, clear);
         };
@@ -429,7 +434,7 @@
                 width = this.clientWidth,
                 scroll = this.scroll_end - this.scroll_start,
                 maxValue = this.maxValue,
-                length = round(scroll * scroll / maxValue),
+                length = round(scroll * scroll / this.__parent.contentHeight),
                 y;
 
             if (length < 20)
@@ -437,17 +442,11 @@
                 length = 20;
             }
 
-            length = slider.measure(width, length, 1, 1).height;
-
-            var box = slider.__fn_box_style();
-            this.slider_length = (length -= box.margin_spaceY);
+            this.slider_length = length = slider.measure(width, length, 1, 1).height;
             this.scroll_length = scroll - length; //有效区域
 
             this.slider_start = y = round(this.value * this.scroll_length / maxValue) + this.scroll_start;
-            this.slider_end = y + length;
-
-            box.margin_top = box.margin_bottom = box.margin_spaceY = 0; //忽略顶边距和底边距
-            slider.locate(0, y, width, 0);
+            this.slider_end = slider.locate(0, y, width, 0).y;
 
             base.render.call(this, painter, clear);
         };
@@ -468,7 +467,7 @@
 
 
 
-    }, true);
+    });
 
 
 
@@ -476,14 +475,7 @@
 
 
 
-    function extender_fn(Class) {
-
-
-        Class.create = function (parent) {
-
-            this.__parent = parent;
-            this.__additions = true;
-        };
+    function extender_fn() {
 
 
         this.defaultValue("width", 16);
@@ -494,7 +486,7 @@
         this.defaultValue("focusable", false);
 
         //屏蔽事件响应直接分发至父控件
-        this.__event_mask = false;
+        this.__event_mask = true;
 
 
         //重载排列子控件方法
@@ -509,14 +501,22 @@
 
 
     //滚动条按钮
-    flyingon.defineClass("ScrollButton", flyingon.Control, function (Class, base, flyingon) {
+    var scroll_button = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
 
 
-        extender_fn.call(this, Class);
+        Class.combine_create = true;
+
+        Class.create = function (parent, className, first) {
+
+            this.__parent = parent;
+            this.__fn_initialize_className("scrollbar-button", "scrollbar-button-" + className);
+
+            this.first = first;
+        };
 
 
-        //是否开始控件
-        this.start = true;
+
+        extender_fn.call(this);
 
 
         //绘制图像
@@ -536,12 +536,44 @@
 
 
     //滚动块
-    flyingon.defineClass("ScrollBlock", flyingon.Control, extender_fn);
+    var scroll_block = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
+
+
+        Class.combine_create = true;
+
+        Class.create = function (parent, className) {
+
+            this.__parent = parent;
+            this.__fn_initialize_className("scrollbar-block", "scrollbar-block-" + className);
+        };
+
+
+
+        extender_fn.call(this);
+
+
+    });
 
 
 
     //滚动条拐角控件
-    flyingon.defineClass("ScrollCorner", flyingon.Control, extender_fn);
+    flyingon.defineClass("ScrollCorner", flyingon.Control, function (Class, base, flyingon) {
+
+
+
+        Class.combine_create = true;
+
+        Class.create = function (parent) {
+
+            this.__parent = parent;
+        };
+
+
+
+        extender_fn.call(this);
+
+
+    });
 
 
 
@@ -559,15 +591,31 @@
 
 
 
-    });
+    }, true);
 
 
 
 
     //滑动块
-    flyingon.defineClass("SliderBlock", flyingon.Control, extender_fn);
+    var slider_block = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
+
+
+        Class.combine_create = true;
+
+        Class.create = function (parent) {
+
+            this.__parent = parent;
+        };
+
+
+
+        extender_fn.call(this);
+
+
+    });
 
 
 
 
 })(flyingon);
+
