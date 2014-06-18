@@ -18,9 +18,12 @@
 
 
 
-    //拖拉管理
-    var Dragdrop = flyingon.Dragdrop = {};
+    //拖拉管理器
+    var Dragdrop = flyingon.Dragdrop = {
 
+        //拖动状态 0:停止拖动 1:准备拖动 2:开始拖动
+        state: 0
+    };
 
 
 
@@ -35,11 +38,11 @@
         dragTargets,        //拖动目标
         dropTarget,         //接收目标
 
-        dragging,           //是否正在拖动
         droppable,          //是否可放下
 
         start_event,        //原始事件
         last_event,         //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
+
         offsetX,            //x方向因移动造成的修正距离
         offsetY;            //y方向因移动造成的修正距离
 
@@ -78,10 +81,10 @@
     };
 
     //默认拖动行为
-    function drag_move(dom_MouseEvent, offsetX, offsetY) {
+    function drag_move(dom_event, offsetX, offsetY) {
 
         //需修正div移动偏差
-        var target = ownerWindow.fintAt(dom_MouseEvent.offsetX + offsetX, dom_MouseEvent.offsetY + offsetY),
+        var target = ownerWindow.fintAt(dom_event.canvasX + offsetX, dom_event.canvasY + offsetY),
             event;
 
         if (target === ownerControl)
@@ -93,7 +96,7 @@
         {
             if (dropTarget)
             {
-                event = new_event("dragleave", dom_MouseEvent);
+                event = new_event("dragleave", dom_event);
                 dropTarget.dispatchEvent(event);
             }
 
@@ -103,7 +106,7 @@
             {
                 dropTarget = target;
 
-                event = new_event("dragenter", dom_MouseEvent);
+                event = new_event("dragenter", dom_event);
 
                 if (target.dispatchEvent(event))
                 {
@@ -118,25 +121,25 @@
             ownerLayer.dom_layer.style.cursor = droppable ? (ownerControl.drag_cursor || "move") : "no-drop";
         }
 
-        event = new_event("drag", dom_MouseEvent);
+        event = new_event("drag", dom_event);
         ownerControl.dispatchEvent(event);
 
         if (target)
         {
-            event = new_event("dragover", dom_MouseEvent);
+            event = new_event("dragover", dom_event);
             target.dispatchEvent(event);
         }
     };
 
     //默认停止行为
-    function drag_stop(dom_MouseEvent, offsetX, offsetY) {
+    function drag_stop(dom_event, offsetX, offsetY) {
 
         if (dropTarget)
         {
-            dropTarget.dispatchEvent(new_event("drop", dom_MouseEvent));
+            dropTarget.dispatchEvent(new_event("drop", dom_event));
         }
 
-        ownerControl.dispatchEvent(new_event("dragend", dom_MouseEvent));
+        ownerControl.dispatchEvent(new_event("dragend", dom_event));
     }
 
 
@@ -157,13 +160,14 @@
         //开始拖拉事件
         var event = new_event("dragstart", start_event);
 
-        //是否取消
-        event.canceled = false;
-
-        //开始
+        //开始拖动方法
         (ownerControl.__fn_drag_start || drag_start).call(ownerControl, event);
 
-        if (!event.canceled)
+        if (event.canceled) //取消则停止拖动
+        {
+            Dragdrop.stop();
+        }
+        else
         {
             if (event.dragTargets)
             {
@@ -178,22 +182,22 @@
             style.opacity = ownerControl.drag_opacity || 0.5;
 
             (ownerControl.__fn_drag_paint || drag_paint).call(ownerControl, ownerLayer, dragTargets);
-        }
-        else
-        {
-            dragging = false;
+
+            Dragdrop.state = 2; //设置拖动状态为开始拖动
         }
     };
 
 
-    //开始拖动(200毫秒内保持按下鼠标则执行拖动)
-    Dragdrop.start = function (window, target, dom_MouseEvent) {
 
-        dragging = true;
+    //开始拖动(200毫秒内保持按下鼠标则执行拖动)
+    Dragdrop.start = function (window, target, dom_event) {
+
+        //设置拖动状态为准备拖动
+        Dragdrop.state = 1;
 
         ownerWindow = window;
         ownerControl = target;
-        start_event = dom_MouseEvent;
+        start_event = dom_event;
 
         offsetX = 0;
         offsetY = 0;
@@ -203,52 +207,51 @@
 
 
     //移动
-    Dragdrop.move = function (dom_MouseEvent) {
+    Dragdrop.move = function (dom_event) {
 
-        if (!dragging)
+        //选判断拖动状态
+        switch (Dragdrop.state)
         {
-            return;
+            case 0: //停止拖动则直接返回
+                return false;
+
+            case 1: //准备拖动则执行开始拖动动作
+                start();
+                break;
         }
 
-        if (timer)
+        //拖动处理
+        var event = last_event = dom_event;
+
+        //div移动距离
+        offsetX = event.clientX - start_event.clientX;
+        offsetY = event.clientY - start_event.clientY;
+
+        var offset = (ownerControl.__fn_drag_move || drag_move).call(ownerControl, event, offsetX, offsetY),
+            style = ownerLayer.dom_layer.style;
+
+        if (offset)
         {
-            start();
+            offsetX = offset.x || 0;
+            offsetY = offset.y || 0;
         }
 
-        if (ownerLayer)
-        {
-            var event = last_event = dom_MouseEvent;
+        style.left = offsetX + "px";
+        style.top = offsetY + "px";
 
-            //div移动距离
-            offsetX = event.clientX - start_event.clientX;
-            offsetY = event.clientY - start_event.clientY;
-
-            var offset = (ownerControl.__fn_drag_move || drag_move).call(ownerControl, event, offsetX, offsetY),
-                style = ownerLayer.dom_layer.style;
-
-            if (offset)
-            {
-                offsetX = offset.x || 0;
-                offsetY = offset.y || 0;
-            }
-
-            style.left = offsetX + "px";
-            style.top = offsetY + "px";
-
-            return true;
-        }
-
-        return false;
+        return true;
     };
 
 
-
-    //停止拖动, 成功取消则返回true
+    //停止拖动
     Dragdrop.stop = function () {
 
-        var result = !ownerLayer;
+        if (timer)
+        {
+            clearTimeout(timer);
+            timer = 0;
+        }
 
-        //如果未执行则补上mousedown事件
         if (ownerLayer)
         {
             //如果按下且移动过且可接受拖放时才触发停止方法
@@ -263,17 +266,21 @@
             //处理捕获控件
             ownerWindow.__capture_delay.registry([last_event]);
         }
-        else
+        else if (start_event) //如果未执行则切换输入焦点及补上mousedown事件
         {
+            ownerWindow.__fn_switch_focus(target);
             ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event));
         }
 
-        dragTargets = dropTarget = dragging = null;
-        ownerWindow = ownerLayer = ownerControl = null;
-        start_event = last_event = null;
+        //设置拖动状态为停止拖动
+        Dragdrop.state = 0;
 
-        return result;
+        //清空缓存对象
+        dragTargets = dropTarget = null;
+        ownerWindow = ownerControl = null;
+        start_event = last_event = null;
     };
+
 
 
 

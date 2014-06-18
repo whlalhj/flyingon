@@ -224,7 +224,7 @@
         var resize_side,        //可调整大小的边(left, top, right, bottom或两者组合)
             resize_start;       //开始调整大小时的状态
 
-        this.__event_bubble_mousedown = function (event) {
+        this.__event_capture_mousedown = function (event) {
 
             if (resize_side)
             {
@@ -241,6 +241,7 @@
                 };
 
                 flyingon.__capture_control = this; //捕获鼠标
+                event.stopImmediatePropagation();
             }
         };
 
@@ -286,19 +287,17 @@
 
                 event.stopImmediatePropagation();
             }
-        };
-
-        this.__event_bubble_mousemove = function (event) {
-
-            if (!event.mousedown)
+            else if (!event.mousedown)
             {
+                var style = this.dom_window.style;
+
                 if (this.resizable) //计算当前位置的调整大小类型
                 {
                     var x = event.canvasX,
                         y = event.canvasY,
                         width = +this.width,
                         height = +this.height,
-                        cursor = "default";
+                        cursor;
 
                     resize_side = null;
 
@@ -340,22 +339,31 @@
                         }
                     }
 
-                    this.__style.cursor = this.dom_window.style.cursor = cursor;
+                    if (cursor)
+                    {
+                        style.cursor = cursor;
+                        event.stopImmediatePropagation();
+                    }
+                    else
+                    {
+                        style.cursor = event.target.cursor;
+                    }
                 }
                 else if (resize_side)
                 {
-                    this.cursor = this.dom_window.style.cursor = "default";
+                    style.cursor = this.cursor;
                     resize_side = null;
                 }
             }
         };
 
-        this.__event_bubble_mouseup = function (event) {
+        this.__event_capture_mouseup = function (event) {
 
             if (resize_start)
             {
                 resize_start = null;
                 flyingon.__capture_control = null; //取消捕获鼠标
+                event.stopImmediatePropagation();
             }
         };
 
@@ -400,7 +408,7 @@
 
             if (parent)
             {
-                if (this.dispatchEvent("closing"))
+                if (this.dispatchEvent(new flyingon.Event("closing", this), true))
                 {
                     var root = this.__mainWindow,
                         host = root.dom_host;
@@ -412,7 +420,7 @@
                         host.removeChild(this.dom_mask);
                     }
 
-                    this.dispatchEvent("closed");
+                    this.dispatchEvent(new flyingon.Event("closed", this), true);
 
                     this.__parentWindow = this.__mainWindow = root.__activeWindow = null;
                     parent.setActive();
@@ -451,7 +459,7 @@
             style.width = width + "px";
             style.height = height + "px";
 
-            this.__fn_update(width, height);
+            this.__fn_update_window(width, height);
         };
 
 
@@ -491,10 +499,10 @@
 
 
         //绘制工具条
-        this.paint_border = function (painter) {
+        this.paint_additions = function (painter) {
 
             this.header.render(painter);
-            base.paint_border.call(this, painter);
+            base.paint_additions.call(this, painter);
         };
 
 

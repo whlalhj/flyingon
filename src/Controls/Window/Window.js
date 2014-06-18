@@ -2,11 +2,16 @@
 flyingon.window_extender = function (base, flyingon) {
 
 
+    //flyingon.__capture_control:   当前捕获控件
+    //flyingon.__hover_control:     当前鼠标指向的控件
+
 
     var host,                       //主容器
-        dragging = false,           //是否处理拖动
-        mousedown_state = false,
+        mousedown_state = false,    //鼠标是否按下
 
+        Dragdrop = flyingon.Dragdrop,
+
+        Event = flyingon.Event,
         MouseEvent = flyingon.MouseEvent,
         KeyEvent = flyingon.KeyEvent;
 
@@ -134,15 +139,23 @@ flyingon.window_extender = function (base, flyingon) {
         {
             if (target)
             {
-                target.dom_window.style.zIndex = 9990;
-                target.dispatchEvent("deactivate");
+                if (target !== root)
+                {
+                    target.dom_window.style.zIndex = 9990;
+                }
+
+                target.dispatchEvent(new Event("deactivate", target), true);
                 target.stateTo("active", false);
             }
 
             root.__activeWindow = this;
 
-            this.dom_window.style.zIndex = 9991;
-            this.dispatchEvent("activate");
+            if (this !== root)
+            {
+                this.dom_window.style.zIndex = 9991;
+            }
+
+            this.dispatchEvent(new Event("activate", this), true);
             this.stateTo("active", true);
         }
     };
@@ -217,6 +230,22 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
 
+    //切换输入焦点
+    this.__fn_switch_focus = function (target) {
+
+        var focused;
+
+        if (target.focusable && (focused = this.__focused_control) !== target)
+        {
+            if (focused && focused.validate())
+            {
+                focused.__fn_blur();
+            }
+
+            target.__fn_focus(event);
+        }
+    };
+
 
     this.fintAt = function (x, y) {
 
@@ -236,74 +265,76 @@ flyingon.window_extender = function (base, flyingon) {
 
 
     //计算画布坐标(相对画布节点的偏移),处理firefox没有offsetX及offsetY的问题
-    function offset(event) {
+    function compute_canvas(dom_window, event) {
 
-        if (!event.canvasX)
+        var x = 0,
+            y = 0,
+            target = dom_window || event.target;
+
+        while (target)
         {
-            var x = 0,
-                y = 0,
-                target = this.dom_window || event.target;
+            x += target.offsetLeft;
+            y += target.offsetTop;
 
-            while (target)
-            {
-                x += target.offsetLeft;
-                y += target.offsetTop;
-
-                target = target.offsetParent;
-            }
-
-            //不能使用offsetX 在IE下无法重赋值
-            event.canvasX = event.pageX - x;
-            event.canvasY = event.pageY - y;
+            target = target.offsetParent;
         }
+
+        //不能使用offsetX属性 在IE下offsetX属性只读
+        event.canvasX = event.pageX - x;
+        event.canvasY = event.pageY - y;
+
+        return dom_window;
     };
 
-
-
-    //触发mousemove事件
-    function dispatch_mousemove(target, dom_MouseEvent) {
-
-        var event = new MouseEvent("mousemove", target, dom_MouseEvent);
-        event.mousedown = mousedown_state;
-        target.dispatchEvent(event);
-    };
 
 
     //控件捕获
-    function capture_control(dom_MouseEvent) {
+    function capture_control(dom_event) {
+
+        compute_canvas(this.dom_window, dom_event);
 
         var source = flyingon.__hover_control,
-            target = this.fintAt(dom_MouseEvent.canvasX, dom_MouseEvent.canvasY) || this;
+            target = this.fintAt(dom_event.canvasX, dom_event.canvasY) || this;
 
         if (target !== source)
         {
             flyingon.__hover_control = target;
 
-            if (source)
+            if (source && source.enabled)
             {
                 source.stateTo("hover", false);
-                source.dispatchEvent(new MouseEvent("mouseout", source, dom_MouseEvent));
+                source.dispatchEvent(new MouseEvent("mouseout", source, dom_event), true);
             }
 
             if (target && target.enabled)
             {
                 this.dom_window.style.cursor = target.cursor;
-                target.stateTo("hover", true);
 
-                target.dispatchEvent(new MouseEvent("mouseover", target, dom_MouseEvent));
-                dispatch_mousemove(target, dom_MouseEvent);
+                target.stateTo("hover", true);
+                target.dispatchEvent(new MouseEvent("mouseover", target, dom_event), true);
+
+                dispatch_mousemove(target, dom_event, true);
             }
         }
         else if (target)
         {
-            dispatch_mousemove(target, dom_MouseEvent);
+            dispatch_mousemove(target, dom_event, true);
         }
     };
 
 
-    function mousedown(dom_MouseEvent) {
+    //触发mousemove事件
+    function dispatch_mousemove(target, dom_event, bubble) {
 
-        //处理延时
+        var event = new MouseEvent("mousemove", target, dom_event);
+        event.mousedown = mousedown_state;
+        target.dispatchEvent(event, bubble);
+    };
+
+
+    function mousedown(dom_event) {
+
+        //处理延时并捕获当前窗口
         var ownerWindow = this.__ownerWindow.__capture_delay.execute();
 
         //处理弹出窗口
@@ -316,109 +347,111 @@ flyingon.window_extender = function (base, flyingon) {
         mousedown_state = true;
 
         //处理鼠标按下事件
-        var target = flyingon.__capture_control || flyingon.__hover_control;
+        var capture = flyingon.__capture_control,
+            target = capture || flyingon.__hover_control;
 
         if (target && target.enabled)
         {
-            offset.call(ownerWindow, dom_MouseEvent);
+            compute_canvas(ownerWindow.dom_window, dom_event);
 
             //如果可拖动
-            if (dragging = target.draggable || ownerWindow.designMode)
+            if (target.draggable)
             {
-                flyingon.Dragdrop.start(ownerWindow, target, dom_MouseEvent, true);
-            }
-            else
-            {
+                //设置活动状态
                 target.stateTo("active", true);
 
-                //处理焦点
-                if (target.focusable)
-                {
-                    var focused = ownerWindow.__focused_control;
-                    if (focused && focused !== target && focused.validate())
-                    {
-                        focused.__fn_blur();
-                    }
+                //开始拖动
+                Dragdrop.start(ownerWindow, target, dom_event, true);
+            }
+                //else if (ownerWindow.designMode)
+                //{
+                //    Dragdrop.start(ownerWindow, target, dom_event, true);
+                //}
+            else
+            {
+                //设置活动状态
+                target.stateTo("active", true);
 
-                    target.__fn_focus(event);
-                }
+                //切换输入焦点
+                ownerWindow.__fn_switch_focus(target);
 
-                //分发事件
-                target.dispatchEvent(new MouseEvent("mousedown", target, dom_MouseEvent));
+                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
+                target.dispatchEvent(new MouseEvent("mousedown", target, dom_event), capture !== target);
             }
 
-            //设置捕获(注:setCapture及releaseCapture仅IE支持,不能使用)
-            host.__ownerWindow = ownerWindow;
-
             //取消冒泡
-            dom_MouseEvent.stopImmediatePropagation();
+            dom_event.stopImmediatePropagation();
         }
     };
 
 
-    function mousemove(dom_MouseEvent) {
+    function mousemove(dom_event) {
 
-        var ownerWindow = host.__ownerWindow || dom_MouseEvent.target.__ownerWindow,
+        var ownerWindow = host.__ownerWindow,
             target;
 
         if (ownerWindow)
         {
-            offset.call(ownerWindow, dom_MouseEvent);
+            if (target = flyingon.__capture_control) //启用捕获
+            {
+                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
+                dispatch_mousemove(target, dom_event, false);  //直接分发至目标控件(不分发至父控件)
+                return;
+            }
 
-            if (dragging) //处理拖动
+            if (Dragdrop.state > 0) //处理拖动
             {
-                flyingon.Dragdrop.move(dom_MouseEvent);
+                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
+                Dragdrop.move(dom_event);   //拖动
+                return;
             }
-            else if (target = flyingon.__capture_control) //启用捕获
+
+            if (ownerWindow !== dom_event.target.__ownerWindow) //如果窗口与当前控件所属窗口不同则立即处理原注册mousemove事件
             {
-                if (target.enabled)
+                if ((target = flyingon.__hover_control) && target.enabled)
                 {
-                    dispatch_mousemove(target, dom_MouseEvent);
+                    target.stateTo("hover", false);
+                    target.dispatchEvent(new MouseEvent("mouseout", target, dom_event), true);
                 }
-            }
-            else
-            {
-                ownerWindow.__capture_delay.registry([dom_MouseEvent]); //启用延迟捕获
+
+                ownerWindow.__capture_delay.cancel(); //取消原延时事件
+                ownerWindow = null;
             }
         }
-        else if (target = flyingon.__hover_control)
-        {
-            flyingon.__hover_control = null;
 
-            target.stateTo("hover", false);
-            target.dispatchEvent(new MouseEvent("mouseout", target, dom_MouseEvent));
+        if (ownerWindow || (ownerWindow = host.__ownerWindow = dom_event.target.__ownerWindow))
+        {
+            ownerWindow.__capture_delay.registry(dom_event); //启用延迟捕获
         }
     };
 
 
-    function mouseup(dom_MouseEvent) {
+    function mouseup(dom_event) {
 
         var ownerWindow = host.__ownerWindow;
 
         if (ownerWindow)
         {
-            var target = flyingon.__capture_control || flyingon.__hover_control;
+            var capture = flyingon.__capture_control,
+                target = capture || flyingon.__hover_control;
 
             if (target && target.enabled)
             {
-                offset.call(ownerWindow, dom_MouseEvent);
+                //计算画布坐标
+                compute_canvas(ownerWindow.dom_window, dom_event);
 
-                if (dragging)
+                //如果处于拖动状态则先停止拖动
+                if (Dragdrop.state > 0)
                 {
-                    dragging = false;
-
-                    if (!flyingon.Dragdrop.stop())
-                    {
-                        return;
-                    }
+                    Dragdrop.stop();
                 }
 
+                //取消活动状态
                 target.stateTo("active", false);
-                target.dispatchEvent(new MouseEvent("mouseup", target, dom_MouseEvent));
-            }
 
-            //取消捕获
-            host.__ownerWindow = null;
+                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
+                target.dispatchEvent(new MouseEvent("mouseup", target, dom_event), capture !== target);
+            }
         }
 
         //取消鼠标按下状态
@@ -428,33 +461,37 @@ flyingon.window_extender = function (base, flyingon) {
 
 
     //鼠标事件翻译方法
-    function translate_MouseEvent(type, dom_MouseEvent) {
+    function translate_MouseEvent(type, dom_event) {
 
         var ownerWindow = this.__ownerWindow.__capture_delay.execute(),
-            target = flyingon.__capture_control || flyingon.__hover_control;
+            capture = flyingon.__capture_control,
+            target = capture || flyingon.__hover_control;
 
         if (target && target.enabled)
         {
-            offset.call(ownerWindow, dom_MouseEvent);
-            target.dispatchEvent(new MouseEvent(type, target, dom_MouseEvent));
+            //计算画布坐标
+            compute_canvas(ownerWindow.dom_window, dom_event);
+
+            //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
+            target.dispatchEvent(new MouseEvent(type, target, dom_event), capture !== target);
         }
 
-        dom_MouseEvent.stopImmediatePropagation();
+        dom_event.stopImmediatePropagation();
     };
 
-    function click(dom_MouseEvent) {
+    function click(dom_event) {
 
-        translate_MouseEvent.call(this, "click", dom_MouseEvent);
+        translate_MouseEvent.call(this, "click", dom_event);
     };
 
-    function dblclick(dom_MouseEvent) {
+    function dblclick(dom_event) {
 
-        translate_MouseEvent.call(this, "dblclick", dom_MouseEvent);
+        translate_MouseEvent.call(this, "dblclick", dom_event);
     };
 
-    function mousewheel(dom_MouseEvent) {
+    function mousewheel(dom_event) {
 
-        translate_MouseEvent.call(this, "mousewheel", dom_MouseEvent);
+        translate_MouseEvent.call(this, "mousewheel", dom_event);
     };
 
 
@@ -464,15 +501,13 @@ flyingon.window_extender = function (base, flyingon) {
         var ownerWindow = this.__ownerWindow,
             focused = ownerWindow.__focused_control;
 
-        //如果有输入焦点控件则发送事件至输入焦点控件
-        if (focused && focused.enabled)
+        //如果有输入焦点控件则分发事件(不使用冒泡方式分布直接分发至焦点控件)至输入焦点控件
+        if (focused && focused.enabled && focused.dispatchEvent(new KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent), false))
         {
-            focused.dispatchEvent(new KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent));
+            return;
         }
-        else //否则处理accessKey
-        {
 
-        }
+        //否则处理accessKey
     };
 
 
@@ -494,7 +529,7 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
     //重绘窗口
-    this.__fn_update = function (width, height) {
+    this.__fn_update_window = function (width, height) {
 
         var layers = this.layers;
 
@@ -613,7 +648,7 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
     this.update = function () {
 
         var rect = this.__fn_clientRect(true);
-        this.__fn_update(rect.width, rect.height);
+        this.__fn_update_window(rect.width, rect.height);
     };
 
 

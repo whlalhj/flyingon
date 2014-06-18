@@ -1,6 +1,6 @@
 ﻿
 //内容控件
-flyingon.defineClass("ContentControl", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("ContentControl", flyingon.ScrollableControl, function (Class, base, flyingon) {
 
 
   

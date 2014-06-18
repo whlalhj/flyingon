@@ -308,29 +308,17 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     };
 
     //分发事件
-    this.dispatchEvent = function (event) {
+    //event     要分发的事件
+    //bubble    是否冒泡模式 是则按事件链逐步分发 否则只分发至当前控件
+    this.dispatchEvent = function (event, bubble) {
 
-        var result = true,
-            type = event.type || event,
-            events = this.__events_cache && this.__events_cache[type] || cache_events(this, type),
+        var key = bubble !== false ? event.type : event.type + "_this",
+            events = this.__events_cache && this.__events_cache[key] || cache_events(this, event.type, key, bubble),
             length = events.length;
 
         //获取相关事件
         if (length > 0)
         {
-            //如果未传入事件则创建默认事件
-            if (event === type)
-            {
-                event = new flyingon.Event(type, this);
-            }
-
-            //指定事件目标(某些附属控件不能触发事件)
-            if (events.target)
-            {
-                event.source = event.target;
-                event.target = target = events.target; //指向上级对象
-            }
-
             //循环处理相关事件
             for (var i = 0; i < length; i++)
             {
@@ -338,7 +326,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
                 if (events[i].call(target, event) === false)
                 {
-                    result = false;
+                    event.preventDefault();
                 }
 
                 if (event.cancelBubble)
@@ -346,9 +334,11 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                     break;
                 }
             }
+
+            return !event.defaultPrevented;
         }
 
-        return result;
+        return true;
     };
 
 
@@ -367,34 +357,25 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //缓存事件
-    function cache_events(target, type) {
+    function cache_events(target, type, key, bubble) {
 
-        var result = (target.__events_cache || (target.__events_cache = {  }))[type] = [],
+        var result = (target.__events_cache || (target.__events_cache = {}))[key] = [],
             events,
             listener,
             name;
 
-        //默认不变更事件目标
-        result.target = null;
-
-        while (target)
+        do
         {
-            //是否屏蔽事件响应 是则设置事件目标为父控件
-            if (target.__event_mask === true)
+            //插入默认捕获事件
+            if ((name = "__event_capture_" + type) in target)
             {
-                result.target = target.__parent;
+                result.unshift(target, target[name]);
             }
 
             //添加默认冒泡事件
             if ((name = "__event_bubble_" + type) in target)
             {
                 result.push(target, target[name]);
-            }
-
-            //插入默认捕获事件
-            if ((name = "__event_capture_" + type) in target)
-            {
-                result.unshift(target, target[name]);
             }
 
             //循环处理注册的事件
@@ -413,8 +394,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 }
             }
 
-            target = target.__parent;
-        }
+        } while (bubble && (target = target.__parent))
 
         return result;
     };

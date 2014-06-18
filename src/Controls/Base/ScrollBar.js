@@ -126,10 +126,10 @@
 
             if (dragger)
             {
+                event.stopImmediatePropagation();
+
                 flyingon.__capture_control = null;
                 dragger = null;
-
-                event.stopImmediatePropagation();
             }
         };
 
@@ -207,7 +207,6 @@
             {
                 name = "y";
                 this.__fields.vertical = true;
-                this.__fn_vertical(true);
             }
             else
             {
@@ -349,11 +348,7 @@
                 parent.invalidate(false);
 
                 //修正因滚动造成的输入符位置变更问题
-                var ownerWindow = parent.ownerWindow;
-                if (ownerWindow && parent.isParent(ownerWindow.__focused_control))
-                {
-                    ownerWindow.__fn_change_caret(event.changeX, event.changeY);
-                }
+
             }
 
             return fields.value; //返加新值
@@ -453,18 +448,27 @@
 
 
 
-        //切换滚动条方向
-        this.__fn_vertical = function (value) {
+        this.render = function (painter, clear) {
 
-            this.__fn_arrange = value ? arrange2 : arrange1;
-            this.render = value ? render2 : render1;
+            if (this.vertical)
+            {
+                if (this.__arrange_dirty)
+                {
+                    arrange2.call(this);
+                }
+
+                render2.call(this, painter, clear);
+            }
+            else
+            {
+                if (this.__arrange_dirty)
+                {
+                    arrange1.call(this);
+                }
+
+                render1.call(this, painter, clear);
+            }
         };
-
-
-        //默认绑定水平滚动条
-        this.__fn_arrange = arrange1;
-        this.render = render1;
-
 
 
     });
@@ -485,14 +489,35 @@
         //禁止获取焦点
         this.defaultValue("focusable", false);
 
+
+
         //屏蔽事件响应直接分发至父控件
-        this.__event_mask = true;
+        this.dispatchEvent = function (event, bubble) {
+
+            if (event.target = this.__parent)
+            {
+                event.source = this;
+                return this.__parent.dispatchEvent(event, bubble);
+            }
+
+            return true;
+        };
 
 
         //重载排列子控件方法
         this.__fn_arrange = function () {
 
             this.__arrange_dirty = false;
+        };
+
+
+        //更新至上级
+        this.invalidate = function (rearrange, update_now) {
+
+            if (this.__parent)
+            {
+                this.__parent.invalidate(rearrange, update_now);
+            }
         };
 
 

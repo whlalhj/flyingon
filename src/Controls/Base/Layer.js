@@ -50,7 +50,7 @@ flyingon.layer_extender = function (host) {
         }
         else if (self.__children_dirty) //如果子控件需要更新
         {
-            self.__fn_update_children(self.painter);
+            self.__fn_update(self.painter);
             self.__children_dirty = false;
         }
     };

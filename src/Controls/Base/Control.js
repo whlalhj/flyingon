@@ -69,38 +69,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     this.__fn_parent = function (parent) {
 
         this.__parent = parent;
+        this.__events_cache = null; //清空缓存的事件
         this.__fn_reset_style();    //重置样式
 
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent));
-    };
-
-    //当前控件是否指定控件的父控件
-    this.isParent = function (control) {
-
-        if (!control || control === this)
-        {
-            return false;
-        }
-
-        var parent = control.__parent;
-
-        while (parent)
-        {
-            if (parent === this)
-            {
-                return true;
-            }
-
-            parent = parent.__parent;
-        }
-
-        return false;
-    };
-
-    //指定控件是否当前控件的父控件
-    this.isParentTo = function (control) {
-
-        return control ? control.isParent(this) : false;
     };
 
 
@@ -1921,129 +1893,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-    //滚动条
-    (function (flyingon) {
-
-
-
-        this.__event_bubble_mousewheel = function (event) {
-
-            var scrollbar_y = this.__scrollbar_y;
-
-            if (scrollbar_y)
-            {
-                scrollbar_y.value += event.wheelDelta > 0 ? -20 : 20;
-                event.stopImmediatePropagation();
-            }
-        };
-
-
-        this.__fn_scrollTo = function (x, y) {
-
-        };
-
-
-
-        //是否需重新处理滚动条
-        this.__scroll_dirty = false;
-
-
-
-        //标记水平滚动条
-        this.__fn_sign_scrollbar_x = function (box, rtl) {
-
-            var scrollbar_x = this.__scrollbar_x || (this.__scrollbar_x = this.__scrollbar_x__ || new flyingon.ScrollBar(this));
-
-            scrollbar_x.__rtl = rtl; //不支持单独设置rtl
-
-            this.clientHeight = this.controlHeight - box.control_spaceY - (+scrollbar_x.height || 16);
-            this.__scroll_dirty = true;
-        };
-
-        //标记竖直滚动条
-        this.__fn_sign_scrollbar_y = function (box, rtl) {
-
-            var scrollbar_y = this.__scrollbar_y || (this.__scrollbar_y = this.__scrollbar_y__ || new flyingon.ScrollBar(this, true)),
-                thickness = +scrollbar_y.width || 16;
-
-            if (scrollbar_y.__rtl = rtl) //滚动条在左边
-            {
-                this.clientX = box.clientX + thickness;
-            }
-            else
-            {
-                this.clientX = box.clientX;
-            }
-
-            this.clientWidth = this.controlWidth - box.control_spaceX - thickness;
-            this.__scroll_dirty = true;
-        };
-
-
-        //测量滚动条 需先进行标记
-        this.__fn_measure_scroll = function (box) {
-
-            var scrollbar_x = this.__scrollbar_x,
-                scrollbar_y = this.__scrollbar_y,
-                thickness1 = scrollbar_x && +scrollbar_x.height || 16,
-                thickness2 = scrollbar_y && +scrollbar_y.width || 16,
-                x,
-                y,
-                width,
-                height;
-
-            //有水平滚动条
-            if (scrollbar_x)
-            {
-                scrollbar_x.maxValue = this.contentWidth - this.clientWidth;
-                this.contentX = scrollbar_x.__rtl ? scrollbar_x.maxValue - scrollbar_x.value : scrollbar_x.value;
-
-                x = scrollbar_y && scrollbar_y.__rtl ? box.border_left + thickness2 : box.border_left;
-                y = this.controlHeight - box.border_bottom - thickness1;
-                width = this.controlWidth - box.border_spaceX - (scrollbar_y ? thickness2 : 0);
-
-                this.__fn_scrollbar(scrollbar_x, x, y, width, thickness1, false);
-            }
-
-            //有竖直滚动条
-            if (scrollbar_y)
-            {
-                scrollbar_y.maxValue = this.contentHeight - this.clientHeight;
-                this.contentY = scrollbar_y.value;
-
-                x = scrollbar_y && scrollbar_y.__rtl ? box.border_left : this.controlWidth - box.border_right - thickness2;
-                height = this.controlHeight - box.border_spaceY - (scrollbar_x ? thickness1 : 0);
-
-                this.__fn_scrollbar(scrollbar_y, x, box.border_top, thickness2, height, true);
-            }
-
-            //有双滚动条时生成拐角
-            if (scrollbar_x && scrollbar_y)
-            {
-                var corner = this.__scroll_corner || (this.__scroll_corner = new flyingon.ScrollCorner(this));
-
-                corner.measure(thickness2, thickness1, 1, 1);
-                corner.locate(x, y);
-            }
-
-            this.__scroll_dirty = false;
-        };
-
-
-        //设置滚动条
-        this.__fn_scrollbar = function (scrollbar, x, y, width, height, vertical) {
-
-            scrollbar.measure(width, height, 1, 1);
-            scrollbar.locate(x, y);
-        };
-
-
-
-    }).call(this, flyingon);
-
-
-
-
     //盒模型
     (function (flyingon) {
 
@@ -2429,31 +2278,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.__fn_arrange = function () {
 
             var box = this.__box_style,
-                overflowX = this.overflowX,
-                overflowY = this.overflowY,
                 rtl = this.direction === "rtl",
                 cache = false;
-
-            //处理横向滚动条
-            if (overflowX === "scroll")
-            {
-                this.__fn_sign_scrollbar_x(box, rtl);
-            }
-            else if (this.__scrollbar_x) //如果存在滚动条则重算客户区
-            {
-                this.clientHeight = this.controlHeight - box.control_spaceY;
-            }
-
-            //处理纵向滚动条
-            if (overflowY === "scroll")
-            {
-                this.__fn_sign_scrollbar_y(box, rtl);
-            }
-            else if (this.__scrollbar_y) //如果存在滚动条则重算客户区
-            {
-                this.clientX = box.clientX;
-                this.clientWidth = this.controlWidth - box.control_spaceX;
-            }
 
             //初始化内容区
             this.contentWidth = this.clientWidth;
@@ -2461,48 +2287,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             //排列 overflow === "auto" 时先按没有滚动条的方式排列
             this.arrange();
-
-            //处理水平方向自动滚动
-            if (this.contentWidth > this.clientWidth && overflowX === "auto")
-            {
-                this.__fn_sign_scrollbar_x(box, rtl);
-                cache = true;
-            }
-            else if (this.__scrollbar_x) //如果存在滚动条则隐藏
-            {
-                this.__scrollbar_x.value = 0;
-                this.__scrollbar_x__ = this.__scrollbar_x;
-                this.__scrollbar_x = null;
-
-                this.contentX = 0;
-            }
-
-            //处理竖直方向自动滚动
-            if (this.contentHeight > this.clientHeight && overflowY === "auto")
-            {
-                this.__fn_sign_scrollbar_y(box, rtl);
-                cache = true;
-            }
-            else if (this.__scrollbar_y) //如果存在滚动条则隐藏
-            {
-                this.__scrollbar_y.value = 0;
-                this.__scrollbar_y__ = this.__scrollbar_y;
-                this.__scrollbar_y = null;
-
-                this.contentY = 0;
-            }
-
-            //重新排列
-            if (cache)
-            {
-                this.arrange();
-            }
-
-            //测量滚动条
-            if (this.__scroll_dirty)
-            {
-                this.__fn_measure_scroll(box);
-            }
 
             //执行rtl变换
             if (rtl && this.__children)
@@ -2520,18 +2304,9 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
-        //默认使用线性布局, Panel控件才支持自定义布局
-        var layout_line = flyingon.layouts["line"];
-
-        //默认排列方法
+        //排列
         this.arrange = function () {
 
-            var items = this.__children;
-
-            if (items && items.length > 0)
-            {
-                layout_line.call(this, items);
-            }
         };
 
 
@@ -2660,16 +2435,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             x -= this.controlX;
             y -= this.controlY;
-
-            if (this.__scrollbar_x && this.__scrollbar_x.hitTest(x, y))
-            {
-                return this.__scrollbar_x.fintAt(x, y);
-            }
-
-            if (this.__scrollbar_y && this.__scrollbar_y.hitTest(x, y))
-            {
-                return this.__scrollbar_y.fintAt(x, y);
-            }
 
             var items = this.__visible_items, item;
 
@@ -2895,8 +2660,24 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.defineProperty("containsFocused", function () {
 
             var focused = this.ownerWindow && this.ownerWindow.__focused_control;
-            return focused && (focused === this || this.isParent(focused));
+            return focused && (focused === this || is_parent(this, focused));
         });
+
+
+        //当前控件是否指定控件的父控件
+        function is_parent(parent, control) {
+
+            while (control = control.__parent)
+            {
+                if (control === parent)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
 
 
 
@@ -2955,6 +2736,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
     //杂项
     (function (flyingon) {
+
+
+        var Event = flyingon.Event;
+
 
 
         //模板
@@ -3033,7 +2818,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //执行验证
         this.validate = function () {
 
-            return this.dispatchEvent("validate");
+            return this.dispatchEvent(new Event("validate", this), true);
         };
 
         this.__fn_focus = function (event) {
@@ -3059,7 +2844,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     ownerWindow.__focused_control = this;
 
-                    if (this.dispatchEvent("focus"))
+                    if (this.dispatchEvent(new Event("focus", this), true))
                     {
                         this.stateTo("focus", true);
                     }
@@ -3080,7 +2865,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 ownerWindow.__focused_control = null;
 
-                if (this.dispatchEvent("blur"))
+                if (this.dispatchEvent(new Event("blur", this), true))
                 {
                     this.stateTo("focus", false);
                 }
@@ -3177,33 +2962,35 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //update_now    是否立即更新
         this.invalidate = function (rearrange, update_now) {
 
-            var target = this,
-                parent;
+            var layer = this.__ownerLayer || this.ownerLayer;
 
-            if (rearrange)
+            if (layer)
             {
-                target.__arrange_dirty = true;
-            }
+                var target = this,
+                    parent;
 
-            target.__current_dirty = true;
-
-            while (parent = target.__parent)
-            {
-                if (target.__update_parent)
+                if (rearrange)
                 {
-                    parent.__current_dirty = true;
-                }
-                else
-                {
-                    parent.__children_dirty = true;
+                    target.__arrange_dirty = true;
                 }
 
-                target = parent;
-            }
+                target.__current_dirty = true;
 
-            if (target = this.__ownerLayer || this.ownerLayer)
-            {
-                target.__registry_update(update_now);
+                while (target !== layer && (parent = target.__parent))
+                {
+                    if (target.__update_parent)
+                    {
+                        parent.__current_dirty = true;
+                    }
+                    else
+                    {
+                        parent.__children_dirty = true;
+                    }
+
+                    target = parent;
+                }
+
+                layer.__registry_update(update_now);
             }
         };
 
@@ -3499,20 +3286,10 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //回滚至剪切区域
             context.restore();
 
-            //绘制滚动条
-            if (cache = this.__scrollbar_x)
+            //绘制附加项
+            if (this.paint_additions)
             {
-                cache.render(painter, false);
-            }
-
-            if (this.__scrollbar_y)
-            {
-                this.__scrollbar_y.render(painter, false);
-
-                if (cache && (cache = this.__scroll_corner))
-                {
-                    cache.render(painter, false);
-                }
+                this.paint_additions(painter);
             }
 
             //绘制边框
@@ -3526,8 +3303,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
-        //更新子控件
-        this.__fn_update_children = function (painter, visible_items) {
+        //更新控件
+        this.__fn_update = function (painter, visible_items) {
 
             var items = visible_items || this.__visible_items,
                 length;
@@ -3557,7 +3334,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     }
                     else if (item.__children_dirty) //如果子控件需要更新
                     {
-                        item.__fn_update_children(painter);
+                        item.__fn_update(painter);
                         item.__children_dirty = false;
                     }
                 }
@@ -3727,7 +3504,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 //更新
                 for (var i = items.length - 1; i > 0; i--)
                 {
-                    items[i].__fn_update_children(painter, [items[i - 1]]);
+                    items[i].__fn_update(painter, [items[i - 1]]);
                 }
             }
             else
