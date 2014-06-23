@@ -1,0 +1,119 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--以IE的当前版本渲染,如果安装了ChromeFrame则优先使用-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title></title>
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        div[type] {
+            color: red;
+        }
+    </style>
+</head>
+<body style="margin: 0;">
+
+    <div style="width: 100%; height: 100%;padding:10px;">
+
+        <div id="host" style="width: 600px; height: 400px;float:left">
+        </div>
+        <div style="float:left;margin-left:10px">
+            <canvas id="canvas" width="600" height="400" style="width: 600px; height: 400px;"></canvas>
+        </div>
+
+    </div>
+
+
+    <script type="text/javascript">
+
+        var date = new Date();
+
+    </script>
+
+    <script src="../js/flyingon.js"></script>
+    <script src="../themes/default.js"></script>
+
+    <script type="text/javascript">
+
+
+
+        var w = new flyingon.Window(host);
+
+        var panel = new flyingon.Panel();
+
+        for (var i = 0; i < 200; i++)
+        {
+
+            var ctrl = new flyingon.Button();
+
+            ctrl.left = i % 5 * 120;
+            ctrl.top = i / 5 * 30;
+            ctrl.width = 100;
+            ctrl.height = 21;
+            ctrl.border = "1 solid linear(0, 0, 1, 1, 0, yellow, 1, red)";
+            ctrl.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
+
+            switch (i % 5)
+            {
+                case 0:
+                    ctrl.dock = "left";
+                    break;
+
+                case 1:
+                    ctrl.dock = "top";
+                    break;
+
+                case 2:
+                    ctrl.dock = "right";
+                    break;
+
+                case 3:
+                    ctrl.dock = "bottom";
+                    ctrl.width = "fill";
+                    break;
+
+                case 4:
+                    ctrl.dock = "fill";
+                    break;
+            }
+
+            panel.children.append(ctrl);
+        }
+
+
+        panel.border = "4 solid red";
+        panel.padding = 10;
+
+        panel.layoutType = "flow";
+        panel.layoutLineSpace = 10;
+        panel.layoutItemSpace = 10;
+        panel.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
+
+        w.children.append(panel);
+
+
+        w.update();
+
+
+        w.onclick = function (event) {
+
+            var data = event.target.getImageData();
+
+            canvas.width = canvas.width;
+            canvas.getContext("2d").putImageData(data, 0, 0);
+        };
+
+
+
+
+
+    </script>
+
+</body>
+</html>

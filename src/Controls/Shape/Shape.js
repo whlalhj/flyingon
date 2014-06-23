@@ -87,7 +87,7 @@ flyingon.defineClass("Shape", flyingon.SerializableObject, function (Class, base
                 break;
 
             case "string":
-                if (width.length > 1 && width[width.length - 1] == "%")
+                if (width.length > 1 && width[width.length - 1] === "%")
                 {
                     result.width = Math.round(parseFloat(width) * result.width / 100);
                 }
@@ -101,7 +101,7 @@ flyingon.defineClass("Shape", flyingon.SerializableObject, function (Class, base
                 break;
 
             case "string":
-                if (height.length > 1 && height[height.length - 1] == "%")
+                if (height.length > 1 && height[height.length - 1] === "%")
                 {
                     result.height = Math.round(parseFloat(height) * result.height / 100);
                 }
@@ -122,7 +122,7 @@ flyingon.defineClass("Shape", flyingon.SerializableObject, function (Class, base
             clientRect.height -= padding.spaceY;
         }
 
-        for (var i = 0, length = items.length; i < length; i++)
+        for (var i = 0, _ = items.length; i < _; i++)
         {
             var item = items[i],
                 r = measure.call(item, clientRect);

@@ -15,6 +15,7 @@
 <body style="margin: 0;">
 
     <div style="width: 100%; height: 100%;">
+
         <div id="drag" style="background-color: yellow;">
 
 
@@ -26,25 +27,29 @@
             <span style="width: 10px"></span>
             <input type="button" value="line" onclick="layout('line')" />
             <input type="button" value="flow" onclick="layout('flow')" />
-            <input type="button" value="single" onclick="layout('single')" />
+            <input type="button" value="page" onclick="layout('page')" />
             <input type="button" value="dock" onclick="layout('dock')" />
-            <input type="button" value="queue" onclick="layout('queue')" />
             <input type="button" value="grid" onclick="layout('grid')" />
+            <input type="button" value="table" onclick="layout('table')" />
             <input type="button" value="absolute" onclick="layout('absolute')" />
 
             <span style="width: 10px"></span>
-            <input type="button" value="horizontal" onclick="direction('horizontal')" />
-            <input type="button" value="vertical" onclick="direction('vertical')" />
+            <input type="button" value="horizontalLine" onclick="layoutVertical(false)" />
+            <input type="button" value="verticalLine" onclick="layoutVertical(true)" />
 
             <span style="width: 10px"></span>
-            <input type="button" value="mirror-none" onclick="mirror('none')" />
-            <input type="button" value="mirror-x-axis" onclick="mirror('x-axis')" />
-            <input type="button" value="mirror-y-axis" onclick="mirror('y-axis')" />
-            <input type="button" value="mirror-origin" onclick="mirror('origin')" />
+            <input type="button" value="ltr" onclick="direction('ltr')" />
+            <input type="button" value="rtl" onclick="direction('rtl')" />
+
+        </div>
+
+        <div id="message">
+
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
         </div>
+
     </div>
 
 
@@ -52,27 +57,24 @@
 
         var date = new Date();
 
+
     </script>
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
-        var text = "ssdfere\r\ndsdf\r\nddsdfd";
-        var index = 0;
-        var result = [];
 
-        while ((index = text.indexOf("\n", index)) >= 0)
-        {
-            result.push(index++);
-        }
+  
 
-      
         var w = new flyingon.Window(host);
 
-        w.layout = "flow";
+        w.layoutType = "flow";
+        w.padding = 10;
+        w.layoutLineSpace = 10;
+        w.layoutItemSpace = 10;
 
 
         function create() {
@@ -80,25 +82,28 @@
 
             var date = new Date();
 
-            for (var k = 0; k < 200; k++)
+            for (var k = 0; k < 50; k++)
             {
                 var panel = new flyingon.Panel();
 
-                for (var i = 0; i < 50; i++)
+                for (var i = 0; i < 200; i++)
                 {
 
                     var ctrl = new flyingon.Button();
 
-                    ctrl.left = i % 5 * 100;
+                    ctrl.left = i % 5 * 120;
                     ctrl.top = i / 5 * 30;
 
-                    //ctrl.margin = "10, 10, 10, 10";
-                    ctrl.border = "1, 1, 1, 1";
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    ctrl.align = "middle,center";
+                    ctrl.margin = 2;
+                    ctrl.borderWidth = 1;
+                    ctrl.borderColor = "red";
+                    ctrl.padding = 2;
 
-                    panel.children.add(ctrl);
+                    ctrl.backgroundColor = "linear(0, 0, 1, 0, 0, red, 0.5, green, 1, blue)";
+                    //ctrl.align = "right bottom";
+
+
+                    panel.children.append(ctrl);
 
                     switch (i % 5)
                     {
@@ -122,38 +127,33 @@
                             ctrl.dock = "fill";
                             break;
                     }
-
                 }
 
 
-
-
-                panel.width = "fill";
-                panel.height = "auto";
-                panel.width = 600;
+                panel.width = 500;
                 panel.height = 400;
-                panel.margin = "5, 5, 5, 5";
-                panel.border = "1, 1, 1, 1";
-                panel.padding = "0, 0, 0, 0";
-                panel.borderColor = "orange";
-                //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                panel.layout = "line";
-                panel.spaceX = 5;
-                panel.spaceY = 5;
-                panel.lineHeight = 50;
-                panel.lineWidth = 160;
-                panel.rows = 4;
-                panel.columns = 4;
-                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
+                panel.margin = 10;
+                panel.border = "4 solid red";
+                panel.padding = 10;
 
+                panel.layoutType = "flow";
+                panel.layoutLineSpace = 10;
+                panel.layoutItemSpace = 10;
 
-                w.children.add(panel);
+                //panel.layoutHeight = 100;
+                //panel.layoutWidth = 160;
+                panel.layoutGridRows = 4;
+                panel.layoutGridColumns = 4;
+                panel.layoutTable = "*[* * * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
+
+                w.children.append(panel);
 
             }
 
 
             alert(new Date() - date);
 
+            w.borderWidth;
             w.update();
 
         };
@@ -171,7 +171,7 @@
 
             var date = new Date();
 
-            w.children[0].border = [20, 20, 20, 20];
+            w.children[0].borderWidth = 20;
             w.update();
 
             alert(new Date() - date);
@@ -200,7 +200,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.layout = value;
+                panel.layoutType = value;
             }
 
             w.update();
@@ -209,14 +209,15 @@
         };
 
 
-        function mirror(value) {
+
+        function layoutVertical(value) {
 
             var date = new Date();
 
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.mirror = value;
+                panel.vertical = value;
             }
 
             w.update();
@@ -232,13 +233,39 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.orientation = value;
+                panel.direction = value;
             }
 
             w.update();
 
             alert(new Date() - date);
         };
+
+
+        w.onmousemove = function (event) {
+
+            var p = event.target.control_to_window(0, 0);
+
+            message.innerHTML = "target:" + event.target.uniqueId
+                + " hover:" + (event.target.__states && event.target.__states.hover ? "true" : "false")
+                + " canvasX:" + event.canvasX + " canvasY:" + event.canvasY
+                + " windowX:" + event.windowX + " windowY:" + event.windowY
+                + " controlX:" + event.controlX + " controlY:" + event.controlY;
+        };
+
+        w.onclick = function (event) {
+
+            var p = event.target.canvas_to_control(event.canvasX, event.canvasY);
+
+            p = event.target.canvas_to_window(event.canvasX, event.canvasY);
+            p = event.target.window_to_control(p.x, p.y);
+        };
+
+        //w.onmouseover = function (event) {
+
+        //    document.title = "source :" + event.source.uniqueId + " target:" + event.target.uniqueId;
+        //};
+
 
 
     </script>

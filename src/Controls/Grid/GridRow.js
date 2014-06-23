@@ -1,23 +1,22 @@
 ﻿//子项
-(function (flyingon) {
+flyingon.Item = flyingon.function_extend(
 
-
-    var prototype = (flyingon.Item = function (value) {
+    function (value) {
 
         this.value = value;
+    },
 
-    }).prototype;
-
-
-
-    //项值
-    prototype.value = null;
-
-    //关联控件
-    prototype.control = null;
-
-    //是否选中
-    prototype.selected = false;
+    function () {
 
 
-})(flyingon);
+        //项值
+        this.value = null;
+
+        //关联控件
+        this.control = null;
+
+        //是否选中
+        this.selected = false;
+
+    });
+

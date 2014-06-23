@@ -27,7 +27,7 @@
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
     <script src="../themes/sample.js"></script>
 
@@ -39,9 +39,9 @@
 
             offsetX: 2,
             offsetY: 2,
-            border: 1,
+            borderWidth: 1,
             borderColor: "red",
-            backgroundColor: new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]])
+            backgroundColor: "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)"
         });
 
 
@@ -78,7 +78,7 @@
                 {
                     var ctrl = new flyingon.Button();
                     ctrl.text = i;
-                    panel.children.add(ctrl);
+                    panel.children.append(ctrl);
 
                     ctrl.id = "id" + i;
                     ctrl.className = "class" + (i % 10);
@@ -86,7 +86,7 @@
                     var color = ctrl.backgroundColor;
                 }
 
-                w.children.add(panel);
+                w.children.append(panel);
             }
 
 

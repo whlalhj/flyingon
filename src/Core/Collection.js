@@ -7,9 +7,9 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     //引入数组的方法
     (function (target) {
 
-        this.__indexOf__ = target.indexOf;
-        this.__push__ = target.push;
-        this.__splice__ = target.splice;
+        this.__indexOf = target.indexOf;
+        this.__push = target.push;
+        this.__splice = target.splice;
 
     }).call(this, Array.prototype);
 
@@ -23,15 +23,15 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
     //获取指定项的索引
     this.indexOf = function indexOf(item) {
 
-        if (item && typeof item == "object") //缓存索引以加快检索速度
+        if (item && typeof item === "object") //缓存索引以加快检索速度
         {
-            var cache = this.__index_cache__ || (this.__index_cache__ = {}),
-                id = item.__uniqueId__ || (item.__uniqueId__ = ++flyingon.__uniqueId__);
+            var cache = this.__index_cache || (this.__index_cache = {}),
+                id = item.__uniqueId || (item.__uniqueId = ++flyingon.__uniqueId);
 
-            return cache[id] || (cache[id] = this.__indexOf__(item));
+            return cache[id] || (cache[id] = this.__indexOf(item));
         }
 
-        return this.__indexOf__(item);
+        return this.__indexOf(item);
     };
 
     //循环执行
@@ -39,39 +39,39 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
 
     //添加子项
-    this.add = function (item) {
+    this.append = function (item) {
 
-        var fn = this.__fn_validate__;
+        var fn = this.__fn_validate;
 
         if (!fn || (item = fn.call(this, this.length, item)) !== undefined)
         {
-            this.__push__(item);
+            this.__push(item);
             return true;
         }
     };
 
     //添加多个子项
-    this.addRange = function (items) {
+    this.appendRange = function (item1, item2, __) {
 
-        if (items && items.length > 0)
+        if (arguments.length > 0)
         {
-            var fn = this.__fn_validate__;
+            var fn = this.__fn_validate;
 
             if (fn)
             {
                 var item;
 
-                for (var i = 0, length = items.length; i < length; i++)
+                for (var i = 0, _ = arguments.length; i < _; i++)
                 {
-                    if ((item = fn.call(this, this.length, items[i])) !== undefined)
+                    if ((item = fn.call(this, this.length, arguments[i])) !== undefined)
                     {
-                        this.__push__(item);
+                        this.__push(item);
                     }
                 }
             }
             else
             {
-                this.__push__.apply(this, items);
+                this.__push.apply(this, arguments);
             }
         }
     };
@@ -81,29 +81,29 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
         if (index >= 0)
         {
-            var fn = this.__fn_validate__;
+            var fn = this.__fn_validate;
 
             if (!fn || (item = fn.call(this, index, item)) !== undefined)
             {
-                this.__splice__(index, 0, item);
+                this.__splice(index, 0, item);
                 return true;
             }
         }
     };
 
     //在指定位置插入多个子项
-    this.insertRange = function (index, items) {
+    this.insertRange = function (index, item1, item2, __) {
 
-        if (index >= 0 && items && items.length > 0)
+        if (index >= 0 && arguments.length > 1)
         {
-            var fn = this.__fn_validate__,
+            var fn = this.__fn_validate,
                 item;
 
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = arguments.length; i < _; i++)
             {
-                if (!fn || (item = fn.call(this, index, item)) !== undefined)
+                if (!fn || (item = fn.call(this, index, arguments[i])) !== undefined)
                 {
-                    this.__splice__(index++, 0, item);
+                    this.__splice(index++, 0, item);
                 }
             }
         }
@@ -120,18 +120,18 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
             if (length > index && (cache = this[index]))
             {
-                if ((fn = this.__fn_remove__) && fn.call(this, index, cache) === false)
+                if ((fn = this.__fn_remove) && fn.call(this, index, cache) === false)
                 {
                     return;
                 }
 
-                if (cache = cache.__uniqueId__ && this.__index_cache__)
+                if (cache = cache.__uniqueId && this.__index_cache)
                 {
-                    delete this.__index_cache__[cache];
+                    delete this.__index_cache[cache];
                 }
             }
 
-            if (!(fn = this.__fn_validate__) || (item = fn.call(this, index, item)) !== undefined)
+            if (!(fn = this.__fn_validate) || (item = fn.call(this, index, item)) !== undefined)
             {
                 this[index] = item;
 
@@ -140,7 +140,7 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
                     this.length = index + 1;
                 }
 
-                this.__index_cache__ = null; //清空索引缓存
+                this.__index_cache = null; //清空索引缓存
                 return true;
             }
         }
@@ -152,13 +152,13 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
         var index = this.indexOf(item),
             fn;
 
-        if (index >= 0 && (!(fn = this.__fn_remove__) || fn.call(this, index, item) !== false))
+        if (index >= 0 && (!(fn = this.__fn_remove) || fn.call(this, index, item) !== false))
         {
-            this.__splice__(index, 1);
+            this.__splice(index, 1);
 
-            if (item.__uniqueId__ && this.__index_cache__)
+            if (item.__uniqueId && this.__index_cache)
             {
-                delete this.__index_cache__[item.__uniqueId__];
+                delete this.__index_cache[item.__uniqueId];
             }
 
             return true;
@@ -170,13 +170,13 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
         var fn, item;
 
-        if (this.length > index && (!(fn = this.__fn_remove__) || fn.call(this, index, item = this[index]) !== false))
+        if (this.length > index && (!(fn = this.__fn_remove) || fn.call(this, index, item = this[index]) !== false))
         {
-            this.__splice__(index, 1);
+            this.__splice(index, 1);
 
-            if (item.__uniqueId__ && this.__index_cache__)
+            if (item.__uniqueId && this.__index_cache)
             {
-                delete this.__index_cache__[item.__uniqueId__];
+                delete this.__index_cache[item.__uniqueId];
             }
 
             return true;
@@ -188,12 +188,12 @@ flyingon.defineClass("Collection", function (Class, base, flyingon) {
 
         if (this.length > 0)
         {
-            var fn = this.__fn_clear__;
+            var fn = this.__fn_clear;
 
             if (!fn || fn.call(this) !== false)
             {
-                this.__splice__(0, this.length);
-                this.__index_cache__ = null; //清空索引缓存
+                this.__splice(0, this.length);
+                this.__index_cache = null; //清空索引缓存
 
                 return true;
             }

@@ -133,256 +133,311 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //元素节点
-    var Selector_Element = flyingon.Selector_Element = function (type, token, name, previous) {
+    var element_node = flyingon.__element_node = flyingon.function_extend(
 
-        this.type = type;
-        this.token = token;
+        function (nodes, token, name) {
 
-        switch (name[0])
-        {
-            case "\"":
-            case "'":
-                this.name = name.substring(1, name.length - 1);
-                break;
+            var last;
 
-            default:
-                this.name = name;
-                break;
-        }
-
-        if (previous)
-        {
-            previous.next = this;
-            this.previous = previous;
-
-            if (type == ",")
+            if (nodes.type !== "," || nodes.length === 0) //非组合直接添加到当前节点集合
             {
-                this.previous_type = previous.type;
+                this.type = nodes.type || " ";
+                nodes.push(this);
             }
-        }
-    };
-
-
-    (function () {
-
-        //所属组合类型
-        this.type = null;
-
-        //前一个组合类型 仅对","有效
-        this.previous_type = " ";
-
-        //token标记
-        this.token = null;
-
-        //上一个节点
-        this.previous = null;
-
-        //下一个节点
-        this.next = null;
-
-        //改变构造函数
-        this.constructor = Selector_Element;
-
-        this.toString = this.toLocaleString = function () {
-
-            var result = [];
-
-            result.push(this.type);
-            result.push(this.token);
-
-            if (this.name != "*")
+            else if ((last = nodes[nodes.length - 1]) instanceof element_nodes)
             {
-                result.push(this.name);
+                last.push(this);
+            }
+            else
+            {
+                nodes.pop();
+                (nodes.forks || (nodes.forks = [])).push(nodes.length); //记录分支位置
+                nodes.push(new element_nodes(last, this));
             }
 
-            for (var i = 0, length = this.length; i < length; i++)
+            this.token = token;
+
+            switch (name[0])
             {
-                result.push(this[i].toString());
-            }
-
-            var next = this.next;
-
-            while (next)
-            {
-                result.push(next.toString());
-                next = next.next;
-            }
-
-            return result.join("");
-        };
-
-
-    }).call(Selector_Element.prototype = flyingon.__pseudo_array__());
-
-
-
-
-
-    //属性节点 
-    var Selector_Property = flyingon.Selector_Property = function (name) {
-
-        switch (name[0])
-        {
-            case "\"":
-            case "'":
-                this.name = name.substring(1, name.length - 1);
-                break;
-
-            default:
-                this.name = name;
-                break;
-        }
-    };
-
-    (function () {
-
-        //符号
-        this.token = "[]";
-
-        //操作符
-        this.operator = "";
-
-        //属性值
-        this.value = null;
-
-        //条件检测 通过返回目标对象 否则返回false
-        this.check = function (target) {
-
-            var value = target[this.name];
-
-            switch (this.operator)
-            {
-                case "":
-                    return value !== undefined ? target : false;
-
-                case "=":
-                    return value == this.value ? target : false;
-
-                case "*=": // *= 包含属性值XX (由属性解析)
-                    return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
-
-                case "^=": // ^= 属性值以XX开头 (由属性解析)
-                    return value && ("" + value).indexOf(this.value) == 0 ? target : false;
-
-                case "$=": // $= 属性值以XX结尾 (由属性解析)
-                    return value && (value = "" + value).lastIndexOf(this.value) == value.length - this.value.length ? target : false;
-
-                case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                    return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
-
-                case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value) ? target : false;
+                case "\"":
+                case "'":
+                    this.name = name.substring(1, name.length - 1);
+                    break;
 
                 default:
-                    return false;
+                    this.name = name;
+                    break;
             }
 
-            return target;
-        };
+            nodes.type = null;
+        },
 
-        this.toString = this.toLocaleString = function () {
+        function () {
 
-            return "[" + this.name + "]";
-        };
+            //所属组合类型
+            this.type = null;
 
-    }).call(Selector_Property.prototype);
+            //token标记
+            this.token = null;
+
+            //节点名称
+            this.name = null;
+
+            //伪元素名称(仅伪元素有效)
+            this.pseudo = null;
+
+            //节点参数(仅伪元素有效)
+            this.parameters = null;
+
+            //子项数
+            this.length = 0;
+
+
+            this.push = function (item) {
+
+                this[this.length++] = item;
+            };
+
+            this.toString = this.toLocaleString = function () {
+
+                var result = [];
+
+                if (this.type)
+                {
+                    result.push(this.type);
+                }
+
+                result.push(this.token);
+                result.push(this.name);
+
+                //参数
+                if (this.parameters)
+                {
+                    result.push("(" + this.parameters.join(",") + ")");
+                }
+
+                //属性
+                result.push(Array.prototype.join(""));
+
+                return result.join("");
+            };
+
+
+        });
 
 
 
-    //属性集
-    var Selector_Properties = flyingon.Selector_Properties = function (item) {
+    //元素节点集合 不同类型的节点组合成一个集合
+    var element_nodes = flyingon.__element_nodes = flyingon.function_extend(
 
-        this.push(item);
+        function (first, second) {
+
+            second.type = first.type;
+
+            this[0] = first;
+            this[1] = second;
+        },
+
+        function () {
+
+            //元素类型
+            this.type = ",";
+
+            //子项数
+            this.length = 2;
+
+
+            this.push = function (item) {
+
+                item.type = this[0].type;
+                this[this.length++] = item;
+            };
+
+            this.toString = this.toLocaleString = function () {
+
+                return Array.prototype.join(",");
+            };
+
+        });
+
+
+
+
+    //元素属性 
+    var element_property = flyingon.__element_property = flyingon.function_extend(
+
+        function (name) {
+
+            switch (name[0])
+            {
+                case "\"":
+                case "'":
+                    this.name = name.substring(1, name.length - 1);
+                    break;
+
+                default:
+                    this.name = name;
+                    break;
+            }
+        },
+
+        function () {
+
+            //标识
+            this.token = "[]";
+
+            //名称
+            this.name = null;
+
+            //操作符
+            this.operator = "";
+
+            //属性值
+            this.value = null;
+
+
+            //条件检测 通过返回目标对象 否则返回false
+            this.check = function (target) {
+
+                var value = target[this.name];
+
+                switch (this.operator)
+                {
+                    case "":
+                        return value !== undefined ? target : false;
+
+                    case "=":
+                        return value == this.value ? target : false;
+
+                    case "*=": // *= 包含属性值XX (由属性解析)
+                        return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
+
+                    case "^=": // ^= 属性值以XX开头 (由属性解析)
+                        return value && ("" + value).indexOf(this.value) === 0 ? target : false;
+
+                    case "$=": // $= 属性值以XX结尾 (由属性解析)
+                        return value && (value = "" + value).lastIndexOf(this.value) === value.length - this.value.length ? target : false;
+
+                    case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
+                        return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
+
+                    case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                        return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value) ? target : false;
+
+                    default:
+                        return false;
+                }
+
+                return target;
+            };
+
+
+            this.toString = this.toLocaleString = function () {
+
+                return "[" + this.name + "]";
+            };
+
+        });
+
+
+
+    //元素属性集合
+    var element_properties = flyingon.__element_properties = flyingon.function_extend(
+
+        function (first) {
+
+            this[0] = first;
+        },
+
+        function () {
+
+            //标识
+            this.token = "[][]";
+
+            //子项数
+            this.length = 1;
+
+
+            this.push = function (item) {
+
+                this[this.length++] = item;
+            };
+
+            //条件检测 通过返回目标对象 否则返回false
+            this.check = function (target) {
+
+                for (var i = 0, _ = this.length; i < _; i++)
+                {
+                    if (this[i].check(target) === false)
+                    {
+                        return false;
+                    }
+                }
+
+                return target;
+            };
+
+            this.toString = this.toLocaleString = function () {
+
+                return "[" + Array.prototype.join(",") + "]";
+            };
+
+        });
+
+
+
+
+    function state_check(target) {
+
+        return target.__states && target.__states[this.name] ? target : false;
     };
 
-    (function () {
+    var pseudo_check = {
 
-        this.token = "[][]";
+        active: state_check,
+        hover: state_check,
+        focus: state_check,
+        disabled: state_check,
+        checked: state_check,
+        selection: state_check,
 
-        //条件检测 通过返回目标对象 否则返回false
-        this.check = function (target) {
+        enabled: function (target) {
 
-            for (var i = 0, length = this.length; i < length; i++)
-            {
-                if (this[i].check(target) === false)
-                {
-                    return false;
-                }
-            }
+            return !target.__states || !target.__states.disabled ? target : false
+        },
 
-            return target;
-        };
+        empty: function (target) {
 
-        this.toString = this.toLocaleString = function () {
-
-            var result = [];
-
-            for (var i = 0, length = this.length; i < length; i++)
-            {
-                result.push(this[i].name);
-            }
-
-            return "[" + result.join(",") + "]";
-        };
-
-    }).call(Selector_Properties.prototype = flyingon.__pseudo_array__());
-
-
-
-
-    //伪类(不包含伪元素)
-    var Selector_Pseudo_Class = flyingon.Selector_Pseudo_Class = function (name) {
-
-        switch (name[0])
-        {
-            case "\"":
-            case "'":
-                this.name = name.substring(1, name.length - 1);
-                break;
-
-            default:
-                this.name = name;
-                break;
+            return !target.__children || target.__children.length === 0 ? target : false;
         }
     };
 
-    (function () {
+    //元素伪类(不含伪元素)
+    var element_pseudo = flyingon.__element_pseudo = flyingon.function_extend(
 
-        this.token = ":";
+        function (name) {
 
-        //条件检测 通过返回目标对象 否则返回false
-        //注: 返回的目标对象可能与传入的对象不同(伪类元素会改变目标对象)
-        this.check = function (target, element_fn) {
+            this.check = pseudo_check[this.name = name];
+        },
 
-            switch (this.name)
-            {
-                case "active":
-                case "hover":
-                case "focus":
-                case "disabled":
-                case "checked":
-                case "selection":
-                    return target.states && target.states[this.name] ? target : false;
+        function () {
 
-                case "enabled":
-                    return !target.states || !target.states.disabled ? target : false;
+            //标识
+            this.token = ":";
 
-                case "empty":
-                    return !target.__children__ || target.__children__.length == 0 ? target : false;
+            //当前名称
+            this.name = null;
 
-                default: //伪元素 element_fn:伪元素查询方法
-                    return element_fn ? element_fn[this.name].call(this, target) : false;
-            }
+            //条件检测 通过返回目标对象 否则返回false
+            this.check = null;
 
-            return target;
-        };
 
-        this.toString = this.toLocaleString = function () {
+            this.toString = this.toLocaleString = function () {
 
-            return ":" + this.name;
-        };
+                return ":" + this.name;
+            };
 
-    }).call(Selector_Pseudo_Class.prototype = flyingon.__pseudo_array__());
+        });
 
 
 
@@ -395,15 +450,13 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //[name?=value]属性选择器
     function parse_property(values, length, index) {
 
-
-        var nodes,
-            item,
+        var properties,
+            property,
             token,
 
             count = 0,  //占用数组数量
             loop = true,
             end = false;
-
 
         while (loop && index < length)
         {
@@ -416,9 +469,9 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     break;
 
                 case ",":
-                    if (nodes == null)
+                    if (properties == null)
                     {
-                        nodes = new Selector_Properties(item);
+                        properties = new element_properties(property);
                     }
 
                     end = false;
@@ -429,11 +482,11 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                 case "$": // $= 属性值以XX结尾 (由属性解析)
                 case "~": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
                 case "|": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                    item.operator += token;
+                    property.operator += token;
                     break;
 
                 case "=":
-                    item.operator += "=";
+                    property.operator += "=";
                     end = true;
                     break;
 
@@ -441,7 +494,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     break;
 
                 default:
-                    if (item && end)
+                    if (property && end)
                     {
                         switch (token[0])
                         {
@@ -451,129 +504,114 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                                 break;
                         }
 
-                        item.value = token;
+                        property.value = token;
                     }
                     else
                     {
-                        item = new Selector_Property(token);
+                        property = new element_property(token);
 
-                        if (nodes)
+                        if (properties)
                         {
-                            nodes.push(item);
+                            properties.push(property);
                         }
                     }
                     break;
             }
         }
 
-
         return {
 
-            result: nodes || item,
+            result: properties || property,
             count: count
         };
     };
 
 
 
-    //(p1[,p2...])
-    function parse_parameters(values, length, index) {
-
-        var result = 0,  //占用数组数量
-
-            token,
-            loop = true;
-
-        while (loop && index < length)
-        {
-            result++;
-
-            switch (token = values[index++])
-            {
-                case ")":
-                    loop = false;
-                    break;
-
-                case " ":
-                case ",":
-                    break;
-
-                default:
-                    this.push(token);
-                    break;
-            }
-        }
-
-        return result;
-    };
-
-
-
-    //解析选择器 按从左至右的顺序解析
+    //预解析 按从左至右的顺序解析
     flyingon.parse_selector = function (selector) {
 
+        var nodes = [], //节点数组
+            node,       //当前节点
 
-        var result,
-            node,   //当前节点
-
-            type = " ", //组合类型
+            tokens = selector.match(split_regex), //标记集合
             token,      //当前标记
 
-            values = selector.match(split_regex),
             i = 0,
-            length = values.length;
+            length = tokens.length,
 
+            cache;
+
+        //设置默认类型
+        nodes.type = " ";
 
         while (i < length)
         {
             //switch代码在chrome下的效率没有IE9好,不知道什么原因,有可能是其操作非合法变量名的时候性能太差
-            switch (token = values[i++])
+            switch (token = tokens[i++])
             {
                 case "#":  //id选择器标记
                 case ".":  //class选择器标记
-                    node = new Selector_Element(type, token, values[i++], node);
+                    node = new element_node(nodes, token, tokens[i++]);
                     break;
 
                 case "*":  //全部元素选择器标记
-                    node = new Selector_Element(type, "*", "*", node);
+                    node = new element_node(nodes, "*", "");
                     break;
 
-                case " ":  //后代选择器标记
-                    if (i == 1 || values[i - 2] != type) //前一个节点是类型则忽略
-                    {
-                        type = token;
-                    }
-                    continue;
+                case " ":  //后代选择器标记 不处理 注: "> "应解析为">"
+                    break;
 
                 case ">":  //子元素选择器标记
                 case "+":  //毗邻元素选择器标记
                 case "~":  //之后同级元素选择器标记
                 case ",":  //组合选择器标记
-                    type = token;
+                    nodes.type = token;
                     continue;
 
                 case "[": //属性 [name[?=value]] | [name[?=value]][, [name[?=value]]...] 必须属性某一节点
-                    var item = parse_property(values, length, i);
-                    i += item.count;
+                    cache = parse_property(tokens, length, i);
+                    i += cache.count;
 
-                    if (item = item.result)
+                    if (cache = cache.result)
                     {
-                        (node || (node = new Selector_Element(type, "*", "*"))).push(item);  //未指定节点则默认添加*节点
+                        (node || (new element_node(type, "*", ""))).push(cache);  //未指定节点则默认添加*节点
                     }
                     break;
 
                 case ":": //伪类 :name | :name(p1[,p2...])  必须属于某一节点 
-                    if (token = values[i++])
+                    if (token = tokens[i++])
                     {
-                        var item = new Selector_Pseudo_Class(token);
-
-                        //处理参数
-                        if (i < length && values[i] == "(")
+                        if (token in pseudo_check) //伪类解析为节点项
                         {
-                            i += parse_parameters.call(item, values, length, ++i);
+                            (node || new element_node(nodes, "*", "")).push(new element_pseudo(token));  //未指定节点则默认添加*节点
                         }
+                        else //伪属性解析为*节点 类型为伪类类型 参数放至parameters数组中
+                        {
+                            node = new element_node(nodes, ":", token);
 
-                        (node || (node = new Selector_Element(type, "*", "*"))).push(item); //未指定节点则默认添加*节点
+                            //处理参数
+                            if (i < length && tokens[i] === "(")
+                            {
+                                node.parameters = [];
+
+                                while ((token = tokens[++i]) !== ")")
+                                {
+                                    switch (token)
+                                    {
+                                        case " ":
+                                        case ",":
+                                            break;
+
+                                        default:
+                                            node.parameters.push(token);
+                                            break;
+                                    }
+                                }
+
+                                i++;
+                            }
+                        }
                     }
                     break;
 
@@ -588,21 +626,12 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
                     continue;
 
                 default: //类名 token = ""
-                    node = new Selector_Element(type, "", token, node);
+                    node = new element_node(nodes, "", token);
                     break;
-            }
-
-
-            type = " "; //容错处理(css不支持容错) 未指定组合类型则默认使用" "
-
-            if (!result && node)
-            {
-                result = node;
             }
         }
 
-
-        return result || new Selector_Element(type, "*", "*");
+        return nodes;
     };
 
 

@@ -3,38 +3,56 @@
 延时执行器
 
 */
-flyingon.DelayExecutor = function (interval, handler, thisArg) {
+flyingon.DelayExecutor = function (interval, fn, thisArg) {
 
 
-    var timer = 0, data;
+    var timer,
+        data;
 
 
     //时间间隔
     this.interval = interval;
 
-
-
-    this.registry = function (args) {
+    //注册延时执行
+    this.registry = function () {
 
         if (timer)
         {
             clearTimeout(timer);
         }
 
-        data = args;
+        data = arguments;
         timer = setTimeout(this.execute, this.interval);
+
+        return thisArg;
     };
 
+
+    //立即执行
     this.execute = function () {
 
         if (timer)
         {
             clearTimeout(timer);
-            handler.apply(thisArg, data);
-
             timer = 0;
+
+            fn.apply(thisArg, data);
             data = null;
         };
+
+        return thisArg;
+    };
+
+
+    //取消执行
+    this.cancel = function () {
+
+        if (timer)
+        {
+            clearTimeout(timer);
+            timer = 0;
+            data = null;
+        }
 
         return thisArg;
     };

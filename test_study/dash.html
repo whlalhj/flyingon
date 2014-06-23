@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+  <html>
+  <head>
+    <title>Dash line example</title>
+  </head>
+  <body>
+    <canvas id="MyCanvas" width="500" height="400">
+      This browser or document mode doesn't support canvas
+    </canvas> 
+    
+    <script>
+     var dashList = [12, 3];  // Create a dot/dash sequence
+     var antOffset = 0;  // Starting offset value
+
+     function draw() {
+       var canvas = document.getElementById("MyCanvas");
+    
+         var ctx = canvas.getContext("2d");
+ 
+         if (ctx.setLineDash)
+         {
+             ctx.setLineDash(dashList);
+         }
+
+ctx.lineWidth =10;
+ctx.lineJoin="bevel";
+ctx.moveTo(0,0);
+ctx.lineTo(100,100);
+ctx.lineTo(100,200);
+ctx.lineTo(200,200);
+ctx.arcTo(150,20,150,70,50);
+ctx.stroke();
+};
+
+
+draw();
+
+  </script>
+</body>
+</html>

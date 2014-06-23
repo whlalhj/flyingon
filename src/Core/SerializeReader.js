@@ -3,7 +3,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
 
 
-    var class_list = flyingon.__registry_class_list__;
+    var class_list = flyingon.__registry_class_list;
 
 
 
@@ -12,14 +12,14 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (data)
         {
-            if (data.constructor == String)
+            if (data.constructor === String)
             {
-                data = data[0] == "<" ? flyingon.parseXml : this.parse(data);
+                data = data[0] === "<" ? flyingon.parseXml : this.parse(data);
             }
 
-            var result = this[data.constructor == Array ? "array" : "object"](null, null, data);
+            var result = this[data.constructor === Array ? "array" : "object"](null, null, data);
 
-            this.__fn_complete__(this, context || result);
+            this.__fn_complete(this, context || result);
             return result;
         }
 
@@ -28,17 +28,17 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
 
     //序列化完毕后执行方法(内部方法)
-    this.__fn_complete__ = function (reader, context) {
+    this.__fn_complete = function (reader, context) {
 
         //缓存的资源
         var references = reader.references,
-            items = reader.__bindings__,
+            items = reader.__bindings,
             binding,
             source;
 
         if (items)
         {
-            for (var i = 0, length = items.length; i < length; i++)
+            for (var i = 0, _ = items.length; i < _; i++)
             {
                 var item = items[i],
                     bindings = item[1];
@@ -47,7 +47,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                 {
                     if (binding = bindings[name])
                     {
-                        if (binding.constructor == String)
+                        if (binding.constructor === String)
                         {
                             binding = new flyingon.DataBinding(context, binding);
                         }
@@ -55,7 +55,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                         {
                             if (source = binding.source)
                             {
-                                if (source.constructor == String)
+                                if (source.constructor === String)
                                 {
                                     binding.source = (references && references[source]) || context;
                                 }
@@ -71,7 +71,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                             }
                         }
 
-                        binding.__fn_initialize__(item[0], name);
+                        binding.__fn_initialize(item[0], name);
                         binding.pull();
                     }
                 }
@@ -91,7 +91,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         switch (typeof value)
         {
             case "object":
-                return this[value.constructor == Array ? "array" : "object"](null, null, value);
+                return this[value.constructor === Array ? "array" : "object"](null, null, value);
 
             case "function":
                 return value ? new Function("" + value) : null;
@@ -124,7 +124,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (value !== undefined)
         {
-            return target[name] = value == null ? null : "" + value;
+            return target[name] = value ? "" + value : "";
         }
     };
 
@@ -178,7 +178,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         var keys = Object.keys(value),
             key;
 
-        for (var i = 0, length = keys.length; i < length; i++)
+        for (var i = 0, _ = keys.length; i < _; i++)
         {
             key = keys[i];
 
@@ -210,7 +210,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                 result = [];
             }
 
-            for (var i = 0, length = value.length; i < length; i++)
+            for (var i = 0, _ = value.length; i < _; i++)
             {
                 result.push(parse_value.call(this, value[i]));
             }
@@ -239,9 +239,9 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
         {
             var fn = value.constructor;
 
-            if (fn != String)
+            if (fn !== String)
             {
-                value = this[fn == Array ? "array" : "object"](target, name, value);
+                value = this[fn === Array ? "array" : "object"](target, name, value);
             }
             else
             {
@@ -256,7 +256,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (target && (data = data.bindings))
         {
-            this.__bindings__ || (this.__bindings__ = []).push([target, data]);
+            this.__bindings || (this.__bindings = []).push([target, data]);
         }
     };
 

@@ -45,8 +45,8 @@ var flyingon_setting = flyingon_setting || {
     var support = flyingon.support = {};
 
 
-    //是否ie ie不对"\v"作转义处理
-    support.ie = !+"\v1";
+    //是否IE IE不对"\v"作转义处理
+    support.IE = !+"\v1";
 
 
     //是否支持canvas
@@ -120,88 +120,86 @@ var flyingon_setting = flyingon_setting || {
 (function (flyingon) {
 
 
-    var prototype = String.prototype;
-
 
     //增加字符串顺序格式化支持
-    prototype.format = function () {
+    flyingon.string_format = function (string_value, values) {
 
-        return arguments.length == 0 ? this : this.replace(/\{\d+\}/g, function (key) {
+        return string_value ? string_value.replace(/\{(\d+)\}/g, function (_, key) {
 
-            return arguments[key.substring(1, key.length - 1)] || "";
-        });
+            return values[key] || "";
+
+        }) : string_value;
     };
 
 
-    //增加字符串名字格式化支持
-    prototype.format_name = function (value) {
+    //增加字符串关键字格式化支持
+    flyingon.string_format_key = function (string_value, values) {
 
-        return !value ? this : this.replace(/\{\w+\}/g, function (key) {
+        return string_value ? string_value.replace(/\{(\w+)\}/g, function (_, key) {
 
-            return value[key.substring(1, key.length - 1)] || "";
-        });
+            return values[key] || "";
+
+        }) : string_value;
     };
 
     //增加字符串顺序格式化支持
-    prototype.trim = function () {
+    flyingon.string_trim = function (string_value) {
 
-        return arguments.length == 0 ? this : this.replace(/^\s+|\s+$/g, "");
+        return string_value ? string_value.replace(/^\s+|\s+$/g, "") : string_value;
     };
 
 
 
-
-    prototype = Array.prototype;
 
     //移除指定项
-    prototype.remove = function (item) {
+    flyingon.array_remove = function (array, item) {
 
-        var index = this.indexOf(item);
-        if (index >= 0)
+        if (array)
         {
-            this.splice(index, 1);
+            var index = array.indexOf(item);
+            if (index >= 0)
+            {
+                array.splice(index, 1);
+            }
         }
     };
 
-    //移除指定索引
-    prototype.removeAt = function (index) {
-
-        this.splice(index, 1);
-    };
-
     //清空
-    prototype.clear = function () {
+    flyingon.array_clear = function (array) {
 
-        if (this.length > 0)
+        if (array && array.length > 0)
         {
-            this.splice(0, this.length);
+            array.splice(0, array.length);
         }
     };
 
     //二分法搜索
-    prototype.binary_search = function (value, start, end) {
+    flyingon.binary_search = function (array, value, start, end) {
 
-        var flag = typeof value != "function";
-
-        start = start || 0;
-        end = end || this.length - 1;
-
-        while (start <= end)
+        if (array)
         {
-            var index = (start + end) >> 1,
-                result = flag ? this[index] - value : value.call(this, index);
+            var flag = typeof value !== "function";
 
-            if (result < 0)
+            start = start || 0;
+            end = end || array.length - 1;
+
+            while (start <= end)
             {
-                start = index + 1;
-            }
-            else if (result > 0)
-            {
-                end = index - 1;
-            }
-            else
-            {
-                return index;
+                var index = (start + end) >> 1,
+                    result = flag ? array[index] - value : value.call(array, index);
+
+                if (result < 0)
+                {
+                    start = index + 1;
+                }
+                else if (result > 0)
+                {
+                    end = index - 1;
+                }
+                else
+                {
+                    return index;
+                }
             }
         }
 
@@ -209,39 +207,42 @@ var flyingon_setting = flyingon_setting || {
     };
 
     //二分法搜索区间
-    prototype.binary_between = function (value, start, end) {
+    flyingon.binary_between = function (array, value, start, end) {
 
-        var flag = typeof value != "function";
-
-        start = start || 0;
-        end = end || this.length - 1;
-
-        while (start <= end)
+        if (array)
         {
-            var index = (start + end) >> 1,
-                result = flag ? this[index] - value : value.call(this, index);
+            var flag = typeof value !== "function";
 
-            if (result > 0)
+            start = start || 0;
+            end = end || array.length - 1;
+
+            while (start <= end)
             {
-                end = index - 1;
-            }
-            else if (result < 0)
-            {
-                if (index >= end)
+                var index = (start + end) >> 1,
+                    result = flag ? array[index] - value : value.call(array, index);
+
+                if (result > 0)
                 {
-                    return end;
+                    end = index - 1;
                 }
+                else if (result < 0)
+                {
+                    if (index >= end)
+                    {
+                        return end;
+                    }
 
-                if ((flag ? this[index + 1] - value : value.call(this, index + 1)) > 0)
+                    if ((flag ? array[index + 1] - value : value.call(array, index + 1)) > 0)
+                    {
+                        return index;
+                    }
+
+                    start = index + 1;
+                }
+                else
                 {
                     return index;
                 }
-
-                start = index + 1;
-            }
-            else
-            {
-                return index;
             }
         }
 
@@ -249,121 +250,27 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
-    //生成伪数组对象
-    //此方法主要作为某些仿数组对象的原型
-    //注: 直接使用[]作为原型在ie6时会出错(无法更改length值), 用此方法原型链也会短一些, 但创建时性能会差一些
-    flyingon.__pseudo_array__ = function () {
 
-        var result = { length: 0 },
-            prototype = Array.prototype;
 
-        ["indexOf", "lastIndexOf", "push", "pop", "shift", "unshift", "splice", "join", "slice", "forEach", "sort", "concat", "toString", "toLocaleString", "remove", "removeAt", "clear", "binary_between", "binary_search"].forEach(function (name) {
+    //给指定对象扩展指定名称的数组方法
+    flyingon.array_extend = function (target, names) {
 
-            this[name] = prototype[name];
+        var length, name;
 
-        }, result);
+        if (target && names && (length = names.length) > 0)
+        {
+            var prototype = Array.prototype;
 
-        return result;
+            for (var i = 0; i < length; i++)
+            {
+                target[name = names[i]] = prototype[name];
+            }
+        }
     };
 
 
 
     var for_data = {};
-
-    //循环执行指定函数
-    for_data.for_execute = function (fn) {
-
-        var result;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((result = fn(this[i], i)) !== undefined)
-            {
-                return result;
-            }
-        }
-    };
-
-    //以apply的方式循环调用指定名称的方法
-    for_data.for_apply = function (name, parameters) {
-
-        var result,
-            item,
-            fn;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (fn = item[name]))
-            {
-                if ((result = fn.apply(item, parameters)) !== undefined)
-                {
-                    return result;
-                }
-            }
-        }
-    };
-
-    //循环检查指定方法是否具有指定的返回值
-    for_data.for_has = function (name, value, parameters) {
-
-        var item,
-            fn;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    //循环检查指定属性是否具有指定值
-    for_data.for_exist = function (name, value) {
-
-        var item;
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if ((item = this[i]) && (item[name] === value))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    //循环获取指定属性值或给指定属性赋值
-    for_data.for_value = function (name, value) {
-
-        var item;
-
-        if (value === undefined)
-        {
-            for (var i = 0, length = this.length; i < length; i++)
-            {
-                if ((item = this[i]) && (item = item[name]) !== undefined)
-                {
-                    return item;
-                }
-            }
-
-            return undefined;
-        }
-
-        for (var i = 0, length = this.length; i < length; i++)
-        {
-            if (item = this[i])
-            {
-                item[name] = value;
-            }
-        }
-    };
-
-
 
     //给指定对象扩展for相关方法
     flyingon.for_extend = function (target) {
@@ -375,41 +282,141 @@ var flyingon_setting = flyingon_setting || {
                 target[name] = for_data[name];
             }
         }
+    };
 
+    (function () {
+
+        //循环执行指定函数
+        this.for_execute = function (fn) {
+
+            var result;
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if ((result = fn(this[i], i)) !== undefined)
+                {
+                    return result;
+                }
+            }
+        };
+
+        //以apply的方式循环调用指定名称的方法
+        this.for_apply = function (name, parameters) {
+
+            var result,
+                item,
+                fn;
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if ((item = this[i]) && (fn = item[name]))
+                {
+                    if ((result = fn.apply(item, parameters)) !== undefined)
+                    {
+                        return result;
+                    }
+                }
+            }
+        };
+
+        //循环检查指定方法是否具有指定的返回值
+        this.for_has = function (name, value, parameters) {
+
+            var item,
+                fn;
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if ((item = this[i]) && (fn = item[name]) && fn.apply(item, parameters) === value)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        //循环检查指定属性是否具有指定值
+        this.for_exist = function (name, value) {
+
+            var item;
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if ((item = this[i]) && (item[name] === value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        //循环获取指定属性值或给指定属性赋值
+        this.for_value = function (name, value) {
+
+            var item;
+
+            if (value === undefined)
+            {
+                for (var i = 0, _ = this.length; i < _; i++)
+                {
+                    if ((item = this[i]) && (item = item[name]) !== undefined)
+                    {
+                        return item;
+                    }
+                }
+
+                return undefined;
+            }
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if (item = this[i])
+                {
+                    item[name] = value;
+                }
+            }
+        };
+
+    }).call(for_data);
+
+
+
+
+    flyingon.toDataUrl = function (image) {
+
+        if (image)
+        {
+            var canvas = document.createElement("canvas");
+
+            canvas.width = image.width;
+            canvas.height = image.height;
+            canvas.getContext("2d").drawImage(image, 0, 0);
+
+            return canvas.toDataURL("image/png");
+        }
     };
 
 
 
-
-    Image.prototype.toDataUrl = function () {
-
-        var canvas = document.createElement("canvas");
-
-        canvas.width = this.width;
-        canvas.height = this.height;
-        canvas.getContext("2d").drawImage(this, 0, 0);
-
-        return canvas.toDataURL("image/png");
-    };
-
-
-
-
-    prototype = Function.prototype;
 
     //获取函数内容
-    prototype.get_body = function () {
+    flyingon.function_body = function (fn) {
 
-        var result = this.toString();
-        return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"))
+        if (fn)
+        {
+            var result = fn.toString();
+            return result.substring(result.indexOf("{") + 1, result.lastIndexOf("}"));
+        }
     };
 
     //获取函数参数
-    prototype.get_parameters = function () {
+    flyingon.function_parameters = function (fn) {
 
-        if (this.length > 0)
+        if (fn && fn.length > 0)
         {
-            var result = this.toString();
+            var result = fn.toString();
 
             result = result.match(/\([^)]*\)/)[0];
             result = result.substring(1, result.length - 1).replace(/\s+/, "");;
@@ -420,30 +427,70 @@ var flyingon_setting = flyingon_setting || {
         return [];
     };
 
+    //复制函数生成新函数
+    flyingon.function_copy = function (fn) {
+
+        return fn && new Function(flyingon.function_parameters(fn), flyingon.function_body(fn));
+    };
+
     //合并函数内容生成新函数
-    prototype.merge = function (body, insertBefore, parameters) {
+    flyingon.function_merge = function (fn, body, insertBefore, parameters) {
 
-        if (body)
+        if (fn && body)
         {
-            body = typeof body == "function" ? body.get_body() : "" + body;
-            body = insertBefore ? body + this.get_body() : this.get_body() + body;
+            var get = flyingon.function_body;
 
-            return new Function(parameters || this.get_parameters(), body);
+            body = typeof body === "function" ? get(body) : "" + body;
+            body = insertBefore ? body + get(fn) : get(fn) + body;
+
+            return new Function(parameters || flyingon.function_parameters(fn), body);
         }
-
-        return this;
     };
 
     //替换函数内容生成新函数
-    prototype.replace = function (key, value, parameters) {
+    flyingon.function_replace = function (fn, key, value, parameters) {
 
-        if (key)
+        if (fn && key)
         {
-            var body = this.get_body().replace(key, value);
-            return new Function(parameters || this.get_parameters(), body);
-        }
+            parameters = parameters || flyingon.function_parameters(fn);
+            value = flyingon.function_body(fn).replace(key, value);
 
-        return this;
+            return new Function(parameters, value);
+        }
+    };
+
+
+    //扩展原型
+    flyingon.function_extend = function (fn, extend, prototype) {
+
+        if (fn)
+        {
+            if (prototype)
+            {
+                fn.prototype = prototype;
+            }
+            else
+            {
+                prototype = fn.prototype;
+            }
+
+            if (extend)
+            {
+                if (extend instanceof Function)
+                {
+                    extend.call(prototype, flyingon);
+                }
+                else
+                {
+                    for (var name in extend)
+                    {
+                        prototype[name] = extend[name];
+                    }
+                }
+            }
+
+            return fn;
+        }
     };
 
 
@@ -458,27 +505,27 @@ var flyingon_setting = flyingon_setting || {
 
 
 
-    //转换字符串为整数 支持"%"
-    flyingon.parseInt = function (value, total) {
+    //代码性能测试
+    flyingon.performance = function (code, times) {
 
-        if ((value = "" + value) && value[value.length - 1] == "%")
+        if (typeof code === "function")
         {
-            return Math.floor(parseFloat(value) * total / 100);
+            code = flyingon.function_body(code);
         }
 
-        return parseInt(value);
+        code = "var time, times = " + times + ", date = new Date();\n"
+            + "for (i = 0; i < times; i++){}\n"
+            + "time = new Date() - date;\n"
+            + "date = new Date();\n"
+            + "for (i = 0; i < times; i++)\n"
+            + "{\n"
+            + code
+            + "}\n"
+            + "return (new Date() - date) - time;"
+
+        return new Function(code)();
     };
 
-    //转换字符串为浮点数 支持"%"
-    flyingon.parseFloat = function (value, total) {
-
-        if ((value = "" + value) && value[value.length - 1] == "%")
-        {
-            return parseFloat(value) * total / 100;
-        }
-
-        return parseFloat(value);
-    };
 
 
 
@@ -528,6 +575,34 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+    //导入javascript脚本
+    flyingon.import = function (url, callback) {
+
+        var dom = document.createElement('script'),
+            head = document.getElementsByTagName("head")[0];
+
+        dom.type = 'text/javascript';
+        dom.src = url;
+        dom.onload = dom.onreadystatechange = function () {
+
+            if (!dom.readyState || dom.readyState == 'loaded' || dom.readyState == 'complete')
+            {
+                dom.onload = dom.onreadystatechange = null;
+
+                if (callback)
+                {
+                    callback(dom);
+                }
+
+                head.removeChild(dom);
+            }
+        };
+
+        head.appendChild(dom);
+    };
+
+
+
     //定义变量
     flyingon.defineVariable = function (target, name, value) {
 
@@ -542,7 +617,7 @@ var flyingon_setting = flyingon_setting || {
     };
 
     //定义属性
-    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name__)时性能很差
+    //注: 使用些方式定义属性时,以chrome中如果访问带特殊字符的变量(如:this.__name)时性能很差
     flyingon.defineProperty = flyingon.support.defineProperty ? function (target, name, getter, setter) {
 
         var attributes = {
@@ -577,8 +652,18 @@ var flyingon_setting = flyingon_setting || {
     };
 
 
+    //定义多个属性
+    flyingon.defineProperties = function (target, names, getter, setter) {
+
+        for (var i = 0, _ = names.length; i < _; i++)
+        {
+            flyingon.defineProperty(target, names[i], getter, setter);
+        }
+    };
+
 
 })(flyingon);
+
 
 
 
@@ -587,11 +672,14 @@ var flyingon_setting = flyingon_setting || {
 (function (flyingon) {
 
 
+
     var namespace_list = { "flyingon": flyingon }, //缓存命名空间
 
-        class_list = flyingon.__registry_class_list__ = {}, //已注册类型集合
+        class_list = flyingon.__registry_class_list = {}, //已注册类型集合
 
         RootObject = flyingon.RootObject = function () { }, //根类
+
+        unkown_index = 1, //未知类索引
 
         self = this; //记下根对象
 
@@ -600,7 +688,7 @@ var flyingon_setting = flyingon_setting || {
     //注册类型
     flyingon.registry_class = function (Class, fullTypeName) {
 
-        class_list[fullTypeName || Class.__fullTypeName__] = Class;
+        class_list[fullTypeName || Class.__fullTypeName] = Class;
     };
 
     //注销类型
@@ -638,7 +726,7 @@ var flyingon_setting = flyingon_setting || {
 
         if (result)
         {
-            if (result.constructor == String && !(result = namespace_list[result]))
+            if (result.constructor === String && !(result = namespace_list[result]))
             {
                 result = self;
 
@@ -646,7 +734,7 @@ var flyingon_setting = flyingon_setting || {
                     name,
                     value;
 
-                for (var i = 0, length = names.length; i < length; i++)
+                for (var i = 0, _ = names.length; i < _; i++)
                 {
                     if (name = names[i])
                     {
@@ -673,16 +761,17 @@ var flyingon_setting = flyingon_setting || {
 
 
 
+
     //初始化类型系统
     function initialize(namespace, Class, typeName) {
 
 
         var prototype = Class.prototype,
-            fullTypeName = namespace.name ? namespace.name + "." + typeName : typeName;
+            name = typeName || "unkown_type_" + unkown_index++;
 
 
         //绑定类型
-        prototype.__type__ = Class;
+        prototype.__class_type = Class;
 
         //获取当前类型
         prototype.getType = function () {
@@ -690,21 +779,21 @@ var flyingon_setting = flyingon_setting || {
             return Class;
         };
 
-        Class.namesapce = prototype.__namespace__ = namespace;
-        Class.typeName = prototype.__typeName__ = typeName;
-        Class.fullTypeName = prototype.__fullTypeName__ = fullTypeName;
+        Class.namesapce = prototype.__namespace = namespace;
 
+        Class.typeName = prototype.__typeName = name;
+        Class.fullTypeName = prototype.__fullTypeName = namespace.name ? namespace.name + "." + name : name;
 
-
-        //输出及注册类
-        namespace[typeName] = class_list[fullTypeName] = Class;
-
+        //输出及注册类(匿名类不注册)
+        if (typeName)
+        {
+            namespace[typeName] = class_list[Class.fullTypeName] = Class;
+        }
 
         prototype.toString = prototype.toLocaleString = function () {
 
-            return "[object " + this.__fullTypeName__ + "]";
+            return "[object " + this.__fullTypeName + "]";
         };
-
     };
 
 
@@ -717,12 +806,18 @@ var flyingon_setting = flyingon_setting || {
 
     //定义类方法
     //class_fn: 类型扩展函数 共有三个参数 Class:当前类型 base:父类 flyingon:系统对象 
-    //constructor_merge: 是否合并构造函数 true:合并构造函数内容以提升性能 如果构造函数中有局部变量则不可设成true 默认为false
-    flyingon.defineClass = namespace_fn.prototype.defineClass = function (typeName, superclass, class_fn, constructor_merge) {
+    flyingon.defineClass = namespace_fn.prototype.defineClass = function (typeName, superclass, class_fn) {
 
 
         //处理参数
-        if (!class_fn || typeof class_fn == "boolean")
+        if (typeName && typeName.constructor !== String) //不传typeName则创建匿名类
+        {
+            class_fn = superclass;
+            superclass = typeName;
+            typeName = null;
+        }
+
+        if (!class_fn)
         {
             class_fn = superclass;
             superclass = RootObject;
@@ -732,20 +827,21 @@ var flyingon_setting = flyingon_setting || {
             superclass = RootObject;
         }
 
-        if (!typeName || typeof class_fn != "function")
+        if (class_fn.constructor !== Function)
         {
-            throw new Error(flyingon_setting.define_class_error.format(typeName));
+            throw new Error("class_fn error!");
         }
 
 
+        //声明构造函数及父类构造函数
+        var create, base_create = superclass.create;
 
-        //定义类模板 Class.create为构造函数
-        var Class = function () {
+        //定义类模板
+        function Class() {
 
-            var fn = Class.create;
-            if (fn)
+            if (create)
             {
-                fn.apply(this, arguments);
+                create.apply(this, arguments);
             }
         };
 
@@ -766,40 +862,36 @@ var flyingon_setting = flyingon_setting || {
         //构造函数/所属类型
         prototype.constructor = Class;
         //默认值
-        prototype.__defaults__ = Class.__defaults__ = Object.create(superclass.__defaults__ || null);
+        prototype.__defaults = Class.__defaults = Object.create(superclass.__defaults || null);
 
         //初始化类型系统
         initialize(this, Class, typeName);
-
 
         //扩展
         class_fn.call(prototype, Class, Class.base, flyingon);
 
 
-
         //处理构造函数(自动调用父类的构造函数)
-        var superclass_create = superclass.create;
-        if (superclass_create)
+        if (base_create)
         {
-            var Class_create = Class.create,
-                create_list = superclass.__create_list__;
+            var create_list = superclass.__create_list;
 
-            if (Class_create)
+            if (create = Class.create)
             {
                 //合并构造函数以提升性能 注:已有构造链时不可以合并
-                if (!create_list && constructor_merge)
+                if (!create_list && Class.combine_create)
                 {
-                    Class.create = Class_create.merge(superclass_create, true);
+                    Class.create = flyingon.function_merge(create, base_create, true);
                 }
                 else //生成构造链
                 {
-                    create_list = Class.__create_list__ = create_list ? create_list.slice(0) : [superclass_create];
-                    create_list.push(Class_create);
+                    create_list = Class.__create_list = create_list ? create_list.slice(0) : [base_create];
+                    create_list.push(create);
 
                     Class.create = function () {
 
-                        var list = Class.__create_list__;
-                        for (var i = 0, length = list.length; i < length; i++)
+                        var list = Class.__create_list;
+                        for (var i = 0, _ = list.length; i < _; i++)
                         {
                             list[i].apply(this, arguments);
                         }
@@ -810,13 +902,14 @@ var flyingon_setting = flyingon_setting || {
             {
                 if (create_list)
                 {
-                    Class.__create_list__ = create_list;
+                    Class.__create_list = create_list;
                 }
 
-                Class.create = superclass_create;
+                Class.create = base_create;
             }
         }
 
+        create = Class.create;
 
         return Class;
     };

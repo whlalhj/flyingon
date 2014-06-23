@@ -27,25 +27,6 @@
         //鼠标划过时窗口关闭按钮
         "window-close-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
 
-        //窗口最小化按钮
-        "window-minimize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-        //鼠标按下时窗口最小化按钮
-        "window-minimize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-        //鼠标划过时窗口最小化按钮
-        "window-minimize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-        //窗口最大化按钮
-        "window-maximize": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-        //鼠标按下时窗口最大化按钮
-        "window-maximize-active": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-        //鼠标划过时窗口最大化按钮
-        "window-maximize-hover": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
-
-
 
         //向左滚动条图标
         "scroll-left": "data:image/gif;base64,R0lGODlhDAAMAMQAAP//////AP8A//8AAAD//wD/AAAA/wAAAPDx9OHk6neIoIKSqJ2qu6GtvbvE0MPL1f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABAALAAAAAAMAAwAAAU+IAQhD7MszIOIUNIocNwk4xvfDQkDDuwAsJKP9+spTLEfL3ZKApYw1NBRhKV2xl8QYbvBcq2ujCYimVAqUQgAOw==",
@@ -159,14 +140,20 @@
 
 
 
+
+﻿/// <reference path="../js/flyingon.js" />
+
+
+
+
 /*
 
 定义样式
 
 注1: 使用类css选择器样式字符串
 注2: 子类直接继承父类控件样式
-注3: 不支持css模式样式继承, 即不能从父元素继承属性值, 相关需求可通过组合选择器" "或">"直接设置子元素属性值
-注4: 注意选择器权重(与css相仿)
+注3: 注意选择器权重(与css相仿)
+注4: 伪类优先级 selection > enabled, disabled > active > hover > focus > checked 
 
 
 支持的伪类如下:
@@ -198,13 +185,20 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 (function (flyingon) {
 
 
-    /*
 
-    注1. 可使用flyingon.LinearGradient创建线性渐变颜色
-    注2. 可使用flyingon.RadialGradient创建径向渐变颜色
-    注3. 可使用flyingon.ImagePattern创建图像背景
 
-    */
+    //颜色可选值如下
+    //#rrggbb                                                                           rgb颜色 与css规则相同
+    //name                                                                              颜色名称 与css规则相同
+    // rgb(0-255 | x%, 0-255 | x%, 0-255 | x%)                                          rgb颜色 与css规则相同
+    //rgba(0-255 | x%, 0-255 | x%, 0-255 | x%, 0-1)                                     rgba颜色 与css规则相同
+    // hsl(0-360, x%, x%)                                                               hsl颜色 与css规则相同
+    //hsla(0-360, x%, x%, 0-1)                                                          hsla颜色 与css规则相同
+    //linear(x1, y1, x2, y2, step1, color1, step2, color2[, ...])                       线性渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+    //radial(x1, y1, radius1, x2, y2, radius2, step1, color1, step2, color2[, ...])     径向渐变颜色 x1,y1,x2,y2: 取值范围:0->1 "0, 0"表示控件左上角 "1, 1"表示控件右下角
+    //pattern(image, repeat|repeat-x|repeat-y|no-repeat)                                图像填充
+
+
 
 
     //缓存定义样式方法
@@ -215,9 +209,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //默认样式
     defineStyle("*", {
 
-        width: "default", //宽度 default|fill|auto|number|number%
-        height: "default", //高度 default|fill|auto|number|number%
-        backgroundColor: "#AAAAAA",
         color: "#000000",
         borderColor: "blue"
     });
@@ -225,7 +216,6 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //选中时控件默认样式
     defineStyle("*:checked", {
 
-        backgroundColor: "#FFFFFF",
         borderColor: "#CCCCCC"
     });
 
@@ -251,24 +241,13 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //禁用时控件默认样式
     defineStyle("*:disabled", {
 
-        backgroundColor: "#444444",
         color: "#222222"
     });
 
 
 
 
-    //选中文字颜色
-    defineStyle(".selection-text", {
-
-        backgroundColor: "skyblue",
-        color: "white"
-    });
-
-
-
-
-    //滚动条
+    //横向滚动条
     defineStyle("ScrollBar", {
 
         backgroundColor: "silver"
@@ -276,33 +255,57 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //滚动条按钮
-    defineStyle("ScrollButton", {
+    defineStyle(".scrollbar-button:hover", {
 
-        margin: 2
+        backgroundColor: "yellow"
+    });
+
+    //横向滚动条按钮
+    defineStyle(".scrollbar-button-x", {
+
+        margin: "0 1",
+    });
+
+    //纵向滚动条按钮
+    defineStyle(".scrollbar-button-y", {
+
+        margin: "1 0",
     });
 
 
     //滚动条滑块
-    defineStyle("ScrollSlider", {
+    defineStyle(".scrollbar-block", {
 
-        margin: "2,0",
         backgroundColor: "#666666",
     });
 
-    defineStyle("ScrollSlider:active", {
+    defineStyle(".scrollbar-block:active", {
 
         backgroundColor: "red"
     });
 
-    defineStyle("ScrollSlider:hover", {
+    defineStyle(".scrollbar-block:hover", {
 
         backgroundColor: "yellow"
+    });
+
+    //横向滚动条滑块
+    defineStyle(".scrollbar-block-x", {
+
+        margin: "2 0"
+    });
+
+    //纵向滚动条滑块
+    defineStyle(".scrollbar-block-y", {
+
+        margin: "0 2"
     });
 
 
     //滚动条拐角
     defineStyle("ScrollCorner", {
 
+        margin: 1
     });
 
 
@@ -318,7 +321,29 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //面板控件样式
     defineStyle("Panel", {
 
+        overflowX: "auto",
+        overflowY: "auto"
     });
+
+
+
+    defineStyle("Window", {
+
+    });
+
+
+    defineStyle("ChildWindow", {
+
+        backgroundColor: "white",
+        border: "1px solid black",
+        padding: 2
+    });
+
+    defineStyle(".window-header", {
+
+        backgroundColor: "linear(0, 0, 0, 1, 0, skyblue, 0.5, blue, 0.5, blue, 1, skyblue)"
+    });
+
 
 
 
@@ -326,26 +351,8 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     defineStyle("TextBoxBase", {
 
         backgroundColor: "#FFFFFF",
-        borderColor: "#CCCCCC",
-        border: 1,
-        borderRadius: 0,
+        border: "1 solid #CCCCCC",
         cursor: "text"
-    });
-
-    defineStyle("TextBoxBase:hover", {
-
-        decorates: [{
-
-            type: "Rectangle",
-            strokeStyle: "blue",
-            fillStyle: "#FFFFFF",
-            children: [{
-
-                type: "RoundRectangle",
-                offset: [2, 2, 2, 2],
-                anticlockwise: true
-            }]
-        }]
     });
 
 
@@ -360,30 +367,18 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     //文本框样式
     defineStyle("Button", {
 
-        backgroundColor: new flyingon.LinearGradient(0, 0, 0, 1, [[0, "skyblue"], [0.5, "blue"], [0.5, "blue"], [1, "skyblue"]]),
+        backgroundColor: "linear(0, 0, 0, 1, 0, skyblue, 0.5, blue, 0.5, blue, 1, skyblue)",
         cursor: "pointer"
     });
 
 
-    defineStyle("WindowBase", {
-
-        backgroundColor: "#FFFFFF",
-        borderColor: "#CCCCCC",
-        border: 1,
-        borderRadius: 0
-    });
-
-    defineStyle("Window", {
-
-    });
-
-
-    defineStyle("ChildWindow", {
-
-    });
 
 
 })(flyingon);
+
+
+
+
 
 
 

@@ -18,7 +18,7 @@
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
@@ -48,9 +48,8 @@
 
             var form = new flyingon.ChildWindow();
 
-            //form.padding = "10, 10, 10, 10";
-            form.spaceX = 10;
-            form.spaceY = 10;
+            form.layoutLineSpace = 10;
+            form.layoutItemSpace = 10;
 
             for (var j = 0; j < 100; j++)
             {
@@ -59,26 +58,25 @@
                 text.width = 190;
                 text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
 
-                form.children.add(text);
+                form.children.append(text);
             }
 
+            
+            form.onmousemove = function (event) {
 
+                message.innerHTML = flyingon.__hover_control && flyingon.__hover_control.uniqueId || null;
+
+                //message.innerHTML = "id:" + event.target.uniqueId
+                //    + " canvas:" + event.canvasX + "," + event.canvasY
+                //    + " window:" + event.windowX + "," + event.windowY
+                //    + " control:" + event.controlX + "," + event.controlY;
+            };
 
             form.onclick = function (event) {
 
-                event.target.invalidate();
-            };
+                var p = event.target.canvas_to_window(event.canvasX, event.canvasY);
 
-            form.onmouseout = function (event) {
-
-                if (event.target instanceof flyingon.ScrollBar)
-                {
-                    event.target.invalidate();
-                }
-
-
-                var offset = event.target.controlToOffset(event.controlX, event.controlY);
-                message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
+                var control = form.fintAt(event.canvasX, event.canvasY);
             };
 
 
@@ -87,17 +85,7 @@
 
 
 
-
-        //w.onmousemove = function (event) {
-
-        //    message.innerHTML = "id:" + event.target.id + " backgroundColor:" + event.target.backgroundColor;
-        //    //var offset = event.target.controlToOffset(event.controlX, event.controlY);
-        //    //message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
-        //};
-
-        w.children.add(button1);
-        w.children.add(button2);
-
+        w.children.appendRange(button1, button2);
         w.update();
 
 

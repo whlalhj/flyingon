@@ -9,6 +9,7 @@
         html, body {
             margin: 0;
             height: 100%;
+            overflow: hidden;
         }
 
         div[type] {
@@ -19,13 +20,14 @@
 <body style="margin: 0;">
 
     <div style="width: 100%; height: 100%;">
+
         <div id="drag" style="background-color: yellow;">
 
             <input type="button" value="Create" onclick="create()" />
             <input type="button" value="Paint" onclick="paint()" />
 
             <input type="text" id="selector" value=".class3,.class4" />
-            <input type="text" id="propertyname" value="border" />
+            <input type="text" id="propertyname" value="borderWidth" />
             <input type="text" id="propertyvalue" value="5" />
 
             <input type="button" value="query" onclick="query()" />
@@ -33,14 +35,6 @@
         </div>
 
         <div id="host" style="width: 100%; height: 100%;">
-        </div>
-
-        <div id="id" class="class">
-            <span style="width: 10px"></span>
-        </div>
-
-        <div id="Div1" class="class">
-            <b><span style="width: 10px"></span></b>
         </div>
 
     </div>
@@ -52,49 +46,14 @@
 
     </script>
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
-        var date = new Date();
-
-        for (var i = 0; i < 10000; i++)
-        {
-            var values = flyingon.parse_selector(">Panel .class+A[a=1,b=2]:test:checked(true)");
-        }
-
-        alert(new Date() - date);
-
-
-        //var date = new Date();
-
-        //for (var i = 0; i < 100000; i++)
-        //{
-        //    //flyingon.parse_selector("#id").query(document.body);
-        //    //document.querySelectorAll("#id");
-
-        //    //flyingon.parse_selector(".class").query(document.body);
-        //    //document.querySelectorAll(".class");
-
-        //    //flyingon.parse_selector("input").query(document.body);
-        //    //document.querySelectorAll("input");
-        //}
-
-        //alert(new Date() - date);
-
-
-
 
         var w = new flyingon.Window(host);
-
-
-        //new flyingon.Control();
-
-        w.layout = "flow";
-
-
 
 
         function create() {
@@ -102,34 +61,24 @@
 
             var date = new Date();
 
-            flyingon.beginInit();
-            w.layout = "flow";
-
-
-            for (var k = 0; k < 200; k++)
+            for (var k = 0; k < 50; k++)
             {
                 var panel = new flyingon.Panel();
 
-                panel.id = "panel" + k;
-                panel.className = "class" + (k % 20);
-
-                for (var i = 0; i < 50; i++)
+                for (var i = 0; i < 200; i++)
                 {
 
                     var ctrl = new flyingon.Button();
 
-                    ctrl.left = i % 5 * 100;
+                    ctrl.left = i % 5 * 120;
                     ctrl.top = i / 5 * 30;
-
-                    ctrl.width = 20;
+                    ctrl.width = 100;
                     ctrl.height = 21;
-                    //ctrl.margin = "10, 10, 10, 10";
-                    ctrl.border = "1, 1, 1, 1";
-                    ctrl.borderColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "yellow"], [1, "red"]]);
-                    ctrl.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                    ctrl.align = "middle,center";
+                    ctrl.border = "1 solid linear(0, 0, 1, 1, 0, yellow, 1, red)";
+                    ctrl.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
 
-                    panel.children.add(ctrl);
+                    ctrl.id = "button" + (k * 200) + i;
+                    ctrl.className = "class" + (i % 20);
 
                     switch (i % 5)
                     {
@@ -148,7 +97,6 @@
                         case 3:
                             ctrl.dock = "bottom";
                             ctrl.width = "fill";
-                            ctrl.height = "fill";
                             break;
 
                         case 4:
@@ -156,49 +104,28 @@
                             break;
                     }
 
-                    ctrl.id = "button" + (k * 200) + i;
-                    ctrl.className = "class" + (i % 20);
+                    panel.children.append(ctrl);
                 }
 
 
+                panel.margin = 10;
+                panel.border = "4 solid red";
+                panel.padding = 10;
 
+                panel.layoutType = "flow";
+                panel.layoutLineSpace = 10;
+                panel.layoutItemSpace = 10;
+                panel.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
 
-                //panel.width = "auto";
-                //panel.height = "auto";
-                //panel.width = 600;
-                //panel.height = 400;
-                panel.margin = "5, 5, 5, 5";
-                panel.border = "1, 1, 1, 1";
-                panel.padding = "0, 0, 0, 0";
-                panel.borderColor = "orange";
-                //panel.backgroundColor = new flyingon.LinearGradient(0, 0, 1, 1, [[0, "red"], [0.5, "green"], [1, "blue"]]);
-                panel.layout = "line";
-                panel.spaceX = 5;
-                panel.spaceY = 5;
-                panel.lineHeight = 50;
-                panel.lineWidth = 160;
-                panel.rows = 4;
-                panel.columns = 4;
-                panel.grid = "T R* C* C* R* C* C* T R* C* C* C* R* C* C* C* R* C* C* C* END C* R* C* C* END";
-
-
-                panel.addEventListener("mousedown", function (event) {
-
-                    alert(event);
-                });
-
-                w.children.add(panel);
+                w.children.append(panel);
 
             }
-
-
-
-            flyingon.endInit();
-            alert(new Date() - date);
 
             w.update();
 
         };
+
+      
 
         function paint() {
 
@@ -230,7 +157,7 @@
                 result = w.find(selector.value);
             }
 
-            alert("loop:1000 controls:" + result.length + " time:" + (new Date() - date));
+            alert("loop:100 controls:" + result.length + " time:" + (new Date() - date));
         };
 
 

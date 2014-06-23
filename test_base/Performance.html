@@ -15,176 +15,50 @@
 <body style="margin: 0;">
 
     <div style="width: 100%; height: 100%;">
-        <div id="drag" style="background-color: yellow;">
-
-            <input type="button" value="null_loop" onclick="null_loop()" />
-            <input type="button" value="direct_property" onclick="direct_property()" />
-            <input type="button" value="boxModel_property" onclick="boxModel_property()" />
-            <input type="button" value="nostyle_property" onclick="nostyle_property()" />
-            <input type="button" value="style_property1" onclick="style_property1()" />
-            <input type="button" value="style_property2" onclick="style_property2()" />
-            <input type="button" value="defineVariable" onclick="defineVariable()" />
-            <input type="button" value="defineProperty" onclick="defineProperty()" />
-        </div>
 
         <div id="host" style="width: 100%; height: 100%;">
         </div>
     </div>
 
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
     <script type="text/javascript">
 
 
-        flyingon.initialize();
 
+        var data = {};
 
-        function null_loop() {
+        flyingon.defineProperty(data, "v2", function () {
 
-            var date = new Date();
+            return this.__v2;
 
-            for (var i = 0; i < 1000000; i++)
-            {
+        }, function (value) {
 
-            }
+            this.__v2 = value;
+        });
 
-            alert(new Date() - date);
-        }
 
+        data.v1 = 1;
+        data.v2 = 1;
 
-        function direct_property() {
 
-            var control = new flyingon.Control();
-            control.test = 100;
 
-            var date = new Date();
+        var time2 = flyingon.performance(function () {
 
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = control.test;
-            }
+            var value = data.v2;
 
-            alert(new Date() - date);
-        }
+        }, 1000000);
 
-        function boxModel_property() {
+        var time1 = flyingon.performance(function () {
 
-            var control = new flyingon.Control();
+            var value = data.v1;
 
-            var date = new Date();
+        }, 10000000);
 
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = control._boxModel_.enable;
-            }
 
-            alert(new Date() - date);
-        }
-
-        function nostyle_property() {
-
-            var control = new flyingon.Control();
-
-            var date = new Date();
-
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = control.enabled;
-            }
-
-            alert(new Date() - date);
-        }
-
-        function style_property1() {
-
-            var control = new flyingon.Control();
-
-            var date = new Date();
-
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = control.cursor;
-            }
-
-            alert(new Date() - date);
-        }
-
-        function style_property2() {
-
-            var control = new flyingon.Control();
-
-            var date = new Date();
-
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = (control._fn_style_ || control._fn_style_template_())("cursor");
-            }
-
-            alert(new Date() - date);
-        }
-
-
-        function defineVariable() {
-
-
-            var obj = {
-
-                "x:value": 1
-            };
-
-
-
-            flyingon.defineVariable(obj, "value", 12);
-
-
-
-            var date = new Date();
-
-            for (var i = 0; i < 1000000; i++)
-            {
-                var v = obj["x:value"];
-            }
-
-            alert(new Date() - date);
-
-        }
-
-
-
-        function defineProperty() {
-
-
-            var obj = {
-
-                "_value_": {} //chrome使用特殊字符时性能很差
-            };
-
-
-
-
-            flyingon.defineProperty(obj, "value", function () {
-
-                return this._value_;
-
-            }, function (value) {
-
-                this._value_.value = value;
-            });
-
-
-
-            var date = new Date();
-
-            for (var i = 0; i < 1000000; i++)
-            {
-                obj.value = i;
-            }
-
-            alert(new Date() - date);
-
-        }
+        alert("直接访问:" + time1 + "  defineProperty:" + time2);
 
 
     </script>

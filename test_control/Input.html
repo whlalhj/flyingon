@@ -31,7 +31,7 @@
     <!--    <input id="Text1" type="text" style="position: absolute; opacity: 0.5; top: 42px; left: 14px;border:0;padding:0" />-->
 
 
-    <script type="text/javascript" src="../js/flyingon.js"></script>
+    <script src="../js/flyingon.js"></script>
     <script src="../themes/default.js"></script>
 
 
@@ -51,7 +51,7 @@
             var date = new Date();
 
             w.backgroundColor = "silver";
-            w.layout = "flow";
+            w.layoutType = "flow";
 
             for (var i = 0; i < 4; i++)
             {
@@ -60,7 +60,7 @@
                 panel.width = 400;
 
                 panel.height = 400;
-                //panel.layout = "flow"
+                //panel.layoutType = "flow"
                 panel.margin = [10, 20, 30, 40];
                 panel.border = [1, 1, 1, 1];
 
@@ -71,7 +71,7 @@
                     text.width = 190;
                     text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
 
-                    panel.children.add(text);
+                    panel.children.append(text);
                 }
 
                 panel.onmousemove = function (event) {
@@ -80,7 +80,7 @@
                     document.title += "  " + (items && items.length || "0") + " " + this.scrollTop;
                 };
 
-                w.children.add(panel);
+                w.children.append(panel);
             }
 
 

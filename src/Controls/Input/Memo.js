@@ -5,7 +5,7 @@
 /*
 
 */
-flyingon.defineClass("Memo", flyingon.ScrollableControl, function (Class, base, flyingon) {
+flyingon.defineClass("Memo", flyingon.Control, function (Class, base, flyingon) {
 
 
 
@@ -17,12 +17,9 @@ flyingon.defineClass("Memo", flyingon.ScrollableControl, function (Class, base, 
 
 
 
-    this.defineProperty("textWrap", false, "measure");
 
 
-
-
-    flyingon["text-painter"].call(this, true);
+    //flyingon["text-painter"].call(this, true);
 
 
 

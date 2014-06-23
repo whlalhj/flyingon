@@ -115,8 +115,8 @@
                 yPos = evt.pageY;
             } else
             {
-                xPos = evt.clientX + document.body.scrollLeft - document.body.clientLeft;
-                yPos = evt.clientY + document.body.scrollTop - document.body.clientTop;
+                xPos = evt.clientX + document.body.scrollLeft - document.body.clientX;
+                yPos = evt.clientY + document.body.scrollTop - document.body.clientY;
             }
         };
         function initMouseEventDM() {
