@@ -4,11 +4,12 @@
 
 
     //滚动事件
-    flyingon.ScrollEvent = function (target, original_event) {
+    (flyingon.ScrollEvent = function (target, original_event) {
 
         this.target = target;
         this.original_event = original_event;
-    };
+
+    }).prototype = flyingon.Event.prototype;
 
 
     (function () {
@@ -22,7 +23,7 @@
         //竖直变化距离
         this.changeY = 0;
 
-    }).call(flyingon.ScrollEvent.prototype = new flyingon.Event());
+    }).call(flyingon.ScrollEvent.prototype);
 
 
 
@@ -34,8 +35,8 @@
 
 
 
-        var timer,          //定时变更定时器
-            dragger;        //拖拉者
+        var timer,                  //定时变更定时器
+            dragger;                //拖拉者
 
 
 
@@ -52,35 +53,25 @@
         //当前值
         this.defineProperty("value", 0, {
 
-            changing: flyingon.function_body(function () {
-
-                if (value < this.minValue)
-                {
-                    value = this.minValue;
-                }
-                else if (value > this.maxValue)
-                {
-                    value = this.maxValue;
-                }
-            }),
-
-            changed: "this.__fn_change_value(value - oldValue, false);"
+            minValue: "this.minValue",
+            maxValue: "this.maxValue",
+            change: "this.__fn_change_value(value - oldValue, false);"
         });
 
         //最小值
         this.defineProperty("minValue", 0, {
 
             attributes: "invalidate",
-            changing: "if (value < 0) value = 0;",
-            changed: "if (this.value < value) fields.value = value;"
+            minValue: 0,
+            change: "if (this.value < value) fields.value = value;"
         });
 
         //最大值
         this.defineProperty("maxValue", 100, {
 
             attributes: "invalidate",
-            changing: "if (value < 0) value = 0;",
-            changed: "if (this.value > value) fields.value = value;"
+            minValue: 1,
+            change: "if (this.value > value) fields.value = value;"
         });
 
 
@@ -96,7 +87,7 @@
 
         this.__event_bubble_mousedown = function (event) {
 
-            if (dragger = this.__fn_mousedown(event))
+            if (event.button === 0 && (dragger = this.__fn_mousedown(event)))
             {
                 flyingon.__capture_control = this.slider;
                 event.stopImmediatePropagation();
@@ -106,11 +97,16 @@
 
         this.__event_bubble_mousemove = function (event) {
 
-            var change;
-
-            if (dragger && (change = this.__fn_drag_value(event, dragger) - this.value))
+            if (dragger)
             {
-                this.__fn_change_value(change, event);
+                var value = this.__fn_drag_value(dragger, event),
+                    step = value - this.value;
+
+                if (step)
+                {
+                    this.__fn_change_value_to(step, value, event);
+                }
+
                 event.stopImmediatePropagation();
             }
         };
@@ -127,8 +123,6 @@
             if (dragger)
             {
                 event.stopImmediatePropagation();
-
-                flyingon.__capture_control = null;
                 dragger = null;
             }
         };
@@ -142,44 +136,45 @@
 
 
 
+        //变更值至指定值
+        this.__fn_change_value_to = function (step, to_value, event, delay) {
 
-        //定时移动至指定的位置
-        this.__fn_delay_change = function (change, limit, event) {
-
-            if (delay_change(this, change, limit, event) != limit)
+            if (timer)
             {
-                var self = this,
-
-                    fn = function () {
-
-                        if (delay_change(self, change, limit, event) != limit)
-                        {
-                            timer = setTimeout(fn, 200);
-                        }
-                    };
-
-                timer = setTimeout(fn, 200);
+                clearTimeout(timer);
+                timer = 0;
             }
-        };
 
-        function delay_change(target, change, limit, event) {
-
-            if (change > 0)
+            if (step > 0)
             {
-                if (target.value + change > limit)
+                if (this.value + step > to_value)
                 {
-                    change = limit - target.value;
+                    step = to_value - this.value;
                 }
             }
-            else if (change < 0)
+            else if (step < 0)
             {
-                if (target.value + change < limit)
+                if (this.value + step < to_value)
                 {
-                    change = limit - target.value;
+                    step = to_value - this.value;
                 }
             }
 
-            return target.__fn_change_value(change, event) != limit;
+            if (step)
+            {
+                var self = this;
+
+                timer = setTimeout(function () {
+
+                    timer = 0;
+
+                    if (self.__fn_change_value(step, event) !== to_value)
+                    {
+                        self.__fn_change_value_to(step, to_value, event, 200);
+                    }
+
+                }, delay || 5);
+            }
         };
 
 
@@ -232,7 +227,7 @@
         this.defineProperty("vertical", false, {
 
             attributes: "rearrange",
-            changed: "this.__fn_vertical(value);"
+            change: "this.__fn_vertical(value);"
         });
 
 
@@ -244,55 +239,55 @@
         this.__fn_mousedown = function (event) {
 
             var vertical = this.vertical,
-                limit = vertical ? event.controlY : event.controlX,
-                change;
+                to_value = vertical ? event.controlY : event.controlX,
+                step;
 
-            if (limit < this.scroll_start)
+            if (to_value < this.scroll_start)
             {
-                change = -20;
-                limit = 0;
+                step = -20;
+                to_value = 0;
             }
-            else if (limit > this.scroll_end)
+            else if (to_value > this.scroll_end)
             {
-                change = 20;
-                limit = this.maxValue;
+                step = 20;
+                to_value = this.maxValue;
             }
-            else if (limit >= this.slider_start && limit <= this.slider_end)
+            else if (to_value >= this.slider_start && to_value <= this.slider_end)
             {
                 return this.slider.canvas_to_control(event.canvasX, event.canvasY); //返回拖动初始位置
             }
             else
             {
-                change = vertical ? this.__parent.clientHeight : this.__parent.clientWidth;
+                step = vertical ? this.__parent.clientHeight : this.__parent.clientWidth;
 
-                if (limit < this.slider_start)
+                if (to_value < this.slider_start)
                 {
-                    change = -change;
+                    step = -step;
                 }
-                else if (limit > this.slider_end)
+                else if (to_value > this.slider_end)
                 {
-                    limit -= this.slider_length;
+                    to_value -= this.slider_length;
                 }
 
-                limit = round((limit - this.scroll_start) * this.maxValue / this.scroll_length);
+                to_value = round((to_value - this.scroll_start) * this.maxValue / this.scroll_length);
             }
 
             if (this.__rtl && !this.vertical) //右向顺序转换
             {
-                change = -change;
-                limit = this.maxValue - limit;
+                step = -step;
+                to_value = this.maxValue - to_value;
             }
 
-            this.__fn_delay_change(change, limit, event);
+            this.__fn_change_value_to(step, to_value, event);
         };
 
 
         //获取当前位置的拖动值 竖直滚动条不支持rtl
-        this.__fn_drag_value = function (event, offset) {
+        this.__fn_drag_value = function (start, event) {
 
             var vertical = this.vertical,
                 maxValue = this.maxValue,
-                value = vertical ? event.controlY - offset.y : event.controlX - offset.x;
+                value = vertical ? event.controlY - start.y : event.controlX - start.x;
 
             if (value <= this.scroll_start)
             {
@@ -317,7 +312,7 @@
 
 
         //重载值改变方法触发父控件滚动事件
-        this.__fn_change_value = function (change, event) {
+        this.__fn_change_value = function (change_value, event) {
 
             var fields = this.__fields,
                 vertical = this.vertical,
@@ -325,34 +320,39 @@
 
             if (event !== false) //不是直接设置value
             {
-                fields.value += change;
+                fields.value += change_value;
             }
 
             if (parent)
             {
-                event = new flyingon.ScrollEvent(event, event);
+                var scroll = new flyingon.ScrollEvent(parent, event);
 
                 if (vertical)
                 {
-                    event.changeY = change;
-                    parent.contentY = fields.value;
+                    scroll.changeY = change_value;
+                    parent.__visible_y = fields.value;
                 }
                 else
                 {
-                    event.changeX = change;
-                    parent.contentX = this.__rtl ? this.maxValue - fields.value : fields.value;
+                    scroll.changeX = change_value;
+                    parent.__visible_x = this.__rtl ? this.maxValue - fields.value : fields.value;
                 }
 
-                parent.__fn_scrollTo(parent.contentX, parent.contentY);
-                parent.dispatchEvent(event);
+                parent.__fn_scrollTo(parent.__visible_x, parent.__visible_y);
+
+                parent.dispatchEvent(scroll, true);
                 parent.invalidate(false);
 
                 //修正因滚动造成的输入符位置变更问题
 
             }
 
-            return fields.value; //返加新值
+            return fields.value; //返回新值
         };
+
+
+
+
 
 
 
@@ -491,17 +491,10 @@
 
 
 
-        //屏蔽事件响应直接分发至父控件
-        this.dispatchEvent = function (event, bubble) {
+        //转移(事件,使区域无效)至父控件
+        this.__fn_transfer_to_parent();
 
-            if (event.target = this.__parent)
-            {
-                event.source = this;
-                return this.__parent.dispatchEvent(event, bubble);
-            }
 
-            return true;
-        };
 
 
         //重载排列子控件方法
@@ -510,18 +503,7 @@
             this.__arrange_dirty = false;
         };
 
-
-        //更新至上级
-        this.invalidate = function (rearrange, update_now) {
-
-            if (this.__parent)
-            {
-                this.__parent.invalidate(rearrange, update_now);
-            }
-        };
-
-
-    }
+    };
 
 
 

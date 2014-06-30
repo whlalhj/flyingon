@@ -463,36 +463,37 @@ var flyingon_setting = flyingon_setting || {
     //扩展原型
     flyingon.function_extend = function (fn, extend, prototype) {
 
-        if (fn)
+        fn = fn || function () { };
+
+        if (!extend)
         {
-            if (prototype)
-            {
-                fn.prototype = prototype;
-            }
-            else
-            {
-                prototype = fn.prototype;
-            }
-
-            if (extend)
-            {
-                if (extend instanceof Function)
-                {
-                    extend.call(prototype, flyingon);
-                }
-                else
-                {
-                    for (var name in extend)
-                    {
-                        prototype[name] = extend[name];
-                    }
-                }
-            }
-
-            return fn;
+            extend = fn;
+            fn = function () { };
         }
-    };
 
+        if (prototype)
+        {
+            fn.prototype = prototype;
+        }
+        else
+        {
+            prototype = fn.prototype;
+        }
+
+        if (typeof extend === "function")
+        {
+            extend.call(prototype, flyingon);
+        }
+        else
+        {
+            for (var name in extend)
+            {
+                prototype[name] = extend[name];
+            }
+        }
+
+        return fn;
+    };
 
 
 })(flyingon);
@@ -506,7 +507,7 @@ var flyingon_setting = flyingon_setting || {
 
 
     //代码性能测试
-    flyingon.performance = function (code, times) {
+    flyingon.performance_test = function (code, times) {
 
         if (typeof code === "function")
         {
@@ -604,15 +605,15 @@ var flyingon_setting = flyingon_setting || {
 
 
     //定义变量
-    flyingon.defineVariable = function (target, name, value) {
+    flyingon.defineVariable = function (target, name, value, writable, configurable, enumerable) {
 
         //target[name] = value;
         Object.defineProperty(target, name, {
 
             value: value,
-            writable: false,
-            configurable: true,
-            enumerable: true
+            writable: writable || false,
+            configurable: configurable || true,
+            enumerable: enumerable || false
         });
     };
 
@@ -726,7 +727,7 @@ var flyingon_setting = flyingon_setting || {
 
         if (result)
         {
-            if (result.constructor === String && !(result = namespace_list[result]))
+            if (typeof result === "string" && !(result = namespace_list[result]))
             {
                 result = self;
 

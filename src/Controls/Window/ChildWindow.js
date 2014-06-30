@@ -127,11 +127,6 @@
             }
         };
 
-        this.__event_bubble_mouseup = function (event) {
-
-            flyingon.__capture_control = null;
-        };
-
 
 
         //排列子控件
@@ -186,7 +181,7 @@
         //是否充满容器
         this.defineProperty("fill", false, {
 
-            changed: "this.update();"
+            change: "this.update();"
         });
 
 
@@ -362,7 +357,6 @@
             if (resize_start)
             {
                 resize_start = null;
-                flyingon.__capture_control = null; //取消捕获鼠标
                 event.stopImmediatePropagation();
             }
         };

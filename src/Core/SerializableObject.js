@@ -47,7 +47,6 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
         return "if (flyingon.__initializing)\n"
             + "{\n"
-            + (attributes.changing || "")
 
             + "fields." + name + " = value;\n\n"
 
@@ -57,6 +56,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             + "}\n\n"
 
             + (attributes.complete || "")
+
             + "\nreturn;\n"
             + "}\n\n\n";
     };
@@ -66,7 +66,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         return "if ((cache = this.__events) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
                 + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
-                + "if (this.dispatchEvent(event) === false)\n"
+                + "if (this.dispatchEvent(event, true) === false)\n"
                 + "{\n"
                 + "return false;\n"
                 + "}\n\n"
@@ -76,8 +76,10 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
     this.__define_setter = function (name, defaultValue, attributes, fields) {
 
-        var body = [];
+        var body = [],
+            cache;
 
+        //基本类型转换(根据默认值的类型自动转换)
         switch (typeof defaultValue)
         {
             case "boolean":
@@ -93,47 +95,67 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 break;
         }
 
-
-        body.push(fields || "var fields = this.__fields, cache;\n\n");
-
-        body.push(this.__define_initializing(name, attributes));
-
-        body.push("var oldValue = fields." + name + ";\n\n");
-
-        if (attributes.changing) //自定义值变更代码
+        //最小值限定(小于指定值则自动转为指定值)
+        if (cache = attributes.minValue)
         {
-            body.push(attributes.changing);
+            body.push("if (value < " + cache + ") value = " + cache + ";");
+            body.push("\n");
+        }
+
+        //最大值限定(大于指定值则自动转为指定值)
+        if (cache = attributes.maxValue)
+        {
+            body.push("if (value > " + cache + ") value = " + cache + ";");
+            body.push("\n");
+        }
+
+        //自定义值检测代码
+        if (cache = attributes.check)
+        {
+            body.push(cache);
             body.push("\n\n");
         }
 
+        //获取存储器
+        body.push("var fields = this." + (fields || "__fields") + ", cache;\n\n");
+
+        //初始化验证代码
+        body.push(this.__define_initializing(name, attributes));
+
+        //获取旧值
+        body.push("var oldValue = fields." + name + ";\n\n");
+
+        //对比新旧值
         body.push("if (oldValue !== value)\n");
         body.push("{\n\n");
 
+        //处理变更事件
         body.push(this.__define_change(name));
 
+        //赋值
         body.push("fields." + name + " = value;\n\n");
 
-
-        if (attributes.changed) //自定义值变更代码
+        //自定义值变更代码
+        if (cache = attributes.change)
         {
-            body.push(attributes.changed);
+            body.push(cache);
             body.push("\n\n");
         }
 
-        if (attributes.complete) //自定义值变更结束代码
+        //自定义值变更结束代码
+        if (cache = attributes.complete)
         {
-            body.push(attributes.complete);
+            body.push(cache);
             body.push("\n\n");
         }
 
-
+        //数据绑定
         body.push("if (cache = this.__bindings)\n");
         body.push("{\n");
         body.push("this.__fn_bindings(\"" + name + "\", cache);\n");
         body.push("}\n\n");
 
-
-        //此块与控件有关
+        //控件刷新
         if (attributes.relayout) //需要重新布局
         {
             body.push("(this.__parent || this).invalidate(true);\n");
@@ -147,44 +169,51 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
             body.push("this.invalidate(false);\n");
         }
 
-
+        //闭合
         body.push("}\n");
 
-
+        //动态创建函数
         return new Function("value", body.join(""));
     };
 
 
+    //上次使用的属性(如attributes传入"previous-attributes"则使用上次传入的属性)
+    var previous_attributes = null;
 
     this.__define_attributes = function (attributes) {
 
-        if (attributes)
+        if (!attributes)
         {
-            var values;
-
-            if (attributes.constructor === String)
-            {
-                values = attributes.split("|");
-                attributes = {};
-            }
-            else if (attributes.attributes)
-            {
-                values = attributes.attributes.split("|");
-                delete attributes.attributes;
-            }
-
-            if (values)
-            {
-                for (var i = 0, _ = values.length; i < _; i++)
-                {
-                    attributes[values[i]] = true;
-                }
-            }
-
-            return attributes;
+            return previous_attributes = {};
         }
 
-        return {};
+        if (attributes === "previous-attributes")
+        {
+            return previous_attributes || (previous_attributes = {});
+        }
+
+        var values;
+
+        if (typeof attributes === "string")
+        {
+            values = attributes.split("|");
+            attributes = {};
+        }
+        else if (attributes.attributes)
+        {
+            values = attributes.attributes.split("|");
+            delete attributes.attributes;
+        }
+
+        if (values)
+        {
+            for (var i = 0, _ = values.length; i < _; i++)
+            {
+                attributes[values[i]] = true;
+            }
+        }
+
+        return previous_attributes = attributes;
     };
 
 
@@ -312,7 +341,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
     //bubble    是否冒泡模式 是则按事件链逐步分发 否则只分发至当前控件
     this.dispatchEvent = function (event, bubble) {
 
-        var key = bubble !== false ? event.type : event.type + "_this",
+        var key = (bubble = bubble !== false) ? event.type : event.type + "_this",
             events = this.__events_cache && this.__events_cache[key] || cache_events(this, event.type, key, bubble),
             length = events.length;
 
@@ -337,8 +366,6 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
             return !event.defaultPrevented;
         }
-
-        return true;
     };
 
 

@@ -1,6 +1,10 @@
 ﻿
 //事件类型基类
-flyingon.Event = function () { };
+flyingon.Event = function (type, target) {
+
+    this.type = type;
+    this.target = target;
+};
 
 
 (function () {
@@ -62,12 +66,13 @@ flyingon.Event = function () { };
 
 
 //鼠标事件类型
-flyingon.MouseEvent = function (type, target, original_event) {
+(flyingon.MouseEvent = function (type, target, original_event) {
 
     this.type = type;
     this.target = target;
     this.original_event = original_event;
-};
+
+}).prototype = flyingon.Event.prototype;
 
 
 (function (flyingon) {
@@ -187,7 +192,7 @@ flyingon.MouseEvent = function (type, target, original_event) {
     });
 
 
-}).call(flyingon.MouseEvent.prototype = new flyingon.Event(), flyingon);
+}).call(flyingon.MouseEvent.prototype = flyingon.Event.prototype, flyingon);
 
 
 
@@ -216,12 +221,13 @@ flyingon.DragEvent = function (type, target, original_event) {
 
 
 //键盘事件类型
-flyingon.KeyEvent = function (type, target, original_event) {
+(flyingon.KeyEvent = function (type, target, original_event) {
 
     this.type = type;
     this.target = target;
     this.original_event = original_event;
-};
+
+}).prototype = flyingon.Event.prototype;
 
 
 (function (flyingon) {
@@ -263,34 +269,32 @@ flyingon.KeyEvent = function (type, target, original_event) {
     });
 
 
-}).call(flyingon.KeyEvent.prototype = new flyingon.Event(), flyingon);
+}).call(flyingon.KeyEvent.prototype, flyingon);
 
 
 
 
 
 //值变更事件类型
-flyingon.ChangeEvent = function (type, target, name, value, oldValue) {
+(flyingon.ChangeEvent = function (type, target, name, value, oldValue) {
 
     this.type = type;
     this.target = target;
     this.name = name;
     this.value = value;
     this.oldValue = oldValue;
-};
 
-flyingon.ChangeEvent.prototype = new flyingon.Event();
+}).prototype = flyingon.Event.prototype;
 
 
 
 //属性值变更事件类型
-flyingon.PropertyChangeEvent = function (target, name, value, oldValue) {
+((flyingon.PropertyChangeEvent = function (target, name, value, oldValue) {
 
     this.target = target;
     this.name = name;
     this.value = value;
     this.oldValue = oldValue;
-};
 
-(flyingon.PropertyChangeEvent.prototype = new flyingon.Event()).type = "change";
+}).prototype = flyingon.Event.prototype).type = "change";
 

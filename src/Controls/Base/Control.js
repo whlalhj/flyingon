@@ -70,9 +70,30 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         this.__parent = parent;
         this.__events_cache = null; //清空缓存的事件
+        this.__fn_reset_font();     //清空缓存的字体
         this.__fn_reset_style();    //重置样式
 
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent));
+    };
+
+
+    //转移(事件,使区域无效)至父控件
+    this.__fn_transfer_to_parent = function () {
+
+
+        //屏蔽事件响应直接分发至父控件
+        this.dispatchEvent = function (event, bubble) {
+
+            event.source = this;
+            return (event.target = this.__parent).dispatchEvent(event, bubble);
+        };
+
+
+        //更新至上级
+        this.invalidate = function (rearrange, update_now) {
+
+            this.__parent.invalidate(rearrange, update_now);
+        };
     };
 
 
@@ -144,7 +165,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.defineProperty("id", "", {
 
             attributes: "layout",
-            changed: "this.__fn_reset_style();"    //重置样式
+            change: "this.__fn_reset_style();"    //重置样式
         });
 
 
@@ -285,9 +306,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //保存状态值
             (this.__states || (this.__states = Object.create(null)))[name] = value;
 
-            //清空缓存样式表
+            //重置控件样式版本
             this.__style_version = 0;
-            this.__style_types = null;
 
             //状态变更事件
             this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
@@ -479,6 +499,16 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
+        //创建多个相同性质的样式
+        function styles(template, names, defaultValue, inherit, attributes) {
+
+            for (var i = 0, _ = names.length; i < _; i++)
+            {
+                style(template.replace("?", names[i]), defaultValue, inherit, attributes);
+            }
+        };
+
+
         //创建样式
         function style(name, defaultValue, inherit, attributes) {
 
@@ -517,7 +547,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     + (typeof defaultValue === "string" ? "\"" + defaultValue + "\"" : defaultValue)
                     + ";",
 
-                setter = self.__define_setter(name, defaultValue, attributes, "var fields = this.__style, cache;\n\n");
+                setter = self.__define_setter(name, defaultValue, attributes, "__style");
 
             flyingon.defineProperty(self, name, new Function(getter), setter);
 
@@ -531,16 +561,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
-        //创建多个相同性质的样式
-        function styles(template, names, defaultValue, inherit, attributes) {
 
-            for (var i = 0, _ = names.length; i < _; i++)
-            {
-                style(template.replace("?", names[i]), defaultValue, inherit, attributes);
-            }
-        };
+        //设置默认宽度
+        this.defaultValue("width", 100);
 
-
+        //设置默认高度
+        this.defaultValue("height", 21);
 
 
         //控件宽度及高度
@@ -576,20 +602,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //控件阅读方向
         //ltr	    从左到右 
         //rtl	    从右到左 
-        style("direction", "ltr", true, {
+        style("direction", "ltr", true, "rearrange");
 
-            attributes: "rearrange",
-            changed: "if (this.__text) this.__text.rows = null;"
-        });
-
-        //是否竖排布局(非html css属性)(此属性值变更会影响字体重新测量)
-        //true      竖排
-        //false     横排
-        style("vertical", false, false, {
-
-            attributes: "rearrange",
-            changed: "if (this.__text) this.__text.lines = null;"
-        });
 
 
         //控件停靠方式(此值仅在所属布局类型为停靠布局(dock)时有效)(非html css属性)
@@ -635,6 +649,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //absolute:     绝对定位(不支持竖排)
         //...:          其它自定义布局
         style("layout-type", "flow", false, "rearrange");
+
+        //是否竖排布局(非html css属性)(此属性值变更会影响字体重新测量)
+        //true      竖排
+        //false     横排
+        style("layout-vertical", false, false, {
+
+            attributes: "rearrange",
+            change: "if (this.__text_lines) this.__text_lines = null;"
+        });
 
         //布局时行与行之间的间隔(非html css属性)
         //number	整数值 
@@ -1042,29 +1065,33 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //重置自身及子控件的字体
-        this.__fn_reset_font = function (name) {
+        this.__fn_reset_font = function () {
 
-            var cache = this.__text;
-
-            if (cache)
-            {
-                cache[name] = null;
-            }
+            this.__css_font = null;
+            this.__text_lines = null;
 
             if (cache = this.__children)
             {
                 for (var i = 0, _ = cache.length; i < _; i++)
                 {
-                    cache[i].__fn_reset_font(name);
+                    cache[i].__fn_reset_font();
                 }
             }
         };
 
-        //字体发生变化时需重置自身及子控件的字体缓存
-        var attributes = {
+        //获取字体css样式
+        this.__fn_css_font = function () {
 
-            changed: "this.__fn_reset_font(\"lines\");"
+            return this.__css_font = [
+
+                this.fontStyle,
+                this.fontVariant,
+                this.fontWeight, (this.__font_size = this.fontSize) + "px/" + (this.__line_height = this.lineHeight) + "px",
+                this.fontFamily
+
+            ].join(" ");
         };
+
 
 
         //控件字体简写方式(必须按照 style -> variant -> weight -> size -> line-height -> family 的顺序编写 可省略某些属性)
@@ -1072,7 +1099,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             function () {
 
-                return [this.fontStyle, this.fontVariant, this.fontWeight, this.fontSize + "px", this.fontFamily].join(" ");
+                return this.__css_font || this.__fn_css_font();
             },
 
             (function () {
@@ -1107,12 +1134,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //normal	浏览器显示一个标准的字体样式 
         //italic	浏览器会显示一个斜体的字体样式 
         //oblique	浏览器会显示一个倾斜的字体样式 
-        style("font-style", "normal", true, attributes);
+        style("font-style", "normal", true, {
+
+            change: "this.__fn_reset_font();"
+        });
 
         //控件字体变体
         //normal	    浏览器会显示一个标准的字体 
         //small-caps	浏览器会显示小型大写字母的字体 
-        style("font-variant", "normal", true, attributes);
+        style("font-variant", "normal", true, "previous-attributes");
 
         //控件字体粗细
         //normal	定义标准的字符 
@@ -1120,45 +1150,37 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //bolder	定义更粗的字符 
         //lighter	定义更细的字符 
         //100-900   定义由粗到细的字符 400 等同于 normal, 而 700 等同于 bold 
-        style("font-weight", "normal", true, attributes);
+        style("font-weight", "normal", true, "previous-attributes");
 
         //控件字体大小
         //number	整数值
-        style("font-size", 12, true, attributes);
+        style("font-size", 12, true, "previous-attributes");
+
+        //控件文字行高
+        //number	整数值
+        style("line-height", 12, true, "previous-attributes");
 
         //控件字体族 family-name generic-family  用于某个元素的字体族名称或/及类族名称的一个优先表
-        style("font-family", "arial,宋体,sans-serif", true, attributes);
+        style("font-family", "arial,宋体,sans-serif", true, "previous-attributes");
 
 
 
         //控件文字词间距(以空格为准)(与css有差异,此处不支持继承)
         //number	整数值 
-        style("word-spacing", 0, true, attributes);
+        style("word-spacing", 0, true, "previous-attributes");
 
         //控件文字字间距(与css有差异,此处不支持继承)
         //number	整数值 
-        style("letter-spacing", 0, true, attributes);
-
-
-        attributes = {
-
-            changed: "this.__fn_reset_font(\"rows\");"
-        };
-
-
-        //控件文字行高
-        //number	整数值 
-        style("line-height", 12, true, attributes);
-
+        style("letter-spacing", 0, true, "previous-attributes");
 
         //控件文字缩进(与css有差异,此处不支持继承)
         //number	整数值 
-        style("text-indent", 0, true, attributes);
+        style("text-indent", 0, true, "previous-attributes");
 
         //控件文字换行方式(非html css属性)
         //false	    不换行
         //true	    自动换行
-        style("text-wrap", false, true, attributes);
+        style("text-wrap", false, true, "previous-attributes");
 
         //控件文字装饰
         //none	        默认 定义标准的文本 
@@ -1199,7 +1221,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 if (value)
                 {
-                    if (value.constructor === String)
+                    if (typeof value === "string")
                     {
                         var values = value.replace(convert_name_regex, function (_, x) {
 
@@ -1913,9 +1935,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.clientWidth = 0;
         this.clientHeight = 0;
 
-        //内容区(实际内容大小及开始渲染位置)
-        this.contentX = 0;
-        this.contentY = 0;
+        //内容区大小(实际内容大小及开始渲染位置)
         this.contentWidth = 0;
         this.contentHeight = 0;
 
@@ -1929,6 +1949,11 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         }, this);
 
 
+        //可视区起始坐标
+        this.__visible_x = 0;
+        this.__visible_y = 0;
+
+
         //是否需要重新布局
         this.__arrange_dirty = true;
 
@@ -1937,9 +1962,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //子控件是否需要重绘
         this.__children_dirty = false;
-
-        //父控件是否需要重绘
-        this.__update_parent = false;
 
 
 
@@ -2165,7 +2187,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //处理自动宽高
             if (auto_width || auto_height)
             {
-                this.__fn_measure_auto(auto_width ? width : 0, auto_height ? height : 0);
+                //立即执行排列方法
+                this.__fn_arrange();
 
                 //重计算宽度
                 if (width !== (cache = this.contentWidth))
@@ -2215,14 +2238,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             return { width: this.controlWidth + box.margin_spaceX, height: this.controlHeight + box.margin_spaceY };
         };
 
-
-        //测量自动宽高
-        //maxWidth:     最大可用宽度 0表示无限大
-        //maxHeight:    最大可用高度 0表示无限大
-        this.__fn_measure_auto = function (maxWidth, maxHeight) {
-
-            this.__fn_arrange();
-        };
 
 
         //设置控件位置(需先调用measure才可调用此方法)
@@ -2277,43 +2292,43 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //排列子控件
         this.__fn_arrange = function () {
 
-            var box = this.__box_style,
-                rtl = this.direction === "rtl",
-                cache = false;
-
             //初始化内容区
             this.contentWidth = this.clientWidth;
             this.contentHeight = this.clientHeight;
 
-            //排列 overflow === "auto" 时先按没有滚动条的方式排列
+            //排列
             this.arrange();
 
             //执行rtl变换
-            if (rtl && this.__children)
+            if (this.__children && this.direction === "rtl")
             {
                 this.__fn_arrange_rtl(this.__children);
-            }
-
-            //如果有字体则清空字体排列缓存
-            if (this.__text)
-            {
-                this.__text.rows = null;
             }
 
             this.__arrange_dirty = false;
         };
 
 
+
+        //缓存单行布局服务
+        var layout_line = flyingon.layouts["line"];
+
         //排列
         this.arrange = function () {
 
+            var items = this.__visible_items;
+
+            if (items && items.length > 0)
+            {
+                layout_line.call(this, items);
+            }
         };
 
 
         //rtl排列变换
         this.__fn_arrange_rtl = function (items) {
 
-            if (this.vertical)
+            if (this.layoutVertical)
             {
                 this.__fn_arrange_x(items);
             }
@@ -2402,14 +2417,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //滚动指定距离
         this.scrollBy = function (x, y) {
 
-            this.scrollTo(this.contentX + x, this.contentY + y);
+            this.scrollTo(this.__visible_x + x, this.__visible_y + y);
         };
 
         //滚动到指定坐标
         this.scrollTo = function (x, y) {
 
-            this.contentX = x || 0;
-            this.contentY = y || 0;
+            this.__visible_x = x || 0;
+            this.__visible_y = y || 0;
 
             this.invalidate(false, true);
         };
@@ -2440,8 +2455,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (items && items.length > 0)
             {
-                x += this.contentX - this.clientX;
-                y += this.contentY - this.clientY;
+                x += this.__visible_x - this.clientX;
+                y += this.__visible_y - this.clientY;
 
                 //if (this.transform)
                 //{
@@ -2522,8 +2537,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 if (!target.__additions)
                 {
-                    x += parent.contentX;
-                    y += parent.contentY;
+                    x += parent.__visible_x;
+                    y += parent.__visible_y;
                 }
 
                 target = parent;
@@ -2642,7 +2657,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //是否可用
         this.defineProperty("enabled", true, {
 
-            changed: "this.stateTo('disabled', !value);"
+            change: "this.stateTo('disabled', !value);"
         });
 
 
@@ -2746,7 +2761,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.defineProperty("template", null, {
 
             attributes: "rearrange",
-            changed: "this.clearTemplate();",
+            change: "this.clearTemplate();",
 
             getter: function () {
 
@@ -2962,35 +2977,24 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //update_now    是否立即更新
         this.invalidate = function (rearrange, update_now) {
 
-            var layer = this.__ownerLayer || this.ownerLayer;
+            var target;
 
-            if (layer)
+            if (!this.__arrange_dirty && (target = this.__parent))
             {
-                var target = this,
-                    parent;
+                this.__current_dirty = true;
 
                 if (rearrange)
                 {
-                    target.__arrange_dirty = true;
+                    this.__arrange_dirty = true;
                 }
 
-                target.__current_dirty = true;
-
-                while (target !== layer && (parent = target.__parent))
+                do
                 {
-                    if (target.__update_parent)
-                    {
-                        parent.__current_dirty = true;
-                    }
-                    else
-                    {
-                        parent.__children_dirty = true;
-                    }
-
-                    target = parent;
+                    target.__children_dirty = true;
                 }
+                while (target = target.__parent);
 
-                layer.__registry_update(update_now);
+                (this.__ownerLayer || this.ownerLayer).__registry_update(update_now);
             }
         };
 
@@ -3233,7 +3237,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             painter.target = this;
 
             //设置透明度
-            this.__update_parent = (context.globalAlpha = this.opacity) < 1;
+            context.globalAlpha = this.opacity;
 
             //切换原点到当前控件左上角
             context.translate(this.controlX, this.controlY);
@@ -3275,7 +3279,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             if ((cache = this.__visible_items) && cache.length > 0)
             {
                 //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.clientX - this.contentX, this.clientY - this.contentY);
+                context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
 
                 for (var i = 0, _ = cache.length; i < _; i++)
                 {
@@ -3316,7 +3320,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 context.save();
 
                 //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.controlX + this.clientX - this.contentX, this.controlY + this.clientY - this.contentY);
+                context.translate(this.controlX + this.clientX - this.__visible_x, this.controlY + this.clientY - this.__visible_y);
 
                 //处理变换
                 //if (this.transform)
@@ -3400,16 +3404,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //绘制内框
         this.paint = function (painter) {
 
-            var width = this.controlWidth,
-                height = this.controlHeight,
-                context = painter.context;
-
-            var text = this.uniqueId + ":" + this.controlX + "," + this.controlY + "," + width + "," + height;
-
-            context.fillStyle = "black";
-            context.textBaseline = "top";
-            context.font = this.font;
-            context.fillText(text, this.clientX, this.clientY);
         };
 
 

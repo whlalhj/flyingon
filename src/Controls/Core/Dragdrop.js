@@ -67,7 +67,7 @@
     function drag_start(event) {
 
         //发送事件
-        ownerControl.dispatchEvent(event);
+        ownerControl.dispatchEvent(event, true);
     };
 
 
@@ -97,7 +97,7 @@
             if (dropTarget)
             {
                 event = new_event("dragleave", dom_event);
-                dropTarget.dispatchEvent(event);
+                dropTarget.dispatchEvent(event, true);
             }
 
             droppable = false;
@@ -108,7 +108,7 @@
 
                 event = new_event("dragenter", dom_event);
 
-                if (target.dispatchEvent(event))
+                if (target.dispatchEvent(event), true)
                 {
                     droppable = true;
                 }
@@ -122,12 +122,12 @@
         }
 
         event = new_event("drag", dom_event);
-        ownerControl.dispatchEvent(event);
+        ownerControl.dispatchEvent(event, true);
 
         if (target)
         {
             event = new_event("dragover", dom_event);
-            target.dispatchEvent(event);
+            target.dispatchEvent(event, true);
         }
     };
 
@@ -136,10 +136,10 @@
 
         if (dropTarget)
         {
-            dropTarget.dispatchEvent(new_event("drop", dom_event));
+            dropTarget.dispatchEvent(new_event("drop", dom_event), true);
         }
 
-        ownerControl.dispatchEvent(new_event("dragend", dom_event));
+        ownerControl.dispatchEvent(new_event("dragend", dom_event), true);
     }
 
 
@@ -269,7 +269,7 @@
         else if (start_event) //如果未执行则切换输入焦点及补上mousedown事件
         {
             ownerWindow.__fn_switch_focus(target);
-            ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event));
+            ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event), true);
         }
 
         //设置拖动状态为停止拖动

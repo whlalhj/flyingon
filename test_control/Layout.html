@@ -94,6 +94,8 @@
                     ctrl.left = i % 5 * 120;
                     ctrl.top = i / 5 * 30;
 
+                    ctrl.width = "content";
+
                     ctrl.margin = 2;
                     ctrl.borderWidth = 1;
                     ctrl.borderColor = "red";
@@ -137,14 +139,14 @@
                 panel.padding = 10;
 
                 panel.layoutType = "flow";
-                panel.layoutLineSpace = 10;
-                panel.layoutItemSpace = 10;
+                panel.layoutLineSpace = 0;
+                panel.layoutItemSpace = 0;
 
                 //panel.layoutHeight = 100;
                 //panel.layoutWidth = 160;
                 panel.layoutGridRows = 4;
                 panel.layoutGridColumns = 4;
-                panel.layoutTable = "*[* * * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
+                panel.layoutTable = "*[50% * *] *[* * table(50% 50%) *[* * *] *[* * *] *[* * *] end *] *[* * * *]";
 
                 w.children.append(panel);
 
@@ -153,7 +155,6 @@
 
             alert(new Date() - date);
 
-            w.borderWidth;
             w.update();
 
         };
@@ -217,7 +218,7 @@
             for (var i = 0; i < w.children.length; i++)
             {
                 var panel = w.children[i];
-                panel.vertical = value;
+                panel.layoutVertical = value;
             }
 
             w.update();

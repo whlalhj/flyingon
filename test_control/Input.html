@@ -17,18 +17,11 @@
 </head>
 <body>
 
-    <div>
-        <input type="button" value="create" onclick="create()" />
-        <input type="button" value="update" onclick="update()" />
-        <input type="button" value="indexOf" onclick="indexOf()" />
-        <input id="text1" type="text" value="createdddd" />
-        <span id="message"></span>
-    </div>
 
     <div id="host" style="width: 100%; height: 600px">
     </div>
 
-    <!--    <input id="Text1" type="text" style="position: absolute; opacity: 0.5; top: 42px; left: 14px;border:0;padding:0" />-->
+    <span id="message"></span>
 
 
     <script src="../js/flyingon.js"></script>
@@ -36,101 +29,51 @@
 
 
     <script type="text/javascript">
-       
 
-        //加载自定义样式
-        //flyingon.style("/themes/sample.js");
 
 
         var w = new flyingon.Window(host);
 
+        w.layoutItemSpace = 10;
+        w.layoutLineSpace = 10;
+        w.layoutType = "flow";
 
-        function create() {
 
-            //flyingon.beginInit();
-            var date = new Date();
+        for (var j = 0; j < 100; j++)
+        {
+            var panel = new flyingon.Panel();
 
-            w.backgroundColor = "silver";
-            w.layoutType = "flow";
-
-            for (var i = 0; i < 4; i++)
+            for (var i = 0; i < 100; i++)
             {
-                var panel = new flyingon.Panel();
+                var control = new flyingon.TextBox();
 
-                panel.width = 400;
+                control.width = 190;
+                control.text = i + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
 
-                panel.height = 400;
-                //panel.layoutType = "flow"
-                panel.margin = [10, 20, 30, 40];
-                panel.border = [1, 1, 1, 1];
-
-                for (var j = 0; j < 100; j++)
-                {
-                    var text = new flyingon.TextBoxBase();
-
-                    text.width = 190;
-                    text.text = j + ".  中国! ,.:;'\"abcdefghijklmnopqrstuvwxyz";
-
-                    panel.children.append(text);
-                }
-
-                panel.onmousemove = function (event) {
-
-                    var items = this._render_children_;
-                    document.title += "  " + (items && items.length || "0") + " " + this.scrollTop;
-                };
-
-                w.children.append(panel);
+                panel.children.append(control);
             }
 
-
-            //flyingon.endInit();
-            w.update();
-
-            alert(new Date() - date);
-
-            //w.onclick = function (event) {
-
-            //    alert(event.target.id);
-            //};
-
-            //w.onmousedown = function (event) {
+            w.children.append(panel);
+        }
 
 
+    
 
+        w.onscroll = function (event) {
 
-            //    var p = event.target.offsetToControl(event.offsetX, event.offsetY);
-
-            //    event.target.controlToOffset(p.x, p.y);
-            //};
-
-            //w.onmousemove = function (event) {
-
-            //    var offset = event.target.controlToOffset(event.controlX, event.controlY);
-            //    message.innerHTML = "id:" + event.target.id + " offset:" + offset.x + "," + offset.y + " control:" + event.controlX + "," + event.controlY + " window:" + event.windowX + "," + event.windowY;// + "  text:" + event.target.text;
-            //};
+            message.innerHTML = "";
         };
 
+        w.ontest = function (event) {
 
-        function update() {
-
-
-            var date = new Date();
-
-            w.update();
-
-
-            alert(new Date() - date);
+            message.innerHTML += event.target.__fullTypeName + "-" + event.target.uniqueId + "-" + event.value + "    ";
         };
 
-        function indexOf() {
+        var date = new Date();
 
-            var font = w.font;
+        w.update();
 
-            var text = font.measureText("abc if 中国!");
-
-            var index = text.getSegmentAt(80);
-        };
+        alert(new Date() - date);
 
 
     </script>

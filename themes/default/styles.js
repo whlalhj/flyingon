@@ -205,7 +205,7 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //文本框样式
-    defineStyle("TextBoxBase", {
+    defineStyle("TextControl", {
 
         backgroundColor: "#FFFFFF",
         border: "1 solid #CCCCCC",

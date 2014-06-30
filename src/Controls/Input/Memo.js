@@ -5,16 +5,13 @@
 /*
 
 */
-flyingon.defineClass("Memo", flyingon.Control, function (Class, base, flyingon) {
+flyingon.defineClass("Memo", flyingon.Text, function (Class, base, flyingon) {
 
 
 
     this.defaultValue("width", 200);
 
     this.defaultValue("height", 40);
-
-    this.defaultValue("multiline", true);
-
 
 
 

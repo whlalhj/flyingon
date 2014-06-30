@@ -20,7 +20,8 @@ flyingon.window_extender = function (base, flyingon) {
     this.__fn_create = function () {
 
 
-        var div = this.dom_window = document.createElement("div");
+        var self = this,
+            div = this.dom_window = document.createElement("div");
 
         div.setAttribute("flyingon", "window");
         div.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;");
@@ -70,12 +71,12 @@ flyingon.window_extender = function (base, flyingon) {
         div.addEventListener("keyup", key_event, true);
 
 
-        //创建控件捕获延迟执行器
-        this.__capture_delay = new flyingon.DelayExecutor(10, capture_control, this);
+        //创建处理鼠标指向延迟执行器
+        this.__hover_delay = new flyingon.DelayExecutor(10, handle_hover, this);
 
 
         //初始化输入符
-        flyingon.__fn_initialize_caret.call(this, this.dom_window);
+        //flyingon.__fn_initialize_caret.call(this, this.dom_window);
     };
 
 
@@ -113,6 +114,8 @@ flyingon.window_extender = function (base, flyingon) {
     //修改透明度属性
     this.defineProperty("opacity", 1, {
 
+        minValue: 0,
+        maxValue: 1,
         complete: "this.dom_window.style.opacity = value;"
     });
 
@@ -288,8 +291,8 @@ flyingon.window_extender = function (base, flyingon) {
 
 
 
-    //控件捕获
-    function capture_control(dom_event) {
+    //处理鼠标指向
+    function handle_hover(dom_event) {
 
         compute_canvas(this.dom_window, dom_event);
 
@@ -334,8 +337,8 @@ flyingon.window_extender = function (base, flyingon) {
 
     function mousedown(dom_event) {
 
-        //处理延时并捕获当前窗口
-        var ownerWindow = this.__ownerWindow.__capture_delay.execute();
+        //立即处理鼠标指向
+        var ownerWindow = this.__ownerWindow.__hover_delay.execute();
 
         //处理弹出窗口
         if (ownerWindow !== ownerWindow.activeWindow) //活动窗口不是当前点击窗口
@@ -414,14 +417,14 @@ flyingon.window_extender = function (base, flyingon) {
                     target.dispatchEvent(new MouseEvent("mouseout", target, dom_event), true);
                 }
 
-                ownerWindow.__capture_delay.cancel(); //取消原延时事件
+                ownerWindow.__hover_delay.cancel(); //取消处理鼠标指向注册
                 ownerWindow = null;
             }
         }
 
         if (ownerWindow || (ownerWindow = host.__ownerWindow = dom_event.target.__ownerWindow))
         {
-            ownerWindow.__capture_delay.registry(dom_event); //启用延迟捕获
+            ownerWindow.__hover_delay.registry(dom_event); //注册处理鼠标指向
         }
     };
 
@@ -449,6 +452,19 @@ flyingon.window_extender = function (base, flyingon) {
                 //取消活动状态
                 target.stateTo("active", false);
 
+                //处理捕获
+                if (capture)
+                {
+                    //清空上次鼠标指向控件以便对比
+                    flyingon.__hover_control = null;
+
+                    //处理鼠标指向
+                    handle_hover.call(ownerWindow, dom_event);
+
+                    //自动取消捕获
+                    flyingon.__capture_control = null;
+                }
+
                 //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
                 target.dispatchEvent(new MouseEvent("mouseup", target, dom_event), capture !== target);
             }
@@ -463,7 +479,7 @@ flyingon.window_extender = function (base, flyingon) {
     //鼠标事件翻译方法
     function translate_MouseEvent(type, dom_event) {
 
-        var ownerWindow = this.__ownerWindow.__capture_delay.execute(),
+        var ownerWindow = this.__ownerWindow.__hover_delay.execute(),
             capture = flyingon.__capture_control,
             target = capture || flyingon.__hover_control;
 

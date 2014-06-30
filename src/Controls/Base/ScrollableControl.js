@@ -3,6 +3,11 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
 
+    //滚动事件
+    this.defineEvent("scroll");
+
+
+
     this.__event_bubble_mousewheel = function (event) {
 
         var scrollbar_y = this.__scrollbar_y;
@@ -73,7 +78,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         if (scrollbar_x)
         {
             scrollbar_x.maxValue = this.contentWidth - this.clientWidth;
-            this.contentX = scrollbar_x.__rtl ? scrollbar_x.maxValue - scrollbar_x.value : scrollbar_x.value;
+            this.__visible_x = scrollbar_x.__rtl ? scrollbar_x.maxValue - scrollbar_x.value : scrollbar_x.value;
 
             x = scrollbar_y && scrollbar_y.__rtl ? box.border_left + thickness2 : box.border_left;
             y = this.controlHeight - box.border_bottom - thickness1;
@@ -86,7 +91,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         if (scrollbar_y)
         {
             scrollbar_y.maxValue = this.contentHeight - this.clientHeight;
-            this.contentY = scrollbar_y.value;
+            this.__visible_y = scrollbar_y.value;
 
             x = scrollbar_y && scrollbar_y.__rtl ? box.border_left : this.controlWidth - box.border_right - thickness2;
             height = this.controlHeight - box.border_spaceY - (scrollbar_x ? thickness1 : 0);
@@ -165,7 +170,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
             this.__scrollbar_x__ = this.__scrollbar_x;
             this.__scrollbar_x = null;
 
-            this.contentX = 0;
+            this.__visible_x = 0;
         }
 
         //处理竖直方向自动滚动
@@ -180,7 +185,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
             this.__scrollbar_y__ = this.__scrollbar_y;
             this.__scrollbar_y = null;
 
-            this.contentY = 0;
+            this.__visible_y = 0;
         }
 
         //重新排列
@@ -199,12 +204,6 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         if (rtl && this.__children)
         {
             this.__fn_arrange_rtl(this.__children);
-        }
-
-        //如果有字体则清空字体排列缓存
-        if (this.__text)
-        {
-            this.__text.rows = null;
         }
 
         this.__arrange_dirty = false;
@@ -232,36 +231,6 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         return base.fintAt.call(this, x, y);
     };
 
-
-    //更新控件
-    this.__fn_update = function (painter, visible_items) {
-
-        var scrollbar_x = this.__scrollbar_x,
-            scrollbar_y = this.__scrollbar_y,
-            scroll_corner;
-
-        //调用父类的更新方法
-        base.__fn_update.call(this, painter, visible_items);
-
-        //更新滚动条
-        if (scrollbar_x && scrollbar_x.__current_dirty)
-        {
-            scrollbar_x.render(painter, false);
-        }
-
-        if (scrollbar_y)
-        {
-            if (scrollbar_y.__current_dirty)
-            {
-                scrollbar_y.render(painter, false);
-            }
-
-            if ((scroll_corner = this.__scroll_corner) && scroll_corner.__current_dirty)
-            {
-                scroll_corner.render(painter, false);
-            }
-        }
-    };
 
 
     //绘制附加项(滚动动条)

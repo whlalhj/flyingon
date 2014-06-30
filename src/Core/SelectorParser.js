@@ -133,256 +133,247 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
 
 
     //元素节点
-    var element_node = flyingon.__element_node = flyingon.function_extend(
+    var element_node = flyingon.__element_node = flyingon.function_extend(function (nodes, token, name) {
 
-        function (nodes, token, name) {
+        var last;
 
-            var last;
+        if (nodes.type !== "," || nodes.length === 0) //非组合直接添加到当前节点集合
+        {
+            this.type = nodes.type || " ";
+            nodes.push(this);
+        }
+        else if ((last = nodes[nodes.length - 1]) instanceof element_nodes)
+        {
+            last.push(this);
+        }
+        else
+        {
+            nodes.pop();
+            (nodes.forks || (nodes.forks = [])).push(nodes.length); //记录分支位置
+            nodes.push(new element_nodes(last, this));
+        }
 
-            if (nodes.type !== "," || nodes.length === 0) //非组合直接添加到当前节点集合
+        this.token = token;
+
+        switch (name[0])
+        {
+            case "\"":
+            case "'":
+                this.name = name.substring(1, name.length - 1);
+                break;
+
+            default:
+                this.name = name;
+                break;
+        }
+
+        nodes.type = null;
+
+    }, function () {
+
+        //所属组合类型
+        this.type = null;
+
+        //token标记
+        this.token = null;
+
+        //节点名称
+        this.name = null;
+
+        //伪元素名称(仅伪元素有效)
+        this.pseudo = null;
+
+        //节点参数(仅伪元素有效)
+        this.parameters = null;
+
+        //子项数
+        this.length = 0;
+
+
+        this.push = function (item) {
+
+            this[this.length++] = item;
+        };
+
+        this.toString = this.toLocaleString = function () {
+
+            var result = [];
+
+            if (this.type)
             {
-                this.type = nodes.type || " ";
-                nodes.push(this);
+                result.push(this.type);
             }
-            else if ((last = nodes[nodes.length - 1]) instanceof element_nodes)
+
+            result.push(this.token);
+            result.push(this.name);
+
+            //参数
+            if (this.parameters)
             {
-                last.push(this);
-            }
-            else
-            {
-                nodes.pop();
-                (nodes.forks || (nodes.forks = [])).push(nodes.length); //记录分支位置
-                nodes.push(new element_nodes(last, this));
+                result.push("(" + this.parameters.join(",") + ")");
             }
 
-            this.token = token;
+            //属性
+            result.push(Array.prototype.join(""));
 
-            switch (name[0])
-            {
-                case "\"":
-                case "'":
-                    this.name = name.substring(1, name.length - 1);
-                    break;
-
-                default:
-                    this.name = name;
-                    break;
-            }
-
-            nodes.type = null;
-        },
-
-        function () {
-
-            //所属组合类型
-            this.type = null;
-
-            //token标记
-            this.token = null;
-
-            //节点名称
-            this.name = null;
-
-            //伪元素名称(仅伪元素有效)
-            this.pseudo = null;
-
-            //节点参数(仅伪元素有效)
-            this.parameters = null;
-
-            //子项数
-            this.length = 0;
+            return result.join("");
+        };
 
 
-            this.push = function (item) {
-
-                this[this.length++] = item;
-            };
-
-            this.toString = this.toLocaleString = function () {
-
-                var result = [];
-
-                if (this.type)
-                {
-                    result.push(this.type);
-                }
-
-                result.push(this.token);
-                result.push(this.name);
-
-                //参数
-                if (this.parameters)
-                {
-                    result.push("(" + this.parameters.join(",") + ")");
-                }
-
-                //属性
-                result.push(Array.prototype.join(""));
-
-                return result.join("");
-            };
-
-
-        });
+    });
 
 
 
     //元素节点集合 不同类型的节点组合成一个集合
-    var element_nodes = flyingon.__element_nodes = flyingon.function_extend(
+    var element_nodes = flyingon.__element_nodes = flyingon.function_extend(function (first, second) {
 
-        function (first, second) {
+        second.type = first.type;
 
-            second.type = first.type;
+        this[0] = first;
+        this[1] = second;
 
-            this[0] = first;
-            this[1] = second;
-        },
-
-        function () {
-
-            //元素类型
-            this.type = ",";
-
-            //子项数
-            this.length = 2;
+    }, function () {
 
 
-            this.push = function (item) {
+        //元素类型
+        this.type = ",";
 
-                item.type = this[0].type;
-                this[this.length++] = item;
-            };
+        //子项数
+        this.length = 2;
 
-            this.toString = this.toLocaleString = function () {
 
-                return Array.prototype.join(",");
-            };
+        this.push = function (item) {
 
-        });
+            item.type = this[0].type;
+            this[this.length++] = item;
+        };
+
+        this.toString = this.toLocaleString = function () {
+
+            return Array.prototype.join(",");
+        };
+
+    });
 
 
 
 
     //元素属性 
-    var element_property = flyingon.__element_property = flyingon.function_extend(
+    var element_property = flyingon.__element_property = flyingon.function_extend(function (name) {
 
-        function (name) {
+        switch (name[0])
+        {
+            case "\"":
+            case "'":
+                this.name = name.substring(1, name.length - 1);
+                break;
 
-            switch (name[0])
+            default:
+                this.name = name;
+                break;
+        }
+
+    }, function () {
+
+
+        //标识
+        this.token = "[]";
+
+        //名称
+        this.name = null;
+
+        //操作符
+        this.operator = "";
+
+        //属性值
+        this.value = null;
+
+
+        //条件检测 通过返回目标对象 否则返回false
+        this.check = function (target) {
+
+            var value = target[this.name];
+
+            switch (this.operator)
             {
-                case "\"":
-                case "'":
-                    this.name = name.substring(1, name.length - 1);
-                    break;
+                case "":
+                    return value !== undefined ? target : false;
+
+                case "=":
+                    return value == this.value ? target : false;
+
+                case "*=": // *= 包含属性值XX (由属性解析)
+                    return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
+
+                case "^=": // ^= 属性值以XX开头 (由属性解析)
+                    return value && ("" + value).indexOf(this.value) === 0 ? target : false;
+
+                case "$=": // $= 属性值以XX结尾 (由属性解析)
+                    return value && (value = "" + value).lastIndexOf(this.value) === value.length - this.value.length ? target : false;
+
+                case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
+
+                case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
+                    return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value) ? target : false;
 
                 default:
-                    this.name = name;
-                    break;
+                    return false;
             }
-        },
 
-        function () {
-
-            //标识
-            this.token = "[]";
-
-            //名称
-            this.name = null;
-
-            //操作符
-            this.operator = "";
-
-            //属性值
-            this.value = null;
+            return target;
+        };
 
 
-            //条件检测 通过返回目标对象 否则返回false
-            this.check = function (target) {
+        this.toString = this.toLocaleString = function () {
 
-                var value = target[this.name];
+            return "[" + this.name + "]";
+        };
 
-                switch (this.operator)
-                {
-                    case "":
-                        return value !== undefined ? target : false;
-
-                    case "=":
-                        return value == this.value ? target : false;
-
-                    case "*=": // *= 包含属性值XX (由属性解析)
-                        return value && ("" + value).indexOf(this.value) >= 0 ? target : false;
-
-                    case "^=": // ^= 属性值以XX开头 (由属性解析)
-                        return value && ("" + value).indexOf(this.value) === 0 ? target : false;
-
-                    case "$=": // $= 属性值以XX结尾 (由属性解析)
-                        return value && (value = "" + value).lastIndexOf(this.value) === value.length - this.value.length ? target : false;
-
-                    case "~=": // ~= 匹配以空格分隔的其中一段值 如匹配en US中的en (由属性解析)
-                        return value && (this.regex || (this.regex = new RegExp("/(\b|\s+)" + this.value + "(\s+|\b)"))).test("" + value) ? target : false;
-
-                    case "|=": // |= 匹配以-分隔的其中一段值 如匹配en-US中的en (由属性解析)
-                        return value && (this.regex || (this.regex = new RegExp("/(\b|\-+)" + this.value + "(\-+|\b)"))).test("" + value) ? target : false;
-
-                    default:
-                        return false;
-                }
-
-                return target;
-            };
-
-
-            this.toString = this.toLocaleString = function () {
-
-                return "[" + this.name + "]";
-            };
-
-        });
+    });
 
 
 
     //元素属性集合
-    var element_properties = flyingon.__element_properties = flyingon.function_extend(
+    var element_properties = flyingon.__element_properties = flyingon.function_extend(function (first) {
 
-        function (first) {
+        this[0] = first;
 
-            this[0] = first;
-        },
-
-        function () {
-
-            //标识
-            this.token = "[][]";
-
-            //子项数
-            this.length = 1;
+    }, function () {
 
 
-            this.push = function (item) {
+        //标识
+        this.token = "[][]";
 
-                this[this.length++] = item;
-            };
+        //子项数
+        this.length = 1;
 
-            //条件检测 通过返回目标对象 否则返回false
-            this.check = function (target) {
 
-                for (var i = 0, _ = this.length; i < _; i++)
+        this.push = function (item) {
+
+            this[this.length++] = item;
+        };
+
+        //条件检测 通过返回目标对象 否则返回false
+        this.check = function (target) {
+
+            for (var i = 0, _ = this.length; i < _; i++)
+            {
+                if (this[i].check(target) === false)
                 {
-                    if (this[i].check(target) === false)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
+            }
 
-                return target;
-            };
+            return target;
+        };
 
-            this.toString = this.toLocaleString = function () {
+        this.toString = this.toLocaleString = function () {
 
-                return "[" + Array.prototype.join(",") + "]";
-            };
+            return "[" + Array.prototype.join(",") + "]";
+        };
 
-        });
+    });
 
 
 
@@ -413,31 +404,28 @@ E:only-of-type          匹配父元素下使用同种标签的唯一一个子�
     };
 
     //元素伪类(不含伪元素)
-    var element_pseudo = flyingon.__element_pseudo = flyingon.function_extend(
+    var element_pseudo = flyingon.__element_pseudo = flyingon.function_extend(function (name) {
 
-        function (name) {
+        this.check = pseudo_check[this.name = name];
 
-            this.check = pseudo_check[this.name = name];
-        },
+    }, function () {
 
-        function () {
+        //标识
+        this.token = ":";
 
-            //标识
-            this.token = ":";
+        //当前名称
+        this.name = null;
 
-            //当前名称
-            this.name = null;
-
-            //条件检测 通过返回目标对象 否则返回false
-            this.check = null;
+        //条件检测 通过返回目标对象 否则返回false
+        this.check = null;
 
 
-            this.toString = this.toLocaleString = function () {
+        this.toString = this.toLocaleString = function () {
 
-                return ":" + this.name;
-            };
+            return ":" + this.name;
+        };
 
-        });
+    });
 
 
 

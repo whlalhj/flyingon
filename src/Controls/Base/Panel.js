@@ -36,7 +36,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         base.__fn_arrange.call(this);
 
         //计算可视控件
-        this.__fn_scrollTo(this.contentX, this.contentY);
+        this.__fn_scrollTo(this.__visible_x, this.__visible_y);
     };
 
 
@@ -84,6 +84,18 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         }
     };
 
+
+
+
+    this.paint_border = function (painter) {
+
+        painter.context.fillStyle = "red";
+        painter.context.fillText(this.uniqueId, 0, 0);
+
+    };
+
+
+    this.defineEvent("test");
 
     //this.focus = function () {
 
