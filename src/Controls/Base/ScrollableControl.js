@@ -8,6 +8,28 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
 
+    //处理滑动
+    this.__event_bubble_mousemove = function (event) {
+
+        var scrollbar_x = this.__scrollbar_x,
+            scrollbar_y = this.__scrollbar_y;
+
+        if ((scrollbar_x || scrollbar_y) && event.start_event && event.which === 1) //如果鼠标左键处于按下状态且有滚动条
+        {
+            if (scrollbar_x)
+            {
+                scrollbar_x.__fn_moveTo(event);
+            }
+
+            if (scrollbar_y)
+            {
+                scrollbar_y.__fn_moveTo(event);
+            }
+        }
+    };
+
+
+    //处理鼠标滚轮
     this.__event_bubble_mousewheel = function (event) {
 
         var scrollbar_y = this.__scrollbar_y;

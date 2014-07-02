@@ -6,7 +6,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (ownerControl) {
 

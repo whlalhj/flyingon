@@ -62,9 +62,11 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         {
             //计算可视控件
             var items = this.__visible_items = [],
-                right = x + this.clientWidth,
-                bottom = y + this.clientHeight,
-                cache;
+                right = x + this.controlWidth,
+                bottom = y + this.controlHeight;
+
+            x -= this.clientX;
+            y -= this.clientY;
 
             for (var i = 0; i < length; i++)
             {
@@ -85,17 +87,6 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     };
 
 
-
-
-    this.paint_border = function (painter) {
-
-        painter.context.fillStyle = "red";
-        painter.context.fillText(this.uniqueId, 0, 0);
-
-    };
-
-
-    this.defineEvent("test");
 
     //this.focus = function () {
 

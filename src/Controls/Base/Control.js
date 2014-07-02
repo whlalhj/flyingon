@@ -6,7 +6,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 
@@ -74,26 +74,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.__fn_reset_style();    //重置样式
 
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent));
-    };
-
-
-    //转移(事件,使区域无效)至父控件
-    this.__fn_transfer_to_parent = function () {
-
-
-        //屏蔽事件响应直接分发至父控件
-        this.dispatchEvent = function (event, bubble) {
-
-            event.source = this;
-            return (event.target = this.__parent).dispatchEvent(event, bubble);
-        };
-
-
-        //更新至上级
-        this.invalidate = function (rearrange, update_now) {
-
-            this.__parent.invalidate(rearrange, update_now);
-        };
     };
 
 
@@ -304,16 +284,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.stateTo = function (name, value) {
 
             //保存状态值
-            (this.__states || (this.__states = Object.create(null)))[name] = value;
+            var states = this.__states || (this.__states = Object.create(null));
 
-            //重置控件样式版本
-            this.__style_version = 0;
+            if (states[name] !== value)
+            {
+                states[name] = value;
 
-            //状态变更事件
-            this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+                //重置样式
+                this.__style_version = 0;
+                this.__style_types = null;
 
-            //样式变更可能需要重新布局
-            (this.__parent || this).invalidate(true);
+                //状态变更事件
+                this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+
+                //样式变更可能需要重新布局
+                (this.__parent || this).invalidate(true);
+            }
         };
 
 
@@ -2623,6 +2609,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+
         //值变更事件
         this.defineEvent("change");
 
@@ -2637,6 +2624,35 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //定义其它事件
         this.defineEvents(["focus", "blur", "validate"]);
+
+
+
+
+        //当前控件是否可作为事件目标
+        this.__event_target = true;
+
+
+        //获取事件目标
+        this.__fn_event_target = function () {
+
+            var target = this,
+                parent = this;
+
+            while (parent)
+            {
+                if (parent.__event_target)
+                {
+                    parent = parent.__parent;
+                }
+                else
+                {
+                    parent = parent.__parent;
+                    target = parent || this.ownerWindow;
+                }
+            }
+
+            return target;
+        };
 
 
 
@@ -2819,13 +2835,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //捕获鼠标
         this.setCapture = function () {
 
-            flyingon.__capture_control = this;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(this);
+            }
         };
 
         //释放鼠标
         this.releaseCapture = function () {
 
-            flyingon.__capture_control = null;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(null);
+            }
         };
 
 
@@ -2833,7 +2859,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //执行验证
         this.validate = function () {
 
-            return this.dispatchEvent(new Event("validate", this), true);
+            return this.dispatchEvent(new Event("validate", this));
         };
 
         this.__fn_focus = function (event) {
@@ -2859,7 +2885,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     ownerWindow.__focused_control = this;
 
-                    if (this.dispatchEvent(new Event("focus", this), true))
+                    if (this.dispatchEvent(new Event("focus", this)))
                     {
                         this.stateTo("focus", true);
                     }
@@ -2880,7 +2906,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 ownerWindow.__focused_control = null;
 
-                if (this.dispatchEvent(new Event("blur", this), true))
+                if (this.dispatchEvent(new Event("blur", this)))
                 {
                     this.stateTo("focus", false);
                 }
@@ -2977,24 +3003,26 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //update_now    是否立即更新
         this.invalidate = function (rearrange, update_now) {
 
-            var target;
-
-            if (!this.__arrange_dirty && (target = this.__parent))
+            if (rearrange)
             {
+                this.__arrange_dirty = true;
+            }
+
+            if (!this.__current_dirty)
+            {
+                var target;
+
                 this.__current_dirty = true;
 
-                if (rearrange)
-                {
-                    this.__arrange_dirty = true;
-                }
-
-                do
+                while ((target = this.__parent) && !target.__children_dirty)
                 {
                     target.__children_dirty = true;
                 }
-                while (target = target.__parent);
 
-                (this.__ownerLayer || this.ownerLayer).__registry_update(update_now);
+                if (target = this.__ownerLayer || this.ownerLayer)
+                {
+                    target.__registry_update(update_now);
+                }
             }
         };
 
@@ -3220,90 +3248,95 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //注3:oprea的字体渲染不够清晰(不知道是不是与字体设置有关, 需进一步测试)
         this.render = function (painter, clear) {
 
-            var box = this.__box_style,
-                context = painter.context,
+            var context = painter.context,
+                box,
                 cache;
 
-            //重新排列
-            if (this.__arrange_dirty)
+            //需先测量才可渲染
+            if (box = this.__box_style)
             {
-                this.__fn_arrange();
-            }
-
-            //保存渲染环境
-            context.save();
-
-            //设置目标控件
-            painter.target = this;
-
-            //设置透明度
-            context.globalAlpha = this.opacity;
-
-            //切换原点到当前控件左上角
-            context.translate(this.controlX, this.controlY);
-
-            //清除原有内容
-            if (clear !== false)
-            {
-                context.clearRect(0, 0, this.controlWidth, this.controlHeight);
-            }
-
-            //变换
-            //if (this.transform)
-            //{
-            //    context.transform.apply(context, this.transform.data);
-            //}
-
-            //裁剪防止内容超出边框区范围
-            context.beginPath();
-
-            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
-            {
-                border_path(context, box.border_clip);
-            }
-            else
-            {
-                context.rect(0, 0, this.controlWidth, this.controlHeight);
-            }
-
-            context.save();
-            context.clip();
-
-            //绘制背景
-            this.paint_background(painter);
-
-            //绘制内容
-            this.paint(painter);
-
-            //渲染子项
-            if ((cache = this.__visible_items) && cache.length > 0)
-            {
-                //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
-
-                for (var i = 0, _ = cache.length; i < _; i++)
+                //重新排列
+                if (this.__arrange_dirty)
                 {
-                    cache[i].render(painter, false);
+                    this.__fn_arrange();
                 }
+
+                //保存渲染环境
+                context.save();
+
+                //设置目标控件
+                painter.target = this;
+
+                //设置透明度
+                context.globalAlpha = this.opacity;
+
+                //切换原点到当前控件左上角
+                context.translate(this.controlX, this.controlY);
+
+                //清除原有内容
+                if (clear !== false)
+                {
+                    context.clearRect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                //变换
+                //if (this.transform)
+                //{
+                //    context.transform.apply(context, this.transform.data);
+                //}
+
+                //裁剪防止内容超出边框区范围
+                context.beginPath();
+
+                if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
+                {
+                    border_path(context, box.border_clip);
+                }
+                else
+                {
+                    context.rect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                context.save();
+                context.clip();
+
+                //绘制背景
+                this.paint_background(painter);
+
+                //绘制内容
+                this.paint(painter);
+
+                //渲染子项
+                if ((cache = this.__visible_items) && cache.length > 0)
+                {
+                    //切换起点到当前控件客户区左上角并进行滚动偏移
+                    context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
+
+                    //循环渲染子项
+                    for (var i = 0, _ = cache.length; i < _; i++)
+                    {
+                        cache[i].render(painter, false);
+                    }
+                }
+
+                //回滚至剪切区域
+                context.restore();
+
+                //绘制附加项
+                if (this.paint_additions)
+                {
+                    this.paint_additions(painter);
+                }
+
+                //绘制边框
+                this.paint_border(painter);
+
+                //修改状态
+                this.__current_dirty = false;
+
+                //回滚到绘制本控件前的状态
+                context.restore();
             }
-
-            //回滚至剪切区域
-            context.restore();
-
-            //绘制附加项
-            if (this.paint_additions)
-            {
-                this.paint_additions(painter);
-            }
-
-            //绘制边框
-            this.paint_border(painter);
-
-            //修改状态
-            this.__current_dirty = false;
-
-            //回滚到绘制本控件前的状态
-            context.restore();
         };
 
 

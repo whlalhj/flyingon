@@ -11,9 +11,9 @@ Canvas2D绘图
 
 
     //2d图形绘制器
-    flyingon.Painter = flyingon.function_extend(function (context) {
+    flyingon.Painter = flyingon.function_extend(function (canvas) {
 
-        this.context = context;
+        this.context = (this.canvas = canvas).getContext("2d");
 
     }, function (flyingon) {
 

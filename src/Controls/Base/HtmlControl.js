@@ -3,7 +3,7 @@ flyingon.defineClass("HtmlControl", flyingon.Control, function (Class, base, fly
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 

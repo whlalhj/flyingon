@@ -66,7 +66,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         return "if ((cache = this.__events) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
                 + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
-                + "if (this.dispatchEvent(event, true) === false)\n"
+                + "if (this.dispatchEvent(event) === false)\n"
                 + "{\n"
                 + "return false;\n"
                 + "}\n\n"
@@ -96,14 +96,14 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         }
 
         //最小值限定(小于指定值则自动转为指定值)
-        if (cache = attributes.minValue)
+        if ((cache = attributes.minValue) != null)
         {
             body.push("if (value < " + cache + ") value = " + cache + ";");
             body.push("\n");
         }
 
         //最大值限定(大于指定值则自动转为指定值)
-        if (cache = attributes.maxValue)
+        if ((cache = attributes.maxValue) != null)
         {
             body.push("if (value > " + cache + ") value = " + cache + ";");
             body.push("\n");
@@ -338,15 +338,16 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
     //分发事件
     //event     要分发的事件
-    //bubble    是否冒泡模式 是则按事件链逐步分发 否则只分发至当前控件
-    this.dispatchEvent = function (event, bubble) {
+    this.dispatchEvent = function (event) {
 
-        var key = (bubble = bubble !== false) ? event.type : event.type + "_this",
-            events = this.__events_cache && this.__events_cache[key] || cache_events(this, event.type, key, bubble),
-            length = events.length;
+        var type = event.type,
+            events = this.__events_cache,
+            length;
+
+        events = events && events[type] || cache_events(this, type)
 
         //获取相关事件
-        if (length > 0)
+        if ((length = events.length) > 0)
         {
             //循环处理相关事件
             for (var i = 0; i < length; i++)
@@ -370,28 +371,22 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //是否绑定了指定名称(不带on)的事件
-    this.hasEvent = function (type, bubbleEvent) {
+    this.hasEvent = function (type) {
 
-        var events = this.__events;
-
-        if (events && (events = events[type]) && events.length > 0)
-        {
-            return true;
-        }
-
-        return bubbleEvent ? parent.hasEvent(type, true) : false;
+        var events = this.__events_cache;
+        return (events && events[type] || cache_events(this, type)).length > 0;
     };
 
 
     //缓存事件
-    function cache_events(target, type, key, bubble) {
+    function cache_events(target, type) {
 
-        var result = (target.__events_cache || (target.__events_cache = {}))[key] = [],
+        var result = (target.__events_cache || (target.__events_cache = {}))[type] = [],
             events,
             listener,
             name;
 
-        do
+        while (target)
         {
             //插入默认捕获事件
             if ((name = "__event_capture_" + type) in target)
@@ -421,7 +416,9 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 }
             }
 
-        } while (bubble && (target = target.__parent))
+            //继续处理父控件
+            target = target.__parent;
+        }
 
         return result;
     };

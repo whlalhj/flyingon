@@ -1,20 +1,16 @@
 ﻿
 //事件类型基类
-flyingon.Event = function (type, target) {
-
-    this.type = type;
-    this.target = target;
-};
+flyingon.defineClass("Event", function (Class, base, flyingon) {
 
 
-(function () {
+
+    Class.create = function (type, source) {
+
+        this.type = type;
+        this.source = source;
+    };
 
 
-    //事件类型
-    this.type = null;
-
-    //触发事件目标对象
-    this.target = null;
 
     //是否取消冒泡
     this.cancelBubble = false;
@@ -24,107 +20,189 @@ flyingon.Event = function (type, target) {
 
 
 
+    //定义属性
+    this.defineProperty = function (name, getter) {
+
+        if (typeof getter !== "function")
+        {
+            getter = new Function("return " + (getter ? getter + "." : "this.__") + name + ";");
+        }
+
+        flyingon.defineProperty(this, name, getter);
+    };
+
+
+
+    //事件类型
+    this.type = null;
+
+
+    //触发事件的源对象
+    this.source = null
+
+
+    //触发事件目标对象
+    this.defineProperty("target", function () {
+
+        return this.__target || (this.__target = this.source.__fn_event_target());
+    });
+
+
+
     //阻止事件冒泡
     this.stopPropagation = function () {
 
+        var event = this.dom_event;
+
         this.cancelBubble = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.stopPropagation();
+            event.stopPropagation();
         }
     };
+
 
     //阻止事件冒泡及禁止默认事件
     this.stopImmediatePropagation = function () {
 
+        var event = this.dom_event;
+
         this.cancelBubble = true;
         this.defaultPrevented = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.preventDefault();
-            this.original_event.stopPropagation();
+            event.preventDefault();
+            event.stopPropagation();
         }
     };
+
 
     //禁止默认事件
     this.preventDefault = function () {
 
+        var event = this.dom_event;
+
         this.defaultPrevented = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.preventDefault();
+            event.preventDefault();
         }
     };
 
 
-}).call(flyingon.Event.prototype);
+});
 
 
 
 
 //鼠标事件类型
-(flyingon.MouseEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.original_event = original_event;
-
-}).prototype = flyingon.Event.prototype;
+flyingon.defineClass("MouseEvent", flyingon.Event, function (Class, base, flyingon) {
 
 
-(function (flyingon) {
 
+    Class.create_mode = "merge";
 
-    var target = this;
+    Class.create = function (type, source, dom_event, start_event) {
 
-
-    function defineProperty(name) {
-
-        flyingon.defineProperty(target, name, function () {
-
-            return this.original_event[name];
-        });
+        this.dom_event = dom_event;     //关联的原始dom事件
+        this.start_event = start_event; //关联的起始事件
     };
 
 
+
     //是否按下ctrl键
-    defineProperty("ctrlKey");
+    this.defineProperty("ctrlKey", "this.dom_event");
+
 
     //是否按下shift键
-    defineProperty("shiftKey");
+    this.defineProperty("shiftKey", "this.dom_event");
+
 
     //是否按下alt键
-    defineProperty("altKey");
+    this.defineProperty("altKey", "this.dom_event");
+
 
     //是否按下meta键
-    defineProperty("metaKey");
+    this.defineProperty("metaKey", "this.dom_event");
+
 
     //事件触发时间
-    defineProperty("timeStamp");
+    this.defineProperty("timeStamp", "this.dom_event");
+
+
 
     //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-    defineProperty("button");
+    //如果关联了鼠标按下事件则取鼠标按下事件的值
+    this.defineProperty("button", "(this.start_event || this).dom_event");
 
 
-    defineProperty = null;
+    //鼠标按键 左:1 中:2 右:3
+    //如果关联了鼠标按下事件则取鼠标按下事件的值
+    this.defineProperty("which", "(this.start_event || this).dom_event");
+
+
+
+    //扩展dom鼠标事件增加画布坐标(canvasX,canvasY)
+    (function () {
+
+
+
+        //计算鼠标事件画布坐标
+        function dom_event_canvas(event) {
+
+            var x = 0,
+                y = 0,
+                target = event.target;
+
+            if (target.__ownerWindow)
+            {
+                target = target.__ownerWindow.dom_window;
+            }
+
+            while (target)
+            {
+                x += target.offsetLeft;
+                y += target.offsetTop;
+
+                target = target.offsetParent;
+            }
+
+            event.__canvasX = event.pageX - x;
+            event.__canvasY = event.pageY - y;
+
+            return event;
+        };
+
+
+
+        flyingon.defineProperty(this, "canvasX", function () {
+
+            return this.__canvasX || dom_event_canvas(this).__canvasX;
+        });
+
+
+        flyingon.defineProperty(this, "canvasY", function () {
+
+            return this.__canvasY || dom_event_canvas(this).__canvasY;
+        });
+
+
+
+    }).call(MouseEvent.prototype);
 
 
 
 
     function canvas_to_window() {
 
-        var event = this.original_event;
+        var event = this.dom_event,
+            offset = this.target.canvas_to_window(event.canvasX, event.__canvasY);
 
-        if (!event.windowX)
-        {
-            var offset = this.target.canvas_to_window(event.canvasX, event.canvasY);
-
-            event.windowX = offset.x;
-            event.windowY = offset.y;
-        }
+        event.windowX = offset.x;
+        event.windowY = offset.y;
 
         return event;
     };
@@ -132,81 +210,108 @@ flyingon.Event = function (type, target) {
 
     function canvas_to_control() {
 
-        var event = this.original_event;
+        var event = this.dom_event,
+            offset = this.target.canvas_to_control(event.canvasX, event.__canvasY);
 
-        if (!event.controlX)
-        {
-            var offset = this.target.canvas_to_control(event.canvasX, event.canvasY);
-
-            event.controlX = offset.x;
-            event.controlY = offset.y;
-        }
+        event.controlX = offset.x;
+        event.controlY = offset.y;
 
         return event;
     };
 
 
-
     //x画布坐标
-    flyingon.defineProperty(this, "canvasX", function () {
+    this.defineProperty("canvasX", function () {
 
-        return this.original_event.canvasX;
+        var event = this.dom_event;
+        return event.__canvasX || event.canvasX;
     });
 
     //y画布坐标
-    flyingon.defineProperty(this, "canvasY", function () {
+    this.defineProperty("canvasY", function () {
 
-        return this.original_event.canvasY;
+        var event = this.dom_event;
+        return event.__canvasY || event.canvasY;
     });
 
 
     //x窗口坐标
-    flyingon.defineProperty(this, "windowX", function () {
+    this.defineProperty("windowX", function () {
 
-        return this.original_event.windowX || canvas_to_window.call(this).windowX;
+        return this.dom_event.windowX || canvas_to_window.call(this).windowX;
     });
 
     //y窗口坐标
-    flyingon.defineProperty(this, "windowY", function () {
+    this.defineProperty("windowY", function () {
 
-        return this.original_event.windowY || canvas_to_window.call(this).windowY;
+        return this.dom_event.windowY || canvas_to_window.call(this).windowY;
     });
 
     //x控件坐标
-    flyingon.defineProperty(this, "controlX", function () {
+    this.defineProperty("controlX", function () {
 
-        return this.original_event.controlX || canvas_to_control.call(this).controlX;
+        return this.dom_event.controlX || canvas_to_control.call(this).controlX;
     });
 
     //y控件坐标
-    flyingon.defineProperty(this, "controlY", function () {
+    this.defineProperty("controlY", function () {
 
-        return this.original_event.controlY || canvas_to_control.call(this).controlY;
+        return this.dom_event.controlY || canvas_to_control.call(this).controlY;
+    });
+
+    
+    //从鼠标按下时起的x轴移动距离
+    this.defineProperty("distanceX", function () {
+
+        var start = this.start_event;
+        return start ? this.canvasX - start.canvasX : 0;
+    });
+
+
+    //从鼠标按下时起的y轴移动距离
+    this.defineProperty("distanceY", function () {
+
+        var start = this.start_event;
+        return start ? this.canvasY - start.canvasY : 0;
     });
 
 
     //鼠标滚轮数据
-    flyingon.defineProperty(this, "wheelDelta", function () {
+    this.defineProperty("wheelDelta", function () {
 
-        return this.original_event.wheelDelta || (-this.original_event.detail * 40);
+        return this.dom_event.wheelDelta || (-this.dom_event.detail * 40);
     });
 
 
-}).call(flyingon.MouseEvent.prototype = flyingon.Event.prototype, flyingon);
+
+    //禁止或开启单击事件
+    this.disable_click = function (disable) {
+
+        flyingon.__disable_click = disable !== false;
+    };
+
+    //禁止或开启双击事件
+    this.disable_dbclick = function (disable) {
+
+        flyingon.__disable_dbclick = disable !== false;
+    };
+
+
+});
 
 
 
 //拖拉事件类型
-flyingon.DragEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.dragTargets = [target];
-    this.original_event = original_event;
-};
+flyingon.defineClass("DragEvent", flyingon.MouseEvent, function (Class, base, flyingon) {
 
 
-(function () {
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, dom_event, start_event) {
+
+        this.dragTargets = [this.target];
+    };
+
 
     //拖动目标
     this.dragTargets = null;
@@ -215,86 +320,163 @@ flyingon.DragEvent = function (type, target, original_event) {
     this.dropTarget = null;
 
 
-}).call(flyingon.DragEvent.prototype = new flyingon.MouseEvent());
+    //拖动时鼠标样式
+    this.cursor = null;
+
+    //不可放下时鼠标样式
+    this.no_drop_cursor = null;
+
+
+    //拖动图层透明度(仅dragstart事件有效)
+    this.opacity = null;
+
+    //x轴是否可拖动(仅dragstart事件有效)
+    this.drag_axisX = true;
+
+    //y轴是否可拖动(仅dragstart事件有效)
+    this.drag_axisY = true;
+
+
+});
 
 
 
 
 //键盘事件类型
-(flyingon.KeyEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.original_event = original_event;
-
-}).prototype = flyingon.Event.prototype;
+flyingon.defineClass("KeyEvent", flyingon.Event, function (Class, base, flyingon) {
 
 
-(function (flyingon) {
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, dom_event) {
+
+        this.dom_event = dom_event;
+    };
+
+
 
     //是否按下ctrl键
-    flyingon.defineProperty(this, "ctrlKey", function () {
+    this.defineProperty("ctrlKey", "this.dom_event");
 
-        return this.original_event.ctrlKey;
-    });
 
     //是否按下shift键
-    flyingon.defineProperty(this, "shiftKey", function () {
+    this.defineProperty("shiftKey", "this.dom_event");
 
-        return this.original_event.shiftKey;
-    });
 
     //是否按下alt键
-    flyingon.defineProperty(this, "altKey", function () {
+    this.defineProperty("altKey", "this.dom_event");
 
-        return this.original_event.altKey;
-    });
 
     //是否按下meta键
-    flyingon.defineProperty(this, "metaKey", function () {
+    this.defineProperty("metaKey", "this.dom_event");
 
-        return this.original_event.metaKey;
-    });
 
     //事件触发时间
-    flyingon.defineProperty(this, "timeStamp", function () {
+    this.defineProperty("timeStamp", "this.dom_event");
 
-        return this.original_event.timeStamp;
-    });
 
     //键码
-    flyingon.defineProperty(this, "keyCode", function () {
+    this.defineProperty("keyCode", function () {
 
-        return this.original_event.which || this.original_event.keyCode;
+        return this.dom_event.which || this.dom_event.keyCode;
     });
 
 
-}).call(flyingon.KeyEvent.prototype, flyingon);
+});
 
 
 
 
 
 //值变更事件类型
-(flyingon.ChangeEvent = function (type, target, name, value, oldValue) {
+flyingon.defineClass("ChangeEvent", flyingon.Event, function (Class, base, flyingon) {
 
-    this.type = type;
-    this.target = target;
-    this.name = name;
-    this.value = value;
-    this.oldValue = oldValue;
 
-}).prototype = flyingon.Event.prototype;
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, name, value, oldValue) {
+
+        this.name = name;
+        this.oldValue = oldValue;
+
+        this.value = value;
+    };
+
+
+
+    //变更名
+    this.name = null;
+
+    //当前值
+    this.value = null;
+
+    //原值
+    this.oldValue = null;
+
+
+});
 
 
 
 //属性值变更事件类型
-((flyingon.PropertyChangeEvent = function (target, name, value, oldValue) {
+flyingon.defineClass("PropertyChangeEvent", flyingon.Event, function (Class, base, flyingon) {
 
-    this.target = target;
-    this.name = name;
-    this.value = value;
-    this.oldValue = oldValue;
 
-}).prototype = flyingon.Event.prototype).type = "change";
+    Class.create_mode = "replace";
+
+    Class.create = function (source, name, value, oldValue) {
+
+        this.source = source;
+        this.name = name;
+        this.value = value;
+        this.oldValue = oldValue;
+    };
+
+
+    //事件类型
+    this.type = "change";
+    
+    //当前属性值
+    this.value = null;
+    
+    //属性名
+    this.name = null;
+    
+    //原属性值
+    this.oldValue = null;
+
+
+});
+
+
+
+//滚动事件
+flyingon.defineClass("ScrollEvent", flyingon.Event, function (Class, base, flyingon) {
+
+
+    Class.create_mode = "replace";
+
+    Class.create = function (source, distanceX, distanceY) {
+
+        this.source = source;
+        this.distanceX = distanceX || 0;
+        this.distanceY = distanceY || 0;
+    };
+
+
+
+    //事件类型
+    this.type = "scroll";
+    
+    //x方向滚动距离
+    this.distanceX = 0;
+    
+    //y方向滚动距离
+    this.distanceY = 0;
+
+
+});
+
+
+
 

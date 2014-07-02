@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+</head>
+<body>
+
+    <div id="message"></div>
+    <script type="text/javascript">
+
+
+        function append(msg) {
+
+            var div = document.createElement("div");
+            div.innerHTML = msg;
+            message.appendChild(div);
+        };
+
+        window.onmousedown = function (event) {
+
+            append("mousedown which:" + event.which + " button:" + event.button);
+        };
+
+        //window.onmousemove = function (event) {
+
+        //    append("mousemove which:" + event.which + " button:" + event.button);
+        //};
+
+        window.onmouseup = function (event) {
+
+            append("mouseup which:" + event.which + " button:" + event.button);
+        };
+
+        window.onclick = function (event) {
+
+            append("click which:" + event.which + " button:" + event.button);
+        };
+
+        window.ondblclick = function (event) {
+
+            append("dbclick which:" + event.which + " button:" + event.button);
+        };
+
+
+    </script>
+
+</body>
+</html>

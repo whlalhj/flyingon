@@ -33,7 +33,7 @@ flyingon.layer_extender = function (host) {
 
 
     //创建绘画环境
-    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
+    this.context = (this.painter = new flyingon.Painter(canvas)).context;
 
 
     //更新画布
@@ -99,7 +99,7 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (host) {
 

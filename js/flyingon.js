@@ -835,14 +835,14 @@ var flyingon_setting = flyingon_setting || {
 
 
         //声明构造函数及父类构造函数
-        var create, base_create = superclass.create;
+        var create_fn;
 
         //定义类模板
         function Class() {
 
-            if (create)
+            if (create_fn)
             {
-                create.apply(this, arguments);
+                create_fn.apply(this, arguments);
             }
         };
 
@@ -872,26 +872,31 @@ var flyingon_setting = flyingon_setting || {
         class_fn.call(prototype, Class, Class.base, flyingon);
 
 
+
         //处理构造函数(自动调用父类的构造函数)
-        if (base_create)
+        var create_mode = Class.create_mode, //构造函数方式: merge:合并父类构造函数 replace:替换父类构造函数 other:从父到子自动执行构造函数
+            create_base;
+
+        if (create_mode !== "replace" && (create_base = superclass.create))  //替换父类构造函数时不需要处理
         {
             var create_list = superclass.__create_list;
 
-            if (create = Class.create)
+            if (create_fn = Class.create) //处理父类构造函数
             {
-                //合并构造函数以提升性能 注:已有构造链时不可以合并
-                if (!create_list && Class.combine_create)
+                if (!create_list && create_mode === "merge") //合并父类构造函数以提升性能 注:已有构造链时不可以合并
                 {
-                    Class.create = flyingon.function_merge(create, base_create, true);
+                    Class.create = flyingon.function_merge(create_fn, create_base, true);
                 }
-                else //生成构造链
+                else
                 {
-                    create_list = Class.__create_list = create_list ? create_list.slice(0) : [base_create];
-                    create_list.push(create);
+                    //生成构造链
+                    Class.__create_list = create_list ? create_list.slice(0).push(create_fn) : [create_base, create_fn];
 
+                    //创建按构造链执行的构造函数
                     Class.create = function () {
 
                         var list = Class.__create_list;
+
                         for (var i = 0, _ = list.length; i < _; i++)
                         {
                             list[i].apply(this, arguments);
@@ -899,18 +904,19 @@ var flyingon_setting = flyingon_setting || {
                     };
                 }
             }
-            else
+            else //无构造函数则直接复制父类构造函数
             {
                 if (create_list)
                 {
                     Class.__create_list = create_list;
                 }
 
-                Class.create = base_create;
+                Class.create = create_base;
             }
         }
 
-        create = Class.create;
+        //设置构造函数
+        create_fn = Class.create;
 
         return Class;
     };
@@ -3156,21 +3162,17 @@ flyingon.defineClass("XmlSerializeWriter", flyingon.SerializeWriter, function (C
 
 ﻿
 //事件类型基类
-flyingon.Event = function (type, target) {
-
-    this.type = type;
-    this.target = target;
-};
+flyingon.defineClass("Event", function (Class, base, flyingon) {
 
 
-(function () {
+
+    Class.create = function (type, source) {
+
+        this.type = type;
+        this.source = source;
+    };
 
 
-    //事件类型
-    this.type = null;
-
-    //触发事件目标对象
-    this.target = null;
 
     //是否取消冒泡
     this.cancelBubble = false;
@@ -3180,107 +3182,189 @@ flyingon.Event = function (type, target) {
 
 
 
+    //定义属性
+    this.defineProperty = function (name, getter) {
+
+        if (typeof getter !== "function")
+        {
+            getter = new Function("return " + (getter ? getter + "." : "this.__") + name + ";");
+        }
+
+        flyingon.defineProperty(this, name, getter);
+    };
+
+
+
+    //事件类型
+    this.type = null;
+
+
+    //触发事件的源对象
+    this.source = null
+
+
+    //触发事件目标对象
+    this.defineProperty("target", function () {
+
+        return this.__target || (this.__target = this.source.__fn_event_target());
+    });
+
+
+
     //阻止事件冒泡
     this.stopPropagation = function () {
 
+        var event = this.dom_event;
+
         this.cancelBubble = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.stopPropagation();
+            event.stopPropagation();
         }
     };
+
 
     //阻止事件冒泡及禁止默认事件
     this.stopImmediatePropagation = function () {
 
+        var event = this.dom_event;
+
         this.cancelBubble = true;
         this.defaultPrevented = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.preventDefault();
-            this.original_event.stopPropagation();
+            event.preventDefault();
+            event.stopPropagation();
         }
     };
+
 
     //禁止默认事件
     this.preventDefault = function () {
 
+        var event = this.dom_event;
+
         this.defaultPrevented = true;
 
-        if (this.original_event)
+        if (event)
         {
-            this.original_event.preventDefault();
+            event.preventDefault();
         }
     };
 
 
-}).call(flyingon.Event.prototype);
+});
 
 
 
 
 //鼠标事件类型
-(flyingon.MouseEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.original_event = original_event;
-
-}).prototype = flyingon.Event.prototype;
+flyingon.defineClass("MouseEvent", flyingon.Event, function (Class, base, flyingon) {
 
 
-(function (flyingon) {
 
+    Class.create_mode = "merge";
 
-    var target = this;
+    Class.create = function (type, source, dom_event, start_event) {
 
-
-    function defineProperty(name) {
-
-        flyingon.defineProperty(target, name, function () {
-
-            return this.original_event[name];
-        });
+        this.dom_event = dom_event;     //关联的原始dom事件
+        this.start_event = start_event; //关联的起始事件
     };
 
 
+
     //是否按下ctrl键
-    defineProperty("ctrlKey");
+    this.defineProperty("ctrlKey", "this.dom_event");
+
 
     //是否按下shift键
-    defineProperty("shiftKey");
+    this.defineProperty("shiftKey", "this.dom_event");
+
 
     //是否按下alt键
-    defineProperty("altKey");
+    this.defineProperty("altKey", "this.dom_event");
+
 
     //是否按下meta键
-    defineProperty("metaKey");
+    this.defineProperty("metaKey", "this.dom_event");
+
 
     //事件触发时间
-    defineProperty("timeStamp");
+    this.defineProperty("timeStamp", "this.dom_event");
+
+
 
     //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-    defineProperty("button");
+    //如果关联了鼠标按下事件则取鼠标按下事件的值
+    this.defineProperty("button", "(this.start_event || this).dom_event");
 
 
-    defineProperty = null;
+    //鼠标按键 左:1 中:2 右:3
+    //如果关联了鼠标按下事件则取鼠标按下事件的值
+    this.defineProperty("which", "(this.start_event || this).dom_event");
+
+
+
+    //扩展dom鼠标事件增加画布坐标(canvasX,canvasY)
+    (function () {
+
+
+
+        //计算鼠标事件画布坐标
+        function dom_event_canvas(event) {
+
+            var x = 0,
+                y = 0,
+                target = event.target;
+
+            if (target.__ownerWindow)
+            {
+                target = target.__ownerWindow.dom_window;
+            }
+
+            while (target)
+            {
+                x += target.offsetLeft;
+                y += target.offsetTop;
+
+                target = target.offsetParent;
+            }
+
+            event.__canvasX = event.pageX - x;
+            event.__canvasY = event.pageY - y;
+
+            return event;
+        };
+
+
+
+        flyingon.defineProperty(this, "canvasX", function () {
+
+            return this.__canvasX || dom_event_canvas(this).__canvasX;
+        });
+
+
+        flyingon.defineProperty(this, "canvasY", function () {
+
+            return this.__canvasY || dom_event_canvas(this).__canvasY;
+        });
+
+
+
+    }).call(MouseEvent.prototype);
 
 
 
 
     function canvas_to_window() {
 
-        var event = this.original_event;
+        var event = this.dom_event,
+            offset = this.target.canvas_to_window(event.canvasX, event.__canvasY);
 
-        if (!event.windowX)
-        {
-            var offset = this.target.canvas_to_window(event.canvasX, event.canvasY);
-
-            event.windowX = offset.x;
-            event.windowY = offset.y;
-        }
+        event.windowX = offset.x;
+        event.windowY = offset.y;
 
         return event;
     };
@@ -3288,81 +3372,108 @@ flyingon.Event = function (type, target) {
 
     function canvas_to_control() {
 
-        var event = this.original_event;
+        var event = this.dom_event,
+            offset = this.target.canvas_to_control(event.canvasX, event.__canvasY);
 
-        if (!event.controlX)
-        {
-            var offset = this.target.canvas_to_control(event.canvasX, event.canvasY);
-
-            event.controlX = offset.x;
-            event.controlY = offset.y;
-        }
+        event.controlX = offset.x;
+        event.controlY = offset.y;
 
         return event;
     };
 
 
-
     //x画布坐标
-    flyingon.defineProperty(this, "canvasX", function () {
+    this.defineProperty("canvasX", function () {
 
-        return this.original_event.canvasX;
+        var event = this.dom_event;
+        return event.__canvasX || event.canvasX;
     });
 
     //y画布坐标
-    flyingon.defineProperty(this, "canvasY", function () {
+    this.defineProperty("canvasY", function () {
 
-        return this.original_event.canvasY;
+        var event = this.dom_event;
+        return event.__canvasY || event.canvasY;
     });
 
 
     //x窗口坐标
-    flyingon.defineProperty(this, "windowX", function () {
+    this.defineProperty("windowX", function () {
 
-        return this.original_event.windowX || canvas_to_window.call(this).windowX;
+        return this.dom_event.windowX || canvas_to_window.call(this).windowX;
     });
 
     //y窗口坐标
-    flyingon.defineProperty(this, "windowY", function () {
+    this.defineProperty("windowY", function () {
 
-        return this.original_event.windowY || canvas_to_window.call(this).windowY;
+        return this.dom_event.windowY || canvas_to_window.call(this).windowY;
     });
 
     //x控件坐标
-    flyingon.defineProperty(this, "controlX", function () {
+    this.defineProperty("controlX", function () {
 
-        return this.original_event.controlX || canvas_to_control.call(this).controlX;
+        return this.dom_event.controlX || canvas_to_control.call(this).controlX;
     });
 
     //y控件坐标
-    flyingon.defineProperty(this, "controlY", function () {
+    this.defineProperty("controlY", function () {
 
-        return this.original_event.controlY || canvas_to_control.call(this).controlY;
+        return this.dom_event.controlY || canvas_to_control.call(this).controlY;
+    });
+
+    
+    //从鼠标按下时起的x轴移动距离
+    this.defineProperty("distanceX", function () {
+
+        var start = this.start_event;
+        return start ? this.canvasX - start.canvasX : 0;
+    });
+
+
+    //从鼠标按下时起的y轴移动距离
+    this.defineProperty("distanceY", function () {
+
+        var start = this.start_event;
+        return start ? this.canvasY - start.canvasY : 0;
     });
 
 
     //鼠标滚轮数据
-    flyingon.defineProperty(this, "wheelDelta", function () {
+    this.defineProperty("wheelDelta", function () {
 
-        return this.original_event.wheelDelta || (-this.original_event.detail * 40);
+        return this.dom_event.wheelDelta || (-this.dom_event.detail * 40);
     });
 
 
-}).call(flyingon.MouseEvent.prototype = flyingon.Event.prototype, flyingon);
+
+    //禁止或开启单击事件
+    this.disable_click = function (disable) {
+
+        flyingon.__disable_click = disable !== false;
+    };
+
+    //禁止或开启双击事件
+    this.disable_dbclick = function (disable) {
+
+        flyingon.__disable_dbclick = disable !== false;
+    };
+
+
+});
 
 
 
 //拖拉事件类型
-flyingon.DragEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.dragTargets = [target];
-    this.original_event = original_event;
-};
+flyingon.defineClass("DragEvent", flyingon.MouseEvent, function (Class, base, flyingon) {
 
 
-(function () {
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, dom_event, start_event) {
+
+        this.dragTargets = [this.target];
+    };
+
 
     //拖动目标
     this.dragTargets = null;
@@ -3371,88 +3482,165 @@ flyingon.DragEvent = function (type, target, original_event) {
     this.dropTarget = null;
 
 
-}).call(flyingon.DragEvent.prototype = new flyingon.MouseEvent());
+    //拖动时鼠标样式
+    this.cursor = null;
+
+    //不可放下时鼠标样式
+    this.no_drop_cursor = null;
+
+
+    //拖动图层透明度(仅dragstart事件有效)
+    this.opacity = null;
+
+    //x轴是否可拖动(仅dragstart事件有效)
+    this.drag_axisX = true;
+
+    //y轴是否可拖动(仅dragstart事件有效)
+    this.drag_axisY = true;
+
+
+});
 
 
 
 
 //键盘事件类型
-(flyingon.KeyEvent = function (type, target, original_event) {
-
-    this.type = type;
-    this.target = target;
-    this.original_event = original_event;
-
-}).prototype = flyingon.Event.prototype;
+flyingon.defineClass("KeyEvent", flyingon.Event, function (Class, base, flyingon) {
 
 
-(function (flyingon) {
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, dom_event) {
+
+        this.dom_event = dom_event;
+    };
+
+
 
     //是否按下ctrl键
-    flyingon.defineProperty(this, "ctrlKey", function () {
+    this.defineProperty("ctrlKey", "this.dom_event");
 
-        return this.original_event.ctrlKey;
-    });
 
     //是否按下shift键
-    flyingon.defineProperty(this, "shiftKey", function () {
+    this.defineProperty("shiftKey", "this.dom_event");
 
-        return this.original_event.shiftKey;
-    });
 
     //是否按下alt键
-    flyingon.defineProperty(this, "altKey", function () {
+    this.defineProperty("altKey", "this.dom_event");
 
-        return this.original_event.altKey;
-    });
 
     //是否按下meta键
-    flyingon.defineProperty(this, "metaKey", function () {
+    this.defineProperty("metaKey", "this.dom_event");
 
-        return this.original_event.metaKey;
-    });
 
     //事件触发时间
-    flyingon.defineProperty(this, "timeStamp", function () {
+    this.defineProperty("timeStamp", "this.dom_event");
 
-        return this.original_event.timeStamp;
-    });
 
     //键码
-    flyingon.defineProperty(this, "keyCode", function () {
+    this.defineProperty("keyCode", function () {
 
-        return this.original_event.which || this.original_event.keyCode;
+        return this.dom_event.which || this.dom_event.keyCode;
     });
 
 
-}).call(flyingon.KeyEvent.prototype, flyingon);
+});
 
 
 
 
 
 //值变更事件类型
-(flyingon.ChangeEvent = function (type, target, name, value, oldValue) {
+flyingon.defineClass("ChangeEvent", flyingon.Event, function (Class, base, flyingon) {
 
-    this.type = type;
-    this.target = target;
-    this.name = name;
-    this.value = value;
-    this.oldValue = oldValue;
 
-}).prototype = flyingon.Event.prototype;
+    Class.create_mode = "merge";
+
+    Class.create = function (type, source, name, value, oldValue) {
+
+        this.name = name;
+        this.oldValue = oldValue;
+
+        this.value = value;
+    };
+
+
+
+    //变更名
+    this.name = null;
+
+    //当前值
+    this.value = null;
+
+    //原值
+    this.oldValue = null;
+
+
+});
 
 
 
 //属性值变更事件类型
-((flyingon.PropertyChangeEvent = function (target, name, value, oldValue) {
+flyingon.defineClass("PropertyChangeEvent", flyingon.Event, function (Class, base, flyingon) {
 
-    this.target = target;
-    this.name = name;
-    this.value = value;
-    this.oldValue = oldValue;
 
-}).prototype = flyingon.Event.prototype).type = "change";
+    Class.create_mode = "replace";
+
+    Class.create = function (source, name, value, oldValue) {
+
+        this.source = source;
+        this.name = name;
+        this.value = value;
+        this.oldValue = oldValue;
+    };
+
+
+    //事件类型
+    this.type = "change";
+    
+    //当前属性值
+    this.value = null;
+    
+    //属性名
+    this.name = null;
+    
+    //原属性值
+    this.oldValue = null;
+
+
+});
+
+
+
+//滚动事件
+flyingon.defineClass("ScrollEvent", flyingon.Event, function (Class, base, flyingon) {
+
+
+    Class.create_mode = "replace";
+
+    Class.create = function (source, distanceX, distanceY) {
+
+        this.source = source;
+        this.distanceX = distanceX || 0;
+        this.distanceY = distanceY || 0;
+    };
+
+
+
+    //事件类型
+    this.type = "scroll";
+    
+    //x方向滚动距离
+    this.distanceX = 0;
+    
+    //y方向滚动距离
+    this.distanceY = 0;
+
+
+});
+
+
+
 
 
 
@@ -3526,7 +3714,7 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         return "if ((cache = this.__events) && (cache = cache['change']) && cache.length > 0)\n"
             + "{\n"
                 + "var event = new flyingon.PropertyChangeEvent(this, \"" + name + "\", value, oldValue);\n"
-                + "if (this.dispatchEvent(event, true) === false)\n"
+                + "if (this.dispatchEvent(event) === false)\n"
                 + "{\n"
                 + "return false;\n"
                 + "}\n\n"
@@ -3556,14 +3744,14 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
         }
 
         //最小值限定(小于指定值则自动转为指定值)
-        if (cache = attributes.minValue)
+        if ((cache = attributes.minValue) != null)
         {
             body.push("if (value < " + cache + ") value = " + cache + ";");
             body.push("\n");
         }
 
         //最大值限定(大于指定值则自动转为指定值)
-        if (cache = attributes.maxValue)
+        if ((cache = attributes.maxValue) != null)
         {
             body.push("if (value > " + cache + ") value = " + cache + ";");
             body.push("\n");
@@ -3798,15 +3986,16 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
     //分发事件
     //event     要分发的事件
-    //bubble    是否冒泡模式 是则按事件链逐步分发 否则只分发至当前控件
-    this.dispatchEvent = function (event, bubble) {
+    this.dispatchEvent = function (event) {
 
-        var key = (bubble = bubble !== false) ? event.type : event.type + "_this",
-            events = this.__events_cache && this.__events_cache[key] || cache_events(this, event.type, key, bubble),
-            length = events.length;
+        var type = event.type,
+            events = this.__events_cache,
+            length;
+
+        events = events && events[type] || cache_events(this, type)
 
         //获取相关事件
-        if (length > 0)
+        if ((length = events.length) > 0)
         {
             //循环处理相关事件
             for (var i = 0; i < length; i++)
@@ -3830,28 +4019,22 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
     //是否绑定了指定名称(不带on)的事件
-    this.hasEvent = function (type, bubbleEvent) {
+    this.hasEvent = function (type) {
 
-        var events = this.__events;
-
-        if (events && (events = events[type]) && events.length > 0)
-        {
-            return true;
-        }
-
-        return bubbleEvent ? parent.hasEvent(type, true) : false;
+        var events = this.__events_cache;
+        return (events && events[type] || cache_events(this, type)).length > 0;
     };
 
 
     //缓存事件
-    function cache_events(target, type, key, bubble) {
+    function cache_events(target, type) {
 
-        var result = (target.__events_cache || (target.__events_cache = {}))[key] = [],
+        var result = (target.__events_cache || (target.__events_cache = {}))[type] = [],
             events,
             listener,
             name;
 
-        do
+        while (target)
         {
             //插入默认捕获事件
             if ((name = "__event_capture_" + type) in target)
@@ -3881,7 +4064,9 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
                 }
             }
 
-        } while (bubble && (target = target.__parent))
+            //继续处理父控件
+            target = target.__parent;
+        }
 
         return result;
     };
@@ -6277,9 +6462,9 @@ Canvas2D绘图
 
 
     //2d图形绘制器
-    flyingon.Painter = flyingon.function_extend(function (context) {
+    flyingon.Painter = flyingon.function_extend(function (canvas) {
 
-        this.context = context;
+        this.context = (this.canvas = canvas).getContext("2d");
 
     }, function (flyingon) {
 
@@ -7231,7 +7416,7 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (ownerControl) {
 
@@ -7978,291 +8163,189 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
 ﻿/*
 
+拖拉管理器
+
 */
 (function (flyingon) {
 
 
 
-    //控件可重载拖拉接口
+    var ownerLayer,             //拖拉层
 
-    //drag_cursor:      拖动时鼠标样式
-    //drag_opacity:     拖动时图层透明度
+        dragTargets,            //拖动目标
+        dropTarget,             //接收目标
 
-    //__fn_drag_start:  自定义开始拖动方法
-    //__fn_drag_paint:  自定义拖动绘制方式
-    //__fn_drag_move:   自定义拖动方式
-    //__fn_drag_stop:   自定义拖停止方法
+        droppable,              //是否可放下
+
+        start_event,            //关联的起始事件
+
+        drag_axisX,             //x轴是否可拖动(仅dragstart事件有效)
+        drag_axisY,             //y轴是否可拖动(仅dragstart事件有效)
+
+        cursor,                 //可拖动时的鼠标状态
+        no_drop_cursor;         //不可放下时鼠标样式
 
 
 
 
-    //拖拉管理器
-    var Dragdrop = flyingon.Dragdrop = {
+    //所属窗口
+    this.ownerWindow = null;
 
-        //拖动状态 0:停止拖动 1:准备拖动 2:开始拖动
-        state: 0
+    //目标控件
+    this.target = null;
+
+
+
+
+    //分发事件
+    this.dispatchEvent = function (type, target, dom_event) {
+
+        var event = new flyingon.DragEvent(type, this.target, dom_event, start_event);
+
+        event.dragTargets = dragTargets;
+        event.dropTarget = dropTarget;
+
+        cursor = event.__cursor || cursor;
+        no_drop_cursor = event.__no_drop_cursor || no_drop_cursor;
+
+        return event;
     };
 
 
+    //开始拖动
+    this.start = function (target, dom_event) {
 
+        //分发拖拉事件
+        var event = new flyingon.DragEvent("dragstart", target, dom_event);
 
-    //局部变量
-    var timer,              //定时器
+        //拖动目标
+        event.dragTargets = [target];
 
-        ownerWindow,        //所属窗口
-        ownerLayer,         //拖拉层
-        ownerControl,       //目标控件
+        //取消则返回
+        if (target.dispatchEvent(event) === false)
+        {
+            return false;
+        }
 
-        dragTargets,        //拖动目标
-        dropTarget,         //接收目标
+        //设置拖动状态为准备拖动
+        this.ownerWindow = target.ownerWindow;
+        this.target = target;
 
-        droppable,          //是否可放下
+        //关联起始事件
+        start_event = dom_event;
 
-        start_event,        //原始事件
-        last_event,         //记录最后的mousemove事件参数, 用于记录停止拖拉时的最后位置, mouseup为鼠标按下时的坐标,与需求不符
+        //获取被拖动控件集合
+        dragTargets = event.dragTargets || [target];
 
-        offsetX,            //x方向因移动造成的修正距离
-        offsetY;            //y方向因移动造成的修正距离
+        //创建拖拉层
+        ownerLayer = this.ownerWindow.appendLayer(9999, true);
 
-
-
-
-    //新建事件
-    function new_event(type, original_event) {
-
-        var result = new flyingon.DragEvent(type, ownerControl, original_event);
-
-        result.dragTargets = dragTargets;
-        result.dropTarget = dropTarget;
-
-        return result;
-    };
-
-
-
-
-    //默认开始行为
-    function drag_start(event) {
-
-        //发送事件
-        ownerControl.dispatchEvent(event, true);
-    };
-
-
-    //默认绘制行为
-    function drag_paint(layer, dragTargets) {
-
+        //绘制被拖动控件到指定画布
         for (var i = 0; i < dragTargets.length; i++)
         {
-            dragTargets[i].paint_to_layer(layer);
+            dragTargets[i].paint_to_layer(ownerLayer);
         }
+
+        //设置画布样式
+        var style = ownerLayer.dom_layer.style;
+
+        style.overflow = "visible";
+        style.opacity = event.__opacity || 0.5;
+
+        cursor = style.cursor = event.__cursor || "move";
+        no_drop_cursor = event.__no_drop_cursor || "no-drop";
+
+        drag_axisX = event.__drag_axisX !== false;
+        drag_axisY = event.__drag_axisY !== false;
+
+        return true;
     };
 
-    //默认拖动行为
-    function drag_move(dom_event, offsetX, offsetY) {
 
-        //需修正div移动偏差
-        var target = ownerWindow.fintAt(dom_event.canvasX + offsetX, dom_event.canvasY + offsetY),
-            event;
+    //移动
+    this.move = function (dom_event) {
 
-        if (target === ownerControl)
+        var source = this.ownerWindow.fintAt(dom_event.canvasX, dom_event.__canvasY),
+            target = this.target,
+            style = ownerLayer.dom_layer.style;
+
+        //如果放置目标与当前对象相同则设置当前对象的父对象为drop对象
+        if (source === target)
         {
-            target = ownerControl.__parent;
+            source = target.__parent;
         }
 
-        if (dropTarget !== target)
+        //如果放置目标发生变化则分发相关事件
+        if (dropTarget !== source)
         {
-            if (dropTarget)
-            {
-                event = new_event("dragleave", dom_event);
-                dropTarget.dispatchEvent(event, true);
-            }
-
             droppable = false;
 
-            if (target && target.droppable)
+            if (dropTarget)
             {
-                dropTarget = target;
+                this.dispatchEvent("dragleave", dropTarget, dom_event);
+            }
 
-                event = new_event("dragenter", dom_event);
+            if (source && source.droppable)
+            {
+                dropTarget = source;
 
-                if (target.dispatchEvent(event), true)
+                if (this.dispatchEvent("dragenter", source, dom_event) !== false)
                 {
                     droppable = true;
                 }
             }
             else
             {
-                dropTarget = target = null;
+                dropTarget = source = null;
             }
-
-            ownerLayer.dom_layer.style.cursor = droppable ? (ownerControl.drag_cursor || "move") : "no-drop";
         }
 
-        event = new_event("drag", dom_event);
-        ownerControl.dispatchEvent(event, true);
+        //分发drag事件
+        var event = this.dispatchEvent("drag", target, dom_event);
 
-        if (target)
+        style.cursor = droppable ? cursor : no_drop_cursor;
+
+        if (drag_axisX)
         {
-            event = new_event("dragover", dom_event);
-            target.dispatchEvent(event, true);
+            style.left = event.distanceX + "px";
         }
-    };
 
-    //默认停止行为
-    function drag_stop(dom_event, offsetX, offsetY) {
+        //if (drag_axisY)
+        //{
+        //    style.top = event.distanceY + "px";
+        //}
 
-        if (dropTarget)
+        //分发dragover事件
+        if (source)
         {
-            dropTarget.dispatchEvent(new_event("drop", dom_event), true);
+            this.dispatchEvent("dragover", source, dom_event);
         }
-
-        ownerControl.dispatchEvent(new_event("dragend", dom_event), true);
-    }
-
-
-
-
-    //执行拖动
-    function start() {
-
-        if (timer)
-        {
-            clearTimeout(timer);
-            timer = 0;
-        }
-
-        //拖动目标
-        dragTargets = [ownerControl];
-
-        //开始拖拉事件
-        var event = new_event("dragstart", start_event);
-
-        //开始拖动方法
-        (ownerControl.__fn_drag_start || drag_start).call(ownerControl, event);
-
-        if (event.canceled) //取消则停止拖动
-        {
-            Dragdrop.stop();
-        }
-        else
-        {
-            if (event.dragTargets)
-            {
-                dragTargets = event.dragTargets;
-            }
-
-            //创建拖拉层
-            var style = (ownerLayer = ownerWindow.appendLayer(9999, true)).dom_layer.style;
-
-            style.overflow = "visible";
-            style.cursor = ownerControl.drag_cursor || "move";
-            style.opacity = ownerControl.drag_opacity || 0.5;
-
-            (ownerControl.__fn_drag_paint || drag_paint).call(ownerControl, ownerLayer, dragTargets);
-
-            Dragdrop.state = 2; //设置拖动状态为开始拖动
-        }
-    };
-
-
-
-    //开始拖动(200毫秒内保持按下鼠标则执行拖动)
-    Dragdrop.start = function (window, target, dom_event) {
-
-        //设置拖动状态为准备拖动
-        Dragdrop.state = 1;
-
-        ownerWindow = window;
-        ownerControl = target;
-        start_event = dom_event;
-
-        offsetX = 0;
-        offsetY = 0;
-
-        timer = setTimeout(start, 200);
-    };
-
-
-    //移动
-    Dragdrop.move = function (dom_event) {
-
-        //选判断拖动状态
-        switch (Dragdrop.state)
-        {
-            case 0: //停止拖动则直接返回
-                return false;
-
-            case 1: //准备拖动则执行开始拖动动作
-                start();
-                break;
-        }
-
-        //拖动处理
-        var event = last_event = dom_event;
-
-        //div移动距离
-        offsetX = event.clientX - start_event.clientX;
-        offsetY = event.clientY - start_event.clientY;
-
-        var offset = (ownerControl.__fn_drag_move || drag_move).call(ownerControl, event, offsetX, offsetY),
-            style = ownerLayer.dom_layer.style;
-
-        if (offset)
-        {
-            offsetX = offset.x || 0;
-            offsetY = offset.y || 0;
-        }
-
-        style.left = offsetX + "px";
-        style.top = offsetY + "px";
-
-        return true;
     };
 
 
     //停止拖动
-    Dragdrop.stop = function () {
+    this.stop = function (dom_event) {
 
-        if (timer)
+        //分发drop事件
+        if (droppable && dropTarget)
         {
-            clearTimeout(timer);
-            timer = 0;
+            this.dispatchEvent("drop", dropTarget, dom_event);
         }
 
-        if (ownerLayer)
-        {
-            //如果按下且移动过且可接受拖放时才触发停止方法
-            if (last_event && droppable)
-            {
-                (ownerControl.__fn_drag_stop || drag_stop).call(ownerControl, last_event, offsetX, offsetY);
-            }
+        //分发dragend事件
+        this.dispatchEvent("dragend", this.target, dom_event);
 
-            ownerWindow.removeLayer(ownerLayer);
-            ownerLayer = null;
-
-            //处理捕获控件
-            ownerWindow.__capture_delay.registry([last_event]);
-        }
-        else if (start_event) //如果未执行则切换输入焦点及补上mousedown事件
-        {
-            ownerWindow.__fn_switch_focus(target);
-            ownerControl.dispatchEvent(new flyingon.MouseEvent("mousedown", ownerControl, start_event), true);
-        }
-
-        //设置拖动状态为停止拖动
-        Dragdrop.state = 0;
+        //移动图层
+        this.ownerWindow.removeLayer(ownerLayer);
 
         //清空缓存对象
-        dragTargets = dropTarget = null;
-        ownerWindow = ownerControl = null;
-        start_event = last_event = null;
+        ownerLayer = dragTargets = dropTarget = this.ownerWindow = this.target = null;
     };
 
 
 
 
-})(flyingon);
+}).call(flyingon.dragdrop = Object.create(null), flyingon);
 
 
 
@@ -8275,7 +8358,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 
@@ -8343,26 +8426,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.__fn_reset_style();    //重置样式
 
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent));
-    };
-
-
-    //转移(事件,使区域无效)至父控件
-    this.__fn_transfer_to_parent = function () {
-
-
-        //屏蔽事件响应直接分发至父控件
-        this.dispatchEvent = function (event, bubble) {
-
-            event.source = this;
-            return (event.target = this.__parent).dispatchEvent(event, bubble);
-        };
-
-
-        //更新至上级
-        this.invalidate = function (rearrange, update_now) {
-
-            this.__parent.invalidate(rearrange, update_now);
-        };
     };
 
 
@@ -8573,16 +8636,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.stateTo = function (name, value) {
 
             //保存状态值
-            (this.__states || (this.__states = Object.create(null)))[name] = value;
+            var states = this.__states || (this.__states = Object.create(null));
 
-            //重置控件样式版本
-            this.__style_version = 0;
+            if (states[name] !== value)
+            {
+                states[name] = value;
 
-            //状态变更事件
-            this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+                //重置样式
+                this.__style_version = 0;
+                this.__style_types = null;
 
-            //样式变更可能需要重新布局
-            (this.__parent || this).invalidate(true);
+                //状态变更事件
+                this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+
+                //样式变更可能需要重新布局
+                (this.__parent || this).invalidate(true);
+            }
         };
 
 
@@ -10892,6 +10961,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+
         //值变更事件
         this.defineEvent("change");
 
@@ -10906,6 +10976,35 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //定义其它事件
         this.defineEvents(["focus", "blur", "validate"]);
+
+
+
+
+        //当前控件是否可作为事件目标
+        this.__event_target = true;
+
+
+        //获取事件目标
+        this.__fn_event_target = function () {
+
+            var target = this,
+                parent = this;
+
+            while (parent)
+            {
+                if (parent.__event_target)
+                {
+                    parent = parent.__parent;
+                }
+                else
+                {
+                    parent = parent.__parent;
+                    target = parent || this.ownerWindow;
+                }
+            }
+
+            return target;
+        };
 
 
 
@@ -11088,13 +11187,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //捕获鼠标
         this.setCapture = function () {
 
-            flyingon.__capture_control = this;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(this);
+            }
         };
 
         //释放鼠标
         this.releaseCapture = function () {
 
-            flyingon.__capture_control = null;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(null);
+            }
         };
 
 
@@ -11102,7 +11211,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //执行验证
         this.validate = function () {
 
-            return this.dispatchEvent(new Event("validate", this), true);
+            return this.dispatchEvent(new Event("validate", this));
         };
 
         this.__fn_focus = function (event) {
@@ -11128,7 +11237,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     ownerWindow.__focused_control = this;
 
-                    if (this.dispatchEvent(new Event("focus", this), true))
+                    if (this.dispatchEvent(new Event("focus", this)))
                     {
                         this.stateTo("focus", true);
                     }
@@ -11149,7 +11258,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 ownerWindow.__focused_control = null;
 
-                if (this.dispatchEvent(new Event("blur", this), true))
+                if (this.dispatchEvent(new Event("blur", this)))
                 {
                     this.stateTo("focus", false);
                 }
@@ -11246,24 +11355,26 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //update_now    是否立即更新
         this.invalidate = function (rearrange, update_now) {
 
-            var target;
-
-            if (!this.__arrange_dirty && (target = this.__parent))
+            if (rearrange)
             {
+                this.__arrange_dirty = true;
+            }
+
+            if (!this.__current_dirty)
+            {
+                var target;
+
                 this.__current_dirty = true;
 
-                if (rearrange)
-                {
-                    this.__arrange_dirty = true;
-                }
-
-                do
+                while ((target = this.__parent) && !target.__children_dirty)
                 {
                     target.__children_dirty = true;
                 }
-                while (target = target.__parent);
 
-                (this.__ownerLayer || this.ownerLayer).__registry_update(update_now);
+                if (target = this.__ownerLayer || this.ownerLayer)
+                {
+                    target.__registry_update(update_now);
+                }
             }
         };
 
@@ -11489,90 +11600,95 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //注3:oprea的字体渲染不够清晰(不知道是不是与字体设置有关, 需进一步测试)
         this.render = function (painter, clear) {
 
-            var box = this.__box_style,
-                context = painter.context,
+            var context = painter.context,
+                box,
                 cache;
 
-            //重新排列
-            if (this.__arrange_dirty)
+            //需先测量才可渲染
+            if (box = this.__box_style)
             {
-                this.__fn_arrange();
-            }
-
-            //保存渲染环境
-            context.save();
-
-            //设置目标控件
-            painter.target = this;
-
-            //设置透明度
-            context.globalAlpha = this.opacity;
-
-            //切换原点到当前控件左上角
-            context.translate(this.controlX, this.controlY);
-
-            //清除原有内容
-            if (clear !== false)
-            {
-                context.clearRect(0, 0, this.controlWidth, this.controlHeight);
-            }
-
-            //变换
-            //if (this.transform)
-            //{
-            //    context.transform.apply(context, this.transform.data);
-            //}
-
-            //裁剪防止内容超出边框区范围
-            context.beginPath();
-
-            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
-            {
-                border_path(context, box.border_clip);
-            }
-            else
-            {
-                context.rect(0, 0, this.controlWidth, this.controlHeight);
-            }
-
-            context.save();
-            context.clip();
-
-            //绘制背景
-            this.paint_background(painter);
-
-            //绘制内容
-            this.paint(painter);
-
-            //渲染子项
-            if ((cache = this.__visible_items) && cache.length > 0)
-            {
-                //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
-
-                for (var i = 0, _ = cache.length; i < _; i++)
+                //重新排列
+                if (this.__arrange_dirty)
                 {
-                    cache[i].render(painter, false);
+                    this.__fn_arrange();
                 }
+
+                //保存渲染环境
+                context.save();
+
+                //设置目标控件
+                painter.target = this;
+
+                //设置透明度
+                context.globalAlpha = this.opacity;
+
+                //切换原点到当前控件左上角
+                context.translate(this.controlX, this.controlY);
+
+                //清除原有内容
+                if (clear !== false)
+                {
+                    context.clearRect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                //变换
+                //if (this.transform)
+                //{
+                //    context.transform.apply(context, this.transform.data);
+                //}
+
+                //裁剪防止内容超出边框区范围
+                context.beginPath();
+
+                if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
+                {
+                    border_path(context, box.border_clip);
+                }
+                else
+                {
+                    context.rect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                context.save();
+                context.clip();
+
+                //绘制背景
+                this.paint_background(painter);
+
+                //绘制内容
+                this.paint(painter);
+
+                //渲染子项
+                if ((cache = this.__visible_items) && cache.length > 0)
+                {
+                    //切换起点到当前控件客户区左上角并进行滚动偏移
+                    context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
+
+                    //循环渲染子项
+                    for (var i = 0, _ = cache.length; i < _; i++)
+                    {
+                        cache[i].render(painter, false);
+                    }
+                }
+
+                //回滚至剪切区域
+                context.restore();
+
+                //绘制附加项
+                if (this.paint_additions)
+                {
+                    this.paint_additions(painter);
+                }
+
+                //绘制边框
+                this.paint_border(painter);
+
+                //修改状态
+                this.__current_dirty = false;
+
+                //回滚到绘制本控件前的状态
+                context.restore();
             }
-
-            //回滚至剪切区域
-            context.restore();
-
-            //绘制附加项
-            if (this.paint_additions)
-            {
-                this.paint_additions(painter);
-            }
-
-            //绘制边框
-            this.paint_border(painter);
-
-            //修改状态
-            this.__current_dirty = false;
-
-            //回滚到绘制本控件前的状态
-            context.restore();
         };
 
 
@@ -11789,187 +11905,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 ﻿
-//滚动条及滑块
+//滚动条
 (function (flyingon) {
-
-
-    //滚动事件
-    (flyingon.ScrollEvent = function (target, original_event) {
-
-        this.target = target;
-        this.original_event = original_event;
-
-    }).prototype = flyingon.Event.prototype;
-
-
-    (function () {
-
-        //事件类型
-        this.type = "scroll";
-
-        //水平变化距离
-        this.changeX = 0;
-
-        //竖直变化距离
-        this.changeY = 0;
-
-    }).call(flyingon.ScrollEvent.prototype);
-
-
-
-
-
-
-    //滑块控件扩展器
-    function slider_extender() {
-
-
-
-        var timer,                  //定时变更定时器
-            dragger;                //拖拉者
-
-
-
-
-        this.defaultValue("width", 16);
-
-        this.defaultValue("height", 16);
-
-        //禁止获取焦点
-        this.defaultValue("focusable", false);
-
-
-
-        //当前值
-        this.defineProperty("value", 0, {
-
-            minValue: "this.minValue",
-            maxValue: "this.maxValue",
-            change: "this.__fn_change_value(value - oldValue, false);"
-        });
-
-        //最小值
-        this.defineProperty("minValue", 0, {
-
-            attributes: "invalidate",
-            minValue: 0,
-            change: "if (this.value < value) fields.value = value;"
-        });
-
-        //最大值
-        this.defineProperty("maxValue", 100, {
-
-            attributes: "invalidate",
-            minValue: 1,
-            change: "if (this.value > value) fields.value = value;"
-        });
-
-
-
-        //禁止访问子控件
-        this.defineProperty("children", function () {
-
-            return null;
-        });
-
-
-
-
-        this.__event_bubble_mousedown = function (event) {
-
-            if (event.button === 0 && (dragger = this.__fn_mousedown(event)))
-            {
-                flyingon.__capture_control = this.slider;
-                event.stopImmediatePropagation();
-            }
-        };
-
-
-        this.__event_bubble_mousemove = function (event) {
-
-            if (dragger)
-            {
-                var value = this.__fn_drag_value(dragger, event),
-                    step = value - this.value;
-
-                if (step)
-                {
-                    this.__fn_change_value_to(step, value, event);
-                }
-
-                event.stopImmediatePropagation();
-            }
-        };
-
-
-        this.__event_bubble_mouseup = function (event) {
-
-            if (timer)
-            {
-                clearTimeout(timer);
-                timer = 0;
-            }
-
-            if (dragger)
-            {
-                event.stopImmediatePropagation();
-                dragger = null;
-            }
-        };
-
-
-        //值改变方法
-        this.__fn_change_value = function (change, event) {
-
-            this.invalidate(false);
-        };
-
-
-
-        //变更值至指定值
-        this.__fn_change_value_to = function (step, to_value, event, delay) {
-
-            if (timer)
-            {
-                clearTimeout(timer);
-                timer = 0;
-            }
-
-            if (step > 0)
-            {
-                if (this.value + step > to_value)
-                {
-                    step = to_value - this.value;
-                }
-            }
-            else if (step < 0)
-            {
-                if (this.value + step < to_value)
-                {
-                    step = to_value - this.value;
-                }
-            }
-
-            if (step)
-            {
-                var self = this;
-
-                timer = setTimeout(function () {
-
-                    timer = 0;
-
-                    if (self.__fn_change_value(step, event) !== to_value)
-                    {
-                        self.__fn_change_value_to(step, to_value, event, 200);
-                    }
-
-                }, delay || 5);
-            }
-        };
-
-
-    };
-
 
 
 
@@ -11977,8 +11914,9 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     flyingon.defineClass("ScrollBar", flyingon.Control, function (Class, base, flyingon) {
 
 
-        var round = Math.round;
-
+        var ScrollEvent = flyingon.ScrollEvent,
+            round = Math.round,
+            timer; //定时变更定时器
 
 
         Class.create = function (parent, vertical) {
@@ -12009,7 +11947,26 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-        slider_extender.call(this);
+
+        this.defaultValue("width", 16);
+
+        this.defaultValue("height", 16);
+
+        //禁止获取焦点
+        this.defaultValue("focusable", false);
+
+        //最大值
+        this.maxValue = 0;
+
+
+
+        //当前值
+        this.defineProperty("value", 0, {
+
+            minValue: 0,
+            maxValue: "this.maxValue",
+            change: "this.__fn_change_value(value - oldValue, false);"
+        });
 
 
 
@@ -12021,63 +11978,107 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         });
 
 
+        //禁止访问子控件
+        this.defineProperty("children", function () {
+
+            return null;
+        });
+
+
 
         //滚动事件
         this.defineEvent("scroll");
 
 
-        this.__fn_mousedown = function (event) {
 
-            var vertical = this.vertical,
-                to_value = vertical ? event.controlY : event.controlX,
-                step;
 
-            if (to_value < this.scroll_start)
-            {
-                step = -20;
-                to_value = 0;
-            }
-            else if (to_value > this.scroll_end)
-            {
-                step = 20;
-                to_value = this.maxValue;
-            }
-            else if (to_value >= this.slider_start && to_value <= this.slider_end)
-            {
-                return this.slider.canvas_to_control(event.canvasX, event.canvasY); //返回拖动初始位置
-            }
-            else
-            {
-                step = vertical ? this.__parent.clientHeight : this.__parent.clientWidth;
 
-                if (to_value < this.slider_start)
+        this.__event_bubble_mousedown = function (event) {
+
+            if (event.which === 1)
+            {
+                var vertical = this.vertical,
+                    maxValue = this.maxValue,
+                    to_value = vertical ? event.controlY : event.controlX,
+                    step;
+
+                if (to_value < this.scroll_start)
                 {
-                    step = -step;
+                    step = -20;
+                    to_value = 0;
                 }
-                else if (to_value > this.slider_end)
+                else if (to_value > this.scroll_end)
                 {
-                    to_value -= this.slider_length;
+                    step = 20;
+                    to_value = maxValue;
+                }
+                else if (to_value < this.slider_start || to_value > this.slider_end)
+                {
+                    step = vertical ? this.__parent.clientHeight : this.__parent.clientWidth;
+
+                    if (to_value < this.slider_start)
+                    {
+                        step = -step;
+                    }
+                    else
+                    {
+                        to_value -= this.slider_length;
+                    }
+
+                    to_value = round((to_value - this.scroll_start) * maxValue / this.scroll_length);
                 }
 
-                to_value = round((to_value - this.scroll_start) * this.maxValue / this.scroll_length);
-            }
+                if (step)
+                {
+                    if (!vertical && this.__rtl) //右向顺序转换
+                    {
+                        step = -step;
+                        to_value = maxValue - to_value;
+                    }
 
-            if (this.__rtl && !this.vertical) //右向顺序转换
-            {
-                step = -step;
-                to_value = this.maxValue - to_value;
-            }
+                    change_to(this, step, to_value);
 
-            this.__fn_change_value_to(step, to_value, event);
+                    flyingon.__disable_click = flyingon.__disable_dbclick = true;
+                }
+
+                event.stopImmediatePropagation();
+            }
         };
 
 
-        //获取当前位置的拖动值 竖直滚动条不支持rtl
-        this.__fn_drag_value = function (start, event) {
+        this.__event_bubble_mousemove = function (event) {
 
-            var vertical = this.vertical,
+            if (event.source === this.slider && event.start_event && event.which === 1) //如果处于鼠标按下状态
+            {
+                this.__fn_moveTo(event);
+            }
+        };
+
+
+        this.__event_bubble_mouseup = function (event) {
+
+            if (timer)
+            {
+                clearTimeout(timer);
+                timer = 0;
+            }
+
+            if (event.which === 1)
+            {
+                event.stopImmediatePropagation();
+            }
+        };
+
+        this.__fn_moveTo = function (event) {
+
+            var start = event.start_event,
+                vertical = this.vertical,
                 maxValue = this.maxValue,
-                value = vertical ? event.controlY - start.y : event.controlX - start.x;
+                value;
+
+            start = start.start || (start.start = { x: this.slider.controlX, y: this.slider.controlY });
+
+            value = vertical ? event.distanceY + start.y : event.distanceX + start.x;
 
             if (value <= this.scroll_start)
             {
@@ -12097,40 +12098,48 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 value = maxValue - value;
             }
 
-            return value;
+            if (value -= this.value)
+            {
+                this.__fn_change_value(value, true);
+                flyingon.__disable_click = flyingon.__disable_dbclick = true;
+            }
+
+            event.stopImmediatePropagation();
         };
 
 
+
         //重载值改变方法触发父控件滚动事件
-        this.__fn_change_value = function (change_value, event) {
+        this.__fn_change_value = function (change_value, add_value) {
 
             var fields = this.__fields,
                 vertical = this.vertical,
                 parent = this.__parent;
 
-            if (event !== false) //不是直接设置value
+            if (add_value)
             {
                 fields.value += change_value;
             }
 
             if (parent)
             {
-                var scroll = new flyingon.ScrollEvent(parent, event);
+                var x = 0,
+                    y = 0;
 
                 if (vertical)
                 {
-                    scroll.changeY = change_value;
+                    y = change_value;
                     parent.__visible_y = fields.value;
                 }
                 else
                 {
-                    scroll.changeX = change_value;
+                    x = change_value;
                     parent.__visible_x = this.__rtl ? this.maxValue - fields.value : fields.value;
                 }
 
                 parent.__fn_scrollTo(parent.__visible_x, parent.__visible_y);
 
-                parent.dispatchEvent(scroll, true);
+                parent.dispatchEvent(new ScrollEvent(parent, x, y));
                 parent.invalidate(false);
 
                 //修正因滚动造成的输入符位置变更问题
@@ -12141,7 +12150,44 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
+        //变更值至指定值
+        function change_to(target, step, to_value, delay) {
 
+            if (timer)
+            {
+                clearTimeout(timer);
+                timer = 0;
+            }
+
+            if (step > 0)
+            {
+                if (target.value + step > to_value)
+                {
+                    step = to_value - target.value;
+                }
+            }
+            else if (step < 0)
+            {
+                if (target.value + step < to_value)
+                {
+                    step = to_value - target.value;
+                }
+            }
+
+            if (step)
+            {
+                timer = setTimeout(function () {
+
+                    timer = 0;
+
+                    if (target.__fn_change_value(step, true) !== to_value)
+                    {
+                        change_to(target, step, to_value, 200);
+                    }
+
+                }, delay || 5);
+            }
+        };
 
 
 
@@ -12272,18 +12318,16 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     function extender_fn() {
 
 
+        //是否事件目标
+        this.__event_target = false;
+
+
         this.defaultValue("width", 16);
 
         this.defaultValue("height", 16);
 
         //禁止获取焦点
         this.defaultValue("focusable", false);
-
-
-
-        //转移(事件,使区域无效)至父控件
-        this.__fn_transfer_to_parent();
-
 
 
 
@@ -12301,7 +12345,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     var scroll_button = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
 
 
-        Class.combine_create = true;
+        Class.create_mode = "merge";
 
         Class.create = function (parent, className, first) {
 
@@ -12336,7 +12380,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
     var scroll_block = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
 
 
-        Class.combine_create = true;
+        Class.create_mode = "merge";
 
         Class.create = function (parent, className) {
 
@@ -12358,52 +12402,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-        Class.combine_create = true;
+        Class.create_mode = "merge";
 
         Class.create = function (parent) {
 
             this.__parent = parent;
         };
-
-
-
-        extender_fn.call(this);
-
-
-    });
-
-
-
-
-
-
-    //滑块
-    flyingon.defineClass("Slider", flyingon.Control, function (Class, base, flyingon) {
-
-
-
-
-        slider_extender.call(this, false);
-
-
-
-
-    }, true);
-
-
-
-
-    //滑动块
-    var slider_block = flyingon.defineClass(flyingon.Control, function (Class, base, flyingon) {
-
-
-        Class.combine_create = true;
-
-        Class.create = function (parent) {
-
-            this.__parent = parent;
-        };
-
 
 
         extender_fn.call(this);
@@ -12430,6 +12434,28 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
 
 
 
+    //处理滑动
+    this.__event_bubble_mousemove = function (event) {
+
+        var scrollbar_x = this.__scrollbar_x,
+            scrollbar_y = this.__scrollbar_y;
+
+        if ((scrollbar_x || scrollbar_y) && event.start_event && event.which === 1) //如果鼠标左键处于按下状态且有滚动条
+        {
+            if (scrollbar_x)
+            {
+                scrollbar_x.__fn_moveTo(event);
+            }
+
+            if (scrollbar_y)
+            {
+                scrollbar_y.__fn_moveTo(event);
+            }
+        }
+    };
+
+
+    //处理鼠标滚轮
     this.__event_bubble_mousewheel = function (event) {
 
         var scrollbar_y = this.__scrollbar_y;
@@ -12747,9 +12773,11 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         {
             //计算可视控件
             var items = this.__visible_items = [],
-                right = x + this.clientWidth,
-                bottom = y + this.clientHeight,
-                cache;
+                right = x + this.controlWidth,
+                bottom = y + this.controlHeight;
+
+            x -= this.clientX;
+            y -= this.clientY;
 
             for (var i = 0; i < length; i++)
             {
@@ -12770,17 +12798,6 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
     };
 
 
-
-
-    this.paint_border = function (painter) {
-
-        painter.context.fillStyle = "red";
-        painter.context.fillText(this.uniqueId, 0, 0);
-
-    };
-
-
-    this.defineEvent("test");
 
     //this.focus = function () {
 
@@ -12895,7 +12912,7 @@ flyingon.defineClass("HtmlControl", flyingon.Control, function (Class, base, fly
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 
@@ -12971,43 +12988,13 @@ flyingon.defineClass("Splitter", flyingon.ContentControl, function (Class, base,
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 
         this.cursor = "col-resize";
-        this.draggable = true;
     };
-
-
-
-    this.defaultValue("draggable", true);
-
-
-
-    //拖动时鼠标样式
-    this.drag_cursor = "col-Resize";
-
-    //自定义拖动方法
-    this.__fn_drag_move = function (event, offsetX, offsetY) {
-
-        switch (this.dock)
-        {
-            case "left":
-            case "right":
-                return { x: offsetX, y: 0 };
-
-            case "top":
-            case "bottom":
-                return { x: 0, y: offsetY };
-        }
-    };
-
-    //自定义拖动结束方法
-    this.__fn_drag_stop = function (event, offsetX, offsetY) {
-
-    };
-
+    
 
 
 });
@@ -13554,7 +13541,7 @@ flyingon.layer_extender = function (host) {
 
 
     //创建绘画环境
-    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
+    this.context = (this.painter = new flyingon.Painter(canvas)).context;
 
 
     //更新画布
@@ -13620,7 +13607,7 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (host) {
 
@@ -13818,7 +13805,7 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (target) {
 
@@ -13933,18 +13920,20 @@ flyingon.defineClass("Repeater", flyingon.TemplateControl, function (Class, base
 flyingon.window_extender = function (base, flyingon) {
 
 
-    //flyingon.__capture_control:   当前捕获控件
-    //flyingon.__hover_control:     当前鼠标指向的控件
-
-
     var host,                       //主容器
-        mousedown_state = false,    //鼠标是否按下
-
-        Dragdrop = flyingon.Dragdrop,
 
         Event = flyingon.Event,
+        KeyEvent = flyingon.KeyEvent,
         MouseEvent = flyingon.MouseEvent,
-        KeyEvent = flyingon.KeyEvent;
+
+        dragging,                   //是否拖动状态
+        dragdrop = flyingon.dragdrop,
+
+        hover_control,              //鼠标指向控件
+        capture_control,            //鼠标捕获控件
+
+        start_event = null;         //关联的鼠标开始事件(mousedown事件)
+
 
 
 
@@ -13976,7 +13965,7 @@ flyingon.window_extender = function (base, flyingon) {
         flyingon.__initializing = true;
 
         //绑定dom事件
-        div.addEventListener("mousedown", mousedown, true);
+        div.addEventListener("mousedown", handle_mousedown);
 
         //宿主
         if (!host)
@@ -13986,24 +13975,20 @@ flyingon.window_extender = function (base, flyingon) {
             //样式说明: 禁止选中文本: -moz-user-select:none;-webkit-user-select:none;
             host.setAttribute("style", "-moz-user-select:none;-webkit-user-select:none;");
 
-            host.addEventListener("mousemove", mousemove, false);   //注册顶级dom以便捕获鼠标
-            host.addEventListener("mouseup", mouseup, false);       //注册顶级dom以便捕获鼠标
+            host.addEventListener("mousemove", handle_mousemove);   //注册顶级dom以便捕获鼠标
+            host.addEventListener("mouseup", handle_mouseup);       //注册顶级dom以便捕获鼠标
         }
 
 
-        div.addEventListener("click", click, true);
-        div.addEventListener("dblclick", dblclick, true);
+        div.addEventListener("click", handle_click);
+        div.addEventListener("dblclick", handle_dblclick);
 
-        div.addEventListener("mousewheel", mousewheel, true);
-        div.addEventListener("DOMMouseScroll", mousewheel, true); //firefox
+        div.addEventListener("mousewheel", handle_mousewheel);
+        div.addEventListener("DOMMouseScroll", handle_mousewheel); //firefox
 
-        div.addEventListener("keydown", key_event, true);
-        div.addEventListener("keypress", key_event, true);
-        div.addEventListener("keyup", key_event, true);
-
-
-        //创建处理鼠标指向延迟执行器
-        this.__hover_delay = new flyingon.DelayExecutor(10, handle_hover, this);
+        div.addEventListener("keydown", handle_key_event);
+        div.addEventListener("keypress", handle_key_event);
+        div.addEventListener("keyup", handle_key_event);
 
 
         //初始化输入符
@@ -14064,12 +14049,12 @@ flyingon.window_extender = function (base, flyingon) {
 
 
     //设置当前窗口为活动窗口
-    this.setActive = function () {
+    this.active = function () {
 
         var root = this.mainWindow,
             target;
 
-        if ((target = root.activeWindow) !== this)
+        if ((target = root.__activeWindow) !== this)
         {
             if (target)
             {
@@ -14082,14 +14067,16 @@ flyingon.window_extender = function (base, flyingon) {
                 target.stateTo("active", false);
             }
 
+            this.dispatchEvent(new Event("activate", this));
+
             root.__activeWindow = this;
+            host.__ownerWindow = this;
 
             if (this !== root)
             {
                 this.dom_window.style.zIndex = 9991;
             }
 
-            this.dispatchEvent(new Event("activate", this), true);
             this.stateTo("active", true);
         }
     };
@@ -14164,22 +14151,6 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
 
-    //切换输入焦点
-    this.__fn_switch_focus = function (target) {
-
-        var focused;
-
-        if (target.focusable && (focused = this.__focused_control) !== target)
-        {
-            if (focused && focused.validate())
-            {
-                focused.__fn_blur();
-            }
-
-            target.__fn_focus(event);
-        }
-    };
-
 
     this.fintAt = function (x, y) {
 
@@ -14198,257 +14169,182 @@ flyingon.window_extender = function (base, flyingon) {
 
 
 
-    //计算画布坐标(相对画布节点的偏移),处理firefox没有offsetX及offsetY的问题
-    function compute_canvas(dom_window, event) {
 
-        var x = 0,
-            y = 0,
-            target = dom_window || event.target;
+    //设置捕获控件
+    this.__fn_capture_control = function (target) {
 
-        while (target)
-        {
-            x += target.offsetLeft;
-            y += target.offsetTop;
-
-            target = target.offsetParent;
-        }
-
-        //不能使用offsetX属性 在IE下offsetX属性只读
-        event.canvasX = event.pageX - x;
-        event.canvasY = event.pageY - y;
-
-        return dom_window;
+        capture_control = target;
     };
 
 
 
-    //处理鼠标指向
-    function handle_hover(dom_event) {
 
-        compute_canvas(this.dom_window, dom_event);
-
-        var source = flyingon.__capture_control || flyingon.__hover_control,
-            target = this.fintAt(dom_event.canvasX, dom_event.canvasY) || this;
-
-        if (target !== source)
-        {
-            flyingon.__hover_control = target;
-
-            if (source && source.enabled)
-            {
-                source.stateTo("hover", false);
-                source.dispatchEvent(new MouseEvent("mouseout", source, dom_event), true);
-            }
-
-            if (target && target.enabled)
-            {
-                this.dom_window.style.cursor = target.cursor;
-
-                target.stateTo("hover", true);
-                target.dispatchEvent(new MouseEvent("mouseover", target, dom_event), true);
-
-                dispatch_mousemove(target, dom_event, true);
-            }
-        }
-        else if (target)
-        {
-            dispatch_mousemove(target, dom_event, true);
-        }
-    };
-
-
-    //触发mousemove事件
-    function dispatch_mousemove(target, dom_event, bubble) {
-
-        var event = new MouseEvent("mousemove", target, dom_event);
-        event.mousedown = mousedown_state;
-        target.dispatchEvent(event, bubble);
-    };
-
-
-    function mousedown(dom_event) {
+    function handle_mousedown(dom_event) {
 
         //立即处理鼠标指向
-        var ownerWindow = this.__ownerWindow.__hover_delay.execute();
+        var ownerWindow = this.__ownerWindow,
+            target = capture_control = hover_control, //点击自动锁定当前控件
+            focused;
 
         //处理弹出窗口
         if (ownerWindow !== ownerWindow.activeWindow) //活动窗口不是当前点击窗口
         {
-            ownerWindow.setActive();
+            ownerWindow.active();
         }
 
-        //记录鼠标按下状态
-        mousedown_state = true;
-
-        //处理鼠标按下事件
-        var capture = flyingon.__capture_control,
-            target = capture || flyingon.__hover_control;
-
-        if (target && target.enabled)
+        //如果可拖动
+        if (target.draggable && dragdrop.start(target, dom_event))
         {
-            compute_canvas(ownerWindow.dom_window, dom_event);
-
-            //如果可拖动
-            if (target.draggable)
-            {
-                //设置活动状态
-                target.stateTo("active", true);
-
-                //开始拖动
-                Dragdrop.start(ownerWindow, target, dom_event, true);
-            }
-                //else if (ownerWindow.designMode)
-                //{
-                //    Dragdrop.start(ownerWindow, target, dom_event, true);
-                //}
-            else
-            {
-                //设置活动状态
-                target.stateTo("active", true);
-
-                //切换输入焦点
-                ownerWindow.__fn_switch_focus(target);
-
-                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-                target.dispatchEvent(new MouseEvent("mousedown", target, dom_event), capture !== target);
-            }
-
-            //取消冒泡
-            dom_event.stopImmediatePropagation();
+            dragging = true; //标记拖动状态
         }
-    };
-
-
-    function mousemove(dom_event) {
-
-        var ownerWindow = host.__ownerWindow,
-            target;
-
-        if (ownerWindow)
+        else if (target && target.enabled)
         {
-            if (target = flyingon.__capture_control) //启用捕获
-            {
-                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
-                dispatch_mousemove(target, dom_event, false);  //直接分发至目标控件(不分发至父控件)
-                return;
-            }
+            //初始化允许点击事件
+            flyingon.__disable_click = flyingon.__disable_dbclick = false;
 
-            if (Dragdrop.state > 0) //处理拖动
+            //切换输入焦点
+            if (target.focusable && (focused = this.__focused_control) !== target)
             {
-                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
-                Dragdrop.move(dom_event);   //拖动
-                return;
-            }
-
-            if (ownerWindow !== dom_event.target.__ownerWindow) //如果窗口与当前控件所属窗口不同则立即处理原注册mousemove事件
-            {
-                if ((target = flyingon.__hover_control) && target.enabled)
+                if (focused && focused.validate())
                 {
-                    target.stateTo("hover", false);
-                    target.dispatchEvent(new MouseEvent("mouseout", target, dom_event), true);
+                    focused.__fn_blur();
                 }
 
-                ownerWindow.__hover_delay.cancel(); //取消处理鼠标指向注册
-                ownerWindow = null;
+                target.__fn_focus(dom_event);
             }
-        }
 
-        if (ownerWindow || (ownerWindow = host.__ownerWindow = dom_event.target.__ownerWindow))
-        {
-            ownerWindow.__hover_delay.registry(dom_event); //注册处理鼠标指向
+            //分发事件
+            start_event = new MouseEvent("mousedown", target, dom_event);
+            target.dispatchEvent(start_event);
+
+            //设置活动状态
+            target.stateTo("active", true);
         }
     };
 
 
-    function mouseup(dom_event) {
+    function handle_mousemove(dom_event) {
 
-        var ownerWindow = host.__ownerWindow;
+        var cache;
 
-        if (ownerWindow)
+        if (dragging) //处理拖动
         {
-            var capture = flyingon.__capture_control,
-                target = capture || flyingon.__hover_control;
+            dragdrop.move(dom_event);
+        }
+        else if (cache = capture_control) //启用捕获
+        {
+            cache.dispatchEvent(new MouseEvent("mousemove", cache, dom_event, start_event));
+        }
+        else
+        {
+            var ownerWindow = host.__ownerWindow,
+                target = ownerWindow.fintAt(dom_event.canvasX, dom_event.__canvasY) || ownerWindow;
+
+            if (target.enabled)
+            {
+                if (target !== (cache = hover_control))
+                {
+                    if (cache && cache.enabled)
+                    {
+                        cache.dispatchEvent(new MouseEvent("mouseout", cache, dom_event, start_event), true);
+                        cache.stateTo("hover", false);
+                    }
+
+                    hover_control = target;
+                    ownerWindow.dom_window.style.cursor = target.cursor;
+
+                    target.dispatchEvent(new MouseEvent("mouseover", target, dom_event, start_event));
+                    target.stateTo("hover", true);
+                }
+
+                target.dispatchEvent(new MouseEvent("mousemove", target, dom_event, start_event));
+            }
+        }
+    };
+
+
+    function handle_mouseup(dom_event) {
+
+        //如果处于拖动状态则停止拖动
+        if (dragging)
+        {
+            flyingon.__disable_click = flyingon.__disable_dbclick = true;  //取消click及dbclick事件
+            dragdrop.stop(dom_event); //停止拖动
+            dragging = false;
+        }
+        else
+        {
+            var target = capture_control || hover_control;
 
             if (target && target.enabled)
             {
-                //计算画布坐标
-                compute_canvas(ownerWindow.dom_window, dom_event);
-
-                //如果处于拖动状态则先停止拖动
-                if (Dragdrop.state > 0)
-                {
-                    Dragdrop.stop();
-                }
+                //分发事件
+                target.dispatchEvent(new MouseEvent("mouseup", target, dom_event, start_event));
 
                 //取消活动状态
                 target.stateTo("active", false);
-
-                //处理捕获
-                if (capture)
-                {
-                    //处理鼠标指向
-                    handle_hover.call(ownerWindow, dom_event);
-
-                    var color = target.backgroundColor;
-
-                    //自动取消捕获
-                    flyingon.__capture_control = null;
-                }
-
-                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-                target.dispatchEvent(new MouseEvent("mouseup", target, dom_event), capture !== target);
             }
         }
 
+        //取消捕获
+        capture_control = null;
+
         //取消鼠标按下状态
-        mousedown_state = false;
+        start_event = null;
     };
 
 
 
-    //鼠标事件翻译方法
-    function translate_MouseEvent(type, dom_event) {
 
-        var ownerWindow = this.__ownerWindow.__hover_delay.execute(),
-            capture = flyingon.__capture_control,
-            target = capture || flyingon.__hover_control;
+    //dom鼠标事件顺序: mousedown -> mouseup -> click -> mousedown -> mouseup -> click -> dblclick
+    function translate_mouse_event(type, dom_event) {
+
+        var target = capture_control || hover_control;
 
         if (target && target.enabled)
         {
-            //计算画布坐标
-            compute_canvas(ownerWindow.dom_window, dom_event);
-
-            //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-            target.dispatchEvent(new MouseEvent(type, target, dom_event), capture !== target);
+            return target.dispatchEvent(new MouseEvent(type, target, dom_event));
         }
-
-        dom_event.stopImmediatePropagation();
     };
 
-    function click(dom_event) {
+    function handle_click(dom_event) {
 
-        translate_MouseEvent.call(this, "click", dom_event);
+        if (flyingon.__disable_click)
+        {
+            flyingon.__disable_click = false;
+        }
+        else
+        {
+            translate_mouse_event("click", dom_event);
+        }
     };
 
-    function dblclick(dom_event) {
+    function handle_dblclick(dom_event) {
 
-        translate_MouseEvent.call(this, "dblclick", dom_event);
+        if (flyingon.__disable_dbclick)
+        {
+            flyingon.__disable_dbclick = false;
+        }
+        else
+        {
+            translate_mouse_event("dblclick", dom_event);
+        }
     };
 
-    function mousewheel(dom_event) {
+    function handle_mousewheel(dom_event) {
 
-        translate_MouseEvent.call(this, "mousewheel", dom_event);
+        translate_mouse_event("mousewheel", dom_event);
     };
 
 
 
-    function key_event(dom_KeyEvent) {
+    function handle_key_event(dom_event) {
 
         var ownerWindow = this.__ownerWindow,
             focused = ownerWindow.__focused_control;
 
-        //如果有输入焦点控件则分发事件(不使用冒泡方式分布直接分发至焦点控件)至输入焦点控件
-        if (focused && focused.enabled && focused.dispatchEvent(new KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent), false))
+        //如果有输入焦点控件则分发事件至输入焦点控件
+        if (focused && focused.enabled && focused.dispatchEvent(new KeyEvent(dom_event.type, focused, dom_event)))
         {
             return;
         }
@@ -14525,13 +14421,14 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (host) {
 
         this.__fn_create();
 
-        var div = this.dom_host = document.createElement("div");
+        var self = this,
+            div = this.dom_host = document.createElement("div");
 
         div.setAttribute("flyingon", "window-host");
         div.setAttribute("style", "position:relative;width:100%;height:100%;overflow:hidden;");
@@ -14539,16 +14436,11 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
         host && host.appendChild(div);
 
-        //设为活动窗口
-        this.setActive();
-
         //绑定resize事件
-        var self = this;
-        window.addEventListener("resize", function (event) {
+        window.addEventListener("resize", function (event) { self.update(); });
 
-            self.update();
-
-        }, true);
+        //设为活动窗口
+        this.active();
     };
 
 
@@ -14694,22 +14586,20 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
             var parent = this.__parent;
 
-            event = event.original_event;
+            event = event.dom_event;
 
             offsetX = parent.left - event.clientX;
             offsetY = parent.top - event.clientY;
-
-            flyingon.__capture_control = this; //捕获鼠标
         };
 
         this.__event_bubble_mousemove = function (event) {
 
-            if (event.mousedown) //鼠标左键被按下
+            if (event.which === 1) //鼠标左键被按下
             {
                 var parent = this.__parent,
                     root = parent.mainWindow,
                     style = parent.dom_window.style,
-                    x = (event = event.original_event).clientX + offsetX,
+                    x = (event = event.dom_event).clientX + offsetX,
                     y = event.clientY + offsetY;
 
                 if (x < 0)
@@ -14831,19 +14721,18 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
             if (resize_side)
             {
-                var original = event.original_event;
+                var dom = event.dom_event;
 
                 resize_start = {
 
-                    clientX: original.clientX,
-                    clientY: original.clientY,
+                    clientX: dom.clientX,
+                    clientY: dom.clientY,
                     x: this.left,
                     y: this.top,
                     width: +this.width,
                     height: +this.height
                 };
 
-                flyingon.__capture_control = this; //捕获鼠标
                 event.stopImmediatePropagation();
             }
         };
@@ -14852,7 +14741,7 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
             if (resize_start)
             {
-                var original = event.original_event,
+                var dom = event.dom_event,
                     start = resize_start,
                     side = resize_side,
                     fieds = this.__style,
@@ -14860,7 +14749,7 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
                 if (side.left)
                 {
-                    if ((fieds.left = original.clientX + start.x - start.clientX) < 0)
+                    if ((fieds.left = dom.clientX + start.x - start.clientX) < 0)
                     {
                         fieds.left = 0;
                     }
@@ -14869,12 +14758,12 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
                 }
                 else if (side.right)
                 {
-                    fieds.width = start.width + original.clientX - start.clientX;
+                    fieds.width = start.width + dom.clientX - start.clientX;
                 }
 
                 if (side.top)
                 {
-                    if ((fieds.top = original.clientY + start.y - start.clientY) < 0)
+                    if ((fieds.top = dom.clientY + start.y - start.clientY) < 0)
                     {
                         fieds.top = 0;
                     }
@@ -14883,14 +14772,14 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
                 }
                 else if (side.bottom)
                 {
-                    fieds.height = start.height + original.clientY - start.clientY;
+                    fieds.height = start.height + dom.clientY - start.clientY;
                 }
 
                 this.update();
 
                 event.stopImmediatePropagation();
             }
-            else if (!event.mousedown)
+            else if (event.which === 0)
             {
                 var style = this.dom_window.style;
 
@@ -14989,7 +14878,7 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
             host.appendChild(this.dom_window);
 
-            this.setActive();
+            this.active();
             this.update(this.start === "center");
         };
 
@@ -15010,7 +14899,7 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
             if (parent)
             {
-                if (this.dispatchEvent(new flyingon.Event("closing", this), true))
+                if (this.dispatchEvent(new flyingon.Event("closing", this)))
                 {
                     var root = this.__mainWindow,
                         host = root.dom_host;
@@ -15022,10 +14911,10 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
                         host.removeChild(this.dom_mask);
                     }
 
-                    this.dispatchEvent(new flyingon.Event("closed", this), true);
+                    this.dispatchEvent(new flyingon.Event("closed", this));
 
                     this.__parentWindow = this.__mainWindow = root.__activeWindow = null;
-                    parent.setActive();
+                    parent.active();
                 }
             }
 

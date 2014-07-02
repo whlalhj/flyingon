@@ -835,14 +835,14 @@ var flyingon_setting = flyingon_setting || {
 
 
         //声明构造函数及父类构造函数
-        var create, base_create = superclass.create;
+        var create_fn;
 
         //定义类模板
         function Class() {
 
-            if (create)
+            if (create_fn)
             {
-                create.apply(this, arguments);
+                create_fn.apply(this, arguments);
             }
         };
 
@@ -872,26 +872,31 @@ var flyingon_setting = flyingon_setting || {
         class_fn.call(prototype, Class, Class.base, flyingon);
 
 
+
         //处理构造函数(自动调用父类的构造函数)
-        if (base_create)
+        var create_mode = Class.create_mode, //构造函数方式: merge:合并父类构造函数 replace:替换父类构造函数 other:从父到子自动执行构造函数
+            create_base;
+
+        if (create_mode !== "replace" && (create_base = superclass.create))  //替换父类构造函数时不需要处理
         {
             var create_list = superclass.__create_list;
 
-            if (create = Class.create)
+            if (create_fn = Class.create) //处理父类构造函数
             {
-                //合并构造函数以提升性能 注:已有构造链时不可以合并
-                if (!create_list && Class.combine_create)
+                if (!create_list && create_mode === "merge") //合并父类构造函数以提升性能 注:已有构造链时不可以合并
                 {
-                    Class.create = flyingon.function_merge(create, base_create, true);
+                    Class.create = flyingon.function_merge(create_fn, create_base, true);
                 }
-                else //生成构造链
+                else
                 {
-                    create_list = Class.__create_list = create_list ? create_list.slice(0) : [base_create];
-                    create_list.push(create);
+                    //生成构造链
+                    Class.__create_list = create_list ? create_list.slice(0).push(create_fn) : [create_base, create_fn];
 
+                    //创建按构造链执行的构造函数
                     Class.create = function () {
 
                         var list = Class.__create_list;
+
                         for (var i = 0, _ = list.length; i < _; i++)
                         {
                             list[i].apply(this, arguments);
@@ -899,18 +904,19 @@ var flyingon_setting = flyingon_setting || {
                     };
                 }
             }
-            else
+            else //无构造函数则直接复制父类构造函数
             {
                 if (create_list)
                 {
                     Class.__create_list = create_list;
                 }
 
-                Class.create = base_create;
+                Class.create = create_base;
             }
         }
 
-        create = Class.create;
+        //设置构造函数
+        create_fn = Class.create;
 
         return Class;
     };

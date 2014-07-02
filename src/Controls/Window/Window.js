@@ -2,18 +2,20 @@
 flyingon.window_extender = function (base, flyingon) {
 
 
-    //flyingon.__capture_control:   当前捕获控件
-    //flyingon.__hover_control:     当前鼠标指向的控件
-
-
     var host,                       //主容器
-        mousedown_state = false,    //鼠标是否按下
-
-        Dragdrop = flyingon.Dragdrop,
 
         Event = flyingon.Event,
+        KeyEvent = flyingon.KeyEvent,
         MouseEvent = flyingon.MouseEvent,
-        KeyEvent = flyingon.KeyEvent;
+
+        dragging,                   //是否拖动状态
+        dragdrop = flyingon.dragdrop,
+
+        hover_control,              //鼠标指向控件
+        capture_control,            //鼠标捕获控件
+
+        start_event = null;         //关联的鼠标开始事件(mousedown事件)
+
 
 
 
@@ -45,7 +47,7 @@ flyingon.window_extender = function (base, flyingon) {
         flyingon.__initializing = true;
 
         //绑定dom事件
-        div.addEventListener("mousedown", mousedown, true);
+        div.addEventListener("mousedown", handle_mousedown);
 
         //宿主
         if (!host)
@@ -55,24 +57,20 @@ flyingon.window_extender = function (base, flyingon) {
             //样式说明: 禁止选中文本: -moz-user-select:none;-webkit-user-select:none;
             host.setAttribute("style", "-moz-user-select:none;-webkit-user-select:none;");
 
-            host.addEventListener("mousemove", mousemove, false);   //注册顶级dom以便捕获鼠标
-            host.addEventListener("mouseup", mouseup, false);       //注册顶级dom以便捕获鼠标
+            host.addEventListener("mousemove", handle_mousemove);   //注册顶级dom以便捕获鼠标
+            host.addEventListener("mouseup", handle_mouseup);       //注册顶级dom以便捕获鼠标
         }
 
 
-        div.addEventListener("click", click, true);
-        div.addEventListener("dblclick", dblclick, true);
+        div.addEventListener("click", handle_click);
+        div.addEventListener("dblclick", handle_dblclick);
 
-        div.addEventListener("mousewheel", mousewheel, true);
-        div.addEventListener("DOMMouseScroll", mousewheel, true); //firefox
+        div.addEventListener("mousewheel", handle_mousewheel);
+        div.addEventListener("DOMMouseScroll", handle_mousewheel); //firefox
 
-        div.addEventListener("keydown", key_event, true);
-        div.addEventListener("keypress", key_event, true);
-        div.addEventListener("keyup", key_event, true);
-
-
-        //创建处理鼠标指向延迟执行器
-        this.__hover_delay = new flyingon.DelayExecutor(10, handle_hover, this);
+        div.addEventListener("keydown", handle_key_event);
+        div.addEventListener("keypress", handle_key_event);
+        div.addEventListener("keyup", handle_key_event);
 
 
         //初始化输入符
@@ -133,12 +131,12 @@ flyingon.window_extender = function (base, flyingon) {
 
 
     //设置当前窗口为活动窗口
-    this.setActive = function () {
+    this.active = function () {
 
         var root = this.mainWindow,
             target;
 
-        if ((target = root.activeWindow) !== this)
+        if ((target = root.__activeWindow) !== this)
         {
             if (target)
             {
@@ -151,14 +149,16 @@ flyingon.window_extender = function (base, flyingon) {
                 target.stateTo("active", false);
             }
 
+            this.dispatchEvent(new Event("activate", this));
+
             root.__activeWindow = this;
+            host.__ownerWindow = this;
 
             if (this !== root)
             {
                 this.dom_window.style.zIndex = 9991;
             }
 
-            this.dispatchEvent(new Event("activate", this), true);
             this.stateTo("active", true);
         }
     };
@@ -233,22 +233,6 @@ flyingon.window_extender = function (base, flyingon) {
     };
 
 
-    //切换输入焦点
-    this.__fn_switch_focus = function (target) {
-
-        var focused;
-
-        if (target.focusable && (focused = this.__focused_control) !== target)
-        {
-            if (focused && focused.validate())
-            {
-                focused.__fn_blur();
-            }
-
-            target.__fn_focus(event);
-        }
-    };
-
 
     this.fintAt = function (x, y) {
 
@@ -267,258 +251,182 @@ flyingon.window_extender = function (base, flyingon) {
 
 
 
-    //计算画布坐标(相对画布节点的偏移),处理firefox没有offsetX及offsetY的问题
-    function compute_canvas(dom_window, event) {
 
-        var x = 0,
-            y = 0,
-            target = dom_window || event.target;
+    //设置捕获控件
+    this.__fn_capture_control = function (target) {
 
-        while (target)
-        {
-            x += target.offsetLeft;
-            y += target.offsetTop;
-
-            target = target.offsetParent;
-        }
-
-        //不能使用offsetX属性 在IE下offsetX属性只读
-        event.canvasX = event.pageX - x;
-        event.canvasY = event.pageY - y;
-
-        return dom_window;
+        capture_control = target;
     };
 
 
 
-    //处理鼠标指向
-    function handle_hover(dom_event) {
 
-        compute_canvas(this.dom_window, dom_event);
-
-        var source = flyingon.__hover_control,
-            target = this.fintAt(dom_event.canvasX, dom_event.canvasY) || this;
-
-        if (target !== source)
-        {
-            flyingon.__hover_control = target;
-
-            if (source && source.enabled)
-            {
-                source.stateTo("hover", false);
-                source.dispatchEvent(new MouseEvent("mouseout", source, dom_event), true);
-            }
-
-            if (target && target.enabled)
-            {
-                this.dom_window.style.cursor = target.cursor;
-
-                target.stateTo("hover", true);
-                target.dispatchEvent(new MouseEvent("mouseover", target, dom_event), true);
-
-                dispatch_mousemove(target, dom_event, true);
-            }
-        }
-        else if (target)
-        {
-            dispatch_mousemove(target, dom_event, true);
-        }
-    };
-
-
-    //触发mousemove事件
-    function dispatch_mousemove(target, dom_event, bubble) {
-
-        var event = new MouseEvent("mousemove", target, dom_event);
-        event.mousedown = mousedown_state;
-        target.dispatchEvent(event, bubble);
-    };
-
-
-    function mousedown(dom_event) {
+    function handle_mousedown(dom_event) {
 
         //立即处理鼠标指向
-        var ownerWindow = this.__ownerWindow.__hover_delay.execute();
+        var ownerWindow = this.__ownerWindow,
+            target = capture_control = hover_control, //点击自动锁定当前控件
+            focused;
 
         //处理弹出窗口
         if (ownerWindow !== ownerWindow.activeWindow) //活动窗口不是当前点击窗口
         {
-            ownerWindow.setActive();
+            ownerWindow.active();
         }
 
-        //记录鼠标按下状态
-        mousedown_state = true;
-
-        //处理鼠标按下事件
-        var capture = flyingon.__capture_control,
-            target = capture || flyingon.__hover_control;
-
-        if (target && target.enabled)
+        //如果可拖动
+        if (target.draggable && dragdrop.start(target, dom_event))
         {
-            compute_canvas(ownerWindow.dom_window, dom_event);
-
-            //如果可拖动
-            if (target.draggable)
-            {
-                //设置活动状态
-                target.stateTo("active", true);
-
-                //开始拖动
-                Dragdrop.start(ownerWindow, target, dom_event, true);
-            }
-                //else if (ownerWindow.designMode)
-                //{
-                //    Dragdrop.start(ownerWindow, target, dom_event, true);
-                //}
-            else
-            {
-                //设置活动状态
-                target.stateTo("active", true);
-
-                //切换输入焦点
-                ownerWindow.__fn_switch_focus(target);
-
-                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-                target.dispatchEvent(new MouseEvent("mousedown", target, dom_event), capture !== target);
-            }
-
-            //取消冒泡
-            dom_event.stopImmediatePropagation();
+            dragging = true; //标记拖动状态
         }
-    };
-
-
-    function mousemove(dom_event) {
-
-        var ownerWindow = host.__ownerWindow,
-            target;
-
-        if (ownerWindow)
+        else if (target && target.enabled)
         {
-            if (target = flyingon.__capture_control) //启用捕获
-            {
-                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
-                dispatch_mousemove(target, dom_event, false);  //直接分发至目标控件(不分发至父控件)
-                return;
-            }
+            //初始化允许点击事件
+            flyingon.__disable_click = flyingon.__disable_dbclick = false;
 
-            if (Dragdrop.state > 0) //处理拖动
+            //切换输入焦点
+            if (target.focusable && (focused = this.__focused_control) !== target)
             {
-                compute_canvas(ownerWindow.dom_window, dom_event); //计算画布坐标
-                Dragdrop.move(dom_event);   //拖动
-                return;
-            }
-
-            if (ownerWindow !== dom_event.target.__ownerWindow) //如果窗口与当前控件所属窗口不同则立即处理原注册mousemove事件
-            {
-                if ((target = flyingon.__hover_control) && target.enabled)
+                if (focused && focused.validate())
                 {
-                    target.stateTo("hover", false);
-                    target.dispatchEvent(new MouseEvent("mouseout", target, dom_event), true);
+                    focused.__fn_blur();
                 }
 
-                ownerWindow.__hover_delay.cancel(); //取消处理鼠标指向注册
-                ownerWindow = null;
+                target.__fn_focus(dom_event);
             }
-        }
 
-        if (ownerWindow || (ownerWindow = host.__ownerWindow = dom_event.target.__ownerWindow))
-        {
-            ownerWindow.__hover_delay.registry(dom_event); //注册处理鼠标指向
+            //分发事件
+            start_event = new MouseEvent("mousedown", target, dom_event);
+            target.dispatchEvent(start_event);
+
+            //设置活动状态
+            target.stateTo("active", true);
         }
     };
 
 
-    function mouseup(dom_event) {
+    function handle_mousemove(dom_event) {
 
-        var ownerWindow = host.__ownerWindow;
+        var cache;
 
-        if (ownerWindow)
+        if (dragging) //处理拖动
         {
-            var capture = flyingon.__capture_control,
-                target = capture || flyingon.__hover_control;
+            dragdrop.move(dom_event);
+        }
+        else if (cache = capture_control) //启用捕获
+        {
+            cache.dispatchEvent(new MouseEvent("mousemove", cache, dom_event, start_event));
+        }
+        else
+        {
+            var ownerWindow = host.__ownerWindow,
+                target = ownerWindow.fintAt(dom_event.canvasX, dom_event.__canvasY) || ownerWindow;
+
+            if (target.enabled)
+            {
+                if (target !== (cache = hover_control))
+                {
+                    if (cache && cache.enabled)
+                    {
+                        cache.dispatchEvent(new MouseEvent("mouseout", cache, dom_event, start_event), true);
+                        cache.stateTo("hover", false);
+                    }
+
+                    hover_control = target;
+                    ownerWindow.dom_window.style.cursor = target.cursor;
+
+                    target.dispatchEvent(new MouseEvent("mouseover", target, dom_event, start_event));
+                    target.stateTo("hover", true);
+                }
+
+                target.dispatchEvent(new MouseEvent("mousemove", target, dom_event, start_event));
+            }
+        }
+    };
+
+
+    function handle_mouseup(dom_event) {
+
+        //如果处于拖动状态则停止拖动
+        if (dragging)
+        {
+            flyingon.__disable_click = flyingon.__disable_dbclick = true;  //取消click及dbclick事件
+            dragdrop.stop(dom_event); //停止拖动
+            dragging = false;
+        }
+        else
+        {
+            var target = capture_control || hover_control;
 
             if (target && target.enabled)
             {
-                //计算画布坐标
-                compute_canvas(ownerWindow.dom_window, dom_event);
-
-                //如果处于拖动状态则先停止拖动
-                if (Dragdrop.state > 0)
-                {
-                    Dragdrop.stop();
-                }
+                //分发事件
+                target.dispatchEvent(new MouseEvent("mouseup", target, dom_event, start_event));
 
                 //取消活动状态
                 target.stateTo("active", false);
-
-                //处理捕获
-                if (capture)
-                {
-                    //清空上次鼠标指向控件以便对比
-                    flyingon.__hover_control = null;
-
-                    //处理鼠标指向
-                    handle_hover.call(ownerWindow, dom_event);
-
-                    //自动取消捕获
-                    flyingon.__capture_control = null;
-                }
-
-                //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-                target.dispatchEvent(new MouseEvent("mouseup", target, dom_event), capture !== target);
             }
         }
 
+        //取消捕获
+        capture_control = null;
+
         //取消鼠标按下状态
-        mousedown_state = false;
+        start_event = null;
     };
 
 
 
-    //鼠标事件翻译方法
-    function translate_MouseEvent(type, dom_event) {
 
-        var ownerWindow = this.__ownerWindow.__hover_delay.execute(),
-            capture = flyingon.__capture_control,
-            target = capture || flyingon.__hover_control;
+    //dom鼠标事件顺序: mousedown -> mouseup -> click -> mousedown -> mouseup -> click -> dblclick
+    function translate_mouse_event(type, dom_event) {
+
+        var target = capture_control || hover_control;
 
         if (target && target.enabled)
         {
-            //计算画布坐标
-            compute_canvas(ownerWindow.dom_window, dom_event);
-
-            //分发事件 捕获控件时不按冒泡方式分发(仅分发至目标控件而不分发至父控件)
-            target.dispatchEvent(new MouseEvent(type, target, dom_event), capture !== target);
+            return target.dispatchEvent(new MouseEvent(type, target, dom_event));
         }
-
-        dom_event.stopImmediatePropagation();
     };
 
-    function click(dom_event) {
+    function handle_click(dom_event) {
 
-        translate_MouseEvent.call(this, "click", dom_event);
+        if (flyingon.__disable_click)
+        {
+            flyingon.__disable_click = false;
+        }
+        else
+        {
+            translate_mouse_event("click", dom_event);
+        }
     };
 
-    function dblclick(dom_event) {
+    function handle_dblclick(dom_event) {
 
-        translate_MouseEvent.call(this, "dblclick", dom_event);
+        if (flyingon.__disable_dbclick)
+        {
+            flyingon.__disable_dbclick = false;
+        }
+        else
+        {
+            translate_mouse_event("dblclick", dom_event);
+        }
     };
 
-    function mousewheel(dom_event) {
+    function handle_mousewheel(dom_event) {
 
-        translate_MouseEvent.call(this, "mousewheel", dom_event);
+        translate_mouse_event("mousewheel", dom_event);
     };
 
 
 
-    function key_event(dom_KeyEvent) {
+    function handle_key_event(dom_event) {
 
         var ownerWindow = this.__ownerWindow,
             focused = ownerWindow.__focused_control;
 
-        //如果有输入焦点控件则分发事件(不使用冒泡方式分布直接分发至焦点控件)至输入焦点控件
-        if (focused && focused.enabled && focused.dispatchEvent(new KeyEvent(dom_KeyEvent.type, focused, dom_KeyEvent), false))
+        //如果有输入焦点控件则分发事件至输入焦点控件
+        if (focused && focused.enabled && focused.dispatchEvent(new KeyEvent(dom_event.type, focused, dom_event)))
         {
             return;
         }
@@ -595,13 +503,14 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (host) {
 
         this.__fn_create();
 
-        var div = this.dom_host = document.createElement("div");
+        var self = this,
+            div = this.dom_host = document.createElement("div");
 
         div.setAttribute("flyingon", "window-host");
         div.setAttribute("style", "position:relative;width:100%;height:100%;overflow:hidden;");
@@ -609,16 +518,11 @@ flyingon.defineClass("Window", flyingon.Panel, function (Class, base, flyingon) 
 
         host && host.appendChild(div);
 
-        //设为活动窗口
-        this.setActive();
-
         //绑定resize事件
-        var self = this;
-        window.addEventListener("resize", function (event) {
+        window.addEventListener("resize", function (event) { self.update(); });
 
-            self.update();
-
-        }, true);
+        //设为活动窗口
+        this.active();
     };
 
 

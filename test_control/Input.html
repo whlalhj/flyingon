@@ -57,17 +57,30 @@
         }
 
 
-    
+
 
         w.onscroll = function (event) {
 
             message.innerHTML = "";
         };
 
-        w.ontest = function (event) {
+        w.onmousedown = function (event) {
 
-            message.innerHTML += event.target.__fullTypeName + "-" + event.target.uniqueId + "-" + event.value + "    ";
+            var canvasX = event.canvasX;
+            var controlX = event.controlX;
         };
+
+        w.onmousemove = function (event) {
+
+            var p = event.target.control_to_window(0, 0);
+
+            message.innerHTML = "target:" + event.target.__fullTypeName + ":" + event.target.uniqueId
+                + " hover:" + (event.target.__states && event.target.__states.hover ? "true" : "false")
+                + " canvasX:" + event.canvasX + " canvasY:" + event.canvasY
+                + " windowX:" + event.windowX + " windowY:" + event.windowY
+                + " controlX:" + event.controlX + " controlY:" + event.controlY;
+        };
+
 
         var date = new Date();
 

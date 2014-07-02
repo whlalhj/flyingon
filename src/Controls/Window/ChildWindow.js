@@ -86,22 +86,20 @@
 
             var parent = this.__parent;
 
-            event = event.original_event;
+            event = event.dom_event;
 
             offsetX = parent.left - event.clientX;
             offsetY = parent.top - event.clientY;
-
-            flyingon.__capture_control = this; //捕获鼠标
         };
 
         this.__event_bubble_mousemove = function (event) {
 
-            if (event.mousedown) //鼠标左键被按下
+            if (event.which === 1) //鼠标左键被按下
             {
                 var parent = this.__parent,
                     root = parent.mainWindow,
                     style = parent.dom_window.style,
-                    x = (event = event.original_event).clientX + offsetX,
+                    x = (event = event.dom_event).clientX + offsetX,
                     y = event.clientY + offsetY;
 
                 if (x < 0)
@@ -223,19 +221,18 @@
 
             if (resize_side)
             {
-                var original = event.original_event;
+                var dom = event.dom_event;
 
                 resize_start = {
 
-                    clientX: original.clientX,
-                    clientY: original.clientY,
+                    clientX: dom.clientX,
+                    clientY: dom.clientY,
                     x: this.left,
                     y: this.top,
                     width: +this.width,
                     height: +this.height
                 };
 
-                flyingon.__capture_control = this; //捕获鼠标
                 event.stopImmediatePropagation();
             }
         };
@@ -244,7 +241,7 @@
 
             if (resize_start)
             {
-                var original = event.original_event,
+                var dom = event.dom_event,
                     start = resize_start,
                     side = resize_side,
                     fieds = this.__style,
@@ -252,7 +249,7 @@
 
                 if (side.left)
                 {
-                    if ((fieds.left = original.clientX + start.x - start.clientX) < 0)
+                    if ((fieds.left = dom.clientX + start.x - start.clientX) < 0)
                     {
                         fieds.left = 0;
                     }
@@ -261,12 +258,12 @@
                 }
                 else if (side.right)
                 {
-                    fieds.width = start.width + original.clientX - start.clientX;
+                    fieds.width = start.width + dom.clientX - start.clientX;
                 }
 
                 if (side.top)
                 {
-                    if ((fieds.top = original.clientY + start.y - start.clientY) < 0)
+                    if ((fieds.top = dom.clientY + start.y - start.clientY) < 0)
                     {
                         fieds.top = 0;
                     }
@@ -275,14 +272,14 @@
                 }
                 else if (side.bottom)
                 {
-                    fieds.height = start.height + original.clientY - start.clientY;
+                    fieds.height = start.height + dom.clientY - start.clientY;
                 }
 
                 this.update();
 
                 event.stopImmediatePropagation();
             }
-            else if (!event.mousedown)
+            else if (event.which === 0)
             {
                 var style = this.dom_window.style;
 
@@ -381,7 +378,7 @@
 
             host.appendChild(this.dom_window);
 
-            this.setActive();
+            this.active();
             this.update(this.start === "center");
         };
 
@@ -402,7 +399,7 @@
 
             if (parent)
             {
-                if (this.dispatchEvent(new flyingon.Event("closing", this), true))
+                if (this.dispatchEvent(new flyingon.Event("closing", this)))
                 {
                     var root = this.__mainWindow,
                         host = root.dom_host;
@@ -414,10 +411,10 @@
                         host.removeChild(this.dom_mask);
                     }
 
-                    this.dispatchEvent(new flyingon.Event("closed", this), true);
+                    this.dispatchEvent(new flyingon.Event("closed", this));
 
                     this.__parentWindow = this.__mainWindow = root.__activeWindow = null;
-                    parent.setActive();
+                    parent.active();
                 }
             }
 
