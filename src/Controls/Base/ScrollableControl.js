@@ -14,7 +14,7 @@ flyingon.defineClass("ScrollableControl", flyingon.Control, function (Class, bas
         var scrollbar_x = this.__scrollbar_x,
             scrollbar_y = this.__scrollbar_y;
 
-        if ((scrollbar_x || scrollbar_y) && event.start_event && event.which === 1) //如果鼠标左键处于按下状态且有滚动条
+        if ((scrollbar_x || scrollbar_y) && event.mousedown && event.which === 1) //如果鼠标左键处于按下状态且有滚动条
         {
             if (scrollbar_x)
             {

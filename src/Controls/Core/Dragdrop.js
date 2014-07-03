@@ -14,7 +14,7 @@
 
         droppable,              //是否可放下
 
-        start_event,            //关联的起始事件
+        mousedown,              //关联的鼠标按下时dom事件
 
         drag_axisX,             //x轴是否可拖动(仅dragstart事件有效)
         drag_axisY,             //y轴是否可拖动(仅dragstart事件有效)
@@ -37,10 +37,12 @@
     //分发事件
     this.dispatchEvent = function (type, target, dom_event) {
 
-        var event = new flyingon.DragEvent(type, this.target, dom_event, start_event);
+        var event = new flyingon.DragEvent(type, this.target, dom_event, mousedown);
 
         event.dragTargets = dragTargets;
         event.dropTarget = dropTarget;
+
+        target.dispatchEvent(event);
 
         cursor = event.__cursor || cursor;
         no_drop_cursor = event.__no_drop_cursor || no_drop_cursor;
@@ -68,8 +70,8 @@
         this.ownerWindow = target.ownerWindow;
         this.target = target;
 
-        //关联起始事件
-        start_event = dom_event;
+        //关联的鼠标按下时dom事件
+        mousedown = dom_event;
 
         //获取被拖动控件集合
         dragTargets = event.dragTargets || [target];

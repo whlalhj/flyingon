@@ -105,10 +105,10 @@ flyingon.defineClass("MouseEvent", flyingon.Event, function (Class, base, flying
 
     Class.create_mode = "merge";
 
-    Class.create = function (type, source, dom_event, start_event) {
+    Class.create = function (type, source, dom_event, mousedown) {
 
         this.dom_event = dom_event;     //关联的原始dom事件
-        this.start_event = start_event; //关联的起始事件
+        this.mousedown = mousedown;     //关联的鼠标按下时dom事件
     };
 
 
@@ -135,13 +135,13 @@ flyingon.defineClass("MouseEvent", flyingon.Event, function (Class, base, flying
 
 
     //鼠标按键 左:0 中:1 右:2 IE9以上与W3C相同
-    //如果关联了鼠标按下事件则取鼠标按下事件的值
-    this.defineProperty("button", "(this.start_event || this).dom_event");
+    //如果关联了鼠标按下时dom事件则取鼠标按下时dom事件的值
+    this.defineProperty("button", "(this.mousedown || this.dom_event)");
 
 
     //鼠标按键 左:1 中:2 右:3
-    //如果关联了鼠标按下事件则取鼠标按下事件的值
-    this.defineProperty("which", "(this.start_event || this).dom_event");
+    //如果关联了鼠标按下时dom事件则取鼠标按下时dom事件的值
+    this.defineProperty("which", "(this.mousedown || this.dom_event)");
 
 
 
@@ -259,20 +259,20 @@ flyingon.defineClass("MouseEvent", flyingon.Event, function (Class, base, flying
         return this.dom_event.controlY || canvas_to_control.call(this).controlY;
     });
 
-    
+
     //从鼠标按下时起的x轴移动距离
     this.defineProperty("distanceX", function () {
 
-        var start = this.start_event;
-        return start ? this.canvasX - start.canvasX : 0;
+        var start = this.mousedown;
+        return start ? this.dom_event.clientX - start.clientX : 0;
     });
 
 
     //从鼠标按下时起的y轴移动距离
     this.defineProperty("distanceY", function () {
 
-        var start = this.start_event;
-        return start ? this.canvasY - start.canvasY : 0;
+        var start = this.mousedown;
+        return start ? this.dom_event.clientY - start.clientY : 0;
     });
 
 
@@ -307,7 +307,7 @@ flyingon.defineClass("DragEvent", flyingon.MouseEvent, function (Class, base, fl
 
     Class.create_mode = "merge";
 
-    Class.create = function (type, source, dom_event, start_event) {
+    Class.create = function (type, source, dom_event, mousedown) {
 
         this.dragTargets = [this.target];
     };
@@ -335,6 +335,27 @@ flyingon.defineClass("DragEvent", flyingon.MouseEvent, function (Class, base, fl
 
     //y轴是否可拖动(仅dragstart事件有效)
     this.drag_axisY = true;
+
+
+
+    //执行放下动作
+    this.drop = function (copy) {
+
+        var target = this.dropTarget,
+            items1 = this.dragTargets,
+            items2,
+            length;
+
+        if (target && items1 && (length = items1.length) > 0)
+        {
+            items2 = target.children;
+
+            for (var i = 0; i < length; i++)
+            {
+                items2.append(copy ? items1[i].copy() : items1[i]);
+            }
+        }
+    };
 
 
 });
@@ -435,13 +456,13 @@ flyingon.defineClass("PropertyChangeEvent", flyingon.Event, function (Class, bas
 
     //事件类型
     this.type = "change";
-    
+
     //当前属性值
     this.value = null;
-    
+
     //属性名
     this.name = null;
-    
+
     //原属性值
     this.oldValue = null;
 
@@ -467,10 +488,10 @@ flyingon.defineClass("ScrollEvent", flyingon.Event, function (Class, base, flyin
 
     //事件类型
     this.type = "scroll";
-    
+
     //x方向滚动距离
     this.distanceX = 0;
-    
+
     //y方向滚动距离
     this.distanceY = 0;
 

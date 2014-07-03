@@ -538,6 +538,23 @@ flyingon.defineClass("SerializableObject", function (Class, base, flyingon) {
 
 
 
+    //复制生成新控件
+    this.copy = function () {
+
+        var result = new this.__class_type(),
+            fields1 = result.__fields,
+            fields2 = this.__fields,
+            names = Object.getOwnPropertyNames(fields2),
+            name;
+
+        for (var i = 0, _ = names.length; i < _; i++)
+        {
+            fields1[name = names[i]] = fields2[name];
+        }
+
+        return result;
+    };
+
 
     //自定义序列化
     this.serialize = function (writer) {

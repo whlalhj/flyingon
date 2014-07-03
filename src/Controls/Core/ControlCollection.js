@@ -20,6 +20,11 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
         if (item instanceof flyingon.Control)
         {
+            if (item.__parent) //从原有父控件中删除
+            {
+                item.remove();
+            }
+
             if (flyingon.__initializing)
             {
                 item.__parent = this.ownerControl;
@@ -31,8 +36,6 @@ flyingon.defineClass("ControlCollection", flyingon.Collection, function (Class, 
 
             return item;
         }
-
-        return undefined;
     };
 
     //移除

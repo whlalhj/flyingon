@@ -299,7 +299,7 @@
 
 
         //文字内容
-        this.defineProperty("text", null, {
+        this.defineProperty("text", "", {
 
             attributes: "rearrange",
             change: "if (this.__text_lines) tihs.__text_lines = null;"

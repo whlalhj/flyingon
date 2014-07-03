@@ -36,9 +36,7 @@
 
 
 
-        var layout_dock = flyingon.layouts["dock"],
-            offsetX,
-            offsetY;
+        var layout_dock = flyingon.layouts["dock"];
 
 
 
@@ -81,26 +79,15 @@
         };
 
 
+        this.__event_capture_mousemove = function (event) {
 
-        this.__event_bubble_mousedown = function (event) {
-
-            var parent = this.__parent;
-
-            event = event.dom_event;
-
-            offsetX = parent.left - event.clientX;
-            offsetY = parent.top - event.clientY;
-        };
-
-        this.__event_bubble_mousemove = function (event) {
-
-            if (event.which === 1) //鼠标左键被按下
+            if (event.mousedown && event.which === 1) //鼠标左键被按下
             {
                 var parent = this.__parent,
                     root = parent.mainWindow,
-                    style = parent.dom_window.style,
-                    x = (event = event.dom_event).clientX + offsetX,
-                    y = event.clientY + offsetY;
+                    start = event.mousedown.start || (event.mousedown.start = { x: parent.left, y: parent.top }),
+                    x = start.x + event.distanceX,
+                    y = start.y + event.distanceY;
 
                 if (x < 0)
                 {
@@ -120,8 +107,10 @@
                     y = root.height - 8;
                 }
 
-                style.left = (parent.left = x) + "px";
-                style.top = (parent.top = y) + "px";
+                parent.left = x;
+                parent.top = y;
+
+                event.stopImmediatePropagation();
             }
         };
 
@@ -153,7 +142,7 @@
 
 
     //子窗口
-    flyingon.defineClass("ChildWindow", flyingon.Panel, function (Class, base, flyingon) {
+    flyingon.defineClass("ChildWindow", flyingon.WindowBase, function (Class, base, flyingon) {
 
 
 
@@ -165,10 +154,7 @@
 
 
 
-
-        flyingon.window_extender.call(this, base, flyingon);
-
-
+        
         //窗口宽度
         this.defaultValue("width", 640);
 
@@ -183,10 +169,6 @@
         });
 
 
-        //窗口起始位置 center:居中  manual:自定义
-        this.defineProperty("start", "center");
-
-
         //是否可调整大小
         this.defineProperty("resizable", true);
 
@@ -195,22 +177,6 @@
         this.defineEvent("closing");
 
         this.defineEvent("closed");
-
-
-
-
-        //默认位置变更处理
-        this.__event_bubble_change = function (event) {
-
-            switch (event.name)
-            {
-                case "left":
-                case "top":
-                    this.dom_window.style[event.name] = event.value + "px";
-                    break;
-            }
-        };
-
 
 
 
@@ -241,111 +207,11 @@
 
             if (resize_start)
             {
-                var dom = event.dom_event,
-                    start = resize_start,
-                    side = resize_side,
-                    fieds = this.__style,
-                    style = this.dom_window.style;
-
-                if (side.left)
-                {
-                    if ((fieds.left = dom.clientX + start.x - start.clientX) < 0)
-                    {
-                        fieds.left = 0;
-                    }
-
-                    fieds.width = start.width + start.x - fieds.left;
-                }
-                else if (side.right)
-                {
-                    fieds.width = start.width + dom.clientX - start.clientX;
-                }
-
-                if (side.top)
-                {
-                    if ((fieds.top = dom.clientY + start.y - start.clientY) < 0)
-                    {
-                        fieds.top = 0;
-                    }
-
-                    fieds.height = start.height + start.y - fieds.top;
-                }
-                else if (side.bottom)
-                {
-                    fieds.height = start.height + dom.clientY - start.clientY;
-                }
-
-                this.update();
-
-                event.stopImmediatePropagation();
+                resize_fn(this, event);
             }
-            else if (event.which === 0)
+            else if (!event.mousedown)
             {
-                var style = this.dom_window.style;
-
-                if (this.resizable) //计算当前位置的调整大小类型
-                {
-                    var x = event.canvasX,
-                        y = event.canvasY,
-                        width = +this.width,
-                        height = +this.height,
-                        cursor;
-
-                    resize_side = null;
-
-                    if (x > 0 && x <= 4)
-                    {
-                        cursor = "w-resize";
-                        resize_side = { left: true };
-                    }
-                    else if (x < width && x >= width - 4)
-                    {
-                        cursor = "e-resize";
-                        resize_side = { right: true };
-                    }
-
-                    if (y > 0 && y <= 4)
-                    {
-                        if (resize_side)
-                        {
-                            cursor = resize_side.left ? "nw-resize" : "ne-resize";
-                            resize_side.top = true;
-                        }
-                        else
-                        {
-                            cursor = "n-resize";
-                            resize_side = { top: true };
-                        }
-                    }
-                    else if (y < height && y >= height - 4)
-                    {
-                        if (resize_side)
-                        {
-                            cursor = resize_side.left ? "sw-resize" : "se-resize";
-                            resize_side.bottom = true;
-                        }
-                        else
-                        {
-                            cursor = "s-resize";
-                            resize_side = { bottom: true };
-                        }
-                    }
-
-                    if (cursor)
-                    {
-                        style.cursor = cursor;
-                        event.stopImmediatePropagation();
-                    }
-                    else
-                    {
-                        style.cursor = event.target.cursor;
-                    }
-                }
-                else if (resize_side)
-                {
-                    style.cursor = this.cursor;
-                    resize_side = null;
-                }
+                resize_check(this, event);
             }
         };
 
@@ -359,9 +225,120 @@
         };
 
 
+        function resize_fn(target, event) {
+
+            var dom = event.dom_event,
+                start = resize_start,
+                side = resize_side,
+                fieds = target.__style,
+                style = target.dom_window.style;
+
+            if (side.left)
+            {
+                if ((fieds.left = dom.clientX + start.x - start.clientX) < 0)
+                {
+                    fieds.left = 0;
+                }
+
+                fieds.width = start.width + start.x - fieds.left;
+            }
+            else if (side.right)
+            {
+                fieds.width = start.width + dom.clientX - start.clientX;
+            }
+
+            if (side.top)
+            {
+                if ((fieds.top = dom.clientY + start.y - start.clientY) < 0)
+                {
+                    fieds.top = 0;
+                }
+
+                fieds.height = start.height + start.y - fieds.top;
+            }
+            else if (side.bottom)
+            {
+                fieds.height = start.height + dom.clientY - start.clientY;
+            }
+
+            event.stopImmediatePropagation();
+
+            target.update();
+        };
 
 
-        function show(parentWindow, showDialog) {
+        function resize_check(target, event) {
+
+            var style = target.dom_window.style;
+
+            if (target.resizable) //计算当前位置的调整大小类型
+            {
+                var x = event.canvasX,
+                    y = event.canvasY,
+                    width = target.width,
+                    height = target.height,
+                    cursor;
+
+                resize_side = null;
+
+                if (x > 0 && x <= 4)
+                {
+                    cursor = "w-resize";
+                    resize_side = { left: true };
+                }
+                else if (x < width && x >= width - 4)
+                {
+                    cursor = "e-resize";
+                    resize_side = { right: true };
+                }
+
+                if (y > 0 && y <= 4)
+                {
+                    if (resize_side)
+                    {
+                        cursor = resize_side.left ? "nw-resize" : "ne-resize";
+                        resize_side.top = true;
+                    }
+                    else
+                    {
+                        cursor = "n-resize";
+                        resize_side = { top: true };
+                    }
+                }
+                else if (y < height && y >= height - 4)
+                {
+                    if (resize_side)
+                    {
+                        cursor = resize_side.left ? "sw-resize" : "se-resize";
+                        resize_side.bottom = true;
+                    }
+                    else
+                    {
+                        cursor = "s-resize";
+                        resize_side = { bottom: true };
+                    }
+                }
+
+                if (cursor)
+                {
+                    style.cursor = cursor;
+                    event.stopImmediatePropagation();
+                }
+                else
+                {
+                    style.cursor = event.target.cursor;
+                }
+            }
+            else if (resize_side)
+            {
+                style.cursor = target.cursor;
+                resize_side = null;
+            }
+        };
+
+
+
+        function show(parentWindow, center, showDialog) {
 
             this.__parentWindow = parentWindow;
             this.__mainWindow = parentWindow.mainWindow;
@@ -371,6 +348,7 @@
             if (showDialog) //如果是模式窗口则添加遮罩层
             {
                 var mask = this.dom_mask = document.createElement("div");
+
                 mask.setAttribute("flyingon", "mask");
                 mask.setAttribute("style", "position:absolute;z-index:9990;width:100%;height:100%;overflow:hidden;-moz-user-select:none;-webkit-user-select:none;outline:none;cursor:default;background-color:silver;opacity:0.1;");
                 host.appendChild(this.dom_mask);
@@ -378,18 +356,29 @@
 
             host.appendChild(this.dom_window);
 
+            var rect = this.__fn_clientRect(this.fill),
+                style = this.__style;
+
+            if (center !== false)
+            {
+                style.left = (rect.width - style.width) >> 1;
+                style.top = (rect.height - style.height) >> 1;
+            }
+
             this.active();
-            this.update(this.start === "center");
+            this.render();
         };
 
-        this.show = function (parentWindow) {
 
-            show.call(this, parentWindow, false);
+        this.show = function (parentWindow, center) {
+
+            show.call(this, parentWindow, center, false);
         };
 
-        this.showDialog = function (parentWindow) {
 
-            show.call(this, parentWindow, true);
+        this.showDialog = function (parentWindow, center) {
+
+            show.call(this, parentWindow, center, true);
         };
 
 
@@ -397,28 +386,23 @@
 
             var parent = this.__parentWindow;
 
-            if (parent)
+            if (parent && this.dispatchEvent(new flyingon.Event("closing", this)) !== false)
             {
-                if (this.dispatchEvent(new flyingon.Event("closing", this)))
+                var root = this.__mainWindow,
+                    host = root.dom_host;
+
+                host.removeChild(this.dom_window);
+
+                if (this.dom_mask)
                 {
-                    var root = this.__mainWindow,
-                        host = root.dom_host;
-
-                    host.removeChild(this.dom_window);
-
-                    if (this.dom_mask)
-                    {
-                        host.removeChild(this.dom_mask);
-                    }
-
-                    this.dispatchEvent(new flyingon.Event("closed", this));
-
-                    this.__parentWindow = this.__mainWindow = root.__activeWindow = null;
-                    parent.active();
+                    host.removeChild(this.dom_mask);
                 }
-            }
 
-            this.dispose();
+                this.dispatchEvent(new flyingon.Event("closed", this));
+
+                this.__parentWindow = this.__mainWindow = root.__activeWindow = null;
+                parent.active();
+            }
         };
 
 
@@ -428,30 +412,6 @@
             return this.header.hitTest(x, y) ? this.header.fintAt(x, y) : base.fintAt.call(this, x, y);
         };
 
-
-
-        //刷新窗口
-        this.update = function (center) {
-
-            var rect = this.__fn_clientRect(this.fill),
-                width = +this.width || (this.width = 640),
-                height = +this.height || (this.height = 480),
-                style = this.dom_window.style;
-
-            if (center)
-            {
-                this.left = (rect.width - width) >> 1;
-                this.top = (rect.height - height) >> 1;
-            }
-
-            style.left = (+this.left || (this.left = 0)) + "px";
-            style.top = (+this.top || (this.top = 0)) + "px";
-
-            style.width = width + "px";
-            style.height = height + "px";
-
-            this.__fn_update_window(width, height);
-        };
 
 
         //测量标题栏并修正客户区
@@ -486,6 +446,19 @@
             }
 
             base.__fn_scrollbar.apply(this, arguments);
+        };
+
+
+
+        this.render = function () {
+
+            var style = this.dom_window.style,
+                fields = this.__style;
+
+            style.left = (fields.left = +this.left || 0) + "px";
+            style.top = (fields.top = +this.top || 0) + "px";
+
+            base.render.call(this);
         };
 
 

@@ -142,7 +142,7 @@
 
         this.__event_bubble_mousemove = function (event) {
 
-            if (event.source === this.slider && event.start_event && event.which === 1) //如果处于鼠标按下状态
+            if (event.source === this.slider && event.mousedown && event.which === 1) //如果处于鼠标按下状态
             {
                 this.__fn_moveTo(event);
             }
@@ -165,14 +165,10 @@
 
         this.__fn_moveTo = function (event) {
 
-            var start = event.start_event,
+            var start = event.mousedown.start || (event.mousedown.start = { x: this.slider.controlX, y: this.slider.controlY }),
                 vertical = this.vertical,
                 maxValue = this.maxValue,
-                value;
-
-            start = start.start || (start.start = { x: this.slider.controlX, y: this.slider.controlY });
-
-            value = vertical ? event.distanceY + start.y : event.distanceX + start.x;
+                value = vertical ? event.distanceY + start.y : event.distanceX + start.x;
 
             if (value <= this.scroll_start)
             {
