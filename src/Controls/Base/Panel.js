@@ -36,7 +36,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         base.__fn_arrange.call(this);
 
         //计算可视控件
-        this.__fn_scrollTo(this.contentX, this.contentY);
+        this.__fn_scrollTo(this.__visible_x, this.__visible_y);
     };
 
 
@@ -62,9 +62,11 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
         {
             //计算可视控件
             var items = this.__visible_items = [],
-                right = x + this.clientWidth,
-                bottom = y + this.clientHeight,
-                cache;
+                right = x + this.controlWidth,
+                bottom = y + this.controlHeight;
+
+            x -= this.clientX;
+            y -= this.clientY;
 
             for (var i = 0; i < length; i++)
             {
@@ -83,6 +85,7 @@ flyingon.defineClass("Panel", flyingon.ScrollableControl, function (Class, base,
             }
         }
     };
+
 
 
     //this.focus = function () {

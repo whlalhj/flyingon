@@ -5,7 +5,7 @@ flyingon.defineClass("ItemCollection", flyingon.Collection, function (Class, bas
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (target) {
 

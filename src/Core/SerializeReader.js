@@ -12,7 +12,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
 
         if (data)
         {
-            if (data.constructor === String)
+            if (typeof data === "string")
             {
                 data = data[0] === "<" ? flyingon.parseXml : this.parse(data);
             }
@@ -47,7 +47,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                 {
                     if (binding = bindings[name])
                     {
-                        if (binding.constructor === String)
+                        if (typeof binding === "string")
                         {
                             binding = new flyingon.DataBinding(context, binding);
                         }
@@ -55,7 +55,7 @@ flyingon.defineClass("SerializeReader", function (Class, base, flyingon) {
                         {
                             if (source = binding.source)
                             {
-                                if (source.constructor === String)
+                                if (typeof source === "string")
                                 {
                                     binding.source = (references && references[source]) || context;
                                 }

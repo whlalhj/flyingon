@@ -120,7 +120,7 @@
 
         registry("line", function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -251,7 +251,7 @@
 
         registry("flow", function (items) {
 
-            (this.vertical ? fn2 : fn1).call(this, items);
+            (this.layoutVertical ? fn2 : fn1).call(this, items);
         });
 
 
@@ -438,7 +438,7 @@
         }
 
         //按顺序排列
-        if (this.vertical)
+        if (this.layoutVertical)
         {
             for (var i = 0, _ = items.length; i < _; i++)
             {
@@ -595,421 +595,410 @@
 
 
     //单元
-    var cell_type = flyingon.function_extend(
+    var cell_type = flyingon.function_extend(function (row) {
 
-        function (row) {
+        (this.parent = row)[row.length++] = this;
 
-            (this.parent = row)[row.length++] = this;
-        },
+    }, function () {
 
-        function () {
 
-            //子表
-            this.subtable = null;
+        //子表
+        this.subtable = null;
 
-            //x坐标
-            this.x = 0;
+        //x坐标
+        this.x = 0;
 
-            //实际宽度
-            this.width = 0;
+        //实际宽度
+        this.width = 0;
 
 
 
-            //表格类型
-            this.__type = "*";
+        //表格类型
+        this.__type = "*";
 
-            //表格值
-            this.__value = 100;
-
-
-            //表格值
-            defineProperty(this, "value");
+        //表格值
+        this.__value = 100;
 
 
-        });
+        //表格值
+        defineProperty(this, "value");
+
+
+    });
 
 
 
     //表格行
-    var row_type = flyingon.function_extend(
+    var row_type = flyingon.function_extend(function (table) {
 
-        function (table) {
+        (this.parent = table)[table.length++] = this;
 
-            (this.parent = table)[table.length++] = this;
-        },
+    }, function () {
 
-        function () {
+        //y坐标
+        this.y = 0;
 
-            //y坐标
-            this.y = 0;
+        //实际高度
+        this.height = 0;
 
-            //实际高度
-            this.height = 0;
-
-            //单元格数
-            this.length = 0;
+        //单元格数
+        this.length = 0;
 
 
-            //表格类型
-            this.__type = "*";
+        //表格类型
+        this.__type = "*";
 
-            //表格值
-            this.__value = 100;
-
-
-            //表格行值
-            defineProperty(this, "value");
+        //表格值
+        this.__value = 100;
 
 
-            //添加单元格
-            this.append = function (value) {
+        //表格行值
+        defineProperty(this, "value");
 
-                var cell = new cell_type(this);
-                cell.value = value;
-                return cell;
-            };
 
-        });
+        //添加单元格
+        this.append = function (value) {
+
+            var cell = new cell_type(this);
+            cell.value = value;
+            return cell;
+        };
+
+    });
 
 
 
     //表
-    flyingon.TableDefine = flyingon.function_extend(
-
-        function () {
-
-        },
-
-        function () {
+    flyingon.TableDefine = flyingon.function_extend(function () {
 
 
-            var round = Math.round,
-                convert = parseFloat,
-                regex_parse = /\d(.\d*)?[*%]?|[*%\[\]()]|table|end/g;
+        var round = Math.round,
+            convert = parseFloat,
+            regex_parse = /\d(.\d*)?[*%]?|[*%\[\]()]|table|end/g;
 
 
-            this.__x = 0;
+        this.__x = 0;
 
-            this.__y = 0;
+        this.__y = 0;
 
-            //行数
-            this.length = 0;
+        //行数
+        this.length = 0;
 
-            //列间距(仅对子表有效)
-            this.spaceX = "100%";
+        //列间距(仅对子表有效)
+        this.spaceX = "100%";
 
-            //行间距(仅对子表有效)
-            this.spaceY = "100%";
+        //行间距(仅对子表有效)
+        this.spaceY = "100%";
 
 
-            //添加表格行
-            this.append = function (value) {
+        //添加表格行
+        this.append = function (value) {
 
+            var row = new row_type(this);
+            row.value = value;
+            return row;
+        };
+
+        //创建均匀表格
+        this.initialize = function (rows, columns) {
+
+            var rows = rows > 0 ? rows : 3,
+                columns = columns > 0 ? columns : 3;
+
+            for (var i = 0; i < rows; i++)
+            {
                 var row = new row_type(this);
-                row.value = value;
-                return row;
-            };
 
-            //创建均匀表格
-            this.initialize = function (rows, columns) {
-
-                var rows = rows > 0 ? rows : 3,
-                    columns = columns > 0 ? columns : 3;
-
-                for (var i = 0; i < rows; i++)
+                for (var j = 0; j < columns; j++)
                 {
-                    var row = new row_type(this);
-
-                    for (var j = 0; j < columns; j++)
-                    {
-                        new cell_type(row);
-                    }
+                    new cell_type(row);
                 }
+            }
 
-                return this;
-            };
+            return this;
+        };
 
-            //解析表格定义
-            this.parse = function (value) {
+        //解析表格定义
+        this.parse = function (value) {
 
-                if (!value)
+            if (!value)
+            {
+                return this.create(3, 3);
+            }
+
+            var type = row_type,
+                row = true,
+                parent = this,
+                item,
+                values = ("" + value).match(regex_parse),
+                token;
+
+            for (var i = 0, _ = values.length; i < _; i++)
+            {
+                switch (token = values[i])
                 {
-                    return this.create(3, 3);
-                }
-
-                var type = row_type,
-                    row = true,
-                    parent = this,
-                    item,
-                    values = ("" + value).match(regex_parse),
-                    token;
-
-                for (var i = 0, _ = values.length; i < _; i++)
-                {
-                    switch (token = values[i])
-                    {
-                        case "[": //开始单元格
-                            if (row)
-                            {
-                                parent = item;
-                                type = cell_type;
-                                row = false;
-                            }
-                            break;
-
-                        case "]": //结束单元格
-                            if (!row)
-                            {
-                                parent = parent.parent || parent;
-                                type = row_type;
-                                row = true;
-                            }
-                            break;
-
-                        case "table": //开始子表 
-                            if (item instanceof cell_type)
-                            {
-                                parent = item.subtable = new flyingon.TableDefine();
-                                parent.parent = item;
-                                type = row_type;
-                                row = true;
-                            }
-                            break;
-
-                        case "end": //结束子表
-                            if (parent.parent instanceof cell_type)
-                            {
-                                parent = parent.parent.parent;
-                                type = cell_type;
-                                row = false;
-                            }
-                            break;
-
-                        case "(": //开始子表间距 以后可扩展成参数
-                            var j = i++;
-                            while (values[j] != ")")  //")" 结束子表间距
-                            {
-                                j++;
-                            }
-
-                            if (parent.parent instanceof cell_type)
-                            {
-                                if (j > i++)
-                                {
-                                    parent.spaceX = +(value = values[i]) || value;
-                                }
-
-                                if (j > i)
-                                {
-                                    parent.spaceY = +(value = values[i]) || value;
-                                }
-                            }
-
-                            i = j;
-                            break;
-
-                        default:
-                            item = new type(parent);
-
-                            switch (token[token.length - 1])
-                            {
-                                case "*":
-                                    item.__value = convert(token) || 100;
-                                    break;
-
-                                case "%":
-                                    item.__type = "%";
-                                    item.__value = convert(token) || 0;
-                                    break;
-
-                                default:
-                                    item.__value = round(+token) || 0;
-                                    break;
-                            }
-                            break;
-                    }
-                }
-
-                return this;
-            };
-
-            //计算
-            this.compute = function (width, height, spaceX, spaceY) {
-
-                var length1 = this.length,
-                    weight1 = 0,
-                    y = this.__y || 0;
-
-                //先计算并减去百分比行及固定高度
-                for (var i = 0; i < length1; i++)
-                {
-                    var row = this[i];
-
-                    switch (row.__type)
-                    {
-                        case "%":
-                            height -= (row.height = round(height * row.__value / 100));
-                            break;
-
-                        case "*":
-                            weight1 += row.__value;
-                            break;
-
-                        default:
-                            height -= (row.height = row.__value);
-                            break;
-                    }
-                }
-
-                //再减去行距
-                if (height > 0 && (height -= (length1 - 1) * spaceY) < 0)
-                {
-                    height = 0;
-                }
-
-                //循环处理行
-                for (var i = 0; i < length1; i++)
-                {
-                    var row = this[i];
-
-                    row.y = y;
-
-                    if (row.__type === "*")
-                    {
-                        height -= (row.height = round(height * row.__value / weight1));
-                        weight1 -= row.__value;
-                    }
-
-                    //处理行格
-                    var length2 = row.length,
-                        weight2 = 0,
-                        width2 = width,
-                        x = this.__x || 0;
-
-                    //先计算并减去百分比行及固定高度
-                    for (var j = 0; j < length2; j++)
-                    {
-                        var cell = row[j];
-
-                        switch (cell.__type)
+                    case "[": //开始单元格
+                        if (row)
                         {
-                            case "%":
-                                width2 -= (cell.width = round(width * cell.__value / 100));
+                            parent = item;
+                            type = cell_type;
+                            row = false;
+                        }
+                        break;
+
+                    case "]": //结束单元格
+                        if (!row)
+                        {
+                            parent = parent.parent || parent;
+                            type = row_type;
+                            row = true;
+                        }
+                        break;
+
+                    case "table": //开始子表 
+                        if (item instanceof cell_type)
+                        {
+                            parent = item.subtable = new flyingon.TableDefine();
+                            parent.parent = item;
+                            type = row_type;
+                            row = true;
+                        }
+                        break;
+
+                    case "end": //结束子表
+                        if (parent.parent instanceof cell_type)
+                        {
+                            parent = parent.parent.parent;
+                            type = cell_type;
+                            row = false;
+                        }
+                        break;
+
+                    case "(": //开始子表间距 以后可扩展成参数
+                        var j = i++;
+                        while (values[j] != ")")  //")" 结束子表间距
+                        {
+                            j++;
+                        }
+
+                        if (parent.parent instanceof cell_type)
+                        {
+                            if (j > i++)
+                            {
+                                parent.spaceX = +(value = values[i]) || value;
+                            }
+
+                            if (j > i)
+                            {
+                                parent.spaceY = +(value = values[i]) || value;
+                            }
+                        }
+
+                        i = j;
+                        break;
+
+                    default:
+                        item = new type(parent);
+
+                        switch (token[token.length - 1])
+                        {
+                            case "*":
+                                item.__value = convert(token) || 100;
                                 break;
 
-                            case "*":
-                                weight2 += cell.__value;
+                            case "%":
+                                item.__type = "%";
+                                item.__value = convert(token) || 0;
                                 break;
 
                             default:
-                                width2 -= (cell.width = cell.__value);
+                                item.__value = round(+token) || 0;
                                 break;
                         }
-                    }
-
-                    //再减去列距
-                    if (width2 > 0 && (width2 -= (length2 - 1) * spaceX) < 0)
-                    {
-                        width2 = 0;
-                    }
-
-                    for (var j = 0; j < length2; j++)
-                    {
-                        var cell = row[j];
-
-                        cell.x = x;
-
-                        if (cell.__type === "*")
-                        {
-                            width2 -= (cell.width = round(width2 * cell.__value / weight2));
-                            weight2 -= cell.__value;
-                        }
-
-                        if (cell.subtable)
-                        {
-                            var table = cell.subtable;
-
-                            table.__x = x;
-                            table.__y = y;
-                            table.compute(cell.width, row.height,
-                                +table.spaceX || round(spaceX * convert(table.spaceX) / 100) || 0,
-                                +table.spaceY || round(spaceY * convert(table.spaceY) / 100) || 0);
-                        }
-
-                        x += cell.width + spaceX;
-                    }
-
-                    y += row.height + spaceY;
+                        break;
                 }
+            }
 
-                return this;
-            };
+            return this;
+        };
 
+        //计算
+        this.compute = function (width, height, spaceX, spaceY) {
 
-            this.serialize = function (writer) {
+            var length1 = this.length,
+                weight1 = 0,
+                y = this.__y || 0;
 
-            };
+            //先计算并减去百分比行及固定高度
+            for (var i = 0; i < length1; i++)
+            {
+                var row = this[i];
 
-            this.deserialize = function (reader, value, excludes) {
-
-
-            };
-
-
-
-            //按顺序自动排列子控件
-            this.arrange = function (items) {
-
-                var cells = template_cells(this),
-                    length = cells.length,
-                    index = 0;
-
-                for (var i = 0, _ = items.length; i < _; i++)
+                switch (row.__type)
                 {
-                    var item = items[i];
+                    case "%":
+                        height -= (row.height = round(height * row.__value / 100));
+                        break;
 
-                    if (item.__visible = index < length && item.visibility !== "collapsed")
-                    {
-                        var cell = cells[index++];
+                    case "*":
+                        weight1 += row.__value;
+                        break;
 
-                        item.measure(cell.width, cell.parent.height, 1, 1);
-                        item.locate(cell.x, cell.parent.y);
-                    }
+                    default:
+                        height -= (row.height = row.__value);
+                        break;
                 }
+            }
 
-                return this;
-            };
+            //再减去行距
+            if (height > 0 && (height -= (length1 - 1) * spaceY) < 0)
+            {
+                height = 0;
+            }
 
+            //循环处理行
+            for (var i = 0; i < length1; i++)
+            {
+                var row = this[i];
 
-            //获取表格模板
-            function template_cells(target, exports) {
+                row.y = y;
 
-                exports = exports || [];
-
-                for (var i = 0, _ = target.length; i < _; i++)
+                if (row.__type === "*")
                 {
-                    var row = target[i];
+                    height -= (row.height = round(height * row.__value / weight1));
+                    weight1 -= row.__value;
+                }
 
-                    for (var j = 0, __ = row.length; j < __; j++)
+                //处理行格
+                var length2 = row.length,
+                    weight2 = 0,
+                    width2 = width,
+                    x = this.__x || 0;
+
+                //先计算并减去百分比行及固定高度
+                for (var j = 0; j < length2; j++)
+                {
+                    var cell = row[j];
+
+                    switch (cell.__type)
                     {
-                        var cell = row[j];
+                        case "%":
+                            width2 -= (cell.width = round(width * cell.__value / 100));
+                            break;
 
-                        if (cell.subtable)
-                        {
-                            template_cells(cell.subtable, exports);
-                        }
-                        else
-                        {
-                            exports.push(cell);
-                        }
+                        case "*":
+                            weight2 += cell.__value;
+                            break;
+
+                        default:
+                            width2 -= (cell.width = cell.__value);
+                            break;
                     }
                 }
 
-                return exports;
-            };
+                //再减去列距
+                if (width2 > 0 && (width2 -= (length2 - 1) * spaceX) < 0)
+                {
+                    width2 = 0;
+                }
+
+                for (var j = 0; j < length2; j++)
+                {
+                    var cell = row[j];
+
+                    cell.x = x;
+
+                    if (cell.__type === "*")
+                    {
+                        width2 -= (cell.width = round(width2 * cell.__value / weight2));
+                        weight2 -= cell.__value;
+                    }
+
+                    if (cell.subtable)
+                    {
+                        var table = cell.subtable;
+
+                        table.__x = x;
+                        table.__y = y;
+                        table.compute(cell.width, row.height,
+                            +table.spaceX || round(spaceX * convert(table.spaceX) / 100) || 0,
+                            +table.spaceY || round(spaceY * convert(table.spaceY) / 100) || 0);
+                    }
+
+                    x += cell.width + spaceX;
+                }
+
+                y += row.height + spaceY;
+            }
+
+            return this;
+        };
 
 
-        });
+        this.serialize = function (writer) {
+
+        };
+
+        this.deserialize = function (reader, value, excludes) {
+
+
+        };
+
+
+
+        //按顺序自动排列子控件
+        this.arrange = function (items) {
+
+            var cells = template_cells(this),
+                length = cells.length,
+                index = 0;
+
+            for (var i = 0, _ = items.length; i < _; i++)
+            {
+                var item = items[i];
+
+                if (item.__visible = index < length && item.visibility !== "collapsed")
+                {
+                    var cell = cells[index++];
+
+                    item.measure(cell.width, cell.parent.height, 1, 1);
+                    item.locate(cell.x, cell.parent.y);
+                }
+            }
+
+            return this;
+        };
+
+
+        //获取表格模板
+        function template_cells(target, exports) {
+
+            exports = exports || [];
+
+            for (var i = 0, _ = target.length; i < _; i++)
+            {
+                var row = target[i];
+
+                for (var j = 0, __ = row.length; j < __; j++)
+                {
+                    var cell = row[j];
+
+                    if (cell.subtable)
+                    {
+                        template_cells(cell.subtable, exports);
+                    }
+                    else
+                    {
+                        exports.push(cell);
+                    }
+                }
+            }
+
+            return exports;
+        };
+
+
+    });
 
 
 })(flyingon);

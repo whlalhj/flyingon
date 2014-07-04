@@ -64,12 +64,10 @@
             
             form.onmousemove = function (event) {
 
-                message.innerHTML = flyingon.__hover_control && flyingon.__hover_control.uniqueId || null;
-
-                //message.innerHTML = "id:" + event.target.uniqueId
-                //    + " canvas:" + event.canvasX + "," + event.canvasY
-                //    + " window:" + event.windowX + "," + event.windowY
-                //    + " control:" + event.controlX + "," + event.controlY;
+                message.innerHTML = "id:" + event.target.uniqueId
+                    + " canvas:" + event.canvasX + "," + event.canvasY
+                    + " window:" + event.windowX + "," + event.windowY
+                    + " control:" + event.controlX + "," + event.controlY;
             };
 
             form.onclick = function (event) {

@@ -33,7 +33,7 @@ flyingon.layer_extender = function (host) {
 
 
     //创建绘画环境
-    this.painter = new flyingon.Painter(this.context = canvas.getContext("2d"));
+    this.context = (this.painter = new flyingon.Painter(canvas)).context;
 
 
     //更新画布
@@ -42,6 +42,7 @@ flyingon.layer_extender = function (host) {
         if (timer)
         {
             clearTimeout(timer);
+            timer = 0;
         }
 
         if (self.__current_dirty) //如果需要更新
@@ -59,22 +60,18 @@ flyingon.layer_extender = function (host) {
     //注册更新
     this.__registry_update = function (update_now) {
 
-        //图层测量过后才可自动更新
-        if (this.__box_style)
+        if (update_now)
         {
-            if (update_now)
+            update();
+        }
+        else
+        {
+            if (timer)
             {
-                update();
+                clearTimeout(timer);
             }
-            else
-            {
-                if (timer)
-                {
-                    clearTimeout(timer);
-                }
 
-                timer = setTimeout(update, 5);
-            }
+            timer = setTimeout(update, 5);
         }
     };
 
@@ -102,7 +99,7 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function (host) {
 
@@ -115,6 +112,8 @@ flyingon.defineClass("Layer", flyingon.Panel, function (Class, base, flyingon) {
     //修改透明度属性
     this.defineProperty("opacity", 1, {
 
+        minValue: 0,
+        maxValue: 1,
         complete: "this.dom_layer.style.opacity = value;"
     });
 

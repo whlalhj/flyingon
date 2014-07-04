@@ -6,7 +6,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
-    Class.combine_create = true;
+    Class.create_mode = "merge";
 
     Class.create = function () {
 
@@ -48,19 +48,17 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (value !== oldValue)
             {
-                if (oldValue)
-                {
-                    oldValue.__children.remove(this);
-                }
-
                 if (value)
                 {
-                    value.__children.append(this);
+                    value.children.append(this);
+                }
+                else
+                {
+                    oldValue.children.remove(this);
                 }
             }
-
-            return this;
         }
+
     });
 
 
@@ -70,9 +68,11 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         this.__parent = parent;
         this.__events_cache = null; //清空缓存的事件
+        this.__fn_reset_font();     //清空缓存的字体
         this.__fn_reset_style();    //重置样式
 
         this.dispatchEvent(new flyingon.PropertyChangeEvent(this, "parent", parent, this.__parent));
+        parent.invalidate(true);
     };
 
 
@@ -101,6 +101,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         if (parent)
         {
             parent.__children.remove(this);
+            parent.invalidate(true);
         }
 
         return this;
@@ -132,6 +133,35 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+    //复制生成新控件
+    this.copy = function () {
+
+        var result = base.copy.call(this),
+            style1 = result.__style,
+            style2 = this.__style,
+            items = this.__children,
+            length;
+
+        for (var name in style2)
+        {
+            style1[name] = style2[name];
+        }
+
+        if (items && (length = items.length) > 0)
+        {
+            var children = result.children;
+
+            for (var i = 0; i < length; i++)
+            {
+                children.append(items[i].copy());
+            }
+        }
+
+        return result;
+    };
+
+
+
 
     //class state
     (function (flyingon) {
@@ -144,7 +174,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.defineProperty("id", "", {
 
             attributes: "layout",
-            changed: "this.__fn_reset_style();"    //重置样式
+            change: "this.__fn_reset_style();"    //重置样式
         });
 
 
@@ -283,17 +313,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.stateTo = function (name, value) {
 
             //保存状态值
-            (this.__states || (this.__states = Object.create(null)))[name] = value;
+            var states = this.__states || (this.__states = Object.create(null));
 
-            //清空缓存样式表
-            this.__style_version = 0;
-            this.__style_types = null;
+            if (states[name] !== value)
+            {
+                states[name] = value;
 
-            //状态变更事件
-            this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+                //重置样式
+                this.__style_version = 0;
+                this.__style_types = null;
 
-            //样式变更可能需要重新布局
-            (this.__parent || this).invalidate(true);
+                //状态变更事件
+                this.dispatchEvent(new flyingon.ChangeEvent("statechange", this, name, value));
+
+                //样式变更可能需要重新布局
+                (this.__parent || this).invalidate(true);
+            }
         };
 
 
@@ -479,6 +514,16 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
+        //创建多个相同性质的样式
+        function styles(template, names, defaultValue, inherit, attributes) {
+
+            for (var i = 0, _ = names.length; i < _; i++)
+            {
+                style(template.replace("?", names[i]), defaultValue, inherit, attributes);
+            }
+        };
+
+
         //创建样式
         function style(name, defaultValue, inherit, attributes) {
 
@@ -517,7 +562,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                     + (typeof defaultValue === "string" ? "\"" + defaultValue + "\"" : defaultValue)
                     + ";",
 
-                setter = self.__define_setter(name, defaultValue, attributes, "var fields = this.__style, cache;\n\n");
+                setter = self.__define_setter(name, defaultValue, attributes, "__style");
 
             flyingon.defineProperty(self, name, new Function(getter), setter);
 
@@ -531,16 +576,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         };
 
 
-        //创建多个相同性质的样式
-        function styles(template, names, defaultValue, inherit, attributes) {
 
-            for (var i = 0, _ = names.length; i < _; i++)
-            {
-                style(template.replace("?", names[i]), defaultValue, inherit, attributes);
-            }
-        };
+        //设置默认宽度
+        this.defaultValue("width", 100);
 
-
+        //设置默认高度
+        this.defaultValue("height", 21);
 
 
         //控件宽度及高度
@@ -576,20 +617,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //控件阅读方向
         //ltr	    从左到右 
         //rtl	    从右到左 
-        style("direction", "ltr", true, {
+        style("direction", "ltr", true, "rearrange");
 
-            attributes: "rearrange",
-            changed: "if (this.__text) this.__text.rows = null;"
-        });
-
-        //是否竖排布局(非html css属性)(此属性值变更会影响字体重新测量)
-        //true      竖排
-        //false     横排
-        style("vertical", false, false, {
-
-            attributes: "rearrange",
-            changed: "if (this.__text) this.__text.lines = null;"
-        });
 
 
         //控件停靠方式(此值仅在所属布局类型为停靠布局(dock)时有效)(非html css属性)
@@ -635,6 +664,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //absolute:     绝对定位(不支持竖排)
         //...:          其它自定义布局
         style("layout-type", "flow", false, "rearrange");
+
+        //是否竖排布局(非html css属性)(此属性值变更会影响字体重新测量)
+        //true      竖排
+        //false     横排
+        style("layout-vertical", false, false, {
+
+            attributes: "rearrange",
+            change: "if (this.__text_lines) this.__text_lines = null;"
+        });
 
         //布局时行与行之间的间隔(非html css属性)
         //number	整数值 
@@ -1042,29 +1080,36 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
         //重置自身及子控件的字体
-        this.__fn_reset_font = function (name) {
+        this.__fn_reset_font = function () {
 
-            var cache = this.__text;
+            this.__css_font = null;
+            this.__text_lines = null;
 
-            if (cache)
+            var items = this.__children,
+                length;
+
+            if (items && (length = items.length) > 0)
             {
-                cache[name] = null;
-            }
-
-            if (cache = this.__children)
-            {
-                for (var i = 0, _ = cache.length; i < _; i++)
+                for (var i = 0; i < length; i++)
                 {
-                    cache[i].__fn_reset_font(name);
+                    items[i].__fn_reset_font();
                 }
             }
         };
 
-        //字体发生变化时需重置自身及子控件的字体缓存
-        var attributes = {
+        //获取字体css样式
+        this.__fn_css_font = function () {
 
-            changed: "this.__fn_reset_font(\"lines\");"
+            return this.__css_font = [
+
+                this.fontStyle,
+                this.fontVariant,
+                this.fontWeight, (this.__font_size = this.fontSize) + "px/" + (this.__line_height = this.lineHeight) + "px",
+                this.fontFamily
+
+            ].join(" ");
         };
+
 
 
         //控件字体简写方式(必须按照 style -> variant -> weight -> size -> line-height -> family 的顺序编写 可省略某些属性)
@@ -1072,7 +1117,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             function () {
 
-                return [this.fontStyle, this.fontVariant, this.fontWeight, this.fontSize + "px", this.fontFamily].join(" ");
+                return this.__css_font || this.__fn_css_font();
             },
 
             (function () {
@@ -1107,12 +1152,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //normal	浏览器显示一个标准的字体样式 
         //italic	浏览器会显示一个斜体的字体样式 
         //oblique	浏览器会显示一个倾斜的字体样式 
-        style("font-style", "normal", true, attributes);
+        style("font-style", "normal", true, {
+
+            change: "this.__fn_reset_font();"
+        });
 
         //控件字体变体
         //normal	    浏览器会显示一个标准的字体 
         //small-caps	浏览器会显示小型大写字母的字体 
-        style("font-variant", "normal", true, attributes);
+        style("font-variant", "normal", true, "previous-attributes");
 
         //控件字体粗细
         //normal	定义标准的字符 
@@ -1120,45 +1168,37 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //bolder	定义更粗的字符 
         //lighter	定义更细的字符 
         //100-900   定义由粗到细的字符 400 等同于 normal, 而 700 等同于 bold 
-        style("font-weight", "normal", true, attributes);
+        style("font-weight", "normal", true, "previous-attributes");
 
         //控件字体大小
         //number	整数值
-        style("font-size", 12, true, attributes);
+        style("font-size", 12, true, "previous-attributes");
+
+        //控件文字行高
+        //number	整数值
+        style("line-height", 12, true, "previous-attributes");
 
         //控件字体族 family-name generic-family  用于某个元素的字体族名称或/及类族名称的一个优先表
-        style("font-family", "arial,宋体,sans-serif", true, attributes);
+        style("font-family", "arial,宋体,sans-serif", true, "previous-attributes");
 
 
 
         //控件文字词间距(以空格为准)(与css有差异,此处不支持继承)
         //number	整数值 
-        style("word-spacing", 0, true, attributes);
+        style("word-spacing", 0, true, "previous-attributes");
 
         //控件文字字间距(与css有差异,此处不支持继承)
         //number	整数值 
-        style("letter-spacing", 0, true, attributes);
-
-
-        attributes = {
-
-            changed: "this.__fn_reset_font(\"rows\");"
-        };
-
-
-        //控件文字行高
-        //number	整数值 
-        style("line-height", 12, true, attributes);
-
+        style("letter-spacing", 0, true, "previous-attributes");
 
         //控件文字缩进(与css有差异,此处不支持继承)
         //number	整数值 
-        style("text-indent", 0, true, attributes);
+        style("text-indent", 0, true, "previous-attributes");
 
         //控件文字换行方式(非html css属性)
         //false	    不换行
         //true	    自动换行
-        style("text-wrap", false, true, attributes);
+        style("text-wrap", false, true, "previous-attributes");
 
         //控件文字装饰
         //none	        默认 定义标准的文本 
@@ -1199,7 +1239,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 if (value)
                 {
-                    if (value.constructor === String)
+                    if (typeof value === "string")
                     {
                         var values = value.replace(convert_name_regex, function (_, x) {
 
@@ -1913,9 +1953,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.clientWidth = 0;
         this.clientHeight = 0;
 
-        //内容区(实际内容大小及开始渲染位置)
-        this.contentX = 0;
-        this.contentY = 0;
+        //内容区大小(实际内容大小及开始渲染位置)
         this.contentWidth = 0;
         this.contentHeight = 0;
 
@@ -1929,17 +1967,22 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         }, this);
 
 
+        //可视区起始坐标
+        this.__visible_x = 0;
+        this.__visible_y = 0;
+
+
         //是否需要重新布局
         this.__arrange_dirty = true;
 
         //是否需要重绘
         this.__current_dirty = false;
 
+        //附加项是否需要更新
+        this.__additions_dirty = false;
+
         //子控件是否需要重绘
         this.__children_dirty = false;
-
-        //父控件是否需要重绘
-        this.__update_parent = false;
 
 
 
@@ -2165,7 +2208,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //处理自动宽高
             if (auto_width || auto_height)
             {
-                this.__fn_measure_auto(auto_width ? width : 0, auto_height ? height : 0);
+                //立即执行排列方法
+                this.__fn_arrange();
 
                 //重计算宽度
                 if (width !== (cache = this.contentWidth))
@@ -2215,14 +2259,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             return { width: this.controlWidth + box.margin_spaceX, height: this.controlHeight + box.margin_spaceY };
         };
 
-
-        //测量自动宽高
-        //maxWidth:     最大可用宽度 0表示无限大
-        //maxHeight:    最大可用高度 0表示无限大
-        this.__fn_measure_auto = function (maxWidth, maxHeight) {
-
-            this.__fn_arrange();
-        };
 
 
         //设置控件位置(需先调用measure才可调用此方法)
@@ -2277,43 +2313,43 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //排列子控件
         this.__fn_arrange = function () {
 
-            var box = this.__box_style,
-                rtl = this.direction === "rtl",
-                cache = false;
-
             //初始化内容区
             this.contentWidth = this.clientWidth;
             this.contentHeight = this.clientHeight;
 
-            //排列 overflow === "auto" 时先按没有滚动条的方式排列
+            //排列
             this.arrange();
 
             //执行rtl变换
-            if (rtl && this.__children)
+            if (this.__children && this.direction === "rtl")
             {
                 this.__fn_arrange_rtl(this.__children);
-            }
-
-            //如果有字体则清空字体排列缓存
-            if (this.__text)
-            {
-                this.__text.rows = null;
             }
 
             this.__arrange_dirty = false;
         };
 
 
+
+        //缓存单行布局服务
+        var layout_line = flyingon.layouts["line"];
+
         //排列
         this.arrange = function () {
 
+            var items = this.__visible_items;
+
+            if (items && items.length > 0)
+            {
+                layout_line.call(this, items);
+            }
         };
 
 
         //rtl排列变换
         this.__fn_arrange_rtl = function (items) {
 
-            if (this.vertical)
+            if (this.layoutVertical)
             {
                 this.__fn_arrange_x(items);
             }
@@ -2402,14 +2438,14 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //滚动指定距离
         this.scrollBy = function (x, y) {
 
-            this.scrollTo(this.contentX + x, this.contentY + y);
+            this.scrollTo(this.__visible_x + x, this.__visible_y + y);
         };
 
         //滚动到指定坐标
         this.scrollTo = function (x, y) {
 
-            this.contentX = x || 0;
-            this.contentY = y || 0;
+            this.__visible_x = x || 0;
+            this.__visible_y = y || 0;
 
             this.invalidate(false, true);
         };
@@ -2440,8 +2476,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
             if (items && items.length > 0)
             {
-                x += this.contentX - this.clientX;
-                y += this.contentY - this.clientY;
+                x += this.__visible_x - this.clientX;
+                y += this.__visible_y - this.clientY;
 
                 //if (this.transform)
                 //{
@@ -2522,8 +2558,8 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 if (!target.__additions)
                 {
-                    x += parent.contentX;
-                    y += parent.contentY;
+                    x += parent.__visible_x;
+                    y += parent.__visible_y;
                 }
 
                 target = parent;
@@ -2608,6 +2644,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
 
 
+
         //值变更事件
         this.defineEvent("change");
 
@@ -2622,6 +2659,35 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
         //定义其它事件
         this.defineEvents(["focus", "blur", "validate"]);
+
+
+
+
+        //当前控件是否可作为事件目标
+        this.__event_target = true;
+
+
+        //获取事件目标
+        this.__fn_event_target = function () {
+
+            var target = this,
+                parent = this;
+
+            while (parent)
+            {
+                if (parent.__event_target)
+                {
+                    parent = parent.__parent;
+                }
+                else
+                {
+                    parent = parent.__parent;
+                    target = parent || this.ownerWindow;
+                }
+            }
+
+            return target;
+        };
 
 
 
@@ -2642,7 +2708,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //是否可用
         this.defineProperty("enabled", true, {
 
-            changed: "this.stateTo('disabled', !value);"
+            change: "this.stateTo('disabled', !value);"
         });
 
 
@@ -2746,7 +2812,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         this.defineProperty("template", null, {
 
             attributes: "rearrange",
-            changed: "this.clearTemplate();",
+            change: "this.clearTemplate();",
 
             getter: function () {
 
@@ -2804,13 +2870,23 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //捕获鼠标
         this.setCapture = function () {
 
-            flyingon.__capture_control = this;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(this);
+            }
         };
 
         //释放鼠标
         this.releaseCapture = function () {
 
-            flyingon.__capture_control = null;
+            var ownerWindow = this.__ownerWindow || this.ownerWindow;
+
+            if (ownerWindow)
+            {
+                ownerWindow.__fn_capture_control(null);
+            }
         };
 
 
@@ -2818,7 +2894,7 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //执行验证
         this.validate = function () {
 
-            return this.dispatchEvent(new Event("validate", this), true);
+            return this.dispatchEvent(new Event("validate", this));
         };
 
         this.__fn_focus = function (event) {
@@ -2844,16 +2920,12 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 {
                     ownerWindow.__focused_control = this;
 
-                    if (this.dispatchEvent(new Event("focus", this), true))
+                    if (this.dispatchEvent(new Event("focus", this)) !== false)
                     {
                         this.stateTo("focus", true);
                     }
                 }
-
-                return true;
             }
-
-            return false;
         };
 
         //此控件失去焦点
@@ -2865,15 +2937,11 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             {
                 ownerWindow.__focused_control = null;
 
-                if (this.dispatchEvent(new Event("blur", this), true))
+                if (this.dispatchEvent(new Event("blur", this)) !== false)
                 {
                     this.stateTo("focus", false);
                 }
-
-                return true;
             }
-
-            return false;
         };
 
 
@@ -2962,35 +3030,33 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //update_now    是否立即更新
         this.invalidate = function (rearrange, update_now) {
 
-            var layer = this.__ownerLayer || this.ownerLayer;
+            if (rearrange)
+            {
+                this.__arrange_dirty = true;
+            }
 
-            if (layer)
+            if (!this.__current_dirty)
             {
                 var target = this,
                     parent;
 
-                if (rearrange)
-                {
-                    target.__arrange_dirty = true;
-                }
+                this.__current_dirty = true;
 
-                target.__current_dirty = true;
-
-                while (target !== layer && (parent = target.__parent))
+                while (parent = target.__parent)
                 {
-                    if (target.__update_parent)
+                    if (target.__additions) //附加类控件需要注册父控件附加项更新
                     {
-                        parent.__current_dirty = true;
-                    }
-                    else
-                    {
-                        parent.__children_dirty = true;
+                        parent.__additions_dirty = true;
                     }
 
+                    parent.__children_dirty = true;
                     target = parent;
                 }
 
-                layer.__registry_update(update_now);
+                if (target = this.__ownerLayer || this.ownerLayer)
+                {
+                    target.__registry_update(update_now);
+                }
             }
         };
 
@@ -3220,29 +3286,108 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
                 context = painter.context,
                 cache;
 
-            //重新排列
-            if (this.__arrange_dirty)
+            //需先测量才可渲染
+            if (box)
             {
-                this.__fn_arrange();
+                //重新排列
+                if (this.__arrange_dirty)
+                {
+                    this.__fn_arrange();
+                }
+
+                //保存渲染环境
+                context.save();
+
+                //设置目标控件
+                painter.target = this;
+
+                //设置透明度
+                context.globalAlpha = this.opacity;
+
+                //切换原点到当前控件左上角
+                context.translate(this.controlX, this.controlY);
+
+                //清除原有内容
+                if (clear !== false)
+                {
+                    context.clearRect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                //变换
+                //if (this.transform)
+                //{
+                //    context.transform.apply(context, this.transform.data);
+                //}
+
+                //设置画布剪切区
+                context.beginPath();
+
+                if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
+                {
+                    border_path(context, box.border_clip);
+                }
+                else
+                {
+                    context.rect(0, 0, this.controlWidth, this.controlHeight);
+                }
+
+                context.save();
+                context.clip();
+
+                //绘制背景
+                this.paint_background(painter);
+
+                //绘制内容
+                this.paint(painter);
+
+                //渲染子项
+                if ((cache = this.__visible_items) && cache.length > 0)
+                {
+                    //切换起点到当前控件客户区左上角并进行滚动偏移
+                    context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
+
+                    //循环渲染子项
+                    for (var i = 0, _ = cache.length; i < _; i++)
+                    {
+                        cache[i].render(painter, false);
+                    }
+                }
+
+                //回滚至剪切区域
+                context.restore();
+
+                //绘制附加项
+                if (this.paint_additions)
+                {
+                    this.paint_additions(painter);
+                    this.__additions_dirty = false;
+                }
+
+                //绘制边框
+                this.paint_border(painter);
+
+                //修改状态
+                this.__current_dirty = false;
+
+                //回滚到绘制本控件前的状态
+                context.restore();
             }
+        };
 
-            //保存渲染环境
+
+     
+        //更新控件
+        this.__fn_update = function (painter) {
+
+            var box = this.__box_style,
+                context = painter.context,
+                items = this.__visible_items,
+                length;
+
             context.save();
-
-            //设置目标控件
-            painter.target = this;
-
-            //设置透明度
-            this.__update_parent = (context.globalAlpha = this.opacity) < 1;
 
             //切换原点到当前控件左上角
             context.translate(this.controlX, this.controlY);
-
-            //清除原有内容
-            if (clear !== false)
-            {
-                context.clearRect(0, 0, this.controlWidth, this.controlHeight);
-            }
 
             //变换
             //if (this.transform)
@@ -3250,79 +3395,15 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             //    context.transform.apply(context, this.transform.data);
             //}
 
-            //裁剪防止内容超出边框区范围
-            context.beginPath();
+            //圆角边框且超出父控件内部范围需特殊处理
 
-            if (box.border_width > 0 && (box.border_clip || initialize_border(this, box)) !== true)
-            {
-                border_path(context, box.border_clip);
-            }
-            else
-            {
-                context.rect(0, 0, this.controlWidth, this.controlHeight);
-            }
-
-            context.save();
-            context.clip();
-
-            //绘制背景
-            this.paint_background(painter);
-
-            //绘制内容
-            this.paint(painter);
-
-            //渲染子项
-            if ((cache = this.__visible_items) && cache.length > 0)
-            {
-                //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.clientX - this.contentX, this.clientY - this.contentY);
-
-                for (var i = 0, _ = cache.length; i < _; i++)
-                {
-                    cache[i].render(painter, false);
-                }
-            }
-
-            //回滚至剪切区域
-            context.restore();
-
-            //绘制附加项
-            if (this.paint_additions)
-            {
-                this.paint_additions(painter);
-            }
-
-            //绘制边框
-            this.paint_border(painter);
-
-            //修改状态
-            this.__current_dirty = false;
-
-            //回滚到绘制本控件前的状态
-            context.restore();
-        };
-
-
-        //更新控件
-        this.__fn_update = function (painter, visible_items) {
-
-            var items = visible_items || this.__visible_items,
-                length;
 
             if (items && (length = items.length) > 0)
             {
-                var context = painter.context;
-
                 context.save();
 
                 //切换起点到当前控件客户区左上角并进行滚动偏移
-                context.translate(this.controlX + this.clientX - this.contentX, this.controlY + this.clientY - this.contentY);
-
-                //处理变换
-                //if (this.transform)
-                //{
-                //    context.transform.apply(context, this.transform.data);
-                //}
+                context.translate(this.clientX - this.__visible_x, this.clientY - this.__visible_y);
 
                 for (var i = 0; i < length; i++)
                 {
@@ -3341,8 +3422,78 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
 
                 context.restore();
             }
+
+            //如果附加项需要更新
+            if (this.__additions_dirty)
+            {
+                this.paint_additions(painter);
+                this.__additions_dirty = false;
+            }
+
+            context.restore();
         };
 
+
+        //绘制当前控件至指定图层
+        this.paint_to_layer = function (layer) {
+
+            var ownerLayer = this.__ownerLayer || this.ownerLayer,
+                painter = layer.painter;
+
+            if (ownerLayer !== this && this.__parent)
+            {
+                var context = painter.context,
+                    items = [],
+                    item = this;
+
+                while (item = item.__parent)
+                {
+                    items.push(item);
+                }
+
+                context.save();
+
+                //循环计算渲染偏移
+                for (var i = items.length - 1; i >= 0; i--)
+                {
+                    item = items[i];
+
+                    //切换原点到当前控件左上角
+                    context.translate(item.controlX, item.controlY);
+
+                    //变换
+                    //if (item.transform)
+                    //{
+                    //    context.transform.apply(context, item.transform.data);
+                    //}
+
+                    //切换起点到当前控件客户区左上角并进行滚动偏移
+                    context.translate(item.clientX - item.__visible_x, item.clientY - item.__visible_y);
+                }
+
+                //绘制
+                this.render(painter);
+
+                context.restore();
+            }
+            else
+            {
+                ownerLayer.render(painter);
+            }
+        };
+
+
+        //获取当前控件的图像数据
+        this.getImageData = function (x, y, width, height) {
+
+            var ownerLayer = this.__ownerLayer || this.ownerLayer,
+                point1 = this.control_to_canvas(0, 0),
+                point2 = this.control_to_canvas(this.controlWidth, this.controlHeight),
+                width = point2.x - point1.x,
+                height = point2.y - point1.y;
+
+            return ownerLayer.painter.context.getImageData(point1.x, point1.y, width, height);
+        };
 
 
         ////绘制装饰
@@ -3400,16 +3551,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
         //绘制内框
         this.paint = function (painter) {
 
-            var width = this.controlWidth,
-                height = this.controlHeight,
-                context = painter.context;
-
-            var text = this.uniqueId + ":" + this.controlX + "," + this.controlY + "," + width + "," + height;
-
-            context.fillStyle = "black";
-            context.textBaseline = "top";
-            context.font = this.font;
-            context.fillText(text, this.clientX, this.clientY);
         };
 
 
@@ -3467,51 +3608,6 @@ flyingon.defineClass("Control", flyingon.SerializableObject, function (Class, ba
             }
         };
 
-
-
-        //获取当前控件的图像数据
-        this.getImageData = function (x, y, width, height) {
-
-            var ownerLayer = this.__ownerLayer || this.ownerLayer,
-                point1 = this.control_to_canvas(0, 0),
-                point2 = this.control_to_canvas(this.controlWidth, this.controlHeight),
-                width = point2.x - point1.x,
-                height = point2.y - point1.y;
-
-            return ownerLayer.painter.context.getImageData(point1.x, point1.y, width, height);
-        };
-
-        //绘制当前控件至指定图层
-        this.paint_to_layer = function (layer) {
-
-            var ownerLayer = this.__ownerLayer || this.ownerLayer,
-                parent;
-
-            if (ownerLayer !== this && (parent = this.__parent))
-            {
-                var painter = layer.painter,
-                    items = [this, parent];
-
-                //循环设置父控件渲染属性
-                while (parent !== ownerLayer && (parent = parent.__parent))
-                {
-                    items.push(parent);
-                }
-
-                //标记绘制
-                this.__current_dirty = true;
-
-                //更新
-                for (var i = items.length - 1; i > 0; i--)
-                {
-                    items[i].__fn_update(painter, [items[i - 1]]);
-                }
-            }
-            else
-            {
-                ownerLayer.render(layer.painter);
-            }
-        };
 
 
 

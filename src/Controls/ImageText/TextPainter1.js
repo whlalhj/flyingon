@@ -10,7 +10,7 @@
         var attributes = {
 
             attributes: "invalidate",
-            changed: "this.__text = null;"
+            change: "this.__text = null;"
         };
 
 
@@ -59,14 +59,14 @@
         this.defineProperty("textWrap", false, false, "this.__rows.clear();\n");
 
 
-        attributes.changed = "this.__font = new flyingon.Font(value);" + attributes.changed;
+        attributes.change = "this.__font = new flyingon.Font(value);" + attributes.change;
 
         //字体
         this.defineProperty("font", Font.__default.__value, attributes);
 
 
         attributes.attributes = "invalidate|style";
-        attributes.changed = "(this.__font || (this.__font = new flyingon.Font()))[name.substring(4).toLocaleLowerCase()] = value;\nthis.__text = null;";
+        attributes.change = "(this.__font || (this.__font = new flyingon.Font()))[name.substring(4).toLocaleLowerCase()] = value;\nthis.__text = null;";
 
         //字体样式
         this.defineProperty("fontStyle", "normal", attributes);
@@ -102,8 +102,8 @@
         attributes = {
 
             attributes: "invalidate",
-            changing: "if ((value = +value) < 0) value = 0;\nelse if (value >= fields.text.length) value = fields.text.length - 1;",
-            changed: ""
+            check: "if ((value = +value) < 0) value = 0;\nelse if (value >= fields.text.length) value = fields.text.length - 1;",
+            change: ""
         };
 
         //开始选中位置
@@ -169,7 +169,7 @@
             color: "white" //选中文字颜色
         },
 
-        defineProperty = function (name, defaultValue, measure, changed) {
+        defineProperty = function (name, defaultValue, measure, change) {
 
             prototype["__" + name] = defaultValue;
 
@@ -183,7 +183,7 @@
                     + "{\n"
                     + "this.__" + name + " = value;\n"
                     + (measure ? "this.__lines = null;\nthis.__rows.clear();\n" : "")
-                    + (changed || "")
+                    + (change || "")
                     + "this.__dirty = true;\n"
                     + "}"));
         };
@@ -300,7 +300,7 @@
 
         function (value) {
 
-            if (value && value.constructor === Number)
+            if (value && typeof value === "number")
             {
                 var value = this.__selectionEnd = this.__selectionStart + value;
 

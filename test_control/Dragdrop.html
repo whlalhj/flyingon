@@ -33,40 +33,43 @@
         var w = new flyingon.Window(host);
 
 
-
         var p1 = new flyingon.Panel();
 
-        p1.width = 400;
-        p1.height = 400;
-        p1.backgroundColor = "linear(0, 0, 1, 1, 0, red, 0.5, green, 1, blue)";
+        p1.padding = 10;
+        p1.border = "4 solid red";
         p1.draggable = true;
-        p1.onmousedown = function (e) {
-            alert("mousedown");
-        };
 
-        p1.ondragstart = function (e) {
+        for (var i = 0; i < 10; i++)
+        {
+            var ctrl = new flyingon.Button();
 
+            ctrl.margin = 2;
+            ctrl.borderWidth = 1;
+            ctrl.borderColor = "red";
+            ctrl.padding = 2;
+            ctrl.draggable = true;
+            ctrl.text = i;
 
-        };
+            p1.children.append(ctrl);
+        }
+
 
         var p2 = new flyingon.Panel();
 
-        p2.width = 400;
-        p2.height = 400;
-        p2.backgroundColor = "linear(0, 0, 1, 1, 0, red, 1, white)";
-        p2.ondrop = function (e) {
+        p2.marginLeft = 10;
+        p2.padding = 10;
+        p2.border = "4 solid red";
 
-            var c = e;
-        };
-
-        var splitter = new flyingon.Splitter();
-
-        splitter.width = 5;
-
-        w.children.appendRange(p1, splitter, p2);
-
-        w.layoutType = "dock";
+        w.padding = 10;
+        w.children.appendRange(p1, p2);
         w.update();
+
+
+
+        w.ondrop = function (event) {
+
+            event.drop(true);
+        };
 
 
 
